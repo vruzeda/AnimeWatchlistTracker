@@ -26,10 +26,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.vuzeda.animewatchlist.tracker.designsystem.R
 import com.vuzeda.animewatchlist.tracker.designsystem.theme.AnimeWatchlistTrackerTheme
 import com.vuzeda.animewatchlist.tracker.designsystem.theme.StatusPlanToWatch
 import com.vuzeda.animewatchlist.tracker.designsystem.theme.StatusWatching
@@ -83,7 +85,7 @@ fun AnimeCard(
                 if (score != null) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "★ $score",
+                        text = stringResource(R.string.score_format, score.toString()),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

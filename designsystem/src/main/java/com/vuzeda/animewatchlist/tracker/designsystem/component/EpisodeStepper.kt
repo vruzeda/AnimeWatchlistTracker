@@ -9,8 +9,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.vuzeda.animewatchlist.tracker.designsystem.R
 import com.vuzeda.animewatchlist.tracker.designsystem.theme.AnimeWatchlistTrackerTheme
 
 @Composable
@@ -26,13 +28,13 @@ fun EpisodeStepper(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         OutlinedButton(onClick = { onEpisodeChanged(currentEpisode - 1) }) {
-            Text("−")
+            Text(stringResource(R.string.episode_stepper_decrement))
         }
 
         val episodeText = if (totalEpisodes != null) {
-            "$currentEpisode / $totalEpisodes"
+            stringResource(R.string.episode_stepper_with_total, currentEpisode, totalEpisodes)
         } else {
-            "$currentEpisode"
+            stringResource(R.string.episode_stepper_without_total, currentEpisode)
         }
         Text(
             text = episodeText,
@@ -40,7 +42,7 @@ fun EpisodeStepper(
         )
 
         OutlinedButton(onClick = { onEpisodeChanged(currentEpisode + 1) }) {
-            Text("+")
+            Text(stringResource(R.string.episode_stepper_increment))
         }
     }
 }

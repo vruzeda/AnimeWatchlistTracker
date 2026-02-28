@@ -17,9 +17,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.vuzeda.animewatchlist.tracker.designsystem.R
 import com.vuzeda.animewatchlist.tracker.designsystem.theme.AnimeWatchlistTrackerTheme
 import com.vuzeda.animewatchlist.tracker.designsystem.theme.RatingEmpty
 import com.vuzeda.animewatchlist.tracker.designsystem.theme.RatingGold
@@ -63,7 +65,7 @@ fun RatingBar(
             val isFilled = index <= rating
             Icon(
                 imageVector = if (isFilled) Icons.Filled.Star else Icons.Outlined.Star,
-                contentDescription = "Star $index of $maxRating",
+                contentDescription = stringResource(R.string.cd_star, index, maxRating),
                 modifier = Modifier.size(starSize),
                 tint = if (isFilled) RatingGold else RatingEmpty
             )

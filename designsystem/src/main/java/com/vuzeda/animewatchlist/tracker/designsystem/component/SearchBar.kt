@@ -14,16 +14,18 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.vuzeda.animewatchlist.tracker.designsystem.R
 import com.vuzeda.animewatchlist.tracker.designsystem.theme.AnimeWatchlistTrackerTheme
 
 @Composable
 fun AnimeSearchBar(
     modifier: Modifier = Modifier,
     query: String,
-    placeholder: String = "Search anime...",
+    placeholder: String = stringResource(R.string.search_placeholder),
     onQueryChanged: (String) -> Unit,
     onSearch: () -> Unit
 ) {
@@ -40,7 +42,7 @@ fun AnimeSearchBar(
         leadingIcon = {
             Icon(
                 imageVector = Icons.Default.Search,
-                contentDescription = "Search"
+                contentDescription = stringResource(R.string.cd_search)
             )
         },
         trailingIcon = {
@@ -48,7 +50,7 @@ fun AnimeSearchBar(
                 IconButton(onClick = { onQueryChanged("") }) {
                     Icon(
                         imageVector = Icons.Default.Clear,
-                        contentDescription = "Clear"
+                        contentDescription = stringResource(R.string.cd_clear)
                     )
                 }
             }

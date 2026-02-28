@@ -1,19 +1,21 @@
 package com.vuzeda.animewatchlist.tracker.ui.screens.search
 
+import androidx.annotation.StringRes
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
+import com.vuzeda.animewatchlist.tracker.ui.R
 
-enum class SearchSortOption(val displayLabel: String, val defaultAscending: Boolean) {
-    ALPHABETICAL("Alphabetical", true),
-    RECENTLY_ADDED("Recently Added", false),
-    DEFAULT("Relevance", true),
-    SCORE("Score", false)
+enum class SearchSortOption(@StringRes val displayLabelRes: Int, val defaultAscending: Boolean) {
+    ALPHABETICAL(R.string.sort_alphabetical, true),
+    RECENTLY_ADDED(R.string.sort_recently_added, false),
+    DEFAULT(R.string.sort_relevance, true),
+    SCORE(R.string.sort_score, false)
 }
 
-enum class SearchFilter(val displayLabel: String) {
-    ALL("All"),
-    NOT_ADDED("Not Added"),
-    ALREADY_ADDED("Already Added")
+enum class SearchFilter(@StringRes val displayLabelRes: Int) {
+    ALL(R.string.filter_all),
+    NOT_ADDED(R.string.filter_not_added),
+    ALREADY_ADDED(R.string.filter_already_added)
 }
 
 data class WatchlistEntry(

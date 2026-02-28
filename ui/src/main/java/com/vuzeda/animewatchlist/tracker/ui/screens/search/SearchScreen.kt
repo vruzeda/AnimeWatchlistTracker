@@ -34,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -46,8 +47,9 @@ import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusOption
 import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusSelectionSheet
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
+import com.vuzeda.animewatchlist.tracker.ui.R
 import com.vuzeda.animewatchlist.tracker.ui.screens.home.toColor
-import com.vuzeda.animewatchlist.tracker.ui.screens.home.toDisplayLabel
+import com.vuzeda.animewatchlist.tracker.ui.screens.home.toDisplayLabelRes
 
 @Composable
 fun SearchScreenRoute(
@@ -102,13 +104,13 @@ fun SearchScreen(
     onSnackbarDismissed: () -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
-    val sortOptions = remember { SearchSortOption.entries.map { it.displayLabel } }
-    val filterTabs = remember { SearchFilter.entries.map { it.displayLabel } }
+    val sortOptions = SearchSortOption.entries.map { stringResource(it.displayLabelRes) }
+    val filterTabs = SearchFilter.entries.map { stringResource(it.displayLabelRes) }
 
+    val addedFormat = stringResource(R.string.search_added_to_watchlist, uiState.snackbarMessage ?: "")
     LaunchedEffect(uiState.snackbarMessage) {
-        val message = uiState.snackbarMessage
-        if (message != null) {
-            snackbarHostState.showSnackbar(message)
+        if (uiState.snackbarMessage != null) {
+            snackbarHostState.showSnackbar(addedFormat)
             onSnackbarDismissed()
         }
     }
@@ -118,7 +120,7 @@ fun SearchScreen(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             TopAppBar(
-                title = { Text("Search Anime") },
+                title = { Text(stringResource(R.string.search_title)) },
                 windowInsets = WindowInsets(0, 0, 0, 0),
                 actions = {
                     if (uiState.hasSearched && uiState.results.isNotEmpty()) {
@@ -171,30 +173,30 @@ fun SearchScreen(
                 uiState.errorMessage != null -> {
                     EmptyStateMessage(
                         modifier = Modifier.fillMaxSize(),
-                        title = "Something went wrong",
+                        title = stringResource(R.string.search_error_title),
                         subtitle = uiState.errorMessage
                     )
                 }
                 uiState.hasSearched && uiState.results.isEmpty() -> {
                     EmptyStateMessage(
                         modifier = Modifier.fillMaxSize(),
-                        title = "No results found",
-                        subtitle = "Try a different search term"
+                        title = stringResource(R.string.search_no_results_title),
+                        subtitle = stringResource(R.string.search_no_results_subtitle)
                     )
                 }
                 !uiState.hasSearched -> {
                     EmptyStateMessage(
                         modifier = Modifier.fillMaxSize(),
                         icon = Icons.Outlined.Search,
-                        title = "Search for anime",
-                        subtitle = "Find anime from MyAnimeList and add them to your watchlist"
+                        title = stringResource(R.string.search_initial_title),
+                        subtitle = stringResource(R.string.search_initial_subtitle)
                     )
                 }
                 uiState.displayedResults.isEmpty() -> {
                     EmptyStateMessage(
                         modifier = Modifier.fillMaxSize(),
-                        title = "No anime match this filter",
-                        subtitle = "Try a different filter"
+                        title = stringResource(R.string.search_no_filter_match_title),
+                        subtitle = stringResource(R.string.search_no_filter_match_subtitle)
                     )
                 }
                 else -> {
@@ -212,20 +214,20 @@ fun SearchScreen(
                                 imageUrl = anime.imageUrl,
                                 onClick = { onAnimeClick(anime) },
                                 score = anime.score,
-                                episodeText = anime.episodeCount?.let { "$it episodes" },
+                                episodeText = anime.episodeCount?.let { stringResource(R.string.search_episode_count, it) },
                                 genresText = anime.genres.takeIf { it.isNotEmpty() }?.joinToString(", "),
                                 trailingContent = {
                                     if (watchlistEntry != null) {
                                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                             Icon(
                                                 imageVector = Icons.Default.Check,
-                                                contentDescription = "Already in watchlist",
+                                                contentDescription = stringResource(R.string.cd_already_in_watchlist),
                                                 tint = MaterialTheme.colorScheme.primary,
                                                 modifier = Modifier.size(20.dp)
                                             )
                                             Spacer(modifier = Modifier.height(4.dp))
                                             StatusChip(
-                                                label = watchlistEntry.status.toDisplayLabel(),
+                                                label = stringResource(watchlistEntry.status.toDisplayLabelRes()),
                                                 color = watchlistEntry.status.toColor()
                                             )
                                         }
@@ -233,7 +235,7 @@ fun SearchScreen(
                                         IconButton(onClick = { onAddClick(anime) }) {
                                             Icon(
                                                 imageVector = Icons.Default.Add,
-                                                contentDescription = "Add to watchlist",
+                                                contentDescription = stringResource(R.string.cd_add_to_watchlist),
                                                 tint = MaterialTheme.colorScheme.primary
                                             )
                                         }
@@ -248,11 +250,11 @@ fun SearchScreen(
     }
 
     if (uiState.selectedAnimeForAdd != null) {
-        val statusOptions = remember {
-            WatchStatus.entries.map { StatusOption(it.toDisplayLabel(), it.toColor()) }
+        val statusOptions = WatchStatus.entries.map {
+            StatusOption(stringResource(it.toDisplayLabelRes()), it.toColor())
         }
         StatusSelectionSheet(
-            title = "Add to watchlist",
+            title = stringResource(R.string.search_add_sheet_title),
             subtitle = uiState.selectedAnimeForAdd.title,
             options = statusOptions,
             onOptionSelected = { index -> onStatusSelected(WatchStatus.entries[index]) },

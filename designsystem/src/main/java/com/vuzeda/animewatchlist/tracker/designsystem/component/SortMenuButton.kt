@@ -18,8 +18,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.vuzeda.animewatchlist.tracker.designsystem.R
 import com.vuzeda.animewatchlist.tracker.designsystem.theme.AnimeWatchlistTrackerTheme
 
 @Composable
@@ -36,7 +38,7 @@ fun SortMenuButton(
         IconButton(onClick = { isExpanded = true }) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.Sort,
-                contentDescription = "Sort"
+                contentDescription = stringResource(R.string.cd_sort)
             )
         }
 
@@ -59,7 +61,9 @@ fun SortMenuButton(
                                 } else {
                                     Icons.Default.ArrowDownward
                                 },
-                                contentDescription = if (isAscending) "Ascending" else "Descending",
+                                contentDescription = stringResource(
+                                    if (isAscending) R.string.cd_ascending else R.string.cd_descending
+                                ),
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }

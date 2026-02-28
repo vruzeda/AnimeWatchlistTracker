@@ -260,7 +260,7 @@ class SearchViewModelTest {
 
             val afterAdd = awaitItem()
             assertThat(afterAdd.pendingNavigationId).isNull()
-            assertThat(afterAdd.snackbarMessage).isEqualTo("One Punch Man added to watchlist")
+            assertThat(afterAdd.snackbarMessage).isEqualTo("One Punch Man")
 
             coVerify {
                 addAnimeToWatchlistUseCase(match { it.status == WatchStatus.WATCHING })

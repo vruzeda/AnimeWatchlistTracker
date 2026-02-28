@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- AnimeCard -->
+    <string name="score_format">★ %1$s</string>
+
+    <!-- SearchBar -->
+    <string name="search_placeholder">Search anime…</string>
+    <string name="cd_search">Search</string>
+    <string name="cd_clear">Clear</string>
+
+    <!-- SortMenuButton -->
+    <string name="cd_sort">Sort</string>
+    <string name="cd_ascending">Ascending</string>
+    <string name="cd_descending">Descending</string>
+
+    <!-- EpisodeStepper -->
+    <string name="episode_stepper_decrement">−</string>
+    <string name="episode_stepper_increment">+</string>
+    <string name="episode_stepper_with_total">%1$d / %2$d</string>
+    <string name="episode_stepper_without_total">%1$d</string>
+
+    <!-- RatingBar -->
+    <string name="cd_star">Star %1$d of %2$d</string>
+</resources>

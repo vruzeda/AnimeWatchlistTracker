@@ -61,7 +61,7 @@ class SearchViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            errorMessage = error.message ?: "Search failed",
+                            errorMessage = error.message,
                             hasSearched = true
                         )
                     }
@@ -129,7 +129,7 @@ class SearchViewModel @Inject constructor(
         viewModelScope.launch {
             addAnimeToWatchlistUseCase(animeWithStatus)
             _uiState.update {
-                it.copy(snackbarMessage = "${anime.title} added to watchlist")
+                it.copy(snackbarMessage = anime.title)
             }
         }
     }

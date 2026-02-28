@@ -21,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -29,11 +30,12 @@ import com.vuzeda.animewatchlist.tracker.designsystem.component.EmptyStateMessag
 import com.vuzeda.animewatchlist.tracker.designsystem.component.SortMenuButton
 import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusChip
 import com.vuzeda.animewatchlist.tracker.designsystem.theme.StatusCompleted
+import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
+import com.vuzeda.animewatchlist.tracker.ui.R
 import com.vuzeda.animewatchlist.tracker.designsystem.theme.StatusDropped
 import com.vuzeda.animewatchlist.tracker.designsystem.theme.StatusOnHold
 import com.vuzeda.animewatchlist.tracker.designsystem.theme.StatusPlanToWatch
 import com.vuzeda.animewatchlist.tracker.designsystem.theme.StatusWatching
-import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 
 @Composable
 fun HomeScreenRoute(
@@ -57,11 +59,11 @@ fun HomeScreen(
     onSortSelected: (HomeSortOption) -> Unit,
     onAnimeClick: (Long) -> Unit
 ) {
-    val sortOptions = remember { HomeSortOption.entries.map { it.displayLabel } }
+    val sortOptions = HomeSortOption.entries.map { stringResource(it.displayLabelRes) }
 
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
-            title = { Text("My Watchlist") },
+            title = { Text(stringResource(R.string.home_title)) },
             windowInsets = WindowInsets(0, 0, 0, 0),
             actions = {
                 SortMenuButton(
@@ -73,13 +75,13 @@ fun HomeScreen(
             }
         )
 
-        val tabs = listOf<Pair<String, WatchStatus?>>(
-            "All" to null,
-            "Watching" to WatchStatus.WATCHING,
-            "Completed" to WatchStatus.COMPLETED,
-            "Plan to Watch" to WatchStatus.PLAN_TO_WATCH,
-            "On Hold" to WatchStatus.ON_HOLD,
-            "Dropped" to WatchStatus.DROPPED
+        val tabs = listOf(
+            stringResource(R.string.home_tab_all) to null,
+            stringResource(R.string.status_watching) to WatchStatus.WATCHING,
+            stringResource(R.string.status_completed) to WatchStatus.COMPLETED,
+            stringResource(R.string.status_plan_to_watch) to WatchStatus.PLAN_TO_WATCH,
+            stringResource(R.string.status_on_hold) to WatchStatus.ON_HOLD,
+            stringResource(R.string.status_dropped) to WatchStatus.DROPPED
         )
 
         val selectedIndex = tabs.indexOfFirst { it.second == uiState.selectedTab }
@@ -106,8 +108,8 @@ fun HomeScreen(
             uiState.animeList.isEmpty() -> {
                 EmptyStateMessage(
                     modifier = Modifier.fillMaxSize(),
-                    title = "No anime here yet",
-                    subtitle = "Search for anime to add to your watchlist"
+                    title = stringResource(R.string.home_empty_title),
+                    subtitle = stringResource(R.string.home_empty_subtitle)
                 )
             }
             else -> {
@@ -120,9 +122,9 @@ fun HomeScreen(
                         key = { it.id }
                     ) { anime ->
                         val episodeText = if (anime.episodeCount != null) {
-                            "${anime.currentEpisode} / ${anime.episodeCount} ep"
+                            stringResource(R.string.home_episode_with_total, anime.currentEpisode, anime.episodeCount!!)
                         } else {
-                            "${anime.currentEpisode} ep"
+                            stringResource(R.string.home_episode_without_total, anime.currentEpisode)
                         }
                         val progress = anime.episodeCount?.takeIf { it > 0 }?.let {
                             (anime.currentEpisode.toFloat() / it).coerceIn(0f, 1f)
@@ -137,7 +139,7 @@ fun HomeScreen(
                             progress = progress,
                             trailingContent = {
                                 StatusChip(
-                                    label = anime.status.toDisplayLabel(),
+                                    label = stringResource(anime.status.toDisplayLabelRes()),
                                     color = anime.status.toColor()
                                 )
                             }
@@ -149,12 +151,12 @@ fun HomeScreen(
     }
 }
 
-fun WatchStatus.toDisplayLabel(): String = when (this) {
-    WatchStatus.WATCHING -> "Watching"
-    WatchStatus.COMPLETED -> "Completed"
-    WatchStatus.PLAN_TO_WATCH -> "Plan to Watch"
-    WatchStatus.ON_HOLD -> "On Hold"
-    WatchStatus.DROPPED -> "Dropped"
+fun WatchStatus.toDisplayLabelRes(): Int = when (this) {
+    WatchStatus.WATCHING -> R.string.status_watching
+    WatchStatus.COMPLETED -> R.string.status_completed
+    WatchStatus.PLAN_TO_WATCH -> R.string.status_plan_to_watch
+    WatchStatus.ON_HOLD -> R.string.status_on_hold
+    WatchStatus.DROPPED -> R.string.status_dropped
 }
 
 fun WatchStatus.toColor(): Color = when (this) {

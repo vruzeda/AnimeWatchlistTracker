@@ -34,6 +34,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -45,8 +46,9 @@ import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusChip
 import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusOption
 import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusSelectionSheet
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
+import com.vuzeda.animewatchlist.tracker.ui.R
 import com.vuzeda.animewatchlist.tracker.ui.screens.home.toColor
-import com.vuzeda.animewatchlist.tracker.ui.screens.home.toDisplayLabel
+import com.vuzeda.animewatchlist.tracker.ui.screens.home.toDisplayLabelRes
 
 @Composable
 fun DetailScreenRoute(
@@ -82,13 +84,13 @@ fun DetailScreen(
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
-            title = { Text("Anime Detail") },
+            title = { Text(stringResource(R.string.detail_title)) },
             windowInsets = WindowInsets(0, 0, 0, 0),
             navigationIcon = {
                 IconButton(onClick = onNavigateBack) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back"
+                        contentDescription = stringResource(R.string.cd_back)
                     )
                 }
             },
@@ -102,18 +104,17 @@ fun DetailScreen(
                                 } else {
                                     Icons.Default.NotificationsNone
                                 },
-                                contentDescription = if (uiState.isNotificationsEnabled) {
-                                    "Disable notifications"
-                                } else {
-                                    "Enable notifications"
-                                }
+                                contentDescription = stringResource(
+                                    if (uiState.isNotificationsEnabled) R.string.cd_disable_notifications
+                                    else R.string.cd_enable_notifications
+                                )
                             )
                         }
                     }
                     IconButton(onClick = onDelete) {
                         Icon(
                             imageVector = Icons.Default.Delete,
-                            contentDescription = "Delete"
+                            contentDescription = stringResource(R.string.cd_delete)
                         )
                     }
                 }
@@ -132,7 +133,7 @@ fun DetailScreen(
             is DetailUiState.NotFound -> {
                 EmptyStateMessage(
                     modifier = Modifier.fillMaxSize(),
-                    title = "Anime not found"
+                    title = stringResource(R.string.detail_not_found)
                 )
             }
             is DetailUiState.Success -> {
@@ -144,11 +145,11 @@ fun DetailScreen(
                 )
 
                 if (uiState.isStatusSheetVisible) {
-                    val statusOptions = remember {
-                        WatchStatus.entries.map { StatusOption(it.toDisplayLabel(), it.toColor()) }
+                    val statusOptions = WatchStatus.entries.map {
+                        StatusOption(stringResource(it.toDisplayLabelRes()), it.toColor())
                     }
                     StatusSelectionSheet(
-                        title = "Change status",
+                        title = stringResource(R.string.detail_change_status_title),
                         subtitle = uiState.anime.title,
                         options = statusOptions,
                         onOptionSelected = { index ->
@@ -203,7 +204,7 @@ private fun DetailContent(
 
                 if (state.isInWatchlist) {
                     StatusChip(
-                        label = anime.status.toDisplayLabel(),
+                        label = stringResource(anime.status.toDisplayLabelRes()),
                         color = anime.status.toColor(),
                         modifier = Modifier.clickable(onClick = onStatusChipClick)
                     )
@@ -213,7 +214,7 @@ private fun DetailContent(
 
                 if (anime.score != null) {
                     Text(
-                        text = "MAL Score: ★ ${anime.score}",
+                        text = stringResource(R.string.detail_mal_score, anime.score.toString()),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -233,7 +234,7 @@ private fun DetailContent(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Progress",
+                text = stringResource(R.string.detail_section_progress),
                 style = MaterialTheme.typography.titleLarge
             )
 
@@ -248,7 +249,7 @@ private fun DetailContent(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Your Rating",
+                text = stringResource(R.string.detail_section_your_rating),
                 style = MaterialTheme.typography.titleLarge
             )
 
@@ -262,7 +263,7 @@ private fun DetailContent(
         } else if (anime.episodeCount != null) {
             Spacer(modifier = Modifier.height(24.dp))
             Text(
-                text = "${anime.episodeCount} episodes",
+                text = stringResource(R.string.detail_episode_count, anime.episodeCount!!),
                 style = MaterialTheme.typography.bodyLarge
             )
         }
@@ -271,7 +272,7 @@ private fun DetailContent(
         if (synopsis != null) {
             Spacer(modifier = Modifier.height(24.dp))
             Text(
-                text = "Synopsis",
+                text = stringResource(R.string.detail_section_synopsis),
                 style = MaterialTheme.typography.titleLarge
             )
             Spacer(modifier = Modifier.height(8.dp))
