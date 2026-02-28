@@ -15,7 +15,11 @@ fun AnimeEntity.toDomainModel(): Anime = Anime(
     score = score,
     userRating = userRating,
     status = WatchStatus.entries.firstOrNull { it.name == status } ?: WatchStatus.PLAN_TO_WATCH,
-    genres = if (genres.isBlank()) emptyList() else genres.split(",").map { it.trim() }
+    genres = if (genres.isBlank()) emptyList() else genres.split(",").map { it.trim() },
+    isNotificationsEnabled = isNotificationsEnabled == 1,
+    lastCheckedEpisodeCount = lastCheckedEpisodeCount,
+    knownSequelMalIds = if (knownSequelMalIds.isBlank()) emptyList()
+        else knownSequelMalIds.split(",").map { it.trim().toInt() }
 )
 
 fun Anime.toEntity(): AnimeEntity = AnimeEntity(
@@ -29,5 +33,8 @@ fun Anime.toEntity(): AnimeEntity = AnimeEntity(
     score = score,
     userRating = userRating,
     status = status.name,
-    genres = genres.joinToString(",")
+    genres = genres.joinToString(","),
+    isNotificationsEnabled = if (isNotificationsEnabled) 1 else 0,
+    lastCheckedEpisodeCount = lastCheckedEpisodeCount,
+    knownSequelMalIds = knownSequelMalIds.joinToString(",")
 )

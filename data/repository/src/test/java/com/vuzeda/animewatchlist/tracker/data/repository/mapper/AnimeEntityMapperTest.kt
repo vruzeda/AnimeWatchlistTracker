@@ -152,6 +152,57 @@ class AnimeEntityMapperTest {
     }
 
     @Test
+    fun `toDomainModel maps notification fields correctly`() {
+        val entity = AnimeEntity(
+            id = 1L,
+            title = "Test",
+            status = "WATCHING",
+            genres = "",
+            isNotificationsEnabled = 1,
+            lastCheckedEpisodeCount = 12,
+            knownSequelMalIds = "200,300"
+        )
+
+        val anime = entity.toDomainModel()
+
+        assertThat(anime.isNotificationsEnabled).isTrue()
+        assertThat(anime.lastCheckedEpisodeCount).isEqualTo(12)
+        assertThat(anime.knownSequelMalIds).containsExactly(200, 300)
+    }
+
+    @Test
+    fun `toDomainModel handles empty knownSequelMalIds`() {
+        val entity = AnimeEntity(
+            id = 1L,
+            title = "Test",
+            status = "WATCHING",
+            genres = "",
+            knownSequelMalIds = ""
+        )
+
+        val anime = entity.toDomainModel()
+
+        assertThat(anime.knownSequelMalIds).isEmpty()
+    }
+
+    @Test
+    fun `toEntity maps notification fields correctly`() {
+        val anime = Anime(
+            id = 1L,
+            title = "Test",
+            isNotificationsEnabled = true,
+            lastCheckedEpisodeCount = 24,
+            knownSequelMalIds = listOf(200, 300)
+        )
+
+        val entity = anime.toEntity()
+
+        assertThat(entity.isNotificationsEnabled).isEqualTo(1)
+        assertThat(entity.lastCheckedEpisodeCount).isEqualTo(24)
+        assertThat(entity.knownSequelMalIds).isEqualTo("200,300")
+    }
+
+    @Test
     fun `round trip preserves data`() {
         val original = Anime(
             id = 5L,
@@ -164,7 +215,10 @@ class AnimeEntityMapperTest {
             score = 9.0,
             userRating = 10,
             status = WatchStatus.WATCHING,
-            genres = listOf("Action", "Drama", "Fantasy")
+            genres = listOf("Action", "Drama", "Fantasy"),
+            isNotificationsEnabled = true,
+            lastCheckedEpisodeCount = 25,
+            knownSequelMalIds = listOf(200, 300)
         )
 
         val roundTripped = original.toEntity().toDomainModel()
