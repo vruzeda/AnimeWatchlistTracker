@@ -27,6 +27,9 @@ class AnimeRepositoryImpl @Inject constructor(
     override suspend fun getAnimeById(id: Long): Anime? =
         animeDao.getById(id)?.toDomainModel()
 
+    override fun observeAnimeById(id: Long): Flow<Anime?> =
+        animeDao.observeById(id).map { it?.toDomainModel() }
+
     override suspend fun addAnime(anime: Anime): Long =
         animeDao.insert(anime.toEntity())
 

@@ -6,15 +6,17 @@ import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.usecase.DeleteAnimeFromWatchlistUseCase
-import com.vuzeda.animewatchlist.tracker.domain.usecase.GetAnimeByIdUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveAnimeByIdUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ToggleAnimeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.UpdateAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.ui.navigation.Route
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -27,7 +29,7 @@ import org.junit.jupiter.api.Test
 class DetailViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
-    private val getAnimeByIdUseCase: GetAnimeByIdUseCase = mockk()
+    private val observeAnimeByIdUseCase: ObserveAnimeByIdUseCase = mockk()
     private val updateAnimeUseCase: UpdateAnimeUseCase = mockk()
     private val deleteAnimeFromWatchlistUseCase: DeleteAnimeFromWatchlistUseCase = mockk()
     private val toggleAnimeNotificationsUseCase: ToggleAnimeNotificationsUseCase = mockk(relaxed = true)
@@ -43,9 +45,13 @@ class DetailViewModelTest {
         score = 8.7
     )
 
+    private lateinit var animeFlow: MutableStateFlow<Anime?>
+
     @BeforeEach
     fun setup() {
         Dispatchers.setMain(testDispatcher)
+        animeFlow = MutableStateFlow(sampleAnime)
+        every { observeAnimeByIdUseCase(1L) } returns animeFlow
     }
 
     @AfterEach
@@ -57,7 +63,7 @@ class DetailViewModelTest {
         val savedStateHandle = SavedStateHandle(mapOf(Route.Detail.ARG_ANIME_ID to animeId))
         return DetailViewModel(
             savedStateHandle = savedStateHandle,
-            getAnimeByIdUseCase = getAnimeByIdUseCase,
+            observeAnimeByIdUseCase = observeAnimeByIdUseCase,
             updateAnimeUseCase = updateAnimeUseCase,
             deleteAnimeFromWatchlistUseCase = deleteAnimeFromWatchlistUseCase,
             toggleAnimeNotificationsUseCase = toggleAnimeNotificationsUseCase
@@ -66,8 +72,6 @@ class DetailViewModelTest {
 
     @Test
     fun `loads anime on init`() = runTest {
-        coEvery { getAnimeByIdUseCase(1L) } returns sampleAnime
-
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
@@ -82,7 +86,8 @@ class DetailViewModelTest {
 
     @Test
     fun `shows not found when anime does not exist`() = runTest {
-        coEvery { getAnimeByIdUseCase(999L) } returns null
+        val emptyFlow = MutableStateFlow<Anime?>(null)
+        every { observeAnimeByIdUseCase(999L) } returns emptyFlow
 
         val viewModel = createViewModel(animeId = 999L)
 
@@ -95,9 +100,39 @@ class DetailViewModelTest {
     }
 
     @Test
-    fun `toggleEditing switches editing state`() = runTest {
-        coEvery { getAnimeByIdUseCase(1L) } returns sampleAnime
+    fun `transitions to NotFound when anime is deleted`() = runTest {
+        val viewModel = createViewModel()
 
+        viewModel.uiState.test {
+            awaitItem()
+            awaitItem()
+
+            animeFlow.value = null
+
+            val notFound = awaitItem()
+            assertThat(notFound).isInstanceOf(DetailUiState.NotFound::class.java)
+        }
+    }
+
+    @Test
+    fun `updates reactively when anime changes in database`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            awaitItem()
+            val initial = awaitItem() as DetailUiState.Success
+            assertThat(initial.anime.status).isEqualTo(WatchStatus.WATCHING)
+
+            animeFlow.value = sampleAnime.copy(status = WatchStatus.COMPLETED)
+
+            val updated = awaitItem() as DetailUiState.Success
+            assertThat(updated.anime.status).isEqualTo(WatchStatus.COMPLETED)
+            assertThat(updated.editStatus).isEqualTo(WatchStatus.COMPLETED)
+        }
+    }
+
+    @Test
+    fun `toggleEditing switches editing state`() = runTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
@@ -115,8 +150,6 @@ class DetailViewModelTest {
 
     @Test
     fun `updateStatus changes edit status`() = runTest {
-        coEvery { getAnimeByIdUseCase(1L) } returns sampleAnime
-
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
@@ -130,8 +163,6 @@ class DetailViewModelTest {
 
     @Test
     fun `updateCurrentEpisode changes edit episode`() = runTest {
-        coEvery { getAnimeByIdUseCase(1L) } returns sampleAnime
-
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
@@ -145,8 +176,6 @@ class DetailViewModelTest {
 
     @Test
     fun `updateCurrentEpisode does not go below zero`() = runTest {
-        coEvery { getAnimeByIdUseCase(1L) } returns sampleAnime
-
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
@@ -160,8 +189,6 @@ class DetailViewModelTest {
 
     @Test
     fun `updateUserRating changes edit rating`() = runTest {
-        coEvery { getAnimeByIdUseCase(1L) } returns sampleAnime
-
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
@@ -174,8 +201,7 @@ class DetailViewModelTest {
     }
 
     @Test
-    fun `saveChanges persists and exits edit mode`() = runTest {
-        coEvery { getAnimeByIdUseCase(1L) } returns sampleAnime
+    fun `saveChanges exits edit mode and delegates to use case`() = runTest {
         coEvery { updateAnimeUseCase(any()) } returns Unit
 
         val viewModel = createViewModel()
@@ -183,6 +209,8 @@ class DetailViewModelTest {
         viewModel.uiState.test {
             skipItems(2)
 
+            viewModel.toggleEditing()
+            awaitItem()
             viewModel.updateStatus(WatchStatus.COMPLETED)
             awaitItem()
             viewModel.updateCurrentEpisode(12)
@@ -194,17 +222,65 @@ class DetailViewModelTest {
 
             val saved = awaitItem() as DetailUiState.Success
             assertThat(saved.isEditing).isFalse()
-            assertThat(saved.anime.status).isEqualTo(WatchStatus.COMPLETED)
-            assertThat(saved.anime.currentEpisode).isEqualTo(12)
-            assertThat(saved.anime.userRating).isEqualTo(9)
 
-            coVerify { updateAnimeUseCase(any()) }
+            testDispatcher.scheduler.advanceUntilIdle()
+            coVerify {
+                updateAnimeUseCase(match {
+                    it.status == WatchStatus.COMPLETED && it.currentEpisode == 12 && it.userRating == 9
+                })
+            }
+        }
+    }
+
+    @Test
+    fun `saveChanges state updates reactively from database`() = runTest {
+        coEvery { updateAnimeUseCase(any()) } coAnswers {
+            val anime = firstArg<Anime>()
+            animeFlow.value = anime
+        }
+
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            skipItems(2)
+
+            viewModel.toggleEditing()
+            awaitItem()
+            viewModel.updateStatus(WatchStatus.COMPLETED)
+            awaitItem()
+
+            viewModel.saveChanges()
+            awaitItem()
+
+            val reactiveUpdate = awaitItem() as DetailUiState.Success
+            assertThat(reactiveUpdate.anime.status).isEqualTo(WatchStatus.COMPLETED)
+            assertThat(reactiveUpdate.editStatus).isEqualTo(WatchStatus.COMPLETED)
+        }
+    }
+
+    @Test
+    fun `preserves edit fields when anime updates during editing`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            skipItems(2)
+
+            viewModel.toggleEditing()
+            awaitItem()
+            viewModel.updateStatus(WatchStatus.COMPLETED)
+            awaitItem()
+
+            animeFlow.value = sampleAnime.copy(score = 9.0)
+
+            val updated = awaitItem() as DetailUiState.Success
+            assertThat(updated.anime.score).isEqualTo(9.0)
+            assertThat(updated.editStatus).isEqualTo(WatchStatus.COMPLETED)
+            assertThat(updated.isEditing).isTrue()
         }
     }
 
     @Test
     fun `deleteAnime calls use case and invokes callback`() = runTest {
-        coEvery { getAnimeByIdUseCase(1L) } returns sampleAnime
         coEvery { deleteAnimeFromWatchlistUseCase(1L) } returns Unit
 
         val viewModel = createViewModel()
@@ -222,27 +298,25 @@ class DetailViewModelTest {
     }
 
     @Test
-    fun `toggleNotifications enables notifications`() = runTest {
-        coEvery { getAnimeByIdUseCase(1L) } returns sampleAnime
-
+    fun `toggleNotifications delegates to use case`() = runTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
             skipItems(2)
 
             viewModel.toggleNotifications()
-            val updated = awaitItem() as DetailUiState.Success
-            assertThat(updated.isNotificationsEnabled).isTrue()
-
             testDispatcher.scheduler.advanceUntilIdle()
+
             coVerify { toggleAnimeNotificationsUseCase(id = 1L, enabled = true) }
         }
     }
 
     @Test
-    fun `toggleNotifications disables when already enabled`() = runTest {
-        val enabledAnime = sampleAnime.copy(isNotificationsEnabled = true)
-        coEvery { getAnimeByIdUseCase(1L) } returns enabledAnime
+    fun `toggleNotifications state updates reactively`() = runTest {
+        coEvery { toggleAnimeNotificationsUseCase(any(), any()) } coAnswers {
+            val enabled = secondArg<Boolean>()
+            animeFlow.value = animeFlow.value?.copy(isNotificationsEnabled = enabled)
+        }
 
         val viewModel = createViewModel()
 
@@ -250,10 +324,25 @@ class DetailViewModelTest {
             skipItems(2)
 
             viewModel.toggleNotifications()
-            val updated = awaitItem() as DetailUiState.Success
-            assertThat(updated.isNotificationsEnabled).isFalse()
 
+            val updated = awaitItem() as DetailUiState.Success
+            assertThat(updated.isNotificationsEnabled).isTrue()
+            assertThat(updated.anime.isNotificationsEnabled).isTrue()
+        }
+    }
+
+    @Test
+    fun `toggleNotifications disables when already enabled`() = runTest {
+        animeFlow.value = sampleAnime.copy(isNotificationsEnabled = true)
+
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            skipItems(2)
+
+            viewModel.toggleNotifications()
             testDispatcher.scheduler.advanceUntilIdle()
+
             coVerify { toggleAnimeNotificationsUseCase(id = 1L, enabled = false) }
         }
     }

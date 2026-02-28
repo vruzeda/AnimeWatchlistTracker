@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.usecase.DeleteAnimeFromWatchlistUseCase
-import com.vuzeda.animewatchlist.tracker.domain.usecase.GetAnimeByIdUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveAnimeByIdUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ToggleAnimeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.UpdateAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.ui.navigation.Route
@@ -20,7 +20,7 @@ import javax.inject.Inject
 @HiltViewModel
 class DetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val getAnimeByIdUseCase: GetAnimeByIdUseCase,
+    private val observeAnimeByIdUseCase: ObserveAnimeByIdUseCase,
     private val updateAnimeUseCase: UpdateAnimeUseCase,
     private val deleteAnimeFromWatchlistUseCase: DeleteAnimeFromWatchlistUseCase,
     private val toggleAnimeNotificationsUseCase: ToggleAnimeNotificationsUseCase
@@ -32,16 +32,29 @@ class DetailViewModel @Inject constructor(
     val uiState: StateFlow<DetailUiState> = _uiState.asStateFlow()
 
     init {
-        loadAnime()
+        observeAnime()
     }
 
-    private fun loadAnime() {
+    private fun observeAnime() {
         viewModelScope.launch {
-            val anime = getAnimeByIdUseCase(animeId)
-            _uiState.value = if (anime != null) {
-                DetailUiState.Success(anime = anime)
-            } else {
-                DetailUiState.NotFound
+            observeAnimeByIdUseCase(animeId).collect { anime ->
+                if (anime != null) {
+                    _uiState.update { currentState ->
+                        when (currentState) {
+                            is DetailUiState.Success -> if (currentState.isEditing) {
+                                currentState.copy(
+                                    anime = anime,
+                                    isNotificationsEnabled = anime.isNotificationsEnabled
+                                )
+                            } else {
+                                DetailUiState.Success(anime = anime)
+                            }
+                            else -> DetailUiState.Success(anime = anime)
+                        }
+                    }
+                } else {
+                    _uiState.value = DetailUiState.NotFound
+                }
             }
         }
     }
@@ -82,17 +95,19 @@ class DetailViewModel @Inject constructor(
         val state = _uiState.value
         if (state !is DetailUiState.Success) return
 
+        val updatedAnime = state.anime.copy(
+            status = state.editStatus,
+            currentEpisode = state.editCurrentEpisode,
+            userRating = if (state.editUserRating > 0) state.editUserRating else null
+        )
+
+        _uiState.update { currentState ->
+            if (currentState is DetailUiState.Success) currentState.copy(isEditing = false)
+            else currentState
+        }
+
         viewModelScope.launch {
-            val updatedAnime = state.anime.copy(
-                status = state.editStatus,
-                currentEpisode = state.editCurrentEpisode,
-                userRating = if (state.editUserRating > 0) state.editUserRating else null
-            )
             updateAnimeUseCase(updatedAnime)
-            _uiState.value = DetailUiState.Success(
-                anime = updatedAnime,
-                isEditing = false
-            )
         }
     }
 
@@ -107,13 +122,7 @@ class DetailViewModel @Inject constructor(
         val state = _uiState.value
         if (state !is DetailUiState.Success) return
 
-        val newEnabled = !state.isNotificationsEnabled
-        _uiState.update { currentState ->
-            if (currentState is DetailUiState.Success) {
-                currentState.copy(isNotificationsEnabled = newEnabled)
-            } else currentState
-        }
-
+        val newEnabled = !state.anime.isNotificationsEnabled
         viewModelScope.launch {
             toggleAnimeNotificationsUseCase(id = animeId, enabled = newEnabled)
         }

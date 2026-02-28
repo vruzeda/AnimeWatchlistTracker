@@ -20,6 +20,9 @@ interface AnimeDao {
     @Query("SELECT * FROM anime WHERE id = :id")
     suspend fun getById(id: Long): AnimeEntity?
 
+    @Query("SELECT * FROM anime WHERE id = :id")
+    fun observeById(id: Long): Flow<AnimeEntity?>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(anime: AnimeEntity): Long
 

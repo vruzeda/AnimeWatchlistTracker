@@ -89,6 +89,32 @@ class AnimeRepositoryImplTest {
     }
 
     @Test
+    fun `observeAnimeById emits mapped domain model`() = runTest {
+        every { animeDao.observeById(1L) } returns flowOf(sampleEntity)
+
+        repository.observeAnimeById(1L).test {
+            val result = awaitItem()
+
+            assertThat(result).isNotNull()
+            assertThat(result?.title).isEqualTo("One Punch Man")
+            assertThat(result?.status).isEqualTo(WatchStatus.WATCHING)
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `observeAnimeById emits null when not found`() = runTest {
+        every { animeDao.observeById(999L) } returns flowOf(null)
+
+        repository.observeAnimeById(999L).test {
+            val result = awaitItem()
+
+            assertThat(result).isNull()
+            awaitComplete()
+        }
+    }
+
+    @Test
     fun `addAnime inserts entity and returns id`() = runTest {
         coEvery { animeDao.insert(any()) } returns 1L
 

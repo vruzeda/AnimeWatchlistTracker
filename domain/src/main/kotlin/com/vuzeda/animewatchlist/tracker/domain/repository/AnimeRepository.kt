@@ -13,6 +13,8 @@ interface AnimeRepository {
 
     suspend fun getAnimeById(id: Long): Anime?
 
+    fun observeAnimeById(id: Long): Flow<Anime?>
+
     suspend fun addAnime(anime: Anime): Long
 
     suspend fun updateAnime(anime: Anime)

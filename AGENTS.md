@@ -66,6 +66,7 @@ Prefer **pure Kotlin library modules** (`java-library` + `kotlin` plugins) whene
 - ViewModels expose UI state via `StateFlow` and handle user actions through clearly named methods. Never expose `MutableStateFlow` publicly.
 - ViewModels depend on use cases only — never on repositories or data sources directly.
 - UI state is modeled as a single sealed interface or data class per screen (e.g., `HomeUiState`). Avoid managing multiple independent state flows in a single ViewModel.
+- ViewModels must observe local data reactively via `Flow` rather than performing one-shot fetches. When a ViewModel displays data from the database, it should collect a `Flow` so that any changes (inserts, updates, deletes) from any source are automatically reflected in the UI. Write operations (save, delete, toggle) should update the database and let the `Flow` deliver the new state — never manually reconstruct UI state after a write.
 - Composable functions are stateless whenever possible. They receive state and callbacks as parameters.
 - Dependencies: `:domain`, `:designsystem`. Never depend on any `:data` module.
 
@@ -198,7 +199,7 @@ If you feel the need to write a comment, refactor the code until the comment is 
 - Prefer `val` over `var`. Prefer immutable collections.
 - Use `Result` or a custom sealed type for operations that can fail. Never throw exceptions for expected failure cases.
 - Use Kotlin Coroutines and `Flow` for all async operations. Never use callbacks.
-- Use `suspend` functions in repositories and use cases. Use `Flow` only when observing data over time.
+- Use `suspend` functions in repositories and use cases for one-shot operations (writes, network requests). Use `Flow` for any data that is displayed on screen, so the UI reacts automatically to database changes.
 - Avoid `lateinit` — prefer constructor injection or `lazy`.
 - Use named arguments when calling functions with more than two parameters.
 - Prefer expression bodies for single-expression functions.
