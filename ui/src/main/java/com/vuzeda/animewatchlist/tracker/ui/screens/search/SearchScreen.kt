@@ -1,54 +1,45 @@
 package com.vuzeda.animewatchlist.tracker.ui.screens.search
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.AsyncImage
+import com.vuzeda.animewatchlist.tracker.designsystem.component.AnimeCard
 import com.vuzeda.animewatchlist.tracker.designsystem.component.AnimeSearchBar
 import com.vuzeda.animewatchlist.tracker.designsystem.component.EmptyStateMessage
+import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusChip
+import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusOption
+import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusSelectionSheet
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.ui.screens.home.toColor
@@ -163,11 +154,38 @@ fun SearchScreen(
                             key = { it.malId ?: it.hashCode() }
                         ) { anime ->
                             val watchlistEntry = anime.malId?.let { uiState.watchlistEntries[it] }
-                            SearchResultItem(
-                                anime = anime,
-                                watchlistEntry = watchlistEntry,
+                            AnimeCard(
+                                title = anime.title,
+                                imageUrl = anime.imageUrl,
                                 onClick = { onAnimeClick(anime) },
-                                onAddClick = { onAddClick(anime) }
+                                score = anime.score,
+                                episodeText = anime.episodeCount?.let { "$it episodes" },
+                                genresText = anime.genres.takeIf { it.isNotEmpty() }?.joinToString(", "),
+                                trailingContent = {
+                                    if (watchlistEntry != null) {
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Icon(
+                                                imageVector = Icons.Default.Check,
+                                                contentDescription = "Already in watchlist",
+                                                tint = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            StatusChip(
+                                                label = watchlistEntry.status.toDisplayLabel(),
+                                                color = watchlistEntry.status.toColor()
+                                            )
+                                        }
+                                    } else {
+                                        IconButton(onClick = { onAddClick(anime) }) {
+                                            Icon(
+                                                imageVector = Icons.Default.Add,
+                                                contentDescription = "Add to watchlist",
+                                                tint = MaterialTheme.colorScheme.primary
+                                            )
+                                        }
+                                    }
+                                }
                             )
                         }
                     }
@@ -177,161 +195,15 @@ fun SearchScreen(
     }
 
     if (uiState.selectedAnimeForAdd != null) {
-        StatusSelectionBottomSheet(
-            animeTitle = uiState.selectedAnimeForAdd.title,
-            onStatusSelected = onStatusSelected,
+        val statusOptions = remember {
+            WatchStatus.entries.map { StatusOption(it.toDisplayLabel(), it.toColor()) }
+        }
+        StatusSelectionSheet(
+            title = "Add to watchlist",
+            subtitle = uiState.selectedAnimeForAdd.title,
+            options = statusOptions,
+            onOptionSelected = { index -> onStatusSelected(WatchStatus.entries[index]) },
             onDismiss = onDismissBottomSheet
         )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun StatusSelectionBottomSheet(
-    animeTitle: String,
-    onStatusSelected: (WatchStatus) -> Unit,
-    onDismiss: () -> Unit
-) {
-    val sheetState = rememberModalBottomSheetState()
-
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(bottom = 24.dp)
-        ) {
-            Text(
-                text = "Add to watchlist",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
-            )
-
-            Text(
-                text = animeTitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 24.dp),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            WatchStatus.entries.forEach { status ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onStatusSelected(status) }
-                        .padding(horizontal = 24.dp, vertical = 14.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    com.vuzeda.animewatchlist.tracker.designsystem.component.StatusChip(
-                        label = status.toDisplayLabel(),
-                        color = status.toColor()
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun SearchResultItem(
-    modifier: Modifier = Modifier,
-    anime: Anime,
-    watchlistEntry: WatchlistEntry?,
-    onClick: () -> Unit,
-    onAddClick: () -> Unit
-) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            AsyncImage(
-                model = anime.imageUrl,
-                contentDescription = anime.title,
-                modifier = Modifier
-                    .size(width = 60.dp, height = 84.dp)
-                    .clip(MaterialTheme.shapes.small),
-                contentScale = ContentScale.Crop
-            )
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = anime.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                if (anime.score != null) {
-                    Text(
-                        text = "★ ${anime.score}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                if (anime.episodeCount != null) {
-                    Text(
-                        text = "${anime.episodeCount} episodes",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                if (anime.genres.isNotEmpty()) {
-                    Text(
-                        text = anime.genres.joinToString(", "),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
-
-            if (watchlistEntry != null) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(start = 8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = "Already in watchlist",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    com.vuzeda.animewatchlist.tracker.designsystem.component.StatusChip(
-                        label = watchlistEntry.status.toDisplayLabel(),
-                        color = watchlistEntry.status.toColor()
-                    )
-                }
-            } else {
-                IconButton(onClick = onAddClick) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Add to watchlist",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-        }
     }
 }

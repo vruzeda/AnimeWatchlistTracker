@@ -100,16 +100,24 @@ fun HomeScreen(
                         items = uiState.animeList,
                         key = { it.id }
                     ) { anime ->
-                        AnimeCard(
-                            title = anime.title,
-                            imageUrl = anime.imageUrl,
-                            statusLabel = anime.status.toDisplayLabel(),
-                            statusColor = anime.status.toColor(),
-                            currentEpisode = anime.currentEpisode,
-                            totalEpisodes = anime.episodeCount,
-                            score = anime.score,
-                            onClick = { onAnimeClick(anime.id) }
-                        )
+                    val episodeText = if (anime.episodeCount != null) {
+                                "${anime.currentEpisode} / ${anime.episodeCount} ep"
+                            } else {
+                                "${anime.currentEpisode} ep"
+                            }
+                            val progress = anime.episodeCount?.takeIf { it > 0 }?.let {
+                                (anime.currentEpisode.toFloat() / it).coerceIn(0f, 1f)
+                            }
+                            AnimeCard(
+                                title = anime.title,
+                                imageUrl = anime.imageUrl,
+                                onClick = { onAnimeClick(anime.id) },
+                                statusLabel = anime.status.toDisplayLabel(),
+                                statusColor = anime.status.toColor(),
+                                score = anime.score,
+                                episodeText = episodeText,
+                                progress = progress
+                            )
                     }
                 }
             }

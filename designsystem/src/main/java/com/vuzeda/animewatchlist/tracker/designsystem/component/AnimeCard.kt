@@ -9,8 +9,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,6 +30,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.vuzeda.animewatchlist.tracker.designsystem.theme.AnimeWatchlistTrackerTheme
+import com.vuzeda.animewatchlist.tracker.designsystem.theme.StatusPlanToWatch
 import com.vuzeda.animewatchlist.tracker.designsystem.theme.StatusWatching
 
 @Composable
@@ -32,12 +38,14 @@ fun AnimeCard(
     modifier: Modifier = Modifier,
     title: String,
     imageUrl: String?,
-    statusLabel: String,
-    statusColor: Color,
-    currentEpisode: Int,
-    totalEpisodes: Int?,
-    score: Double?,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    statusLabel: String? = null,
+    statusColor: Color = Color.Transparent,
+    score: Double? = null,
+    episodeText: String? = null,
+    progress: Float? = null,
+    genresText: String? = null,
+    trailingContent: (@Composable () -> Unit)? = null
 ) {
     Card(
         modifier = modifier
@@ -70,34 +78,11 @@ fun AnimeCard(
                     overflow = TextOverflow.Ellipsis
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
-
-                StatusChip(
-                    label = statusLabel,
-                    color = statusColor
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                val episodeText = if (totalEpisodes != null) {
-                    "$currentEpisode / $totalEpisodes ep"
-                } else {
-                    "$currentEpisode ep"
-                }
-                Text(
-                    text = episodeText,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                if (totalEpisodes != null && totalEpisodes > 0) {
+                if (statusLabel != null) {
                     Spacer(modifier = Modifier.height(4.dp))
-                    LinearProgressIndicator(
-                        progress = { (currentEpisode.toFloat() / totalEpisodes).coerceIn(0f, 1f) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(4.dp)
-                            .clip(MaterialTheme.shapes.extraSmall),
+                    StatusChip(
+                        label = statusLabel,
+                        color = statusColor
                     )
                 }
 
@@ -109,6 +94,42 @@ fun AnimeCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+
+                if (episodeText != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = episodeText,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                if (progress != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    LinearProgressIndicator(
+                        progress = { progress.coerceIn(0f, 1f) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(4.dp)
+                            .clip(MaterialTheme.shapes.extraSmall),
+                    )
+                }
+
+                if (genresText != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = genresText,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+
+            if (trailingContent != null) {
+                Spacer(modifier = Modifier.width(8.dp))
+                trailingContent()
             }
         }
     }
@@ -116,7 +137,7 @@ fun AnimeCard(
 
 @Preview(showBackground = true)
 @Composable
-private fun AnimeCardPreview() {
+private fun AnimeCardWatchlistPreview() {
     AnimeWatchlistTrackerTheme(dynamicColor = false) {
         AnimeCard(
             modifier = Modifier.padding(16.dp),
@@ -124,10 +145,66 @@ private fun AnimeCardPreview() {
             imageUrl = null,
             statusLabel = "Watching",
             statusColor = StatusWatching,
-            currentEpisode = 10,
-            totalEpisodes = 25,
+            episodeText = "10 / 25 ep",
+            progress = 0.4f,
             score = 9.1,
             onClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun AnimeCardSearchResultPreview() {
+    AnimeWatchlistTrackerTheme(dynamicColor = false) {
+        AnimeCard(
+            modifier = Modifier.padding(16.dp),
+            title = "Jujutsu Kaisen Season 2",
+            imageUrl = null,
+            score = 8.6,
+            episodeText = "23 episodes",
+            genresText = "Action, Fantasy, School",
+            onClick = {},
+            trailingContent = {
+                IconButton(onClick = {}) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add to watchlist",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun AnimeCardInWatchlistPreview() {
+    AnimeWatchlistTrackerTheme(dynamicColor = false) {
+        AnimeCard(
+            modifier = Modifier.padding(16.dp),
+            title = "Spy x Family",
+            imageUrl = null,
+            score = 8.5,
+            episodeText = "25 episodes",
+            genresText = "Action, Comedy, Slice of Life",
+            onClick = {},
+            trailingContent = {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "Already in watchlist",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    StatusChip(
+                        label = "Plan to Watch",
+                        color = StatusPlanToWatch
+                    )
+                }
+            }
         )
     }
 }

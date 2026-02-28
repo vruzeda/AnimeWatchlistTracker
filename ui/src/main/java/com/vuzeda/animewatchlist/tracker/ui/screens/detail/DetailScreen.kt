@@ -1,6 +1,5 @@
 package com.vuzeda.animewatchlist.tracker.ui.screens.detail
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,21 +19,15 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,8 +37,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.vuzeda.animewatchlist.tracker.designsystem.component.EmptyStateMessage
+import com.vuzeda.animewatchlist.tracker.designsystem.component.EpisodeStepper
 import com.vuzeda.animewatchlist.tracker.designsystem.component.RatingBar
 import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusChip
+import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusDropdownSelector
+import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusOption
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.ui.screens.home.toColor
@@ -193,9 +189,13 @@ private fun DetailContent(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 if (state.isEditing) {
-                    StatusDropdown(
-                        selectedStatus = state.editStatus,
-                        onStatusSelected = onStatusChanged
+                    val statusOptions = remember {
+                        WatchStatus.entries.map { StatusOption(it.toDisplayLabel(), it.toColor()) }
+                    }
+                    StatusDropdownSelector(
+                        selectedLabel = state.editStatus.toDisplayLabel(),
+                        options = statusOptions,
+                        onOptionSelected = { index -> onStatusChanged(WatchStatus.entries[index]) }
                     )
                 } else {
                     StatusChip(
@@ -234,7 +234,7 @@ private fun DetailContent(
         Spacer(modifier = Modifier.height(8.dp))
 
         if (state.isEditing) {
-            EpisodeEditor(
+            EpisodeStepper(
                 currentEpisode = state.editCurrentEpisode,
                 totalEpisodes = anime.episodeCount,
                 onEpisodeChanged = onEpisodeChanged
@@ -292,61 +292,3 @@ private fun DetailContent(
     }
 }
 
-@Composable
-private fun StatusDropdown(
-    selectedStatus: WatchStatus,
-    onStatusSelected: (WatchStatus) -> Unit
-) {
-    var isExpanded by remember { mutableStateOf(false) }
-
-    Box {
-        OutlinedButton(onClick = { isExpanded = true }) {
-            Text(selectedStatus.toDisplayLabel())
-        }
-
-        DropdownMenu(
-            expanded = isExpanded,
-            onDismissRequest = { isExpanded = false }
-        ) {
-            WatchStatus.entries.forEach { status ->
-                DropdownMenuItem(
-                    text = { Text(status.toDisplayLabel()) },
-                    onClick = {
-                        onStatusSelected(status)
-                        isExpanded = false
-                    }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun EpisodeEditor(
-    currentEpisode: Int,
-    totalEpisodes: Int?,
-    onEpisodeChanged: (Int) -> Unit
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        OutlinedButton(onClick = { onEpisodeChanged(currentEpisode - 1) }) {
-            Text("−")
-        }
-
-        val episodeText = if (totalEpisodes != null) {
-            "$currentEpisode / $totalEpisodes"
-        } else {
-            "$currentEpisode"
-        }
-        Text(
-            text = episodeText,
-            style = MaterialTheme.typography.bodyLarge
-        )
-
-        OutlinedButton(onClick = { onEpisodeChanged(currentEpisode + 1) }) {
-            Text("+")
-        }
-    }
-}
