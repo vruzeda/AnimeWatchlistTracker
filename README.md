@@ -18,6 +18,7 @@ Anime Watchlist Tracker is a personal anime management app built for fans who wa
 - **Episode Progress** — Track which episode you're on for each show
 - **Rating System** — Rate anime on a 1–10 star scale
 - **Anime Search** — Look up anime info using the Jikan API (unofficial MyAnimeList API) and add to your watchlist
+- **Notifications** — Enable per-anime notifications to get daily checks for new episodes and new seasons
 - **Offline First** — All data stored locally on your device using Room
 - **Material You** — Modern, dynamic theming that adapts to your wallpaper (Android 12+)
 
@@ -37,6 +38,7 @@ _Coming soon_
 - **JSON Parsing** — Moshi 1.15.1
 - **Image Loading** — Coil 2.7.0
 - **Navigation** — Jetpack Navigation Compose 2.8.5
+- **Background Work** — WorkManager 2.10.1
 - **Async** — Kotlin Coroutines 1.9.0 + Flow
 - **API** — Jikan v4 (MyAnimeList unofficial API)
 - **Testing** — JUnit 5, MockK, Turbine, Truth
@@ -74,7 +76,7 @@ AnimeWatchlistTracker/
 
 - **Home** — Watchlist with scrollable status tabs (All, Watching, Completed, Plan to Watch, On Hold, Dropped)
 - **Search** — Search anime via Jikan API and add results to your watchlist
-- **Detail** — View anime details, edit status/episode progress/rating, delete from watchlist
+- **Detail** — View anime details, edit status/episode progress/rating, toggle notifications, delete from watchlist
 
 ## API
 
@@ -82,7 +84,8 @@ This app uses the [Jikan API v4](https://jikan.moe/) to fetch anime information,
 
 - No API key required
 - Rate limited to ~3 requests/second
-- Used only for search — all user data stays local
+- Used for search and daily notification checks (episode count + sequel detection via `/v4/anime/{id}/full`)
+- All user data stays local
 
 ## Getting Started
 
@@ -127,10 +130,10 @@ This app uses the [Jikan API v4](https://jikan.moe/) to fetch anime information,
 - [x] Anime search via Jikan API
 - [x] Detail screen with episode tracking and rating
 - [x] DI wiring with Hilt
+- [x] Per-anime notification toggle with daily update checks
 - [ ] Settings screen (theme, data export/import)
 - [ ] Search and filter within local list
 - [ ] Widget for currently watching
-- [ ] Notifications for airing episodes
 
 ## Contributing
 
