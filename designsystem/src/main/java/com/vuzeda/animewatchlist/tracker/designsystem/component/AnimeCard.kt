@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -39,12 +40,10 @@ fun AnimeCard(
     title: String,
     imageUrl: String?,
     onClick: () -> Unit,
-    statusLabel: String? = null,
-    statusColor: Color = Color.Transparent,
     score: Double? = null,
+    genresText: String? = null,
     episodeText: String? = null,
     progress: Float? = null,
-    genresText: String? = null,
     trailingContent: (@Composable () -> Unit)? = null
 ) {
     Card(
@@ -65,7 +64,10 @@ fun AnimeCard(
                 modifier = Modifier
                     .size(width = 72.dp, height = 100.dp)
                     .clip(MaterialTheme.shapes.small),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
+                placeholder = ColorPainter(Color(0xFFE0E0E0)),
+                error = ColorPainter(Color(0xFFE0E0E0)),
+                fallback = ColorPainter(Color(0xFFE0E0E0))
             )
 
             Spacer(modifier = Modifier.width(12.dp))
@@ -78,20 +80,23 @@ fun AnimeCard(
                     overflow = TextOverflow.Ellipsis
                 )
 
-                if (statusLabel != null) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    StatusChip(
-                        label = statusLabel,
-                        color = statusColor
-                    )
-                }
-
                 if (score != null) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "★ $score",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                if (genresText != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = genresText,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
 
@@ -114,17 +119,6 @@ fun AnimeCard(
                             .clip(MaterialTheme.shapes.extraSmall),
                     )
                 }
-
-                if (genresText != null) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = genresText,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
             }
 
             if (trailingContent != null) {
@@ -143,12 +137,17 @@ private fun AnimeCardWatchlistPreview() {
             modifier = Modifier.padding(16.dp),
             title = "Attack on Titan: Final Season Part 3",
             imageUrl = null,
-            statusLabel = "Watching",
-            statusColor = StatusWatching,
+            score = 9.1,
+            genresText = "Action, Drama, Fantasy",
             episodeText = "10 / 25 ep",
             progress = 0.4f,
-            score = 9.1,
-            onClick = {}
+            onClick = {},
+            trailingContent = {
+                StatusChip(
+                    label = "Watching",
+                    color = StatusWatching
+                )
+            }
         )
     }
 }
@@ -162,8 +161,8 @@ private fun AnimeCardSearchResultPreview() {
             title = "Jujutsu Kaisen Season 2",
             imageUrl = null,
             score = 8.6,
-            episodeText = "23 episodes",
             genresText = "Action, Fantasy, School",
+            episodeText = "23 episodes",
             onClick = {},
             trailingContent = {
                 IconButton(onClick = {}) {
@@ -187,8 +186,8 @@ private fun AnimeCardInWatchlistPreview() {
             title = "Spy x Family",
             imageUrl = null,
             score = 8.5,
-            episodeText = "25 episodes",
             genresText = "Action, Comedy, Slice of Life",
+            episodeText = "25 episodes",
             onClick = {},
             trailingContent = {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
