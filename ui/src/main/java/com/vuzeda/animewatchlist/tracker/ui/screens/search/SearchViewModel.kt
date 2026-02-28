@@ -41,8 +41,15 @@ class SearchViewModel @Inject constructor(
             searchAnimeUseCase(query)
                 .onSuccess { results ->
                     _uiState.update {
+                        val displayed = computeDisplayedResults(
+                            results = results,
+                            watchlistEntries = it.watchlistEntries,
+                            filter = it.selectedFilter,
+                            sortOption = it.sortOption
+                        )
                         it.copy(
                             results = results,
+                            displayedResults = displayed,
                             isLoading = false,
                             hasSearched = true
                         )
@@ -58,6 +65,30 @@ class SearchViewModel @Inject constructor(
                         )
                     }
                 }
+        }
+    }
+
+    fun selectSort(option: SearchSortOption) {
+        _uiState.update { currentState ->
+            val displayed = computeDisplayedResults(
+                results = currentState.results,
+                watchlistEntries = currentState.watchlistEntries,
+                filter = currentState.selectedFilter,
+                sortOption = option
+            )
+            currentState.copy(sortOption = option, displayedResults = displayed)
+        }
+    }
+
+    fun selectFilter(filter: SearchFilter) {
+        _uiState.update { currentState ->
+            val displayed = computeDisplayedResults(
+                results = currentState.results,
+                watchlistEntries = currentState.watchlistEntries,
+                filter = filter,
+                sortOption = currentState.sortOption
+            )
+            currentState.copy(selectedFilter = filter, displayedResults = displayed)
         }
     }
 
@@ -117,7 +148,15 @@ class SearchViewModel @Inject constructor(
         watchlistObservationJob?.cancel()
         val malIds = results.mapNotNull { it.malId }
         if (malIds.isEmpty()) {
-            _uiState.update { it.copy(watchlistEntries = emptyMap()) }
+            _uiState.update {
+                val displayed = computeDisplayedResults(
+                    results = it.results,
+                    watchlistEntries = emptyMap(),
+                    filter = it.selectedFilter,
+                    sortOption = it.sortOption
+                )
+                it.copy(watchlistEntries = emptyMap(), displayedResults = displayed)
+            }
             return
         }
         watchlistObservationJob = viewModelScope.launch {
@@ -127,8 +166,38 @@ class SearchViewModel @Inject constructor(
                         malId to WatchlistEntry(localId = anime.id, status = anime.status)
                     }
                 }.toMap()
-                _uiState.update { it.copy(watchlistEntries = entries) }
+                _uiState.update {
+                    val displayed = computeDisplayedResults(
+                        results = it.results,
+                        watchlistEntries = entries,
+                        filter = it.selectedFilter,
+                        sortOption = it.sortOption
+                    )
+                    it.copy(watchlistEntries = entries, displayedResults = displayed)
+                }
             }
         }
+    }
+}
+
+fun computeDisplayedResults(
+    results: List<Anime>,
+    watchlistEntries: Map<Int, WatchlistEntry>,
+    filter: SearchFilter,
+    sortOption: SearchSortOption
+): List<Anime> {
+    val filtered = when (filter) {
+        SearchFilter.ALL -> results
+        SearchFilter.NOT_ADDED -> results.filter { anime ->
+            anime.malId?.let { watchlistEntries[it] } == null
+        }
+        SearchFilter.ALREADY_ADDED -> results.filter { anime ->
+            anime.malId?.let { watchlistEntries[it] } != null
+        }
+    }
+    return when (sortOption) {
+        SearchSortOption.DEFAULT -> filtered
+        SearchSortOption.ALPHABETICAL -> filtered.sortedBy { it.title.lowercase() }
+        SearchSortOption.SCORE -> filtered.sortedByDescending { it.score ?: 0.0 }
     }
 }

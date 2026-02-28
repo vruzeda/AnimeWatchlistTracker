@@ -16,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,6 +25,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vuzeda.animewatchlist.tracker.designsystem.component.AnimeCard
 import com.vuzeda.animewatchlist.tracker.designsystem.component.EmptyStateMessage
+import com.vuzeda.animewatchlist.tracker.designsystem.component.SortMenuButton
 import com.vuzeda.animewatchlist.tracker.designsystem.theme.StatusCompleted
 import com.vuzeda.animewatchlist.tracker.designsystem.theme.StatusDropped
 import com.vuzeda.animewatchlist.tracker.designsystem.theme.StatusOnHold
@@ -40,6 +42,7 @@ fun HomeScreenRoute(
     HomeScreen(
         uiState = uiState,
         onTabSelected = viewModel::selectTab,
+        onSortSelected = viewModel::selectSort,
         onAnimeClick = onAnimeClick
     )
 }
@@ -49,10 +52,22 @@ fun HomeScreenRoute(
 fun HomeScreen(
     uiState: HomeUiState,
     onTabSelected: (WatchStatus?) -> Unit,
+    onSortSelected: (HomeSortOption) -> Unit,
     onAnimeClick: (Long) -> Unit
 ) {
+    val sortOptions = remember { HomeSortOption.entries.map { it.displayLabel } }
+
     Column(modifier = Modifier.fillMaxSize()) {
-        TopAppBar(title = { Text("My Watchlist") })
+        TopAppBar(
+            title = { Text("My Watchlist") },
+            actions = {
+                SortMenuButton(
+                    options = sortOptions,
+                    selectedIndex = uiState.sortOption.ordinal,
+                    onOptionSelected = { index -> onSortSelected(HomeSortOption.entries[index]) }
+                )
+            }
+        )
 
         val tabs = listOf<Pair<String, WatchStatus?>>(
             "All" to null,

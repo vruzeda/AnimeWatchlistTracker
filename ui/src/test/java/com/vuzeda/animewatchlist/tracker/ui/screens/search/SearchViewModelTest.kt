@@ -34,9 +34,12 @@ class SearchViewModelTest {
 
     private lateinit var viewModel: SearchViewModel
 
-    private val sampleAnime = Anime(malId = 21, title = "One Punch Man", status = WatchStatus.PLAN_TO_WATCH)
+    private val sampleAnime = Anime(malId = 21, title = "One Punch Man", score = 8.5, status = WatchStatus.PLAN_TO_WATCH)
+    private val sampleAnimeB = Anime(malId = 30, title = "Attack on Titan", score = 9.0, status = WatchStatus.PLAN_TO_WATCH)
+    private val sampleAnimeC = Anime(malId = 40, title = "Bleach", score = 7.9, status = WatchStatus.PLAN_TO_WATCH)
 
     private val sampleResults = listOf(sampleAnime)
+    private val multiResults = listOf(sampleAnime, sampleAnimeB, sampleAnimeC)
 
     @BeforeEach
     fun setup() {
@@ -91,6 +94,7 @@ class SearchViewModelTest {
             val loaded = awaitItem()
             assertThat(loaded.isLoading).isFalse()
             assertThat(loaded.results).hasSize(1)
+            assertThat(loaded.displayedResults).hasSize(1)
             assertThat(loaded.results[0].title).isEqualTo("One Punch Man")
             assertThat(loaded.hasSearched).isTrue()
         }
@@ -341,6 +345,133 @@ class SearchViewModelTest {
 
             val cleared = awaitItem()
             assertThat(cleared.pendingNavigationId).isNull()
+        }
+    }
+
+    @Test
+    fun `selectSort with ALPHABETICAL sorts results by title`() = runTest {
+        coEvery { searchAnimeUseCase("anime") } returns Result.success(multiResults)
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            viewModel.updateQuery("anime")
+            awaitItem()
+            viewModel.search()
+            awaitItem()
+            awaitItem()
+
+            viewModel.selectSort(SearchSortOption.ALPHABETICAL)
+
+            val sorted = awaitItem()
+            assertThat(sorted.sortOption).isEqualTo(SearchSortOption.ALPHABETICAL)
+            assertThat(sorted.displayedResults[0].title).isEqualTo("Attack on Titan")
+            assertThat(sorted.displayedResults[1].title).isEqualTo("Bleach")
+            assertThat(sorted.displayedResults[2].title).isEqualTo("One Punch Man")
+        }
+    }
+
+    @Test
+    fun `selectSort with SCORE sorts results by score descending`() = runTest {
+        coEvery { searchAnimeUseCase("anime") } returns Result.success(multiResults)
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            viewModel.updateQuery("anime")
+            awaitItem()
+            viewModel.search()
+            awaitItem()
+            awaitItem()
+
+            viewModel.selectSort(SearchSortOption.SCORE)
+
+            val sorted = awaitItem()
+            assertThat(sorted.displayedResults[0].title).isEqualTo("Attack on Titan")
+            assertThat(sorted.displayedResults[1].title).isEqualTo("One Punch Man")
+            assertThat(sorted.displayedResults[2].title).isEqualTo("Bleach")
+        }
+    }
+
+    @Test
+    fun `selectFilter NOT_ADDED hides anime already in watchlist`() = runTest {
+        val watchlistFlow = MutableStateFlow(listOf(
+            Anime(id = 5L, malId = 21, title = "One Punch Man", status = WatchStatus.WATCHING)
+        ))
+        coEvery { searchAnimeUseCase("anime") } returns Result.success(multiResults)
+        every { observeWatchlistAnimeByMalIdsUseCase(any()) } returns watchlistFlow
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            viewModel.updateQuery("anime")
+            awaitItem()
+            viewModel.search()
+            awaitItem()
+            awaitItem()
+            awaitItem()
+
+            viewModel.selectFilter(SearchFilter.NOT_ADDED)
+
+            val filtered = awaitItem()
+            assertThat(filtered.selectedFilter).isEqualTo(SearchFilter.NOT_ADDED)
+            assertThat(filtered.displayedResults).hasSize(2)
+            assertThat(filtered.displayedResults.none { it.malId == 21 }).isTrue()
+        }
+    }
+
+    @Test
+    fun `selectFilter ALREADY_ADDED shows only anime in watchlist`() = runTest {
+        val watchlistFlow = MutableStateFlow(listOf(
+            Anime(id = 5L, malId = 21, title = "One Punch Man", status = WatchStatus.WATCHING)
+        ))
+        coEvery { searchAnimeUseCase("anime") } returns Result.success(multiResults)
+        every { observeWatchlistAnimeByMalIdsUseCase(any()) } returns watchlistFlow
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            viewModel.updateQuery("anime")
+            awaitItem()
+            viewModel.search()
+            awaitItem()
+            awaitItem()
+            awaitItem()
+
+            viewModel.selectFilter(SearchFilter.ALREADY_ADDED)
+
+            val filtered = awaitItem()
+            assertThat(filtered.displayedResults).hasSize(1)
+            assertThat(filtered.displayedResults[0].malId).isEqualTo(21)
+        }
+    }
+
+    @Test
+    fun `displayedResults recomputes when watchlist entries change`() = runTest {
+        val watchlistFlow = MutableStateFlow<List<Anime>>(emptyList())
+        coEvery { searchAnimeUseCase("anime") } returns Result.success(multiResults)
+        every { observeWatchlistAnimeByMalIdsUseCase(any()) } returns watchlistFlow
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            viewModel.updateQuery("anime")
+            awaitItem()
+            viewModel.search()
+            awaitItem()
+            awaitItem()
+
+            viewModel.selectFilter(SearchFilter.ALREADY_ADDED)
+            val emptyFilter = awaitItem()
+            assertThat(emptyFilter.displayedResults).isEmpty()
+
+            watchlistFlow.value = listOf(
+                Anime(id = 5L, malId = 21, title = "One Punch Man", status = WatchStatus.WATCHING)
+            )
+
+            val updated = awaitItem()
+            assertThat(updated.displayedResults).hasSize(1)
+            assertThat(updated.displayedResults[0].malId).isEqualTo(21)
         }
     }
 }

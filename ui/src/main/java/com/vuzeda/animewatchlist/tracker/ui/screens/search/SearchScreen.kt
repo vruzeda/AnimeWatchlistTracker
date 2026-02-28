@@ -21,8 +21,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -37,6 +39,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vuzeda.animewatchlist.tracker.designsystem.component.AnimeCard
 import com.vuzeda.animewatchlist.tracker.designsystem.component.AnimeSearchBar
 import com.vuzeda.animewatchlist.tracker.designsystem.component.EmptyStateMessage
+import com.vuzeda.animewatchlist.tracker.designsystem.component.SortMenuButton
 import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusChip
 import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusOption
 import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusSelectionSheet
@@ -66,6 +69,8 @@ fun SearchScreenRoute(
         onSearch = viewModel::search,
         onAnimeClick = viewModel::onAnimeClick,
         onAddClick = viewModel::onAddClick,
+        onFilterSelected = viewModel::selectFilter,
+        onSortSelected = viewModel::selectSort,
         onStatusSelected = viewModel::onStatusSelected,
         onDismissBottomSheet = viewModel::dismissBottomSheet,
         onSnackbarDismissed = viewModel::clearSnackbar
@@ -80,11 +85,15 @@ fun SearchScreen(
     onSearch: () -> Unit,
     onAnimeClick: (Anime) -> Unit,
     onAddClick: (Anime) -> Unit,
+    onFilterSelected: (SearchFilter) -> Unit,
+    onSortSelected: (SearchSortOption) -> Unit,
     onStatusSelected: (WatchStatus) -> Unit,
     onDismissBottomSheet: () -> Unit,
     onSnackbarDismissed: () -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
+    val sortOptions = remember { SearchSortOption.entries.map { it.displayLabel } }
+    val filterTabs = remember { SearchFilter.entries.map { it.displayLabel } }
 
     LaunchedEffect(uiState.snackbarMessage) {
         val message = uiState.snackbarMessage
@@ -102,7 +111,18 @@ fun SearchScreen(
                 .fillMaxSize()
                 .padding(scaffoldPadding)
         ) {
-            TopAppBar(title = { Text("Search Anime") })
+            TopAppBar(
+                title = { Text("Search Anime") },
+                actions = {
+                    if (uiState.hasSearched && uiState.results.isNotEmpty()) {
+                        SortMenuButton(
+                            options = sortOptions,
+                            selectedIndex = uiState.sortOption.ordinal,
+                            onOptionSelected = { index -> onSortSelected(SearchSortOption.entries[index]) }
+                        )
+                    }
+                }
+            )
 
             AnimeSearchBar(
                 modifier = Modifier.padding(horizontal = 16.dp),
@@ -112,6 +132,18 @@ fun SearchScreen(
             )
 
             Spacer(modifier = Modifier.height(8.dp))
+
+            if (uiState.hasSearched && uiState.results.isNotEmpty()) {
+                ScrollableTabRow(selectedTabIndex = uiState.selectedFilter.ordinal) {
+                    filterTabs.forEachIndexed { index, label ->
+                        Tab(
+                            selected = index == uiState.selectedFilter.ordinal,
+                            onClick = { onFilterSelected(SearchFilter.entries[index]) },
+                            text = { Text(label) }
+                        )
+                    }
+                }
+            }
 
             when {
                 uiState.isLoading -> {
@@ -144,13 +176,20 @@ fun SearchScreen(
                         subtitle = "Find anime from MyAnimeList and add them to your watchlist"
                     )
                 }
+                uiState.displayedResults.isEmpty() -> {
+                    EmptyStateMessage(
+                        modifier = Modifier.fillMaxSize(),
+                        title = "No anime match this filter",
+                        subtitle = "Try a different filter"
+                    )
+                }
                 else -> {
                     LazyColumn(
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(
-                            items = uiState.results,
+                            items = uiState.displayedResults,
                             key = { it.malId ?: it.hashCode() }
                         ) { anime ->
                             val watchlistEntry = anime.malId?.let { uiState.watchlistEntries[it] }

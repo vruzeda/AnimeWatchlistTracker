@@ -2,6 +2,7 @@ package com.vuzeda.animewatchlist.tracker.ui.screens.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveWatchlistUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,13 +33,38 @@ class HomeViewModel @Inject constructor(
         observeWatchlist(status)
     }
 
+    fun selectSort(option: HomeSortOption) {
+        _uiState.update { currentState ->
+            currentState.copy(
+                sortOption = option,
+                animeList = sortAnimeList(currentState.animeList, option)
+            )
+        }
+    }
+
     private fun observeWatchlist(status: WatchStatus?) {
         observeJob?.cancel()
         observeJob = viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             observeWatchlistUseCase(status).collect { animeList ->
-                _uiState.update { it.copy(animeList = animeList, isLoading = false) }
+                _uiState.update {
+                    it.copy(
+                        animeList = sortAnimeList(animeList, it.sortOption),
+                        isLoading = false
+                    )
+                }
             }
         }
+    }
+}
+
+fun sortAnimeList(list: List<Anime>, option: HomeSortOption): List<Anime> = when (option) {
+    HomeSortOption.ALPHABETICAL -> list.sortedBy { it.title.lowercase() }
+    HomeSortOption.MAL_SCORE -> list.sortedByDescending { it.score ?: 0.0 }
+    HomeSortOption.USER_RATING -> list.sortedByDescending { it.userRating ?: 0 }
+    HomeSortOption.PROGRESS -> list.sortedByDescending { anime ->
+        anime.episodeCount?.takeIf { it > 0 }?.let { total ->
+            anime.currentEpisode.toFloat() / total
+        } ?: 0f
     }
 }
