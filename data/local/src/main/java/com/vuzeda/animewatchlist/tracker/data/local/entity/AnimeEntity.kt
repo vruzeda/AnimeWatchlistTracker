@@ -15,5 +15,8 @@ data class AnimeEntity(
     val score: Double? = null,
     val userRating: Int? = null,
     val status: String,
-    val genres: String
+    val genres: String,
+    val isNotificationsEnabled: Int = 0,
+    val lastCheckedEpisodeCount: Int? = null,
+    val knownSequelMalIds: String = ""
 )

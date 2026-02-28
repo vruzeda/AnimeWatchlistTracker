@@ -28,4 +28,13 @@ interface AnimeDao {
 
     @Query("DELETE FROM anime WHERE id = :id")
     suspend fun deleteById(id: Long)
+
+    @Query("SELECT * FROM anime WHERE isNotificationsEnabled = 1")
+    suspend fun getNotifiedAnime(): List<AnimeEntity>
+
+    @Query("UPDATE anime SET isNotificationsEnabled = :enabled WHERE id = :id")
+    suspend fun updateNotificationsEnabled(id: Long, enabled: Int)
+
+    @Query("UPDATE anime SET lastCheckedEpisodeCount = :count, knownSequelMalIds = :sequelIds WHERE id = :id")
+    suspend fun updateNotificationData(id: Long, count: Int?, sequelIds: String)
 }
