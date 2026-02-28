@@ -22,7 +22,9 @@ object DatabaseModule {
             context,
             AnimeDatabase::class.java,
             "anime_watchlist.db"
-        ).build()
+        )
+            .addMigrations(AnimeDatabase.MIGRATION_1_2)
+            .build()
 
     @Provides
     @Singleton
