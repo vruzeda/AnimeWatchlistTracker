@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.usecase.DeleteAnimeFromWatchlistUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.GetAnimeByIdUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.ToggleAnimeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.UpdateAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.ui.navigation.Route
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,7 +22,8 @@ class DetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getAnimeByIdUseCase: GetAnimeByIdUseCase,
     private val updateAnimeUseCase: UpdateAnimeUseCase,
-    private val deleteAnimeFromWatchlistUseCase: DeleteAnimeFromWatchlistUseCase
+    private val deleteAnimeFromWatchlistUseCase: DeleteAnimeFromWatchlistUseCase,
+    private val toggleAnimeNotificationsUseCase: ToggleAnimeNotificationsUseCase
 ) : ViewModel() {
 
     private val animeId: Long = checkNotNull(savedStateHandle[Route.Detail.ARG_ANIME_ID])
@@ -98,6 +100,22 @@ class DetailViewModel @Inject constructor(
         viewModelScope.launch {
             deleteAnimeFromWatchlistUseCase(animeId)
             onDeleted()
+        }
+    }
+
+    fun toggleNotifications() {
+        val state = _uiState.value
+        if (state !is DetailUiState.Success) return
+
+        val newEnabled = !state.isNotificationsEnabled
+        _uiState.update { currentState ->
+            if (currentState is DetailUiState.Success) {
+                currentState.copy(isNotificationsEnabled = newEnabled)
+            } else currentState
+        }
+
+        viewModelScope.launch {
+            toggleAnimeNotificationsUseCase(id = animeId, enabled = newEnabled)
         }
     }
 }

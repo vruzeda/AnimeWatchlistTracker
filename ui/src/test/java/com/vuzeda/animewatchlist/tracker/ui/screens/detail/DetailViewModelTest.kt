@@ -7,6 +7,7 @@ import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.usecase.DeleteAnimeFromWatchlistUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.GetAnimeByIdUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.ToggleAnimeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.UpdateAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.ui.navigation.Route
 import io.mockk.coEvery
@@ -29,6 +30,7 @@ class DetailViewModelTest {
     private val getAnimeByIdUseCase: GetAnimeByIdUseCase = mockk()
     private val updateAnimeUseCase: UpdateAnimeUseCase = mockk()
     private val deleteAnimeFromWatchlistUseCase: DeleteAnimeFromWatchlistUseCase = mockk()
+    private val toggleAnimeNotificationsUseCase: ToggleAnimeNotificationsUseCase = mockk(relaxed = true)
 
     private val sampleAnime = Anime(
         id = 1L,
@@ -57,7 +59,8 @@ class DetailViewModelTest {
             savedStateHandle = savedStateHandle,
             getAnimeByIdUseCase = getAnimeByIdUseCase,
             updateAnimeUseCase = updateAnimeUseCase,
-            deleteAnimeFromWatchlistUseCase = deleteAnimeFromWatchlistUseCase
+            deleteAnimeFromWatchlistUseCase = deleteAnimeFromWatchlistUseCase,
+            toggleAnimeNotificationsUseCase = toggleAnimeNotificationsUseCase
         )
     }
 
@@ -215,6 +218,43 @@ class DetailViewModelTest {
 
             assertThat(callbackInvoked).isTrue()
             coVerify { deleteAnimeFromWatchlistUseCase(1L) }
+        }
+    }
+
+    @Test
+    fun `toggleNotifications enables notifications`() = runTest {
+        coEvery { getAnimeByIdUseCase(1L) } returns sampleAnime
+
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            skipItems(2)
+
+            viewModel.toggleNotifications()
+            val updated = awaitItem() as DetailUiState.Success
+            assertThat(updated.isNotificationsEnabled).isTrue()
+
+            testDispatcher.scheduler.advanceUntilIdle()
+            coVerify { toggleAnimeNotificationsUseCase(id = 1L, enabled = true) }
+        }
+    }
+
+    @Test
+    fun `toggleNotifications disables when already enabled`() = runTest {
+        val enabledAnime = sampleAnime.copy(isNotificationsEnabled = true)
+        coEvery { getAnimeByIdUseCase(1L) } returns enabledAnime
+
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            skipItems(2)
+
+            viewModel.toggleNotifications()
+            val updated = awaitItem() as DetailUiState.Success
+            assertThat(updated.isNotificationsEnabled).isFalse()
+
+            testDispatcher.scheduler.advanceUntilIdle()
+            coVerify { toggleAnimeNotificationsUseCase(id = 1L, enabled = false) }
         }
     }
 }

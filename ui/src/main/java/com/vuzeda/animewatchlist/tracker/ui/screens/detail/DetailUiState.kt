@@ -11,6 +11,7 @@ sealed interface DetailUiState {
         val isEditing: Boolean = false,
         val editStatus: WatchStatus = anime.status,
         val editCurrentEpisode: Int = anime.currentEpisode,
-        val editUserRating: Int = anime.userRating ?: 0
+        val editUserRating: Int = anime.userRating ?: 0,
+        val isNotificationsEnabled: Boolean = anime.isNotificationsEnabled
     ) : DetailUiState
 }

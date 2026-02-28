@@ -16,6 +16,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -63,7 +65,8 @@ fun DetailScreenRoute(
         onEpisodeChanged = viewModel::updateCurrentEpisode,
         onRatingChanged = viewModel::updateUserRating,
         onSave = viewModel::saveChanges,
-        onDelete = { viewModel.deleteAnime(onNavigateBack) }
+        onDelete = { viewModel.deleteAnime(onNavigateBack) },
+        onToggleNotifications = viewModel::toggleNotifications
     )
 }
 
@@ -77,7 +80,8 @@ fun DetailScreen(
     onEpisodeChanged: (Int) -> Unit,
     onRatingChanged: (Int) -> Unit,
     onSave: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onToggleNotifications: () -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
@@ -92,6 +96,22 @@ fun DetailScreen(
             },
             actions = {
                 if (uiState is DetailUiState.Success) {
+                    if (uiState.anime.malId != null) {
+                        IconButton(onClick = onToggleNotifications) {
+                            Icon(
+                                imageVector = if (uiState.isNotificationsEnabled) {
+                                    Icons.Default.Notifications
+                                } else {
+                                    Icons.Default.NotificationsNone
+                                },
+                                contentDescription = if (uiState.isNotificationsEnabled) {
+                                    "Disable notifications"
+                                } else {
+                                    "Enable notifications"
+                                }
+                            )
+                        }
+                    }
                     IconButton(onClick = onToggleEdit) {
                         Icon(
                             imageVector = Icons.Default.Edit,
