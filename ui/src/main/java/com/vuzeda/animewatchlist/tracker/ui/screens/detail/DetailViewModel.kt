@@ -50,14 +50,10 @@ class DetailViewModel @Inject constructor(
                 if (anime != null) {
                     _uiState.update { currentState ->
                         when (currentState) {
-                            is DetailUiState.Success -> if (currentState.isEditing) {
-                                currentState.copy(
-                                    anime = anime,
-                                    isNotificationsEnabled = anime.isNotificationsEnabled
-                                )
-                            } else {
-                                DetailUiState.Success(anime = anime, isInWatchlist = true)
-                            }
+                            is DetailUiState.Success -> currentState.copy(
+                                anime = anime,
+                                isNotificationsEnabled = anime.isNotificationsEnabled
+                            )
                             else -> DetailUiState.Success(anime = anime, isInWatchlist = true)
                         }
                     }
@@ -83,55 +79,45 @@ class DetailViewModel @Inject constructor(
         }
     }
 
-    fun toggleEditing() {
+    fun showStatusSheet() {
         _uiState.update { state ->
-            if (state is DetailUiState.Success) {
-                state.copy(isEditing = !state.isEditing)
-            } else state
+            if (state is DetailUiState.Success) state.copy(isStatusSheetVisible = true)
+            else state
+        }
+    }
+
+    fun dismissStatusSheet() {
+        _uiState.update { state ->
+            if (state is DetailUiState.Success) state.copy(isStatusSheetVisible = false)
+            else state
         }
     }
 
     fun updateStatus(status: WatchStatus) {
-        _uiState.update { state ->
-            if (state is DetailUiState.Success) {
-                state.copy(editStatus = status)
-            } else state
+        val state = _uiState.value
+        if (state !is DetailUiState.Success) return
+
+        viewModelScope.launch {
+            updateAnimeUseCase(state.anime.copy(status = status))
         }
     }
 
     fun updateCurrentEpisode(episode: Int) {
-        _uiState.update { state ->
-            if (state is DetailUiState.Success) {
-                state.copy(editCurrentEpisode = episode.coerceAtLeast(0))
-            } else state
+        val state = _uiState.value
+        if (state !is DetailUiState.Success) return
+
+        val clamped = episode.coerceAtLeast(0)
+        viewModelScope.launch {
+            updateAnimeUseCase(state.anime.copy(currentEpisode = clamped))
         }
     }
 
     fun updateUserRating(rating: Int) {
-        _uiState.update { state ->
-            if (state is DetailUiState.Success) {
-                state.copy(editUserRating = rating)
-            } else state
-        }
-    }
-
-    fun saveChanges() {
         val state = _uiState.value
         if (state !is DetailUiState.Success) return
 
-        val updatedAnime = state.anime.copy(
-            status = state.editStatus,
-            currentEpisode = state.editCurrentEpisode,
-            userRating = if (state.editUserRating > 0) state.editUserRating else null
-        )
-
-        _uiState.update { currentState ->
-            if (currentState is DetailUiState.Success) currentState.copy(isEditing = false)
-            else currentState
-        }
-
         viewModelScope.launch {
-            updateAnimeUseCase(updatedAnime)
+            updateAnimeUseCase(state.anime.copy(userRating = if (rating > 0) rating else null))
         }
     }
 

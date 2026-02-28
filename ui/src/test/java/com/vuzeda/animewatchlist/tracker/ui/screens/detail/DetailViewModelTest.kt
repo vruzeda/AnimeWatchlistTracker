@@ -135,116 +135,101 @@ class DetailViewModelTest {
 
             val updated = awaitItem() as DetailUiState.Success
             assertThat(updated.anime.status).isEqualTo(WatchStatus.COMPLETED)
-            assertThat(updated.editStatus).isEqualTo(WatchStatus.COMPLETED)
         }
     }
 
     @Test
-    fun `toggleEditing switches editing state`() = runTest {
-        val viewModel = createViewModel()
-
-        viewModel.uiState.test {
-            skipItems(2)
-
-            viewModel.toggleEditing()
-            val editing = awaitItem() as DetailUiState.Success
-            assertThat(editing.isEditing).isTrue()
-
-            viewModel.toggleEditing()
-            val notEditing = awaitItem() as DetailUiState.Success
-            assertThat(notEditing.isEditing).isFalse()
+    fun `updateStatus persists immediately`() = runTest {
+        coEvery { updateAnimeUseCase(any()) } coAnswers {
+            animeFlow.value = firstArg()
         }
-    }
 
-    @Test
-    fun `updateStatus changes edit status`() = runTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
             skipItems(2)
 
             viewModel.updateStatus(WatchStatus.COMPLETED)
+
             val updated = awaitItem() as DetailUiState.Success
-            assertThat(updated.editStatus).isEqualTo(WatchStatus.COMPLETED)
+            assertThat(updated.anime.status).isEqualTo(WatchStatus.COMPLETED)
+
+            coVerify {
+                updateAnimeUseCase(match { it.status == WatchStatus.COMPLETED })
+            }
         }
     }
 
     @Test
-    fun `updateCurrentEpisode changes edit episode`() = runTest {
+    fun `updateCurrentEpisode persists immediately`() = runTest {
+        coEvery { updateAnimeUseCase(any()) } coAnswers {
+            animeFlow.value = firstArg()
+        }
+
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
             skipItems(2)
 
             viewModel.updateCurrentEpisode(10)
+
             val updated = awaitItem() as DetailUiState.Success
-            assertThat(updated.editCurrentEpisode).isEqualTo(10)
+            assertThat(updated.anime.currentEpisode).isEqualTo(10)
+
+            coVerify {
+                updateAnimeUseCase(match { it.currentEpisode == 10 })
+            }
         }
     }
 
     @Test
     fun `updateCurrentEpisode does not go below zero`() = runTest {
+        coEvery { updateAnimeUseCase(any()) } coAnswers {
+            animeFlow.value = firstArg()
+        }
+
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
             skipItems(2)
 
             viewModel.updateCurrentEpisode(-5)
+
             val updated = awaitItem() as DetailUiState.Success
-            assertThat(updated.editCurrentEpisode).isEqualTo(0)
+            assertThat(updated.anime.currentEpisode).isEqualTo(0)
+
+            coVerify {
+                updateAnimeUseCase(match { it.currentEpisode == 0 })
+            }
         }
     }
 
     @Test
-    fun `updateUserRating changes edit rating`() = runTest {
+    fun `updateUserRating persists immediately`() = runTest {
+        coEvery { updateAnimeUseCase(any()) } coAnswers {
+            animeFlow.value = firstArg()
+        }
+
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
             skipItems(2)
 
             viewModel.updateUserRating(10)
+
             val updated = awaitItem() as DetailUiState.Success
-            assertThat(updated.editUserRating).isEqualTo(10)
-        }
-    }
+            assertThat(updated.anime.userRating).isEqualTo(10)
 
-    @Test
-    fun `saveChanges exits edit mode and delegates to use case`() = runTest {
-        coEvery { updateAnimeUseCase(any()) } returns Unit
-
-        val viewModel = createViewModel()
-
-        viewModel.uiState.test {
-            skipItems(2)
-
-            viewModel.toggleEditing()
-            awaitItem()
-            viewModel.updateStatus(WatchStatus.COMPLETED)
-            awaitItem()
-            viewModel.updateCurrentEpisode(12)
-            awaitItem()
-            viewModel.updateUserRating(9)
-            awaitItem()
-
-            viewModel.saveChanges()
-
-            val saved = awaitItem() as DetailUiState.Success
-            assertThat(saved.isEditing).isFalse()
-
-            testDispatcher.scheduler.advanceUntilIdle()
             coVerify {
-                updateAnimeUseCase(match {
-                    it.status == WatchStatus.COMPLETED && it.currentEpisode == 12 && it.userRating == 9
-                })
+                updateAnimeUseCase(match { it.userRating == 10 })
             }
         }
     }
 
     @Test
-    fun `saveChanges state updates reactively from database`() = runTest {
+    fun `updateUserRating clears rating when zero`() = runTest {
         coEvery { updateAnimeUseCase(any()) } coAnswers {
-            val anime = firstArg<Anime>()
-            animeFlow.value = anime
+            animeFlow.value = firstArg()
         }
 
         val viewModel = createViewModel()
@@ -252,38 +237,43 @@ class DetailViewModelTest {
         viewModel.uiState.test {
             skipItems(2)
 
-            viewModel.toggleEditing()
-            awaitItem()
-            viewModel.updateStatus(WatchStatus.COMPLETED)
-            awaitItem()
+            viewModel.updateUserRating(0)
 
-            viewModel.saveChanges()
-            awaitItem()
+            val updated = awaitItem() as DetailUiState.Success
+            assertThat(updated.anime.userRating).isNull()
 
-            val reactiveUpdate = awaitItem() as DetailUiState.Success
-            assertThat(reactiveUpdate.anime.status).isEqualTo(WatchStatus.COMPLETED)
-            assertThat(reactiveUpdate.editStatus).isEqualTo(WatchStatus.COMPLETED)
+            coVerify {
+                updateAnimeUseCase(match { it.userRating == null })
+            }
         }
     }
 
     @Test
-    fun `preserves edit fields when anime updates during editing`() = runTest {
+    fun `showStatusSheet sets isStatusSheetVisible to true`() = runTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
             skipItems(2)
 
-            viewModel.toggleEditing()
-            awaitItem()
-            viewModel.updateStatus(WatchStatus.COMPLETED)
-            awaitItem()
-
-            animeFlow.value = sampleAnime.copy(score = 9.0)
-
+            viewModel.showStatusSheet()
             val updated = awaitItem() as DetailUiState.Success
-            assertThat(updated.anime.score).isEqualTo(9.0)
-            assertThat(updated.editStatus).isEqualTo(WatchStatus.COMPLETED)
-            assertThat(updated.isEditing).isTrue()
+            assertThat(updated.isStatusSheetVisible).isTrue()
+        }
+    }
+
+    @Test
+    fun `dismissStatusSheet sets isStatusSheetVisible to false`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            skipItems(2)
+
+            viewModel.showStatusSheet()
+            awaitItem()
+
+            viewModel.dismissStatusSheet()
+            val updated = awaitItem() as DetailUiState.Success
+            assertThat(updated.isStatusSheetVisible).isFalse()
         }
     }
 

@@ -1,5 +1,6 @@
 package com.vuzeda.animewatchlist.tracker.ui.screens.detail
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,10 +16,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsNone
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -32,6 +31,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -41,9 +42,8 @@ import com.vuzeda.animewatchlist.tracker.designsystem.component.EmptyStateMessag
 import com.vuzeda.animewatchlist.tracker.designsystem.component.EpisodeStepper
 import com.vuzeda.animewatchlist.tracker.designsystem.component.RatingBar
 import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusChip
-import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusDropdownSelector
 import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusOption
-import com.vuzeda.animewatchlist.tracker.domain.model.Anime
+import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusSelectionSheet
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.ui.screens.home.toColor
 import com.vuzeda.animewatchlist.tracker.ui.screens.home.toDisplayLabel
@@ -57,11 +57,11 @@ fun DetailScreenRoute(
     DetailScreen(
         uiState = uiState,
         onNavigateBack = onNavigateBack,
-        onToggleEdit = viewModel::toggleEditing,
-        onStatusChanged = viewModel::updateStatus,
+        onStatusChipClick = viewModel::showStatusSheet,
+        onStatusSelected = viewModel::updateStatus,
+        onDismissStatusSheet = viewModel::dismissStatusSheet,
         onEpisodeChanged = viewModel::updateCurrentEpisode,
         onRatingChanged = viewModel::updateUserRating,
-        onSave = viewModel::saveChanges,
         onDelete = { viewModel.deleteAnime(onNavigateBack) },
         onToggleNotifications = viewModel::toggleNotifications
     )
@@ -72,11 +72,11 @@ fun DetailScreenRoute(
 fun DetailScreen(
     uiState: DetailUiState,
     onNavigateBack: () -> Unit,
-    onToggleEdit: () -> Unit,
-    onStatusChanged: (WatchStatus) -> Unit,
+    onStatusChipClick: () -> Unit,
+    onStatusSelected: (WatchStatus) -> Unit,
+    onDismissStatusSheet: () -> Unit,
     onEpisodeChanged: (Int) -> Unit,
     onRatingChanged: (Int) -> Unit,
-    onSave: () -> Unit,
     onDelete: () -> Unit,
     onToggleNotifications: () -> Unit
 ) {
@@ -110,12 +110,6 @@ fun DetailScreen(
                             )
                         }
                     }
-                    IconButton(onClick = onToggleEdit) {
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = "Edit"
-                        )
-                    }
                     IconButton(onClick = onDelete) {
                         Icon(
                             imageVector = Icons.Default.Delete,
@@ -144,11 +138,26 @@ fun DetailScreen(
             is DetailUiState.Success -> {
                 DetailContent(
                     state = uiState,
-                    onStatusChanged = onStatusChanged,
+                    onStatusChipClick = onStatusChipClick,
                     onEpisodeChanged = onEpisodeChanged,
-                    onRatingChanged = onRatingChanged,
-                    onSave = onSave
+                    onRatingChanged = onRatingChanged
                 )
+
+                if (uiState.isStatusSheetVisible) {
+                    val statusOptions = remember {
+                        WatchStatus.entries.map { StatusOption(it.toDisplayLabel(), it.toColor()) }
+                    }
+                    StatusSelectionSheet(
+                        title = "Change status",
+                        subtitle = uiState.anime.title,
+                        options = statusOptions,
+                        onOptionSelected = { index ->
+                            onStatusSelected(WatchStatus.entries[index])
+                            onDismissStatusSheet()
+                        },
+                        onDismiss = onDismissStatusSheet
+                    )
+                }
             }
         }
     }
@@ -157,10 +166,9 @@ fun DetailScreen(
 @Composable
 private fun DetailContent(
     state: DetailUiState.Success,
-    onStatusChanged: (WatchStatus) -> Unit,
+    onStatusChipClick: () -> Unit,
     onEpisodeChanged: (Int) -> Unit,
-    onRatingChanged: (Int) -> Unit,
-    onSave: () -> Unit
+    onRatingChanged: (Int) -> Unit
 ) {
     val anime = state.anime
     Column(
@@ -177,7 +185,10 @@ private fun DetailContent(
                     .width(120.dp)
                     .height(170.dp)
                     .clip(MaterialTheme.shapes.medium),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
+                placeholder = ColorPainter(Color(0xFFE0E0E0)),
+                error = ColorPainter(Color(0xFFE0E0E0)),
+                fallback = ColorPainter(Color(0xFFE0E0E0))
             )
 
             Spacer(modifier = Modifier.width(16.dp))
@@ -191,21 +202,11 @@ private fun DetailContent(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 if (state.isInWatchlist) {
-                    if (state.isEditing) {
-                        val statusOptions = remember {
-                            WatchStatus.entries.map { StatusOption(it.toDisplayLabel(), it.toColor()) }
-                        }
-                        StatusDropdownSelector(
-                            selectedLabel = state.editStatus.toDisplayLabel(),
-                            options = statusOptions,
-                            onOptionSelected = { index -> onStatusChanged(WatchStatus.entries[index]) }
-                        )
-                    } else {
-                        StatusChip(
-                            label = anime.status.toDisplayLabel(),
-                            color = anime.status.toColor()
-                        )
-                    }
+                    StatusChip(
+                        label = anime.status.toDisplayLabel(),
+                        color = anime.status.toColor(),
+                        modifier = Modifier.clickable(onClick = onStatusChipClick)
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -238,23 +239,11 @@ private fun DetailContent(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            if (state.isEditing) {
-                EpisodeStepper(
-                    currentEpisode = state.editCurrentEpisode,
-                    totalEpisodes = anime.episodeCount,
-                    onEpisodeChanged = onEpisodeChanged
-                )
-            } else {
-                val episodeText = if (anime.episodeCount != null) {
-                    "${anime.currentEpisode} / ${anime.episodeCount} episodes"
-                } else {
-                    "${anime.currentEpisode} episodes watched"
-                }
-                Text(
-                    text = episodeText,
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            }
+            EpisodeStepper(
+                currentEpisode = anime.currentEpisode,
+                totalEpisodes = anime.episodeCount,
+                onEpisodeChanged = onEpisodeChanged
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -266,20 +255,10 @@ private fun DetailContent(
             Spacer(modifier = Modifier.height(8.dp))
 
             RatingBar(
-                rating = if (state.isEditing) state.editUserRating else (anime.userRating ?: 0),
-                isInteractive = state.isEditing,
+                rating = anime.userRating ?: 0,
+                isInteractive = true,
                 onRatingChanged = onRatingChanged
             )
-
-            if (state.isEditing) {
-                Spacer(modifier = Modifier.height(24.dp))
-                Button(
-                    onClick = onSave,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Save Changes")
-                }
-            }
         } else if (anime.episodeCount != null) {
             Spacer(modifier = Modifier.height(24.dp))
             Text(
