@@ -18,6 +18,9 @@ Anime Watchlist Tracker is a personal anime management app built for fans who wa
 - **Episode Progress** — Track which episode you're on for each show
 - **Rating System** — Rate anime on a 1–10 star scale
 - **Anime Search** — Look up anime info using the Jikan API (unofficial MyAnimeList API) and add to your watchlist
+- **Search Result Browsing** — Tap any search result to view full details, or use the "+" button to add directly to your watchlist
+- **Sorting** — Sort your watchlist and search results by title, score, episode count, or recently added, with reversible ascending/descending direction
+- **Filtering** — Filter search results by All, In Watchlist, or Not in Watchlist
 - **Notifications** — Enable per-anime notifications to get daily checks for new episodes and new seasons
 - **Offline First** — All data stored locally on your device using Room
 - **Material You** — Modern, dynamic theming that adapts to your wallpaper (Android 12+)
@@ -74,9 +77,9 @@ AnimeWatchlistTracker/
 
 ### Screens
 
-- **Home** — Watchlist with scrollable status tabs (All, Watching, Completed, Plan to Watch, On Hold, Dropped)
-- **Search** — Search anime via Jikan API and add results to your watchlist
-- **Detail** — View anime details, edit status/episode progress/rating, toggle notifications, delete from watchlist
+- **Home** — Watchlist with scrollable status tabs (All, Watching, Completed, Plan to Watch, On Hold, Dropped), sortable by multiple criteria with reversible direction
+- **Search** — Search anime via Jikan API, filter by watchlist status, sort results, and browse or add to your watchlist
+- **Detail** — View anime details (from watchlist or directly from search results), edit status/episode progress/rating, toggle notifications, delete from watchlist
 
 ## API
 
@@ -84,7 +87,8 @@ This app uses the [Jikan API v4](https://jikan.moe/) to fetch anime information,
 
 - No API key required
 - Rate limited to ~3 requests/second
-- Used for search and daily notification checks (episode count + sequel detection via `/v4/anime/{id}/full`)
+- Used for search, detail viewing, and daily notification checks (episode count + sequel detection via `/v4/anime/{id}/full`)
+- Individual anime lookup via `/v4/anime/{id}` for viewing details of non-watchlisted anime
 - All user data stays local
 
 ## Getting Started
@@ -131,8 +135,11 @@ This app uses the [Jikan API v4](https://jikan.moe/) to fetch anime information,
 - [x] Detail screen with episode tracking and rating
 - [x] DI wiring with Hilt
 - [x] Per-anime notification toggle with daily update checks
+- [x] Search result filtering (All, In Watchlist, Not in Watchlist) and sorting
+- [x] Reversible sort direction on Home and Search screens
+- [x] View anime details directly from search (without adding to watchlist)
+- [x] Harmonized card layout across all screens
 - [ ] Settings screen (theme, data export/import)
-- [ ] Search and filter within local list
 - [ ] Widget for currently watching
 
 ## Contributing
