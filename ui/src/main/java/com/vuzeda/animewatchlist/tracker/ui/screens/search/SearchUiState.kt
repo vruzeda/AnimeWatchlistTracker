@@ -4,10 +4,10 @@ import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 
 enum class SearchSortOption(val displayLabel: String, val defaultAscending: Boolean) {
-    DEFAULT("Relevance", true),
     ALPHABETICAL("Alphabetical", true),
-    SCORE("Score", false),
-    RECENTLY_ADDED("Recently Added", false)
+    RECENTLY_ADDED("Recently Added", false),
+    DEFAULT("Relevance", true),
+    SCORE("Score", false)
 }
 
 enum class SearchFilter(val displayLabel: String) {

@@ -5,10 +5,10 @@ import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 
 enum class HomeSortOption(val displayLabel: String, val defaultAscending: Boolean) {
     ALPHABETICAL("Alphabetical", true),
-    RECENTLY_ADDED("Recently Added", false),
     MAL_SCORE("MAL Score", false),
-    USER_RATING("Your Rating", false),
-    PROGRESS("Progress", false)
+    PROGRESS("Progress", false),
+    RECENTLY_ADDED("Recently Added", false),
+    USER_RATING("Your Rating", false)
 }
 
 data class HomeUiState(
