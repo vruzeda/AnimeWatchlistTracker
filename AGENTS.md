@@ -312,3 +312,4 @@ This ensures that every commit in the history represents a working, verified sta
 5. No unnecessary comments in the code.
 6. Architecture layer boundaries are respected — no cross-layer imports.
 7. No hardcoded strings in the UI — use string resources.
+8. `README.md` is updated to reflect any user-facing changes, new features, new dependencies, or architectural additions.
