@@ -187,6 +187,54 @@ class HomeViewModelTest {
     }
 
     @Test
+    fun `selectSort toggles direction when same option is selected again`() = runTest {
+        every { observeWatchlistUseCase(null) } returns flowOf(sampleAnimeList)
+
+        val viewModel = HomeViewModel(observeWatchlistUseCase)
+
+        viewModel.uiState.test {
+            skipItems(2)
+
+            viewModel.selectSort(HomeSortOption.MAL_SCORE)
+            val descending = awaitItem()
+            assertThat(descending.isSortAscending).isFalse()
+            assertThat(descending.animeList[0].score).isEqualTo(9.0)
+
+            viewModel.selectSort(HomeSortOption.MAL_SCORE)
+            val ascending = awaitItem()
+            assertThat(ascending.isSortAscending).isTrue()
+            assertThat(ascending.animeList[0].score).isEqualTo(7.9)
+
+            viewModel.selectSort(HomeSortOption.MAL_SCORE)
+            val descendingAgain = awaitItem()
+            assertThat(descendingAgain.isSortAscending).isFalse()
+            assertThat(descendingAgain.animeList[0].score).isEqualTo(9.0)
+        }
+    }
+
+    @Test
+    fun `selectSort resets direction to default when switching to different option`() = runTest {
+        every { observeWatchlistUseCase(null) } returns flowOf(sampleAnimeList)
+
+        val viewModel = HomeViewModel(observeWatchlistUseCase)
+
+        viewModel.uiState.test {
+            skipItems(2)
+
+            viewModel.selectSort(HomeSortOption.MAL_SCORE)
+            awaitItem()
+            viewModel.selectSort(HomeSortOption.MAL_SCORE)
+            val reversed = awaitItem()
+            assertThat(reversed.isSortAscending).isTrue()
+
+            viewModel.selectSort(HomeSortOption.ALPHABETICAL)
+            val alpha = awaitItem()
+            assertThat(alpha.isSortAscending).isTrue()
+            assertThat(alpha.animeList[0].title).isEqualTo("Attack on Titan")
+        }
+    }
+
+    @Test
     fun `sort persists when new data arrives from Flow`() = runTest {
         val watchlistFlow = MutableStateFlow(sampleAnimeList)
         every { observeWatchlistUseCase(null) } returns watchlistFlow

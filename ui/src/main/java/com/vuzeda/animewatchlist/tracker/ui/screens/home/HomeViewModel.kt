@@ -35,9 +35,15 @@ class HomeViewModel @Inject constructor(
 
     fun selectSort(option: HomeSortOption) {
         _uiState.update { currentState ->
+            val isAscending = if (option == currentState.sortOption) {
+                !currentState.isSortAscending
+            } else {
+                option.defaultAscending
+            }
             currentState.copy(
                 sortOption = option,
-                animeList = sortAnimeList(currentState.animeList, option)
+                isSortAscending = isAscending,
+                animeList = sortAnimeList(currentState.animeList, option, isAscending)
             )
         }
     }
@@ -49,7 +55,7 @@ class HomeViewModel @Inject constructor(
             observeWatchlistUseCase(status).collect { animeList ->
                 _uiState.update {
                     it.copy(
-                        animeList = sortAnimeList(animeList, it.sortOption),
+                        animeList = sortAnimeList(animeList, it.sortOption, it.isSortAscending),
                         isLoading = false
                     )
                 }
@@ -58,14 +64,22 @@ class HomeViewModel @Inject constructor(
     }
 }
 
-fun sortAnimeList(list: List<Anime>, option: HomeSortOption): List<Anime> = when (option) {
-    HomeSortOption.ALPHABETICAL -> list.sortedBy { it.title.lowercase() }
-    HomeSortOption.RECENTLY_ADDED -> list.sortedByDescending { it.addedAt }
-    HomeSortOption.MAL_SCORE -> list.sortedByDescending { it.score ?: 0.0 }
-    HomeSortOption.USER_RATING -> list.sortedByDescending { it.userRating ?: 0 }
-    HomeSortOption.PROGRESS -> list.sortedByDescending { anime ->
-        anime.episodeCount?.takeIf { it > 0 }?.let { total ->
-            anime.currentEpisode.toFloat() / total
-        } ?: 0f
+fun sortAnimeList(
+    list: List<Anime>,
+    option: HomeSortOption,
+    isAscending: Boolean = option.defaultAscending
+): List<Anime> {
+    val sorted = when (option) {
+        HomeSortOption.ALPHABETICAL -> list.sortedBy { it.title.lowercase() }
+        HomeSortOption.RECENTLY_ADDED -> list.sortedByDescending { it.addedAt }
+        HomeSortOption.MAL_SCORE -> list.sortedByDescending { it.score ?: 0.0 }
+        HomeSortOption.USER_RATING -> list.sortedByDescending { it.userRating ?: 0 }
+        HomeSortOption.PROGRESS -> list.sortedByDescending { anime ->
+            anime.episodeCount?.takeIf { it > 0 }?.let { total ->
+                anime.currentEpisode.toFloat() / total
+            } ?: 0f
+        }
     }
+    val shouldReverse = isAscending != option.defaultAscending
+    return if (shouldReverse) sorted.reversed() else sorted
 }

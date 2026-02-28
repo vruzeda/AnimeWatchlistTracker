@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -26,6 +27,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vuzeda.animewatchlist.tracker.designsystem.component.AnimeCard
 import com.vuzeda.animewatchlist.tracker.designsystem.component.EmptyStateMessage
 import com.vuzeda.animewatchlist.tracker.designsystem.component.SortMenuButton
+import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusChip
 import com.vuzeda.animewatchlist.tracker.designsystem.theme.StatusCompleted
 import com.vuzeda.animewatchlist.tracker.designsystem.theme.StatusDropped
 import com.vuzeda.animewatchlist.tracker.designsystem.theme.StatusOnHold
@@ -60,10 +62,12 @@ fun HomeScreen(
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
             title = { Text("My Watchlist") },
+            windowInsets = WindowInsets(0, 0, 0, 0),
             actions = {
                 SortMenuButton(
                     options = sortOptions,
                     selectedIndex = uiState.sortOption.ordinal,
+                    isAscending = uiState.isSortAscending,
                     onOptionSelected = { index -> onSortSelected(HomeSortOption.entries[index]) }
                 )
             }
@@ -115,24 +119,29 @@ fun HomeScreen(
                         items = uiState.animeList,
                         key = { it.id }
                     ) { anime ->
-                    val episodeText = if (anime.episodeCount != null) {
-                                "${anime.currentEpisode} / ${anime.episodeCount} ep"
-                            } else {
-                                "${anime.currentEpisode} ep"
+                        val episodeText = if (anime.episodeCount != null) {
+                            "${anime.currentEpisode} / ${anime.episodeCount} ep"
+                        } else {
+                            "${anime.currentEpisode} ep"
+                        }
+                        val progress = anime.episodeCount?.takeIf { it > 0 }?.let {
+                            (anime.currentEpisode.toFloat() / it).coerceIn(0f, 1f)
+                        }
+                        AnimeCard(
+                            title = anime.title,
+                            imageUrl = anime.imageUrl,
+                            onClick = { onAnimeClick(anime.id) },
+                            score = anime.score,
+                            genresText = anime.genres.takeIf { it.isNotEmpty() }?.joinToString(", "),
+                            episodeText = episodeText,
+                            progress = progress,
+                            trailingContent = {
+                                StatusChip(
+                                    label = anime.status.toDisplayLabel(),
+                                    color = anime.status.toColor()
+                                )
                             }
-                            val progress = anime.episodeCount?.takeIf { it > 0 }?.let {
-                                (anime.currentEpisode.toFloat() / it).coerceIn(0f, 1f)
-                            }
-                            AnimeCard(
-                                title = anime.title,
-                                imageUrl = anime.imageUrl,
-                                onClick = { onAnimeClick(anime.id) },
-                                statusLabel = anime.status.toDisplayLabel(),
-                                statusColor = anime.status.toColor(),
-                                score = anime.score,
-                                episodeText = episodeText,
-                                progress = progress
-                            )
+                        )
                     }
                 }
             }

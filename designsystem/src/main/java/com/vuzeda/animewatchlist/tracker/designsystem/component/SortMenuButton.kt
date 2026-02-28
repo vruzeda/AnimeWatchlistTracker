@@ -4,7 +4,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
-import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -26,6 +27,7 @@ fun SortMenuButton(
     modifier: Modifier = Modifier,
     options: List<String>,
     selectedIndex: Int,
+    isAscending: Boolean = false,
     onOptionSelected: (Int) -> Unit
 ) {
     var isExpanded by remember { mutableStateOf(false) }
@@ -52,8 +54,12 @@ fun SortMenuButton(
                     trailingIcon = if (index == selectedIndex) {
                         {
                             Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = null,
+                                imageVector = if (isAscending) {
+                                    Icons.Default.ArrowUpward
+                                } else {
+                                    Icons.Default.ArrowDownward
+                                },
+                                contentDescription = if (isAscending) "Ascending" else "Descending",
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }
@@ -74,6 +80,7 @@ private fun SortMenuButtonPreview() {
             modifier = Modifier.padding(16.dp),
             options = listOf("Alphabetical", "MAL Score", "Your Rating", "Progress"),
             selectedIndex = 0,
+            isAscending = true,
             onOptionSelected = {}
         )
     }
