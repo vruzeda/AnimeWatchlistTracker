@@ -29,9 +29,9 @@ class SearchViewModelTest {
 
     private lateinit var viewModel: SearchViewModel
 
-    private val sampleResults = listOf(
-        Anime(malId = 21, title = "One Punch Man", status = WatchStatus.PLAN_TO_WATCH)
-    )
+    private val sampleAnime = Anime(malId = 21, title = "One Punch Man", status = WatchStatus.PLAN_TO_WATCH)
+
+    private val sampleResults = listOf(sampleAnime)
 
     @BeforeEach
     fun setup() {
@@ -126,13 +126,153 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun `addToWatchlist delegates to use case`() = runTest {
-        val anime = Anime(malId = 21, title = "One Punch Man")
-        coEvery { addAnimeToWatchlistUseCase(anime) } returns 1L
+    fun `onAddClick shows bottom sheet without navigate flag`() = runTest {
+        viewModel.uiState.test {
+            awaitItem()
 
-        viewModel.addToWatchlist(anime)
-        testDispatcher.scheduler.advanceUntilIdle()
+            viewModel.onAddClick(sampleAnime)
 
-        coVerify { addAnimeToWatchlistUseCase(anime) }
+            val updated = awaitItem()
+            assertThat(updated.selectedAnimeForAdd).isEqualTo(sampleAnime)
+            assertThat(updated.isNavigateAfterAdd).isFalse()
+        }
+    }
+
+    @Test
+    fun `onAnimeClick shows bottom sheet with navigate flag when not added`() = runTest {
+        viewModel.uiState.test {
+            awaitItem()
+
+            viewModel.onAnimeClick(sampleAnime)
+
+            val updated = awaitItem()
+            assertThat(updated.selectedAnimeForAdd).isEqualTo(sampleAnime)
+            assertThat(updated.isNavigateAfterAdd).isTrue()
+        }
+    }
+
+    @Test
+    fun `onAnimeClick navigates directly when already added`() = runTest {
+        coEvery { addAnimeToWatchlistUseCase(any()) } returns 10L
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            viewModel.onAddClick(sampleAnime)
+            awaitItem()
+            viewModel.onStatusSelected(WatchStatus.WATCHING)
+            awaitItem()
+            val afterAdd = awaitItem()
+            assertThat(afterAdd.addedAnimeIds[21]).isEqualTo(10L)
+
+            viewModel.onAnimeClick(sampleAnime)
+
+            val navigating = awaitItem()
+            assertThat(navigating.pendingNavigationId).isEqualTo(10L)
+        }
+    }
+
+    @Test
+    fun `onStatusSelected adds anime with selected status and shows snackbar`() = runTest {
+        coEvery { addAnimeToWatchlistUseCase(any()) } returns 5L
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            viewModel.onAddClick(sampleAnime)
+            awaitItem()
+
+            viewModel.onStatusSelected(WatchStatus.WATCHING)
+
+            val dismissed = awaitItem()
+            assertThat(dismissed.selectedAnimeForAdd).isNull()
+
+            val afterAdd = awaitItem()
+            assertThat(afterAdd.addedAnimeIds[21]).isEqualTo(5L)
+            assertThat(afterAdd.snackbarMessage).isEqualTo("One Punch Man added to watchlist")
+            assertThat(afterAdd.pendingNavigationId).isNull()
+
+            coVerify {
+                addAnimeToWatchlistUseCase(match { it.status == WatchStatus.WATCHING })
+            }
+        }
+    }
+
+    @Test
+    fun `onStatusSelected navigates when isNavigateAfterAdd is true`() = runTest {
+        coEvery { addAnimeToWatchlistUseCase(any()) } returns 7L
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            viewModel.onAnimeClick(sampleAnime)
+            awaitItem()
+
+            viewModel.onStatusSelected(WatchStatus.PLAN_TO_WATCH)
+
+            awaitItem()
+
+            val afterAdd = awaitItem()
+            assertThat(afterAdd.pendingNavigationId).isEqualTo(7L)
+            assertThat(afterAdd.snackbarMessage).isEqualTo("One Punch Man added to watchlist")
+        }
+    }
+
+    @Test
+    fun `dismissBottomSheet clears selected anime`() = runTest {
+        viewModel.uiState.test {
+            awaitItem()
+
+            viewModel.onAddClick(sampleAnime)
+            awaitItem()
+
+            viewModel.dismissBottomSheet()
+
+            val dismissed = awaitItem()
+            assertThat(dismissed.selectedAnimeForAdd).isNull()
+            assertThat(dismissed.isNavigateAfterAdd).isFalse()
+        }
+    }
+
+    @Test
+    fun `clearSnackbar clears the snackbar message`() = runTest {
+        coEvery { addAnimeToWatchlistUseCase(any()) } returns 1L
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            viewModel.onAddClick(sampleAnime)
+            awaitItem()
+            viewModel.onStatusSelected(WatchStatus.WATCHING)
+            awaitItem()
+            val withSnackbar = awaitItem()
+            assertThat(withSnackbar.snackbarMessage).isNotNull()
+
+            viewModel.clearSnackbar()
+
+            val cleared = awaitItem()
+            assertThat(cleared.snackbarMessage).isNull()
+        }
+    }
+
+    @Test
+    fun `onNavigated clears pending navigation id`() = runTest {
+        coEvery { addAnimeToWatchlistUseCase(any()) } returns 7L
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            viewModel.onAnimeClick(sampleAnime)
+            awaitItem()
+            viewModel.onStatusSelected(WatchStatus.WATCHING)
+            awaitItem()
+            val withNav = awaitItem()
+            assertThat(withNav.pendingNavigationId).isEqualTo(7L)
+
+            viewModel.onNavigated()
+
+            val cleared = awaitItem()
+            assertThat(cleared.pendingNavigationId).isNull()
+        }
     }
 }

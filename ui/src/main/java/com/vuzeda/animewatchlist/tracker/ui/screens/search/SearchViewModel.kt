@@ -2,9 +2,10 @@ package com.vuzeda.animewatchlist.tracker.ui.screens.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.vuzeda.animewatchlist.tracker.domain.model.Anime
+import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.usecase.AddAnimeToWatchlistUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.SearchAnimeUseCase
-import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -48,9 +49,57 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    fun addToWatchlist(anime: Anime) {
-        viewModelScope.launch {
-            addAnimeToWatchlistUseCase(anime)
+    fun onAnimeClick(anime: Anime) {
+        val malId = anime.malId ?: return
+        val localId = _uiState.value.addedAnimeIds[malId]
+        if (localId != null) {
+            _uiState.update { it.copy(pendingNavigationId = localId) }
+        } else {
+            _uiState.update {
+                it.copy(selectedAnimeForAdd = anime, isNavigateAfterAdd = true)
+            }
         }
+    }
+
+    fun onAddClick(anime: Anime) {
+        _uiState.update {
+            it.copy(selectedAnimeForAdd = anime, isNavigateAfterAdd = false)
+        }
+    }
+
+    fun onStatusSelected(status: WatchStatus) {
+        val anime = _uiState.value.selectedAnimeForAdd ?: return
+        val shouldNavigate = _uiState.value.isNavigateAfterAdd
+        val animeWithStatus = anime.copy(status = status)
+
+        _uiState.update {
+            it.copy(selectedAnimeForAdd = null, isNavigateAfterAdd = false)
+        }
+
+        viewModelScope.launch {
+            val localId = addAnimeToWatchlistUseCase(animeWithStatus)
+            val malId = anime.malId
+            _uiState.update {
+                it.copy(
+                    addedAnimeIds = if (malId != null) it.addedAnimeIds + (malId to localId) else it.addedAnimeIds,
+                    snackbarMessage = "${anime.title} added to watchlist",
+                    pendingNavigationId = if (shouldNavigate) localId else null
+                )
+            }
+        }
+    }
+
+    fun dismissBottomSheet() {
+        _uiState.update {
+            it.copy(selectedAnimeForAdd = null, isNavigateAfterAdd = false)
+        }
+    }
+
+    fun clearSnackbar() {
+        _uiState.update { it.copy(snackbarMessage = null) }
+    }
+
+    fun onNavigated() {
+        _uiState.update { it.copy(pendingNavigationId = null) }
     }
 }

@@ -85,7 +85,11 @@ fun AppNavigation(modifier: Modifier = Modifier) {
             }
 
             composable(Route.Search.route) {
-                SearchScreenRoute()
+                SearchScreenRoute(
+                    onNavigateToDetail = { animeId ->
+                        navController.navigate(Route.Detail(animeId).route)
+                    }
+                )
             }
 
             composable(

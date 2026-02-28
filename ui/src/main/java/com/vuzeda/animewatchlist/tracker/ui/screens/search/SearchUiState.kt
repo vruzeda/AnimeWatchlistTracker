@@ -7,5 +7,10 @@ data class SearchUiState(
     val results: List<Anime> = emptyList(),
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
-    val hasSearched: Boolean = false
+    val hasSearched: Boolean = false,
+    val selectedAnimeForAdd: Anime? = null,
+    val isNavigateAfterAdd: Boolean = false,
+    val addedAnimeIds: Map<Int, Long> = emptyMap(),
+    val snackbarMessage: String? = null,
+    val pendingNavigationId: Long? = null
 )
