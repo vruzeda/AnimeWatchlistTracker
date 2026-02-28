@@ -5,6 +5,7 @@ import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.usecase.AddAnimeToWatchlistUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.GetWatchlistAnimeByMalIdsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.SearchAnimeUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -26,6 +27,7 @@ class SearchViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private val searchAnimeUseCase: SearchAnimeUseCase = mockk()
     private val addAnimeToWatchlistUseCase: AddAnimeToWatchlistUseCase = mockk()
+    private val getWatchlistAnimeByMalIdsUseCase: GetWatchlistAnimeByMalIdsUseCase = mockk()
 
     private lateinit var viewModel: SearchViewModel
 
@@ -36,7 +38,8 @@ class SearchViewModelTest {
     @BeforeEach
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        viewModel = SearchViewModel(searchAnimeUseCase, addAnimeToWatchlistUseCase)
+        coEvery { getWatchlistAnimeByMalIdsUseCase(any()) } returns emptyList()
+        viewModel = SearchViewModel(searchAnimeUseCase, addAnimeToWatchlistUseCase, getWatchlistAnimeByMalIdsUseCase)
     }
 
     @AfterEach
@@ -91,6 +94,30 @@ class SearchViewModelTest {
     }
 
     @Test
+    fun `search populates watchlistEntries from database`() = runTest {
+        val watchlistAnime = listOf(
+            Anime(id = 5L, malId = 21, title = "One Punch Man", status = WatchStatus.WATCHING)
+        )
+        coEvery { searchAnimeUseCase("one punch") } returns Result.success(sampleResults)
+        coEvery { getWatchlistAnimeByMalIdsUseCase(listOf(21)) } returns watchlistAnime
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            viewModel.updateQuery("one punch")
+            awaitItem()
+
+            viewModel.search()
+            awaitItem()
+
+            val loaded = awaitItem()
+            assertThat(loaded.watchlistEntries).containsKey(21)
+            assertThat(loaded.watchlistEntries[21]?.localId).isEqualTo(5L)
+            assertThat(loaded.watchlistEntries[21]?.status).isEqualTo(WatchStatus.WATCHING)
+        }
+    }
+
+    @Test
     fun `search with error updates error state`() = runTest {
         coEvery { searchAnimeUseCase("test") } returns Result.failure(IOException("Network error"))
 
@@ -139,7 +166,7 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun `onAnimeClick shows bottom sheet with navigate flag when not added`() = runTest {
+    fun `onAnimeClick shows bottom sheet with navigate flag when not in watchlist`() = runTest {
         viewModel.uiState.test {
             awaitItem()
 
@@ -152,7 +179,7 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun `onAnimeClick navigates directly when already added`() = runTest {
+    fun `onAnimeClick navigates directly when already in watchlist`() = runTest {
         coEvery { addAnimeToWatchlistUseCase(any()) } returns 10L
 
         viewModel.uiState.test {
@@ -163,7 +190,7 @@ class SearchViewModelTest {
             viewModel.onStatusSelected(WatchStatus.WATCHING)
             awaitItem()
             val afterAdd = awaitItem()
-            assertThat(afterAdd.addedAnimeIds[21]).isEqualTo(10L)
+            assertThat(afterAdd.watchlistEntries[21]?.localId).isEqualTo(10L)
 
             viewModel.onAnimeClick(sampleAnime)
 
@@ -173,7 +200,7 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun `onStatusSelected adds anime with selected status and shows snackbar`() = runTest {
+    fun `onStatusSelected adds anime and updates watchlistEntries with status`() = runTest {
         coEvery { addAnimeToWatchlistUseCase(any()) } returns 5L
 
         viewModel.uiState.test {
@@ -188,7 +215,8 @@ class SearchViewModelTest {
             assertThat(dismissed.selectedAnimeForAdd).isNull()
 
             val afterAdd = awaitItem()
-            assertThat(afterAdd.addedAnimeIds[21]).isEqualTo(5L)
+            assertThat(afterAdd.watchlistEntries[21]?.localId).isEqualTo(5L)
+            assertThat(afterAdd.watchlistEntries[21]?.status).isEqualTo(WatchStatus.WATCHING)
             assertThat(afterAdd.snackbarMessage).isEqualTo("One Punch Man added to watchlist")
             assertThat(afterAdd.pendingNavigationId).isNull()
 

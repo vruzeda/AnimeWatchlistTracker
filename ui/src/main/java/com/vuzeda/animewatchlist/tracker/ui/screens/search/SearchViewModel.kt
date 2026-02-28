@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.usecase.AddAnimeToWatchlistUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.GetWatchlistAnimeByMalIdsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.SearchAnimeUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,7 +18,8 @@ import javax.inject.Inject
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val searchAnimeUseCase: SearchAnimeUseCase,
-    private val addAnimeToWatchlistUseCase: AddAnimeToWatchlistUseCase
+    private val addAnimeToWatchlistUseCase: AddAnimeToWatchlistUseCase,
+    private val getWatchlistAnimeByMalIdsUseCase: GetWatchlistAnimeByMalIdsUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SearchUiState())
@@ -35,7 +37,16 @@ class SearchViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             searchAnimeUseCase(query)
                 .onSuccess { results ->
-                    _uiState.update { it.copy(results = results, isLoading = false, hasSearched = true) }
+                    val malIds = results.mapNotNull { it.malId }
+                    val entries = buildWatchlistEntries(malIds)
+                    _uiState.update {
+                        it.copy(
+                            results = results,
+                            isLoading = false,
+                            hasSearched = true,
+                            watchlistEntries = entries
+                        )
+                    }
                 }
                 .onFailure { error ->
                     _uiState.update {
@@ -51,9 +62,9 @@ class SearchViewModel @Inject constructor(
 
     fun onAnimeClick(anime: Anime) {
         val malId = anime.malId ?: return
-        val localId = _uiState.value.addedAnimeIds[malId]
-        if (localId != null) {
-            _uiState.update { it.copy(pendingNavigationId = localId) }
+        val entry = _uiState.value.watchlistEntries[malId]
+        if (entry != null) {
+            _uiState.update { it.copy(pendingNavigationId = entry.localId) }
         } else {
             _uiState.update {
                 it.copy(selectedAnimeForAdd = anime, isNavigateAfterAdd = true)
@@ -81,7 +92,11 @@ class SearchViewModel @Inject constructor(
             val malId = anime.malId
             _uiState.update {
                 it.copy(
-                    addedAnimeIds = if (malId != null) it.addedAnimeIds + (malId to localId) else it.addedAnimeIds,
+                    watchlistEntries = if (malId != null) {
+                        it.watchlistEntries + (malId to WatchlistEntry(localId = localId, status = status))
+                    } else {
+                        it.watchlistEntries
+                    },
                     snackbarMessage = "${anime.title} added to watchlist",
                     pendingNavigationId = if (shouldNavigate) localId else null
                 )
@@ -101,5 +116,16 @@ class SearchViewModel @Inject constructor(
 
     fun onNavigated() {
         _uiState.update { it.copy(pendingNavigationId = null) }
+    }
+
+    private suspend fun buildWatchlistEntries(malIds: List<Int>): Map<Int, WatchlistEntry> {
+        if (malIds.isEmpty()) return emptyMap()
+        return getWatchlistAnimeByMalIdsUseCase(malIds)
+            .mapNotNull { anime ->
+                anime.malId?.let { malId ->
+                    malId to WatchlistEntry(localId = anime.id, status = anime.status)
+                }
+            }
+            .toMap()
     }
 }

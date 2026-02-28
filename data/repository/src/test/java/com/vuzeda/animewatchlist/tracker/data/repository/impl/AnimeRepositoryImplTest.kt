@@ -233,4 +233,29 @@ class AnimeRepositoryImplTest {
             )
         }
     }
+
+    @Test
+    fun `getAnimeByMalIds returns mapped domain models`() = runTest {
+        val entities = listOf(
+            sampleEntity.copy(id = 1L, malId = 21),
+            sampleEntity.copy(id = 2L, malId = 30, title = "Naruto")
+        )
+        coEvery { animeDao.getByMalIds(listOf(21, 30)) } returns entities
+
+        val result = repository.getAnimeByMalIds(listOf(21, 30))
+
+        assertThat(result).hasSize(2)
+        assertThat(result[0].malId).isEqualTo(21)
+        assertThat(result[1].malId).isEqualTo(30)
+        coVerify { animeDao.getByMalIds(listOf(21, 30)) }
+    }
+
+    @Test
+    fun `getAnimeByMalIds returns empty list when no matches`() = runTest {
+        coEvery { animeDao.getByMalIds(listOf(999)) } returns emptyList()
+
+        val result = repository.getAnimeByMalIds(listOf(999))
+
+        assertThat(result).isEmpty()
+    }
 }

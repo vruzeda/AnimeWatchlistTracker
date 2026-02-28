@@ -162,10 +162,10 @@ fun SearchScreen(
                             items = uiState.results,
                             key = { it.malId ?: it.hashCode() }
                         ) { anime ->
-                            val isAdded = anime.malId in uiState.addedAnimeIds
+                            val watchlistEntry = anime.malId?.let { uiState.watchlistEntries[it] }
                             SearchResultItem(
                                 anime = anime,
-                                isAdded = isAdded,
+                                watchlistEntry = watchlistEntry,
                                 onClick = { onAnimeClick(anime) },
                                 onAddClick = { onAddClick(anime) }
                             )
@@ -244,7 +244,7 @@ private fun StatusSelectionBottomSheet(
 private fun SearchResultItem(
     modifier: Modifier = Modifier,
     anime: Anime,
-    isAdded: Boolean,
+    watchlistEntry: WatchlistEntry?,
     onClick: () -> Unit,
     onAddClick: () -> Unit
 ) {
@@ -306,13 +306,23 @@ private fun SearchResultItem(
                 }
             }
 
-            if (isAdded) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = "Already in watchlist",
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(12.dp)
-                )
+            if (watchlistEntry != null) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(start = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "Already in watchlist",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    com.vuzeda.animewatchlist.tracker.designsystem.component.StatusChip(
+                        label = watchlistEntry.status.toDisplayLabel(),
+                        color = watchlistEntry.status.toColor()
+                    )
+                }
             } else {
                 IconButton(onClick = onAddClick) {
                     Icon(

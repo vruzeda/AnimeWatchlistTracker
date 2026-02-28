@@ -1,6 +1,12 @@
 package com.vuzeda.animewatchlist.tracker.ui.screens.search
 
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
+import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
+
+data class WatchlistEntry(
+    val localId: Long,
+    val status: WatchStatus
+)
 
 data class SearchUiState(
     val query: String = "",
@@ -10,7 +16,7 @@ data class SearchUiState(
     val hasSearched: Boolean = false,
     val selectedAnimeForAdd: Anime? = null,
     val isNavigateAfterAdd: Boolean = false,
-    val addedAnimeIds: Map<Int, Long> = emptyMap(),
+    val watchlistEntries: Map<Int, WatchlistEntry> = emptyMap(),
     val snackbarMessage: String? = null,
     val pendingNavigationId: Long? = null
 )

@@ -37,4 +37,7 @@ interface AnimeDao {
 
     @Query("UPDATE anime SET lastCheckedEpisodeCount = :count, knownSequelMalIds = :sequelIds WHERE id = :id")
     suspend fun updateNotificationData(id: Long, count: Int?, sequelIds: String)
+
+    @Query("SELECT * FROM anime WHERE malId IN (:malIds)")
+    suspend fun getByMalIds(malIds: List<Int>): List<AnimeEntity>
 }

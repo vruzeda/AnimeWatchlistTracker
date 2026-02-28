@@ -64,4 +64,7 @@ class AnimeRepositoryImpl @Inject constructor(
     override suspend fun toggleNotifications(id: Long, enabled: Boolean) {
         animeDao.updateNotificationsEnabled(id = id, enabled = if (enabled) 1 else 0)
     }
+
+    override suspend fun getAnimeByMalIds(malIds: List<Int>): List<Anime> =
+        animeDao.getByMalIds(malIds).map { it.toDomainModel() }
 }
