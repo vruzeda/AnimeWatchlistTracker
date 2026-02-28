@@ -11,5 +11,8 @@ data class Anime(
     val score: Double? = null,
     val userRating: Int? = null,
     val status: WatchStatus = WatchStatus.PLAN_TO_WATCH,
-    val genres: List<String> = emptyList()
+    val genres: List<String> = emptyList(),
+    val isNotificationsEnabled: Boolean = false,
+    val lastCheckedEpisodeCount: Int? = null,
+    val knownSequelMalIds: List<Int> = emptyList()
 )
