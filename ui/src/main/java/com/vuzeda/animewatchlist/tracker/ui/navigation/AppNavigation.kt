@@ -87,7 +87,10 @@ fun AppNavigation(modifier: Modifier = Modifier) {
             composable(Route.Search.route) {
                 SearchScreenRoute(
                     onNavigateToDetail = { animeId ->
-                        navController.navigate(Route.Detail(animeId).route)
+                        navController.navigate(Route.Detail(animeId = animeId).route)
+                    },
+                    onNavigateToDetailByMalId = { malId ->
+                        navController.navigate(Route.Detail(malId = malId).route)
                     }
                 )
             }
@@ -97,6 +100,10 @@ fun AppNavigation(modifier: Modifier = Modifier) {
                 arguments = listOf(
                     navArgument(Route.Detail.ARG_ANIME_ID) {
                         type = NavType.LongType
+                    },
+                    navArgument(Route.Detail.ARG_MAL_ID) {
+                        type = NavType.IntType
+                        defaultValue = 0
                     }
                 )
             ) {

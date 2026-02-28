@@ -50,6 +50,10 @@ class AnimeRepositoryImpl @Inject constructor(
     override suspend fun getNotifiedAnime(): List<Anime> =
         animeDao.getNotifiedAnime().map { it.toDomainModel() }
 
+    override suspend fun fetchAnimeByMalId(malId: Int): Result<Anime> = runCatching {
+        jikanApiService.getAnimeById(malId).data.toDomainModel()
+    }
+
     override suspend fun fetchAnimeFullDetails(malId: Int): Result<AnimeFullDetails> = runCatching {
         jikanApiService.getAnimeFullById(malId).data.toAnimeFullDetails()
     }

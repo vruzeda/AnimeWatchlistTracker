@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.usecase.DeleteAnimeFromWatchlistUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchAnimeByMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveAnimeByIdUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ToggleAnimeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.UpdateAnimeUseCase
@@ -21,18 +22,26 @@ import javax.inject.Inject
 class DetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val observeAnimeByIdUseCase: ObserveAnimeByIdUseCase,
+    private val fetchAnimeByMalIdUseCase: FetchAnimeByMalIdUseCase,
     private val updateAnimeUseCase: UpdateAnimeUseCase,
     private val deleteAnimeFromWatchlistUseCase: DeleteAnimeFromWatchlistUseCase,
     private val toggleAnimeNotificationsUseCase: ToggleAnimeNotificationsUseCase
 ) : ViewModel() {
 
     private val animeId: Long = checkNotNull(savedStateHandle[Route.Detail.ARG_ANIME_ID])
+    private val malId: Int = savedStateHandle[Route.Detail.ARG_MAL_ID] ?: 0
 
     private val _uiState = MutableStateFlow<DetailUiState>(DetailUiState.Loading)
     val uiState: StateFlow<DetailUiState> = _uiState.asStateFlow()
 
     init {
-        observeAnime()
+        if (animeId > 0) {
+            observeAnime()
+        } else if (malId > 0) {
+            fetchAnimeFromApi()
+        } else {
+            _uiState.value = DetailUiState.NotFound
+        }
     }
 
     private fun observeAnime() {
@@ -47,15 +56,30 @@ class DetailViewModel @Inject constructor(
                                     isNotificationsEnabled = anime.isNotificationsEnabled
                                 )
                             } else {
-                                DetailUiState.Success(anime = anime)
+                                DetailUiState.Success(anime = anime, isInWatchlist = true)
                             }
-                            else -> DetailUiState.Success(anime = anime)
+                            else -> DetailUiState.Success(anime = anime, isInWatchlist = true)
                         }
                     }
                 } else {
                     _uiState.value = DetailUiState.NotFound
                 }
             }
+        }
+    }
+
+    private fun fetchAnimeFromApi() {
+        viewModelScope.launch {
+            fetchAnimeByMalIdUseCase(malId)
+                .onSuccess { anime ->
+                    _uiState.value = DetailUiState.Success(
+                        anime = anime,
+                        isInWatchlist = false
+                    )
+                }
+                .onFailure {
+                    _uiState.value = DetailUiState.NotFound
+                }
         }
     }
 

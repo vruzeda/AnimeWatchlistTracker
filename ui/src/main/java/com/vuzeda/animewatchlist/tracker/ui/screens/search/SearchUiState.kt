@@ -3,11 +3,11 @@ package com.vuzeda.animewatchlist.tracker.ui.screens.search
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 
-enum class SearchSortOption(val displayLabel: String) {
-    DEFAULT("Relevance"),
-    ALPHABETICAL("Alphabetical"),
-    SCORE("Score"),
-    RECENTLY_ADDED("Recently Added")
+enum class SearchSortOption(val displayLabel: String, val defaultAscending: Boolean) {
+    DEFAULT("Relevance", true),
+    ALPHABETICAL("Alphabetical", true),
+    SCORE("Score", false),
+    RECENTLY_ADDED("Recently Added", false)
 }
 
 enum class SearchFilter(val displayLabel: String) {
@@ -30,10 +30,11 @@ data class SearchUiState(
     val errorMessage: String? = null,
     val hasSearched: Boolean = false,
     val selectedAnimeForAdd: Anime? = null,
-    val isNavigateAfterAdd: Boolean = false,
     val watchlistEntries: Map<Int, WatchlistEntry> = emptyMap(),
     val sortOption: SearchSortOption = SearchSortOption.DEFAULT,
+    val isSortAscending: Boolean = SearchSortOption.DEFAULT.defaultAscending,
     val selectedFilter: SearchFilter = SearchFilter.ALL,
     val snackbarMessage: String? = null,
-    val pendingNavigationId: Long? = null
+    val pendingNavigationId: Long? = null,
+    val pendingNavigationMalId: Int? = null
 )

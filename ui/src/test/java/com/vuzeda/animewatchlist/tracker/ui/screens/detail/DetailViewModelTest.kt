@@ -6,6 +6,7 @@ import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.usecase.DeleteAnimeFromWatchlistUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchAnimeByMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveAnimeByIdUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ToggleAnimeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.UpdateAnimeUseCase
@@ -30,6 +31,7 @@ class DetailViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
     private val observeAnimeByIdUseCase: ObserveAnimeByIdUseCase = mockk()
+    private val fetchAnimeByMalIdUseCase: FetchAnimeByMalIdUseCase = mockk()
     private val updateAnimeUseCase: UpdateAnimeUseCase = mockk()
     private val deleteAnimeFromWatchlistUseCase: DeleteAnimeFromWatchlistUseCase = mockk()
     private val toggleAnimeNotificationsUseCase: ToggleAnimeNotificationsUseCase = mockk(relaxed = true)
@@ -59,11 +61,17 @@ class DetailViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun createViewModel(animeId: Long = 1L): DetailViewModel {
-        val savedStateHandle = SavedStateHandle(mapOf(Route.Detail.ARG_ANIME_ID to animeId))
+    private fun createViewModel(animeId: Long = 1L, malId: Int = 0): DetailViewModel {
+        val savedStateHandle = SavedStateHandle(
+            mapOf(
+                Route.Detail.ARG_ANIME_ID to animeId,
+                Route.Detail.ARG_MAL_ID to malId
+            )
+        )
         return DetailViewModel(
             savedStateHandle = savedStateHandle,
             observeAnimeByIdUseCase = observeAnimeByIdUseCase,
+            fetchAnimeByMalIdUseCase = fetchAnimeByMalIdUseCase,
             updateAnimeUseCase = updateAnimeUseCase,
             deleteAnimeFromWatchlistUseCase = deleteAnimeFromWatchlistUseCase,
             toggleAnimeNotificationsUseCase = toggleAnimeNotificationsUseCase
@@ -344,6 +352,52 @@ class DetailViewModelTest {
             testDispatcher.scheduler.advanceUntilIdle()
 
             coVerify { toggleAnimeNotificationsUseCase(id = 1L, enabled = false) }
+        }
+    }
+
+    @Test
+    fun `loads anime from API when malId is provided`() = runTest {
+        val apiAnime = Anime(
+            malId = 50,
+            title = "Spy x Family",
+            score = 8.5,
+            synopsis = "A spy forms a pretend family."
+        )
+        coEvery { fetchAnimeByMalIdUseCase(50) } returns Result.success(apiAnime)
+
+        val viewModel = createViewModel(animeId = 0L, malId = 50)
+
+        viewModel.uiState.test {
+            val loading = awaitItem()
+            assertThat(loading).isInstanceOf(DetailUiState.Loading::class.java)
+
+            val success = awaitItem() as DetailUiState.Success
+            assertThat(success.anime.title).isEqualTo("Spy x Family")
+            assertThat(success.isInWatchlist).isFalse()
+        }
+    }
+
+    @Test
+    fun `shows not found when API fetch fails`() = runTest {
+        coEvery { fetchAnimeByMalIdUseCase(999) } returns Result.failure(Exception("Not found"))
+
+        val viewModel = createViewModel(animeId = 0L, malId = 999)
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            val notFound = awaitItem()
+            assertThat(notFound).isInstanceOf(DetailUiState.NotFound::class.java)
+        }
+    }
+
+    @Test
+    fun `shows not found when both animeId and malId are zero`() = runTest {
+        val viewModel = createViewModel(animeId = 0L, malId = 0)
+
+        viewModel.uiState.test {
+            val notFound = awaitItem()
+            assertThat(notFound).isInstanceOf(DetailUiState.NotFound::class.java)
         }
     }
 }

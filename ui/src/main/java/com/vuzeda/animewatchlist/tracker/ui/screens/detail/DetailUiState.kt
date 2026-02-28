@@ -8,6 +8,7 @@ sealed interface DetailUiState {
     data object NotFound : DetailUiState
     data class Success(
         val anime: Anime,
+        val isInWatchlist: Boolean = true,
         val isEditing: Boolean = false,
         val editStatus: WatchStatus = anime.status,
         val editCurrentEpisode: Int = anime.currentEpisode,

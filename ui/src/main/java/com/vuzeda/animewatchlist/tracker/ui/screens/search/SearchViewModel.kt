@@ -45,7 +45,8 @@ class SearchViewModel @Inject constructor(
                             results = results,
                             watchlistEntries = it.watchlistEntries,
                             filter = it.selectedFilter,
-                            sortOption = it.sortOption
+                            sortOption = it.sortOption,
+                            isAscending = it.isSortAscending
                         )
                         it.copy(
                             results = results,
@@ -70,13 +71,23 @@ class SearchViewModel @Inject constructor(
 
     fun selectSort(option: SearchSortOption) {
         _uiState.update { currentState ->
+            val isAscending = if (option == currentState.sortOption) {
+                !currentState.isSortAscending
+            } else {
+                option.defaultAscending
+            }
             val displayed = computeDisplayedResults(
                 results = currentState.results,
                 watchlistEntries = currentState.watchlistEntries,
                 filter = currentState.selectedFilter,
-                sortOption = option
+                sortOption = option,
+                isAscending = isAscending
             )
-            currentState.copy(sortOption = option, displayedResults = displayed)
+            currentState.copy(
+                sortOption = option,
+                isSortAscending = isAscending,
+                displayedResults = displayed
+            )
         }
     }
 
@@ -86,7 +97,8 @@ class SearchViewModel @Inject constructor(
                 results = currentState.results,
                 watchlistEntries = currentState.watchlistEntries,
                 filter = filter,
-                sortOption = currentState.sortOption
+                sortOption = currentState.sortOption,
+                isAscending = currentState.isSortAscending
             )
             currentState.copy(selectedFilter = filter, displayedResults = displayed)
         }
@@ -98,42 +110,32 @@ class SearchViewModel @Inject constructor(
         if (entry != null) {
             _uiState.update { it.copy(pendingNavigationId = entry.localId) }
         } else {
-            _uiState.update {
-                it.copy(selectedAnimeForAdd = anime, isNavigateAfterAdd = true)
-            }
+            _uiState.update { it.copy(pendingNavigationMalId = malId) }
         }
     }
 
     fun onAddClick(anime: Anime) {
         _uiState.update {
-            it.copy(selectedAnimeForAdd = anime, isNavigateAfterAdd = false)
+            it.copy(selectedAnimeForAdd = anime)
         }
     }
 
     fun onStatusSelected(status: WatchStatus) {
         val anime = _uiState.value.selectedAnimeForAdd ?: return
-        val shouldNavigate = _uiState.value.isNavigateAfterAdd
         val animeWithStatus = anime.copy(status = status)
 
-        _uiState.update {
-            it.copy(selectedAnimeForAdd = null, isNavigateAfterAdd = false)
-        }
+        _uiState.update { it.copy(selectedAnimeForAdd = null) }
 
         viewModelScope.launch {
-            val localId = addAnimeToWatchlistUseCase(animeWithStatus)
+            addAnimeToWatchlistUseCase(animeWithStatus)
             _uiState.update {
-                it.copy(
-                    snackbarMessage = "${anime.title} added to watchlist",
-                    pendingNavigationId = if (shouldNavigate) localId else null
-                )
+                it.copy(snackbarMessage = "${anime.title} added to watchlist")
             }
         }
     }
 
     fun dismissBottomSheet() {
-        _uiState.update {
-            it.copy(selectedAnimeForAdd = null, isNavigateAfterAdd = false)
-        }
+        _uiState.update { it.copy(selectedAnimeForAdd = null) }
     }
 
     fun clearSnackbar() {
@@ -141,7 +143,7 @@ class SearchViewModel @Inject constructor(
     }
 
     fun onNavigated() {
-        _uiState.update { it.copy(pendingNavigationId = null) }
+        _uiState.update { it.copy(pendingNavigationId = null, pendingNavigationMalId = null) }
     }
 
     private fun observeWatchlistForResults(results: List<Anime>) {
@@ -153,7 +155,8 @@ class SearchViewModel @Inject constructor(
                     results = it.results,
                     watchlistEntries = emptyMap(),
                     filter = it.selectedFilter,
-                    sortOption = it.sortOption
+                    sortOption = it.sortOption,
+                    isAscending = it.isSortAscending
                 )
                 it.copy(watchlistEntries = emptyMap(), displayedResults = displayed)
             }
@@ -175,7 +178,8 @@ class SearchViewModel @Inject constructor(
                         results = it.results,
                         watchlistEntries = entries,
                         filter = it.selectedFilter,
-                        sortOption = it.sortOption
+                        sortOption = it.sortOption,
+                        isAscending = it.isSortAscending
                     )
                     it.copy(watchlistEntries = entries, displayedResults = displayed)
                 }
@@ -188,7 +192,8 @@ fun computeDisplayedResults(
     results: List<Anime>,
     watchlistEntries: Map<Int, WatchlistEntry>,
     filter: SearchFilter,
-    sortOption: SearchSortOption
+    sortOption: SearchSortOption,
+    isAscending: Boolean = sortOption.defaultAscending
 ): List<Anime> {
     val filtered = when (filter) {
         SearchFilter.ALL -> results
@@ -199,12 +204,14 @@ fun computeDisplayedResults(
             anime.malId?.let { watchlistEntries[it] } != null
         }
     }
-    return when (sortOption) {
+    val sorted = when (sortOption) {
         SearchSortOption.DEFAULT -> filtered
         SearchSortOption.ALPHABETICAL -> filtered.sortedBy { it.title.lowercase() }
         SearchSortOption.SCORE -> filtered.sortedByDescending { it.score ?: 0.0 }
         SearchSortOption.RECENTLY_ADDED -> filtered.sortedByDescending { anime ->
-            anime.malId?.let { watchlistEntries[it]?.addedAt } ?: 0L
+            anime.malId?.let { watchlistEntries[it]?.addedAt } ?: -1L
         }
     }
+    val shouldReverse = isAscending != sortOption.defaultAscending
+    return if (shouldReverse && sortOption != SearchSortOption.DEFAULT) sorted.reversed() else sorted
 }

@@ -25,6 +25,8 @@ interface AnimeRepository {
 
     suspend fun getNotifiedAnime(): List<Anime>
 
+    suspend fun fetchAnimeByMalId(malId: Int): Result<Anime>
+
     suspend fun fetchAnimeFullDetails(malId: Int): Result<AnimeFullDetails>
 
     suspend fun updateNotificationData(

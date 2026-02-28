@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -51,6 +52,7 @@ import com.vuzeda.animewatchlist.tracker.ui.screens.home.toDisplayLabel
 @Composable
 fun SearchScreenRoute(
     onNavigateToDetail: (Long) -> Unit,
+    onNavigateToDetailByMalId: (Int) -> Unit,
     viewModel: SearchViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -60,6 +62,14 @@ fun SearchScreenRoute(
         if (id != null) {
             viewModel.onNavigated()
             onNavigateToDetail(id)
+        }
+    }
+
+    LaunchedEffect(uiState.pendingNavigationMalId) {
+        val malId = uiState.pendingNavigationMalId
+        if (malId != null) {
+            viewModel.onNavigated()
+            onNavigateToDetailByMalId(malId)
         }
     }
 
@@ -104,26 +114,30 @@ fun SearchScreen(
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        topBar = {
+            TopAppBar(
+                title = { Text("Search Anime") },
+                windowInsets = WindowInsets(0, 0, 0, 0),
+                actions = {
+                    if (uiState.hasSearched && uiState.results.isNotEmpty()) {
+                        SortMenuButton(
+                            options = sortOptions,
+                            selectedIndex = uiState.sortOption.ordinal,
+                            isAscending = uiState.isSortAscending,
+                            onOptionSelected = { index -> onSortSelected(SearchSortOption.entries[index]) }
+                        )
+                    }
+                }
+            )
+        }
     ) { scaffoldPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(scaffoldPadding)
         ) {
-            TopAppBar(
-                title = { Text("Search Anime") },
-                actions = {
-                    if (uiState.hasSearched && uiState.results.isNotEmpty()) {
-                        SortMenuButton(
-                            options = sortOptions,
-                            selectedIndex = uiState.sortOption.ordinal,
-                            onOptionSelected = { index -> onSortSelected(SearchSortOption.entries[index]) }
-                        )
-                    }
-                }
-            )
-
             AnimeSearchBar(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 query = uiState.query,

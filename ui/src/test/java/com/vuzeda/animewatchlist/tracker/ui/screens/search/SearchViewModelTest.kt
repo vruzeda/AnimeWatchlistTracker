@@ -194,7 +194,7 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun `onAddClick shows bottom sheet without navigate flag`() = runTest {
+    fun `onAddClick shows bottom sheet for status selection`() = runTest {
         viewModel.uiState.test {
             awaitItem()
 
@@ -202,20 +202,19 @@ class SearchViewModelTest {
 
             val updated = awaitItem()
             assertThat(updated.selectedAnimeForAdd).isEqualTo(sampleAnime)
-            assertThat(updated.isNavigateAfterAdd).isFalse()
         }
     }
 
     @Test
-    fun `onAnimeClick shows bottom sheet with navigate flag when not in watchlist`() = runTest {
+    fun `onAnimeClick navigates by malId when not in watchlist`() = runTest {
         viewModel.uiState.test {
             awaitItem()
 
             viewModel.onAnimeClick(sampleAnime)
 
-            val updated = awaitItem()
-            assertThat(updated.selectedAnimeForAdd).isEqualTo(sampleAnime)
-            assertThat(updated.isNavigateAfterAdd).isTrue()
+            val navigating = awaitItem()
+            assertThat(navigating.pendingNavigationMalId).isEqualTo(21)
+            assertThat(navigating.pendingNavigationId).isNull()
         }
     }
 
@@ -246,8 +245,8 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun `onStatusSelected adds anime and shows snackbar`() = runTest {
-        coEvery { addAnimeToWatchlistUseCase(any()) } returns 5L
+    fun `onStatusSelected adds anime and stays on search screen`() = runTest {
+        coEvery { addAnimeToWatchlistUseCase(any()) } returns 7L
 
         viewModel.uiState.test {
             awaitItem()
@@ -257,36 +256,15 @@ class SearchViewModelTest {
 
             viewModel.onStatusSelected(WatchStatus.WATCHING)
 
-            val dismissed = awaitItem()
-            assertThat(dismissed.selectedAnimeForAdd).isNull()
+            awaitItem()
 
             val afterAdd = awaitItem()
-            assertThat(afterAdd.snackbarMessage).isEqualTo("One Punch Man added to watchlist")
             assertThat(afterAdd.pendingNavigationId).isNull()
+            assertThat(afterAdd.snackbarMessage).isEqualTo("One Punch Man added to watchlist")
 
             coVerify {
                 addAnimeToWatchlistUseCase(match { it.status == WatchStatus.WATCHING })
             }
-        }
-    }
-
-    @Test
-    fun `onStatusSelected navigates when isNavigateAfterAdd is true`() = runTest {
-        coEvery { addAnimeToWatchlistUseCase(any()) } returns 7L
-
-        viewModel.uiState.test {
-            awaitItem()
-
-            viewModel.onAnimeClick(sampleAnime)
-            awaitItem()
-
-            viewModel.onStatusSelected(WatchStatus.PLAN_TO_WATCH)
-
-            awaitItem()
-
-            val afterAdd = awaitItem()
-            assertThat(afterAdd.pendingNavigationId).isEqualTo(7L)
-            assertThat(afterAdd.snackbarMessage).isEqualTo("One Punch Man added to watchlist")
         }
     }
 
@@ -302,7 +280,6 @@ class SearchViewModelTest {
 
             val dismissed = awaitItem()
             assertThat(dismissed.selectedAnimeForAdd).isNull()
-            assertThat(dismissed.isNavigateAfterAdd).isFalse()
         }
     }
 
@@ -328,23 +305,45 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun `onNavigated clears pending navigation id`() = runTest {
-        coEvery { addAnimeToWatchlistUseCase(any()) } returns 7L
-
+    fun `onNavigated clears pending navigation ids`() = runTest {
         viewModel.uiState.test {
             awaitItem()
 
             viewModel.onAnimeClick(sampleAnime)
-            awaitItem()
-            viewModel.onStatusSelected(WatchStatus.WATCHING)
-            awaitItem()
+
             val withNav = awaitItem()
-            assertThat(withNav.pendingNavigationId).isEqualTo(7L)
+            assertThat(withNav.pendingNavigationMalId).isEqualTo(21)
 
             viewModel.onNavigated()
 
             val cleared = awaitItem()
+            assertThat(cleared.pendingNavigationMalId).isNull()
             assertThat(cleared.pendingNavigationId).isNull()
+        }
+    }
+
+    @Test
+    fun `selectSort toggles direction when same option is selected again`() = runTest {
+        coEvery { searchAnimeUseCase("anime") } returns Result.success(multiResults)
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            viewModel.updateQuery("anime")
+            awaitItem()
+            viewModel.search()
+            awaitItem()
+            awaitItem()
+
+            viewModel.selectSort(SearchSortOption.ALPHABETICAL)
+            val ascending = awaitItem()
+            assertThat(ascending.isSortAscending).isTrue()
+            assertThat(ascending.displayedResults[0].title).isEqualTo("Attack on Titan")
+
+            viewModel.selectSort(SearchSortOption.ALPHABETICAL)
+            val descending = awaitItem()
+            assertThat(descending.isSortAscending).isFalse()
+            assertThat(descending.displayedResults[0].title).isEqualTo("One Punch Man")
         }
     }
 
@@ -472,6 +471,33 @@ class SearchViewModelTest {
             assertThat(sorted.displayedResults[0].title).isEqualTo("Attack on Titan")
             assertThat(sorted.displayedResults[1].title).isEqualTo("One Punch Man")
             assertThat(sorted.displayedResults[2].title).isEqualTo("Bleach")
+        }
+    }
+
+    @Test
+    fun `selectSort with RECENTLY_ADDED puts non-watchlist anime at bottom`() = runTest {
+        val watchlistFlow = MutableStateFlow(listOf(
+            Anime(id = 5L, malId = 21, title = "One Punch Man", status = WatchStatus.WATCHING, addedAt = 0L)
+        ))
+        coEvery { searchAnimeUseCase("anime") } returns Result.success(multiResults)
+        every { observeWatchlistAnimeByMalIdsUseCase(any()) } returns watchlistFlow
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            viewModel.updateQuery("anime")
+            awaitItem()
+            viewModel.search()
+            awaitItem()
+            awaitItem()
+            awaitItem()
+
+            viewModel.selectSort(SearchSortOption.RECENTLY_ADDED)
+
+            val sorted = awaitItem()
+            assertThat(sorted.displayedResults[0].title).isEqualTo("One Punch Man")
+            assertThat(sorted.displayedResults[1].malId).isNotEqualTo(21)
+            assertThat(sorted.displayedResults[2].malId).isNotEqualTo(21)
         }
     }
 
