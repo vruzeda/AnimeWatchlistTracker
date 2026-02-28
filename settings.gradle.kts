@@ -24,3 +24,9 @@ dependencyResolutionManagement {
 
 rootProject.name = "Anime Watchlist Tracker"
 include(":app")
+include(":domain")
+include(":data:api")
+include(":data:local")
+include(":data:repository")
+include(":designsystem")
+include(":ui")
