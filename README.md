@@ -16,10 +16,9 @@ Anime Watchlist Tracker is a personal anime management app built for fans who wa
   - ⏸️ On Hold
   - ❌ Dropped
 - **Episode Progress** — Track which episode you're on for each show
-- **Rating System** — Rate anime on a 1–10 scale (MAL-style)
-- **Search & Filter** — Quickly find anime in your list by title, genre, or status
-- **Anime Search** — Look up anime info using the Jikan API (unofficial MyAnimeList API)
-- **Offline First** — All data stored locally on your device
+- **Rating System** — Rate anime on a 1–10 star scale
+- **Anime Search** — Look up anime info using the Jikan API (unofficial MyAnimeList API) and add to your watchlist
+- **Offline First** — All data stored locally on your device using Room
 - **Material You** — Modern, dynamic theming that adapts to your wallpaper (Android 12+)
 
 ## Screenshots
@@ -28,46 +27,54 @@ _Coming soon_
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| **Language** | Kotlin |
-| **UI Framework** | Jetpack Compose + Material 3 |
-| **Architecture** | MVVM + Clean Architecture |
-| **Local Database** | Room (SQLite) |
-| **Dependency Injection** | Hilt |
-| **Networking** | Retrofit + OkHttp |
-| **Image Loading** | Coil |
-| **Navigation** | Jetpack Navigation Compose |
-| **Async** | Kotlin Coroutines + Flow |
-| **API** | Jikan v4 (MyAnimeList unofficial API) |
-| **Min SDK** | API 26 (Android 8.0) |
-| **Target SDK** | API 35 (Android 15) |
+- **Language** — Kotlin 2.0.21
+- **UI Framework** — Jetpack Compose + Material 3
+- **Architecture** — Clean Architecture (multi-module) + MVVM
+- **Build System** — Gradle 9.2.1, AGP 9.0.1
+- **Local Database** — Room 2.8.4
+- **Dependency Injection** — Hilt 2.59.2
+- **Networking** — Retrofit 2.11.0 + OkHttp 4.12.0
+- **JSON Parsing** — Moshi 1.15.1
+- **Image Loading** — Coil 2.7.0
+- **Navigation** — Jetpack Navigation Compose 2.8.5
+- **Async** — Kotlin Coroutines 1.9.0 + Flow
+- **API** — Jikan v4 (MyAnimeList unofficial API)
+- **Testing** — JUnit 5, MockK, Turbine, Truth
+- **Min SDK** — API 26 (Android 8.0)
+- **Target SDK** — API 36 (Android 16)
 
 ## Architecture
 
-The project follows **MVVM (Model-View-ViewModel)** with **Clean Architecture** principles:
+The project follows **Clean Architecture** with strict layer separation enforced at the **Gradle module level**, and **MVVM** in the UI layer. Each layer is its own independent module. Dependencies point inward only.
 
 ```
-app/
+AnimeWatchlistTracker/
+├── app/                  # :app — Android Application (Hilt wiring, DI modules)
+├── domain/               # :domain — Pure Kotlin library (models, repository interfaces, use cases)
 ├── data/
-│   ├── local/          # Room database, DAOs, entities
-│   ├── remote/         # Retrofit API service, DTOs
-│   └── repository/     # Repository implementations
-├── domain/
-│   ├── model/          # Domain models
-│   ├── repository/     # Repository interfaces
-│   └── usecase/        # Business logic use cases
-├── di/                 # Hilt dependency injection modules
-└── ui/
-    ├── components/     # Reusable Compose components
-    ├── navigation/     # Navigation graph
-    ├── screens/        # Screen composables + ViewModels
-    │   ├── home/
-    │   ├── detail/
-    │   ├── search/
-    │   └── settings/
-    └── theme/          # Material 3 theme, colors, typography
+│   ├── api/              # :data:api — Pure Kotlin library (Retrofit service, DTOs)
+│   ├── local/            # :data:local — Android library (Room entities, DAOs, database)
+│   └── repository/       # :data:repository — Android library (repository impls, mappers)
+├── designsystem/         # :designsystem — Android library (theme, reusable Compose components)
+└── ui/                   # :ui — Android library (screens, ViewModels, navigation)
 ```
+
+### Module Dependency Graph
+
+```
+:app → :ui → :designsystem
+              → :domain
+:app → :data:repository → :data:api    → :domain
+                        → :data:local   → :domain
+```
+
+`:domain` depends on nothing. `:designsystem` depends on nothing (no business logic modules). `:ui` depends on `:domain` and `:designsystem`. The `:data` modules depend on `:domain`. Only `:app` sees everything.
+
+### Screens
+
+- **Home** — Watchlist with scrollable status tabs (All, Watching, Completed, Plan to Watch, On Hold, Dropped)
+- **Search** — Search anime via Jikan API and add results to your watchlist
+- **Detail** — View anime details, edit status/episode progress/rating, delete from watchlist
 
 ## API
 
@@ -75,15 +82,15 @@ This app uses the [Jikan API v4](https://jikan.moe/) to fetch anime information,
 
 - No API key required
 - Rate limited to ~3 requests/second
-- Used only for search and fetching anime details — all user data stays local
+- Used only for search — all user data stays local
 
 ## Getting Started
 
 ### Prerequisites
 
-- [Android Studio](https://developer.android.com/studio) Ladybug (2024.2.1) or newer
+- [Android Studio](https://developer.android.com/studio) Meerkat (2025.1.1) or newer (AGP 9.0.1 required)
 - JDK 17+
-- Android SDK with API 35
+- Android SDK with API 36
 
 ### Build & Run
 
@@ -96,6 +103,12 @@ This app uses the [Jikan API v4](https://jikan.moe/) to fetch anime information,
 
 3. Sync Gradle and run on an emulator or physical device
 
+### Run Tests
+
+```bash
+./gradlew :domain:test :data:repository:test :ui:test
+```
+
 ### Build Release APK
 
 ```bash
@@ -104,15 +117,18 @@ This app uses the [Jikan API v4](https://jikan.moe/) to fetch anime information,
 
 ## Roadmap
 
-- [x] Project setup and architecture
-- [ ] Local database with Room
-- [ ] Home screen with watchlist tabs
-- [ ] Add/edit anime screen
-- [ ] Anime search via Jikan API
-- [ ] Detail screen with episode tracking
-- [ ] Rating and notes
-- [ ] Search and filter within local list
+- [x] Multi-module Gradle setup
+- [x] Domain layer (models, repository interfaces, use cases)
+- [x] Local database with Room
+- [x] API layer (Jikan v4 DTOs, Retrofit service)
+- [x] Repository layer with mappers
+- [x] Design system (theme, reusable components)
+- [x] Home screen with watchlist status tabs
+- [x] Anime search via Jikan API
+- [x] Detail screen with episode tracking and rating
+- [x] DI wiring with Hilt
 - [ ] Settings screen (theme, data export/import)
+- [ ] Search and filter within local list
 - [ ] Widget for currently watching
 - [ ] Notifications for airing episodes
 
