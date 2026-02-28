@@ -163,7 +163,11 @@ class SearchViewModel @Inject constructor(
             observeWatchlistAnimeByMalIdsUseCase(malIds).collect { animeList ->
                 val entries = animeList.mapNotNull { anime ->
                     anime.malId?.let { malId ->
-                        malId to WatchlistEntry(localId = anime.id, status = anime.status)
+                        malId to WatchlistEntry(
+                            localId = anime.id,
+                            status = anime.status,
+                            addedAt = anime.addedAt
+                        )
                     }
                 }.toMap()
                 _uiState.update {
@@ -199,5 +203,8 @@ fun computeDisplayedResults(
         SearchSortOption.DEFAULT -> filtered
         SearchSortOption.ALPHABETICAL -> filtered.sortedBy { it.title.lowercase() }
         SearchSortOption.SCORE -> filtered.sortedByDescending { it.score ?: 0.0 }
+        SearchSortOption.RECENTLY_ADDED -> filtered.sortedByDescending { anime ->
+            anime.malId?.let { watchlistEntries[it]?.addedAt } ?: 0L
+        }
     }
 }

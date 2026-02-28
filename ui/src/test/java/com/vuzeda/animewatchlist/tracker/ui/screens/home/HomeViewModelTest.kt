@@ -26,9 +26,9 @@ class HomeViewModelTest {
     private val observeWatchlistUseCase: ObserveWatchlistUseCase = mockk()
 
     private val sampleAnimeList = listOf(
-        Anime(id = 1L, title = "Attack on Titan", status = WatchStatus.WATCHING, score = 9.0, userRating = 8, currentEpisode = 10, episodeCount = 25),
-        Anime(id = 2L, title = "One Punch Man", status = WatchStatus.COMPLETED, score = 8.5, userRating = 9, currentEpisode = 12, episodeCount = 12),
-        Anime(id = 3L, title = "Bleach", status = WatchStatus.WATCHING, score = 7.9, userRating = 7, currentEpisode = 50, episodeCount = 366)
+        Anime(id = 1L, title = "Attack on Titan", status = WatchStatus.WATCHING, score = 9.0, userRating = 8, currentEpisode = 10, episodeCount = 25, addedAt = 1000L),
+        Anime(id = 2L, title = "One Punch Man", status = WatchStatus.COMPLETED, score = 8.5, userRating = 9, currentEpisode = 12, episodeCount = 12, addedAt = 3000L),
+        Anime(id = 3L, title = "Bleach", status = WatchStatus.WATCHING, score = 7.9, userRating = 7, currentEpisode = 50, episodeCount = 366, addedAt = 2000L)
     )
 
     @BeforeEach
@@ -164,6 +164,25 @@ class HomeViewModelTest {
             assertThat(sorted.animeList[0].title).isEqualTo("One Punch Man")
             assertThat(sorted.animeList[1].title).isEqualTo("Attack on Titan")
             assertThat(sorted.animeList[2].title).isEqualTo("Bleach")
+        }
+    }
+
+    @Test
+    fun `selectSort with RECENTLY_ADDED sorts by addedAt descending`() = runTest {
+        every { observeWatchlistUseCase(null) } returns flowOf(sampleAnimeList)
+
+        val viewModel = HomeViewModel(observeWatchlistUseCase)
+
+        viewModel.uiState.test {
+            skipItems(2)
+
+            viewModel.selectSort(HomeSortOption.RECENTLY_ADDED)
+
+            val sorted = awaitItem()
+            assertThat(sorted.sortOption).isEqualTo(HomeSortOption.RECENTLY_ADDED)
+            assertThat(sorted.animeList[0].title).isEqualTo("One Punch Man")
+            assertThat(sorted.animeList[1].title).isEqualTo("Bleach")
+            assertThat(sorted.animeList[2].title).isEqualTo("Attack on Titan")
         }
     }
 

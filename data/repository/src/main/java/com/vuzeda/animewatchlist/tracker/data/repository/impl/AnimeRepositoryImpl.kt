@@ -30,8 +30,10 @@ class AnimeRepositoryImpl @Inject constructor(
     override fun observeAnimeById(id: Long): Flow<Anime?> =
         animeDao.observeById(id).map { it?.toDomainModel() }
 
-    override suspend fun addAnime(anime: Anime): Long =
-        animeDao.insert(anime.toEntity())
+    override suspend fun addAnime(anime: Anime): Long {
+        val withTimestamp = anime.copy(addedAt = System.currentTimeMillis())
+        return animeDao.insert(withTimestamp.toEntity())
+    }
 
     override suspend fun updateAnime(anime: Anime) {
         animeDao.update(anime.toEntity())

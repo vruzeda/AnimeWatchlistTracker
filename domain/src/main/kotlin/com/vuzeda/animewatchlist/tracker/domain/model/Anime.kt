@@ -14,5 +14,6 @@ data class Anime(
     val genres: List<String> = emptyList(),
     val isNotificationsEnabled: Boolean = false,
     val lastCheckedEpisodeCount: Int? = null,
-    val knownSequelMalIds: List<Int> = emptyList()
+    val knownSequelMalIds: List<Int> = emptyList(),
+    val addedAt: Long = 0
 )

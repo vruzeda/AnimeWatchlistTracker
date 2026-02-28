@@ -9,7 +9,7 @@ import com.vuzeda.animewatchlist.tracker.data.local.entity.AnimeEntity
 
 @Database(
     entities = [AnimeEntity::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class AnimeDatabase : RoomDatabase() {
@@ -21,6 +21,12 @@ abstract class AnimeDatabase : RoomDatabase() {
                 db.execSQL("ALTER TABLE anime ADD COLUMN isNotificationsEnabled INTEGER NOT NULL DEFAULT 0")
                 db.execSQL("ALTER TABLE anime ADD COLUMN lastCheckedEpisodeCount INTEGER")
                 db.execSQL("ALTER TABLE anime ADD COLUMN knownSequelMalIds TEXT NOT NULL DEFAULT ''")
+            }
+        }
+
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE anime ADD COLUMN addedAt INTEGER NOT NULL DEFAULT 0")
             }
         }
     }

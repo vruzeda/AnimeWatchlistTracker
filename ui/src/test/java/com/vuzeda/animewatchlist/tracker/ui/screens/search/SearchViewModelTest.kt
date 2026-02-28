@@ -447,6 +447,35 @@ class SearchViewModelTest {
     }
 
     @Test
+    fun `selectSort with RECENTLY_ADDED sorts by watchlist addedAt descending`() = runTest {
+        val watchlistFlow = MutableStateFlow(listOf(
+            Anime(id = 5L, malId = 21, title = "One Punch Man", status = WatchStatus.WATCHING, addedAt = 1000L),
+            Anime(id = 6L, malId = 30, title = "Attack on Titan", status = WatchStatus.WATCHING, addedAt = 3000L)
+        ))
+        coEvery { searchAnimeUseCase("anime") } returns Result.success(multiResults)
+        every { observeWatchlistAnimeByMalIdsUseCase(any()) } returns watchlistFlow
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            viewModel.updateQuery("anime")
+            awaitItem()
+            viewModel.search()
+            awaitItem()
+            awaitItem()
+            awaitItem()
+
+            viewModel.selectSort(SearchSortOption.RECENTLY_ADDED)
+
+            val sorted = awaitItem()
+            assertThat(sorted.sortOption).isEqualTo(SearchSortOption.RECENTLY_ADDED)
+            assertThat(sorted.displayedResults[0].title).isEqualTo("Attack on Titan")
+            assertThat(sorted.displayedResults[1].title).isEqualTo("One Punch Man")
+            assertThat(sorted.displayedResults[2].title).isEqualTo("Bleach")
+        }
+    }
+
+    @Test
     fun `displayedResults recomputes when watchlist entries change`() = runTest {
         val watchlistFlow = MutableStateFlow<List<Anime>>(emptyList())
         coEvery { searchAnimeUseCase("anime") } returns Result.success(multiResults)

@@ -60,6 +60,7 @@ class HomeViewModel @Inject constructor(
 
 fun sortAnimeList(list: List<Anime>, option: HomeSortOption): List<Anime> = when (option) {
     HomeSortOption.ALPHABETICAL -> list.sortedBy { it.title.lowercase() }
+    HomeSortOption.RECENTLY_ADDED -> list.sortedByDescending { it.addedAt }
     HomeSortOption.MAL_SCORE -> list.sortedByDescending { it.score ?: 0.0 }
     HomeSortOption.USER_RATING -> list.sortedByDescending { it.userRating ?: 0 }
     HomeSortOption.PROGRESS -> list.sortedByDescending { anime ->

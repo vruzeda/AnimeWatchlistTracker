@@ -6,7 +6,8 @@ import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 enum class SearchSortOption(val displayLabel: String) {
     DEFAULT("Relevance"),
     ALPHABETICAL("Alphabetical"),
-    SCORE("Score")
+    SCORE("Score"),
+    RECENTLY_ADDED("Recently Added")
 }
 
 enum class SearchFilter(val displayLabel: String) {
@@ -17,7 +18,8 @@ enum class SearchFilter(val displayLabel: String) {
 
 data class WatchlistEntry(
     val localId: Long,
-    val status: WatchStatus
+    val status: WatchStatus,
+    val addedAt: Long = 0
 )
 
 data class SearchUiState(
