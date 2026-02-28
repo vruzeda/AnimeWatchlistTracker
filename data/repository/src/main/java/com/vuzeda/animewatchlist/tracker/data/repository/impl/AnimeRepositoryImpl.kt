@@ -65,6 +65,6 @@ class AnimeRepositoryImpl @Inject constructor(
         animeDao.updateNotificationsEnabled(id = id, enabled = if (enabled) 1 else 0)
     }
 
-    override suspend fun getAnimeByMalIds(malIds: List<Int>): List<Anime> =
-        animeDao.getByMalIds(malIds).map { it.toDomainModel() }
+    override fun observeAnimeByMalIds(malIds: List<Int>): Flow<List<Anime>> =
+        animeDao.observeByMalIds(malIds).map { entities -> entities.map { it.toDomainModel() } }
 }

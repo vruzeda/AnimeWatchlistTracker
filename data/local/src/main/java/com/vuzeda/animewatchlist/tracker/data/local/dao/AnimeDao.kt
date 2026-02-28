@@ -39,5 +39,5 @@ interface AnimeDao {
     suspend fun updateNotificationData(id: Long, count: Int?, sequelIds: String)
 
     @Query("SELECT * FROM anime WHERE malId IN (:malIds)")
-    suspend fun getByMalIds(malIds: List<Int>): List<AnimeEntity>
+    fun observeByMalIds(malIds: List<Int>): Flow<List<AnimeEntity>>
 }

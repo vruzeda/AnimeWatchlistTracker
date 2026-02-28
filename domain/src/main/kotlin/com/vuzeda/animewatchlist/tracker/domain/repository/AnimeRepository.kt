@@ -33,5 +33,5 @@ interface AnimeRepository {
 
     suspend fun toggleNotifications(id: Long, enabled: Boolean)
 
-    suspend fun getAnimeByMalIds(malIds: List<Int>): List<Anime>
+    fun observeAnimeByMalIds(malIds: List<Int>): Flow<List<Anime>>
 }
