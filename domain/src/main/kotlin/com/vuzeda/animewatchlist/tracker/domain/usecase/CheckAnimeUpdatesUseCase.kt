@@ -72,7 +72,7 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
             val sequelDetails = remoteRepository.fetchAnimeFullById(sequel.malId).getOrNull()
             delay(RATE_LIMIT_DELAY_MS)
 
-            if (sequelDetails != null && sequelDetails.type in ResolveAnimeUseCase.ALLOWED_TYPES) {
+            if (sequelDetails != null && sequelDetails.type in ALLOWED_TYPES) {
                 val isConfirmed = sequelDetails.airingStatus == STATUS_CURRENTLY_AIRING ||
                     sequelDetails.airingStatus == STATUS_FINISHED_AIRING
 
@@ -92,5 +92,6 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
         const val RATE_LIMIT_DELAY_MS = 1100L
         const val STATUS_CURRENTLY_AIRING = "Currently Airing"
         const val STATUS_FINISHED_AIRING = "Finished Airing"
+        val ALLOWED_TYPES = setOf("TV", "Movie")
     }
 }

@@ -3,6 +3,7 @@ package com.vuzeda.animewatchlist.tracker.data.repository.impl
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeDataDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeSearchResponseDto
+import com.vuzeda.animewatchlist.tracker.data.api.service.ChiakiService
 import com.vuzeda.animewatchlist.tracker.data.api.service.JikanApiService
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -12,7 +13,8 @@ import org.junit.jupiter.api.Test
 class AnimeRemoteRepositoryImplTest {
 
     private val jikanApiService: JikanApiService = mockk()
-    private val repository = AnimeRemoteRepositoryImpl(jikanApiService)
+    private val chiakiService: ChiakiService = mockk()
+    private val repository = AnimeRemoteRepositoryImpl(jikanApiService, chiakiService)
 
     @Test
     fun `searchAnime deduplicates results by malId`() = runTest {

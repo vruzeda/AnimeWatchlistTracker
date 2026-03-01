@@ -3,7 +3,7 @@ package com.vuzeda.animewatchlist.tracker.domain.usecase
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.domain.model.AnimeFullDetails
-import com.vuzeda.animewatchlist.tracker.domain.model.SequelInfo
+import com.vuzeda.animewatchlist.tracker.domain.model.SeasonData
 import com.vuzeda.animewatchlist.tracker.domain.repository.AnimeRemoteRepository
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -15,177 +15,96 @@ class ResolveAnimeProgressivelyUseCaseTest {
     private val remoteRepository = mockk<AnimeRemoteRepository>()
     private val useCase = ResolveAnimeProgressivelyUseCase(remoteRepository)
 
-    @Test
-    fun `emits single entry immediately when no prequels or sequels`() = runTest {
-        val entry = AnimeFullDetails(
-            malId = 1,
-            title = "Solo Anime",
-            type = "TV",
-            episodes = 12,
-            score = 8.0,
-            sequels = emptyList(),
-            prequels = emptyList()
-        )
-        coEvery { remoteRepository.fetchAnimeFullById(1) } returns Result.success(entry)
-
-        useCase(1).test {
-            val result = awaitItem()
-            assertThat(result.title).isEqualTo("Solo Anime")
-            assertThat(result.seasons).hasSize(1)
-            assertThat(result.seasons[0].malId).isEqualTo(1)
-            assertThat(result.isResolvingPrequels).isFalse()
-            assertThat(result.isResolvingSequels).isFalse()
-
-            awaitComplete()
-        }
-    }
+    private val sampleSeasons = listOf(
+        SeasonData(malId = 1, title = "Season 1", type = "TV", episodeCount = 12, score = 8.0),
+        SeasonData(malId = 2, title = "Season 2", type = "TV", episodeCount = 12, score = 8.5)
+    )
 
     @Test
-    fun `emits progressively when walking sequels`() = runTest {
-        val season1 = AnimeFullDetails(
-            malId = 1,
-            title = "Season 1",
-            type = "TV",
-            episodes = 12,
-            sequels = listOf(SequelInfo(2, "Season 2")),
-            prequels = emptyList()
+    fun `emits all seasons immediately from watch order`() = runTest {
+        coEvery { remoteRepository.fetchWatchOrder(1) } returns Result.success(sampleSeasons)
+        coEvery { remoteRepository.fetchAnimeFullById(1) } returns Result.success(
+            AnimeFullDetails(
+                malId = 1,
+                title = "Season 1 Full",
+                type = "TV",
+                episodes = 12,
+                score = 8.0,
+                synopsis = "A great anime.",
+                genres = listOf("Action"),
+                sequels = emptyList(),
+                prequels = emptyList()
+            )
         )
-        val season2 = AnimeFullDetails(
-            malId = 2,
-            title = "Season 2",
-            type = "TV",
-            episodes = 12,
-            sequels = emptyList(),
-            prequels = listOf(SequelInfo(1, "Season 1"))
-        )
-        coEvery { remoteRepository.fetchAnimeFullById(1) } returns Result.success(season1)
-        coEvery { remoteRepository.fetchAnimeFullById(2) } returns Result.success(season2)
 
         useCase(1).test {
             val first = awaitItem()
             assertThat(first.title).isEqualTo("Season 1")
-            assertThat(first.seasons).hasSize(1)
+            assertThat(first.seasons).hasSize(2)
+            assertThat(first.synopsis).isNull()
             assertThat(first.isResolvingPrequels).isFalse()
-            assertThat(first.isResolvingSequels).isTrue()
+            assertThat(first.isResolvingSequels).isFalse()
 
-            val second = awaitItem()
-            assertThat(second.seasons).hasSize(2)
-            assertThat(second.seasons[0].malId).isEqualTo(1)
-            assertThat(second.seasons[1].malId).isEqualTo(2)
-            assertThat(second.isResolvingSequels).isFalse()
-
-            val final_ = awaitItem()
-            assertThat(final_.isResolvingPrequels).isFalse()
-            assertThat(final_.isResolvingSequels).isFalse()
+            val enriched = awaitItem()
+            assertThat(enriched.title).isEqualTo("Season 1 Full")
+            assertThat(enriched.synopsis).isEqualTo("A great anime.")
+            assertThat(enriched.genres).containsExactly("Action")
+            assertThat(enriched.seasons).hasSize(2)
 
             awaitComplete()
         }
     }
 
     @Test
-    fun `emits progressively when walking prequels then sequels`() = runTest {
-        val season1 = AnimeFullDetails(
-            malId = 1,
-            title = "Season 1",
-            type = "TV",
-            episodes = 24,
-            sequels = listOf(SequelInfo(2, "Season 2")),
-            prequels = emptyList()
+    fun `emits single season when only one exists`() = runTest {
+        val singleSeason = listOf(
+            SeasonData(malId = 5, title = "Solo Anime", type = "TV", episodeCount = 24, score = 9.0)
         )
-        val season2 = AnimeFullDetails(
-            malId = 2,
-            title = "Season 2",
-            type = "TV",
-            episodes = 12,
-            sequels = listOf(SequelInfo(3, "Season 3")),
-            prequels = listOf(SequelInfo(1, "Season 1"))
+        coEvery { remoteRepository.fetchWatchOrder(5) } returns Result.success(singleSeason)
+        coEvery { remoteRepository.fetchAnimeFullById(5) } returns Result.success(
+            AnimeFullDetails(
+                malId = 5,
+                title = "Solo Anime",
+                type = "TV",
+                episodes = 24,
+                score = 9.0,
+                synopsis = "A standalone story.",
+                genres = listOf("Drama"),
+                sequels = emptyList(),
+                prequels = emptyList()
+            )
         )
-        val season3 = AnimeFullDetails(
-            malId = 3,
-            title = "Season 3",
-            type = "TV",
-            episodes = 12,
-            sequels = emptyList(),
-            prequels = listOf(SequelInfo(2, "Season 2"))
-        )
-        coEvery { remoteRepository.fetchAnimeFullById(1) } returns Result.success(season1)
-        coEvery { remoteRepository.fetchAnimeFullById(2) } returns Result.success(season2)
-        coEvery { remoteRepository.fetchAnimeFullById(3) } returns Result.success(season3)
 
-        useCase(2).test {
-            val initial = awaitItem()
-            assertThat(initial.title).isEqualTo("Season 2")
-            assertThat(initial.seasons).hasSize(1)
-            assertThat(initial.seasons[0].malId).isEqualTo(2)
-            assertThat(initial.isResolvingPrequels).isTrue()
-            assertThat(initial.isResolvingSequels).isTrue()
+        useCase(5).test {
+            val first = awaitItem()
+            assertThat(first.seasons).hasSize(1)
+            assertThat(first.seasons[0].malId).isEqualTo(5)
 
-            val withPrequel = awaitItem()
-            assertThat(withPrequel.title).isEqualTo("Season 1")
-            assertThat(withPrequel.seasons).hasSize(2)
-            assertThat(withPrequel.seasons[0].malId).isEqualTo(1)
-            assertThat(withPrequel.seasons[1].malId).isEqualTo(2)
-            assertThat(withPrequel.isResolvingPrequels).isFalse()
-            assertThat(withPrequel.isResolvingSequels).isTrue()
-
-            val withSequel = awaitItem()
-            assertThat(withSequel.seasons).hasSize(3)
-            assertThat(withSequel.seasons[2].malId).isEqualTo(3)
-            assertThat(withSequel.isResolvingSequels).isFalse()
-
-            val final_ = awaitItem()
-            assertThat(final_.isResolvingPrequels).isFalse()
-            assertThat(final_.isResolvingSequels).isFalse()
-            assertThat(final_.seasons).hasSize(3)
+            val enriched = awaitItem()
+            assertThat(enriched.synopsis).isEqualTo("A standalone story.")
 
             awaitComplete()
         }
     }
 
     @Test
-    fun `uses root metadata for title after walking prequels`() = runTest {
-        val root = AnimeFullDetails(
-            malId = 1,
-            title = "Root Title",
-            imageUrl = "root.jpg",
-            synopsis = "Root synopsis",
-            genres = listOf("Action"),
-            type = "TV",
-            episodes = 24,
-            sequels = listOf(SequelInfo(2, "Season 2")),
-            prequels = emptyList()
-        )
-        val start = AnimeFullDetails(
-            malId = 2,
-            title = "Season 2",
-            type = "TV",
-            episodes = 12,
-            sequels = emptyList(),
-            prequels = listOf(SequelInfo(1, "Root Title"))
-        )
-        coEvery { remoteRepository.fetchAnimeFullById(2) } returns Result.success(start)
-        coEvery { remoteRepository.fetchAnimeFullById(1) } returns Result.success(root)
+    fun `completes without enrichment when Jikan call fails`() = runTest {
+        coEvery { remoteRepository.fetchWatchOrder(1) } returns Result.success(sampleSeasons)
+        coEvery { remoteRepository.fetchAnimeFullById(1) } returns Result.failure(Exception("API error"))
 
-        useCase(2).test {
-            val initial = awaitItem()
-            assertThat(initial.title).isEqualTo("Season 2")
-
-            val withRoot = awaitItem()
-            assertThat(withRoot.title).isEqualTo("Root Title")
-            assertThat(withRoot.imageUrl).isEqualTo("root.jpg")
-            assertThat(withRoot.synopsis).isEqualTo("Root synopsis")
-            assertThat(withRoot.genres).containsExactly("Action")
-
-            val final_ = awaitItem()
-            assertThat(final_.title).isEqualTo("Root Title")
+        useCase(1).test {
+            val result = awaitItem()
+            assertThat(result.title).isEqualTo("Season 1")
+            assertThat(result.seasons).hasSize(2)
+            assertThat(result.synopsis).isNull()
 
             awaitComplete()
         }
     }
 
     @Test
-    fun `throws when initial fetch fails`() = runTest {
-        coEvery { remoteRepository.fetchAnimeFullById(999) } returns Result.failure(Exception("Not found"))
+    fun `throws when watch order fetch fails`() = runTest {
+        coEvery { remoteRepository.fetchWatchOrder(999) } returns Result.failure(Exception("Not found"))
 
         useCase(999).test {
             awaitError()
@@ -193,35 +112,64 @@ class ResolveAnimeProgressivelyUseCaseTest {
     }
 
     @Test
-    fun `stops walking prequels when type is not allowed`() = runTest {
-        val ova = AnimeFullDetails(
-            malId = 1,
-            title = "OVA",
-            type = "OVA",
-            episodes = 1,
-            sequels = listOf(SequelInfo(2, "Season 1")),
-            prequels = emptyList()
+    fun `uses root season title and image in initial emission`() = runTest {
+        val seasons = listOf(
+            SeasonData(malId = 10, title = "Root Season", imageUrl = "root.jpg", type = "TV"),
+            SeasonData(malId = 11, title = "Season 2", imageUrl = "s2.jpg", type = "TV")
         )
-        val start = AnimeFullDetails(
-            malId = 2,
-            title = "Season 1",
-            type = "TV",
-            episodes = 12,
-            sequels = emptyList(),
-            prequels = listOf(SequelInfo(1, "OVA"))
+        coEvery { remoteRepository.fetchWatchOrder(10) } returns Result.success(seasons)
+        coEvery { remoteRepository.fetchAnimeFullById(10) } returns Result.success(
+            AnimeFullDetails(
+                malId = 10,
+                title = "Root Full Title",
+                imageUrl = "root_full.jpg",
+                synopsis = "Root synopsis.",
+                genres = listOf("Fantasy"),
+                type = "TV",
+                episodes = 24,
+                sequels = emptyList(),
+                prequels = emptyList()
+            )
         )
-        coEvery { remoteRepository.fetchAnimeFullById(2) } returns Result.success(start)
-        coEvery { remoteRepository.fetchAnimeFullById(1) } returns Result.success(ova)
 
-        useCase(2).test {
+        useCase(10).test {
             val initial = awaitItem()
-            assertThat(initial.seasons).hasSize(1)
-            assertThat(initial.isResolvingPrequels).isTrue()
+            assertThat(initial.title).isEqualTo("Root Season")
+            assertThat(initial.imageUrl).isEqualTo("root.jpg")
 
-            val final_ = awaitItem()
-            assertThat(final_.seasons).hasSize(1)
-            assertThat(final_.isResolvingPrequels).isFalse()
-            assertThat(final_.isResolvingSequels).isFalse()
+            val enriched = awaitItem()
+            assertThat(enriched.title).isEqualTo("Root Full Title")
+            assertThat(enriched.imageUrl).isEqualTo("root_full.jpg")
+            assertThat(enriched.synopsis).isEqualTo("Root synopsis.")
+            assertThat(enriched.genres).containsExactly("Fantasy")
+
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `falls back to chiaki image when Jikan image is null`() = runTest {
+        val seasons = listOf(
+            SeasonData(malId = 20, title = "Test Anime", imageUrl = "chiaki.jpg", type = "TV")
+        )
+        coEvery { remoteRepository.fetchWatchOrder(20) } returns Result.success(seasons)
+        coEvery { remoteRepository.fetchAnimeFullById(20) } returns Result.success(
+            AnimeFullDetails(
+                malId = 20,
+                title = "Test Anime Full",
+                imageUrl = null,
+                type = "TV",
+                episodes = null,
+                sequels = emptyList(),
+                prequels = emptyList()
+            )
+        )
+
+        useCase(20).test {
+            awaitItem()
+
+            val enriched = awaitItem()
+            assertThat(enriched.imageUrl).isEqualTo("chiaki.jpg")
 
             awaitComplete()
         }

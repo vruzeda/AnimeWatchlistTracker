@@ -1,17 +1,21 @@
 package com.vuzeda.animewatchlist.tracker.data.repository.impl
 
+import com.vuzeda.animewatchlist.tracker.data.api.service.ChiakiService
 import com.vuzeda.animewatchlist.tracker.data.api.service.JikanApiService
 import com.vuzeda.animewatchlist.tracker.data.repository.mapper.toAnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.data.repository.mapper.toEpisodePage
 import com.vuzeda.animewatchlist.tracker.data.repository.mapper.toSearchResult
+import com.vuzeda.animewatchlist.tracker.data.repository.mapper.toSeasonDataList
 import com.vuzeda.animewatchlist.tracker.domain.model.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.domain.model.EpisodePage
 import com.vuzeda.animewatchlist.tracker.domain.model.SearchResult
+import com.vuzeda.animewatchlist.tracker.domain.model.SeasonData
 import com.vuzeda.animewatchlist.tracker.domain.repository.AnimeRemoteRepository
 import javax.inject.Inject
 
 class AnimeRemoteRepositoryImpl @Inject constructor(
-    private val jikanApiService: JikanApiService
+    private val jikanApiService: JikanApiService,
+    private val chiakiService: ChiakiService
 ) : AnimeRemoteRepository {
 
     override suspend fun searchAnime(query: String): Result<List<SearchResult>> = runCatching {
@@ -42,5 +46,9 @@ class AnimeRemoteRepositoryImpl @Inject constructor(
             .filter { it.aired != null }
             .maxByOrNull { it.malId }
             ?.malId
+    }
+
+    override suspend fun fetchWatchOrder(malId: Int): Result<List<SeasonData>> = runCatching {
+        chiakiService.fetchWatchOrder(malId).toSeasonDataList()
     }
 }
