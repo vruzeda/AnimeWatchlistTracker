@@ -3,6 +3,7 @@ package com.vuzeda.animewatchlist.tracker.data.repository.mapper
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.data.local.entity.AnimeEntity
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
+import com.vuzeda.animewatchlist.tracker.domain.model.KnownSequel
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import org.junit.jupiter.api.Test
 
@@ -159,30 +160,51 @@ class AnimeEntityMapperTest {
             status = "WATCHING",
             genres = "",
             isNotificationsEnabled = 1,
-            lastCheckedEpisodeCount = 12,
-            knownSequelMalIds = "200,300"
+            lastCheckedAiredEpisodeCount = 12,
+            knownSequelData = "200:true,300:false"
         )
 
         val anime = entity.toDomainModel()
 
         assertThat(anime.isNotificationsEnabled).isTrue()
-        assertThat(anime.lastCheckedEpisodeCount).isEqualTo(12)
-        assertThat(anime.knownSequelMalIds).containsExactly(200, 300)
+        assertThat(anime.lastCheckedAiredEpisodeCount).isEqualTo(12)
+        assertThat(anime.knownSequels).containsExactly(
+            KnownSequel(200, true),
+            KnownSequel(300, false)
+        )
     }
 
     @Test
-    fun `toDomainModel handles empty knownSequelMalIds`() {
+    fun `toDomainModel handles empty knownSequelData`() {
         val entity = AnimeEntity(
             id = 1L,
             title = "Test",
             status = "WATCHING",
             genres = "",
-            knownSequelMalIds = ""
+            knownSequelData = ""
         )
 
         val anime = entity.toDomainModel()
 
-        assertThat(anime.knownSequelMalIds).isEmpty()
+        assertThat(anime.knownSequels).isEmpty()
+    }
+
+    @Test
+    fun `toDomainModel parses legacy knownSequelData format`() {
+        val entity = AnimeEntity(
+            id = 1L,
+            title = "Test",
+            status = "WATCHING",
+            genres = "",
+            knownSequelData = "200,300"
+        )
+
+        val anime = entity.toDomainModel()
+
+        assertThat(anime.knownSequels).containsExactly(
+            KnownSequel(200, true),
+            KnownSequel(300, true)
+        )
     }
 
     @Test
@@ -191,15 +213,15 @@ class AnimeEntityMapperTest {
             id = 1L,
             title = "Test",
             isNotificationsEnabled = true,
-            lastCheckedEpisodeCount = 24,
-            knownSequelMalIds = listOf(200, 300)
+            lastCheckedAiredEpisodeCount = 24,
+            knownSequels = listOf(KnownSequel(200, true), KnownSequel(300, false))
         )
 
         val entity = anime.toEntity()
 
         assertThat(entity.isNotificationsEnabled).isEqualTo(1)
-        assertThat(entity.lastCheckedEpisodeCount).isEqualTo(24)
-        assertThat(entity.knownSequelMalIds).isEqualTo("200,300")
+        assertThat(entity.lastCheckedAiredEpisodeCount).isEqualTo(24)
+        assertThat(entity.knownSequelData).isEqualTo("200:true,300:false")
     }
 
     @Test
@@ -217,8 +239,8 @@ class AnimeEntityMapperTest {
             status = WatchStatus.WATCHING,
             genres = listOf("Action", "Drama", "Fantasy"),
             isNotificationsEnabled = true,
-            lastCheckedEpisodeCount = 25,
-            knownSequelMalIds = listOf(200, 300)
+            lastCheckedAiredEpisodeCount = 25,
+            knownSequels = listOf(KnownSequel(200, true), KnownSequel(300, false))
         )
 
         val roundTripped = original.toEntity().toDomainModel()

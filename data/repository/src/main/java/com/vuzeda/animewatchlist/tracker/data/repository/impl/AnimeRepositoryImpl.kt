@@ -2,11 +2,15 @@ package com.vuzeda.animewatchlist.tracker.data.repository.impl
 
 import com.vuzeda.animewatchlist.tracker.data.api.service.JikanApiService
 import com.vuzeda.animewatchlist.tracker.data.local.dao.AnimeDao
+import com.vuzeda.animewatchlist.tracker.data.repository.mapper.serializeKnownSequelData
+import com.vuzeda.animewatchlist.tracker.data.repository.mapper.toAnimeBasicInfo
 import com.vuzeda.animewatchlist.tracker.data.repository.mapper.toAnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.data.repository.mapper.toDomainModel
 import com.vuzeda.animewatchlist.tracker.data.repository.mapper.toEntity
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
+import com.vuzeda.animewatchlist.tracker.domain.model.AnimeBasicInfo
 import com.vuzeda.animewatchlist.tracker.domain.model.AnimeFullDetails
+import com.vuzeda.animewatchlist.tracker.domain.model.KnownSequel
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.repository.AnimeRepository
 import kotlinx.coroutines.flow.Flow
@@ -58,15 +62,35 @@ class AnimeRepositoryImpl @Inject constructor(
         jikanApiService.getAnimeFullById(malId).data.toAnimeFullDetails()
     }
 
+    override suspend fun fetchLastAiredEpisodeNumber(malId: Int): Result<Int?> = runCatching {
+        val firstPage = jikanApiService.getAnimeEpisodes(malId = malId, page = 1)
+        val lastPage = if (firstPage.pagination.lastVisiblePage > 1) {
+            jikanApiService.getAnimeEpisodes(
+                malId = malId,
+                page = firstPage.pagination.lastVisiblePage
+            )
+        } else {
+            firstPage
+        }
+        lastPage.data
+            .filter { it.aired != null }
+            .maxByOrNull { it.malId }
+            ?.malId
+    }
+
+    override suspend fun fetchAnimeBasicInfo(malId: Int): Result<AnimeBasicInfo> = runCatching {
+        jikanApiService.getAnimeById(malId).data.toAnimeBasicInfo()
+    }
+
     override suspend fun updateNotificationData(
         id: Long,
-        lastCheckedEpisodeCount: Int?,
-        knownSequelMalIds: List<Int>
+        lastCheckedAiredEpisodeCount: Int?,
+        knownSequels: List<KnownSequel>
     ) {
         animeDao.updateNotificationData(
             id = id,
-            count = lastCheckedEpisodeCount,
-            sequelIds = knownSequelMalIds.joinToString(",")
+            count = lastCheckedAiredEpisodeCount,
+            sequelData = serializeKnownSequelData(knownSequels)
         )
     }
 

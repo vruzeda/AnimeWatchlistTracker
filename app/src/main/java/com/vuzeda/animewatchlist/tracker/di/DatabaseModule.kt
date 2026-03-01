@@ -23,7 +23,7 @@ object DatabaseModule {
             AnimeDatabase::class.java,
             "anime_watchlist.db"
         )
-            .addMigrations(AnimeDatabase.MIGRATION_1_2, AnimeDatabase.MIGRATION_2_3)
+            .addMigrations(AnimeDatabase.MIGRATION_1_2, AnimeDatabase.MIGRATION_2_3, AnimeDatabase.MIGRATION_3_4)
             .build()
 
     @Provides

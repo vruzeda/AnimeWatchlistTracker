@@ -13,6 +13,7 @@ import com.vuzeda.animewatchlist.tracker.data.api.service.JikanApiService
 import com.vuzeda.animewatchlist.tracker.data.local.dao.AnimeDao
 import com.vuzeda.animewatchlist.tracker.data.local.entity.AnimeEntity
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
+import com.vuzeda.animewatchlist.tracker.domain.model.KnownSequel
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -242,20 +243,20 @@ class AnimeRepositoryImplTest {
     }
 
     @Test
-    fun `updateNotificationData delegates to dao with serialized sequel ids`() = runTest {
+    fun `updateNotificationData delegates to dao with serialized sequel data`() = runTest {
         coEvery { animeDao.updateNotificationData(any(), any(), any()) } returns Unit
 
         repository.updateNotificationData(
             id = 1L,
-            lastCheckedEpisodeCount = 24,
-            knownSequelMalIds = listOf(200, 300)
+            lastCheckedAiredEpisodeCount = 24,
+            knownSequels = listOf(KnownSequel(200, true), KnownSequel(300, false))
         )
 
         coVerify {
             animeDao.updateNotificationData(
                 id = 1L,
                 count = 24,
-                sequelIds = "200,300"
+                sequelData = "200:true,300:false"
             )
         }
     }

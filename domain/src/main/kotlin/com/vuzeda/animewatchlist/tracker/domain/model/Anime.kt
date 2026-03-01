@@ -13,7 +13,7 @@ data class Anime(
     val status: WatchStatus = WatchStatus.PLAN_TO_WATCH,
     val genres: List<String> = emptyList(),
     val isNotificationsEnabled: Boolean = false,
-    val lastCheckedEpisodeCount: Int? = null,
-    val knownSequelMalIds: List<Int> = emptyList(),
+    val lastCheckedAiredEpisodeCount: Int? = null,
+    val knownSequels: List<KnownSequel> = emptyList(),
     val addedAt: Long = 0
 )

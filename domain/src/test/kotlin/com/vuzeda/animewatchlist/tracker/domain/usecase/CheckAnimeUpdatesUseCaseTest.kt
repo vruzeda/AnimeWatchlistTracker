@@ -2,8 +2,10 @@ package com.vuzeda.animewatchlist.tracker.domain.usecase
 
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
+import com.vuzeda.animewatchlist.tracker.domain.model.AnimeBasicInfo
 import com.vuzeda.animewatchlist.tracker.domain.model.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.domain.model.AnimeUpdate
+import com.vuzeda.animewatchlist.tracker.domain.model.KnownSequel
 import com.vuzeda.animewatchlist.tracker.domain.model.SequelInfo
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.repository.AnimeRepository
@@ -24,8 +26,8 @@ class CheckAnimeUpdatesUseCaseTest {
         title = "Test Anime",
         status = WatchStatus.WATCHING,
         isNotificationsEnabled = true,
-        lastCheckedEpisodeCount = 12,
-        knownSequelMalIds = listOf(200)
+        lastCheckedAiredEpisodeCount = 12,
+        knownSequels = listOf(KnownSequel(200, true))
     )
 
     @Test
@@ -38,26 +40,27 @@ class CheckAnimeUpdatesUseCaseTest {
     }
 
     @Test
-    fun `detects new episodes when episode count increased`() = runTest {
+    fun `detects new episodes when aired episode count increased`() = runTest {
         coEvery { repository.getNotifiedAnime() } returns listOf(sampleAnime)
+        coEvery { repository.fetchLastAiredEpisodeNumber(100) } returns Result.success(15)
         coEvery { repository.fetchAnimeFullDetails(100) } returns Result.success(
-            AnimeFullDetails(malId = 100, episodes = 24, sequels = emptyList())
+            AnimeFullDetails(malId = 100, episodes = 25, sequels = emptyList())
         )
 
         val updates = useCase()
 
         assertThat(updates).hasSize(1)
         val update = updates.first() as AnimeUpdate.NewEpisodes
-        assertThat(update.previousCount).isEqualTo(12)
-        assertThat(update.currentCount).isEqualTo(24)
+        assertThat(update.latestAiredEpisode).isEqualTo(15)
         assertThat(update.anime).isEqualTo(sampleAnime)
     }
 
     @Test
-    fun `does not detect new episodes when count unchanged`() = runTest {
+    fun `does not detect new episodes when aired count unchanged`() = runTest {
         coEvery { repository.getNotifiedAnime() } returns listOf(sampleAnime)
+        coEvery { repository.fetchLastAiredEpisodeNumber(100) } returns Result.success(12)
         coEvery { repository.fetchAnimeFullDetails(100) } returns Result.success(
-            AnimeFullDetails(malId = 100, episodes = 12, sequels = listOf(SequelInfo(200, "Known Sequel")))
+            AnimeFullDetails(malId = 100, episodes = 25, sequels = listOf(SequelInfo(200, "Known")))
         )
 
         val updates = useCase()
@@ -66,17 +69,32 @@ class CheckAnimeUpdatesUseCaseTest {
     }
 
     @Test
-    fun `detects new season when unknown sequel found`() = runTest {
+    fun `does not detect new episodes on first check`() = runTest {
+        val firstCheckAnime = sampleAnime.copy(lastCheckedAiredEpisodeCount = null)
+        coEvery { repository.getNotifiedAnime() } returns listOf(firstCheckAnime)
+        coEvery { repository.fetchLastAiredEpisodeNumber(100) } returns Result.success(12)
+        coEvery { repository.fetchAnimeFullDetails(100) } returns Result.success(
+            AnimeFullDetails(malId = 100, episodes = 25, sequels = emptyList())
+        )
+
+        val updates = useCase()
+
+        assertThat(updates).isEmpty()
+    }
+
+    @Test
+    fun `detects new season when sequel is currently airing`() = runTest {
         coEvery { repository.getNotifiedAnime() } returns listOf(sampleAnime)
+        coEvery { repository.fetchLastAiredEpisodeNumber(100) } returns Result.success(12)
         coEvery { repository.fetchAnimeFullDetails(100) } returns Result.success(
             AnimeFullDetails(
                 malId = 100,
-                episodes = 12,
-                sequels = listOf(
-                    SequelInfo(200, "Known Sequel"),
-                    SequelInfo(300, "New Season")
-                )
+                episodes = 25,
+                sequels = listOf(SequelInfo(200, "Known"), SequelInfo(300, "New Season"))
             )
+        )
+        coEvery { repository.fetchAnimeBasicInfo(300) } returns Result.success(
+            AnimeBasicInfo(malId = 300, status = "Currently Airing", airedFrom = "2026-01-01T00:00:00+00:00")
         )
 
         val updates = useCase()
@@ -88,32 +106,97 @@ class CheckAnimeUpdatesUseCaseTest {
     }
 
     @Test
-    fun `detects both new episodes and new season`() = runTest {
+    fun `does not notify for sequel that is not yet aired`() = runTest {
         coEvery { repository.getNotifiedAnime() } returns listOf(sampleAnime)
+        coEvery { repository.fetchLastAiredEpisodeNumber(100) } returns Result.success(12)
         coEvery { repository.fetchAnimeFullDetails(100) } returns Result.success(
             AnimeFullDetails(
                 malId = 100,
-                episodes = 24,
-                sequels = listOf(SequelInfo(200, "Known"), SequelInfo(300, "New"))
+                episodes = 25,
+                sequels = listOf(SequelInfo(200, "Known"), SequelInfo(300, "Unconfirmed"))
             )
+        )
+        coEvery { repository.fetchAnimeBasicInfo(300) } returns Result.success(
+            AnimeBasicInfo(malId = 300, status = "Not yet aired", airedFrom = null)
         )
 
         val updates = useCase()
 
-        assertThat(updates).hasSize(2)
-        assertThat(updates.filterIsInstance<AnimeUpdate.NewEpisodes>()).hasSize(1)
-        assertThat(updates.filterIsInstance<AnimeUpdate.NewSeason>()).hasSize(1)
+        assertThat(updates).isEmpty()
     }
 
     @Test
-    fun `updates notification data after checking each anime`() = runTest {
+    fun `notifies for sequel with confirmed air date`() = runTest {
         coEvery { repository.getNotifiedAnime() } returns listOf(sampleAnime)
+        coEvery { repository.fetchLastAiredEpisodeNumber(100) } returns Result.success(12)
         coEvery { repository.fetchAnimeFullDetails(100) } returns Result.success(
             AnimeFullDetails(
                 malId = 100,
-                episodes = 24,
+                episodes = 25,
+                sequels = listOf(SequelInfo(200, "Known"), SequelInfo(300, "Confirmed"))
+            )
+        )
+        coEvery { repository.fetchAnimeBasicInfo(300) } returns Result.success(
+            AnimeBasicInfo(malId = 300, status = "Not yet aired", airedFrom = "2026-04-01T00:00:00+00:00")
+        )
+
+        val updates = useCase()
+
+        assertThat(updates).hasSize(1)
+        val update = updates.first() as AnimeUpdate.NewSeason
+        assertThat(update.sequelMalId).isEqualTo(300)
+    }
+
+    @Test
+    fun `re-checks un-notified sequel and notifies when status changes`() = runTest {
+        val animeWithUnnotified = sampleAnime.copy(
+            knownSequels = listOf(KnownSequel(200, true), KnownSequel(300, false))
+        )
+        coEvery { repository.getNotifiedAnime() } returns listOf(animeWithUnnotified)
+        coEvery { repository.fetchLastAiredEpisodeNumber(100) } returns Result.success(12)
+        coEvery { repository.fetchAnimeFullDetails(100) } returns Result.success(
+            AnimeFullDetails(
+                malId = 100,
+                episodes = 25,
+                sequels = listOf(SequelInfo(200, "Known"), SequelInfo(300, "Now Airing"))
+            )
+        )
+        coEvery { repository.fetchAnimeBasicInfo(300) } returns Result.success(
+            AnimeBasicInfo(malId = 300, status = "Currently Airing", airedFrom = "2026-01-15T00:00:00+00:00")
+        )
+
+        val updates = useCase()
+
+        assertThat(updates).hasSize(1)
+        assertThat((updates.first() as AnimeUpdate.NewSeason).sequelMalId).isEqualTo(300)
+    }
+
+    @Test
+    fun `skips already-notified sequel without re-fetching`() = runTest {
+        coEvery { repository.getNotifiedAnime() } returns listOf(sampleAnime)
+        coEvery { repository.fetchLastAiredEpisodeNumber(100) } returns Result.success(12)
+        coEvery { repository.fetchAnimeFullDetails(100) } returns Result.success(
+            AnimeFullDetails(malId = 100, episodes = 25, sequels = listOf(SequelInfo(200, "Known")))
+        )
+
+        useCase()
+
+        coVerify(exactly = 0) { repository.fetchAnimeBasicInfo(200) }
+    }
+
+    @Test
+    fun `updates notification data after checking`() = runTest {
+        coEvery { repository.getNotifiedAnime() } returns listOf(sampleAnime)
+        coEvery { repository.fetchLastAiredEpisodeNumber(100) } returns Result.success(15)
+        coEvery { repository.fetchAnimeFullDetails(100) } returns Result.success(
+            AnimeFullDetails(
+                malId = 100,
+                episodes = 25,
                 sequels = listOf(SequelInfo(200, "Known"), SequelInfo(300, "New"))
             )
+        )
+        coEvery { repository.fetchAnimeBasicInfo(300) } returns Result.success(
+            AnimeBasicInfo(malId = 300, status = "Currently Airing", airedFrom = "2026-01-01T00:00:00+00:00")
         )
 
         useCase()
@@ -121,8 +204,8 @@ class CheckAnimeUpdatesUseCaseTest {
         coVerify {
             repository.updateNotificationData(
                 id = 1L,
-                lastCheckedEpisodeCount = 24,
-                knownSequelMalIds = listOf(200, 300)
+                lastCheckedAiredEpisodeCount = 15,
+                knownSequels = listOf(KnownSequel(200, true), KnownSequel(300, true))
             )
         }
     }
@@ -135,25 +218,15 @@ class CheckAnimeUpdatesUseCaseTest {
         val updates = useCase()
 
         assertThat(updates).isEmpty()
-        coVerify(exactly = 0) { repository.fetchAnimeFullDetails(any()) }
+        coVerify(exactly = 0) { repository.fetchLastAiredEpisodeNumber(any()) }
     }
 
     @Test
-    fun `skips anime when API call fails`() = runTest {
+    fun `preserves aired count when episodes API fails`() = runTest {
         coEvery { repository.getNotifiedAnime() } returns listOf(sampleAnime)
-        coEvery { repository.fetchAnimeFullDetails(100) } returns Result.failure(RuntimeException("Network error"))
-
-        val updates = useCase()
-
-        assertThat(updates).isEmpty()
-        coVerify(exactly = 0) { repository.updateNotificationData(any(), any(), any()) }
-    }
-
-    @Test
-    fun `preserves last checked episode count when API returns null episodes`() = runTest {
-        coEvery { repository.getNotifiedAnime() } returns listOf(sampleAnime)
+        coEvery { repository.fetchLastAiredEpisodeNumber(100) } returns Result.failure(RuntimeException("Error"))
         coEvery { repository.fetchAnimeFullDetails(100) } returns Result.success(
-            AnimeFullDetails(malId = 100, episodes = null, sequels = emptyList())
+            AnimeFullDetails(malId = 100, episodes = 25, sequels = emptyList())
         )
 
         useCase()
@@ -161,8 +234,25 @@ class CheckAnimeUpdatesUseCaseTest {
         coVerify {
             repository.updateNotificationData(
                 id = 1L,
-                lastCheckedEpisodeCount = 12,
-                knownSequelMalIds = emptyList()
+                lastCheckedAiredEpisodeCount = 12,
+                knownSequels = emptyList()
+            )
+        }
+    }
+
+    @Test
+    fun `preserves known sequels when full details API fails`() = runTest {
+        coEvery { repository.getNotifiedAnime() } returns listOf(sampleAnime)
+        coEvery { repository.fetchLastAiredEpisodeNumber(100) } returns Result.success(12)
+        coEvery { repository.fetchAnimeFullDetails(100) } returns Result.failure(RuntimeException("Error"))
+
+        useCase()
+
+        coVerify {
+            repository.updateNotificationData(
+                id = 1L,
+                lastCheckedAiredEpisodeCount = 12,
+                knownSequels = listOf(KnownSequel(200, true))
             )
         }
     }

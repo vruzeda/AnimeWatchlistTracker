@@ -1,7 +1,9 @@
 package com.vuzeda.animewatchlist.tracker.domain.repository
 
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
+import com.vuzeda.animewatchlist.tracker.domain.model.AnimeBasicInfo
 import com.vuzeda.animewatchlist.tracker.domain.model.AnimeFullDetails
+import com.vuzeda.animewatchlist.tracker.domain.model.KnownSequel
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import kotlinx.coroutines.flow.Flow
 
@@ -29,10 +31,14 @@ interface AnimeRepository {
 
     suspend fun fetchAnimeFullDetails(malId: Int): Result<AnimeFullDetails>
 
+    suspend fun fetchLastAiredEpisodeNumber(malId: Int): Result<Int?>
+
+    suspend fun fetchAnimeBasicInfo(malId: Int): Result<AnimeBasicInfo>
+
     suspend fun updateNotificationData(
         id: Long,
-        lastCheckedEpisodeCount: Int?,
-        knownSequelMalIds: List<Int>
+        lastCheckedAiredEpisodeCount: Int?,
+        knownSequels: List<KnownSequel>
     )
 
     suspend fun toggleNotifications(id: Long, enabled: Boolean)

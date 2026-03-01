@@ -43,7 +43,7 @@ class NotificationHelper @Inject constructor(
         val (title, text, notificationId) = when (update) {
             is AnimeUpdate.NewEpisodes -> Triple(
                 update.anime.title,
-                "New episodes available! (${update.previousCount} → ${update.currentCount})",
+                "Episode ${update.latestAiredEpisode} has aired!",
                 update.anime.malId?.hashCode() ?: update.anime.id.toInt()
             )
             is AnimeUpdate.NewSeason -> Triple(
