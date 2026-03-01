@@ -123,13 +123,23 @@ class AnimeDetailViewModel @Inject constructor(
                     }
                     resolvedAnime = anime
                     resolvedSeasons = seasons
-                    _uiState.value = AnimeDetailUiState.Success(
-                        anime = anime,
-                        seasons = seasons,
-                        isInWatchlist = false,
-                        isResolvingPrequels = result.isResolvingPrequels,
-                        isResolvingSequels = result.isResolvingSequels
-                    )
+                    _uiState.update { currentState ->
+                        when (currentState) {
+                            is AnimeDetailUiState.Success -> currentState.copy(
+                                anime = anime,
+                                seasons = seasons,
+                                isResolvingPrequels = result.isResolvingPrequels,
+                                isResolvingSequels = result.isResolvingSequels
+                            )
+                            else -> AnimeDetailUiState.Success(
+                                anime = anime,
+                                seasons = seasons,
+                                isInWatchlist = false,
+                                isResolvingPrequels = result.isResolvingPrequels,
+                                isResolvingSequels = result.isResolvingSequels
+                            )
+                        }
+                    }
                 }
         }
     }
