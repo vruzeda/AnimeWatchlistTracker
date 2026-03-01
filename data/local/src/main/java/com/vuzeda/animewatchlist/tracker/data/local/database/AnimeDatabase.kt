@@ -2,39 +2,17 @@ package com.vuzeda.animewatchlist.tracker.data.local.database
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
 import com.vuzeda.animewatchlist.tracker.data.local.dao.AnimeDao
+import com.vuzeda.animewatchlist.tracker.data.local.dao.SeasonDao
 import com.vuzeda.animewatchlist.tracker.data.local.entity.AnimeEntity
+import com.vuzeda.animewatchlist.tracker.data.local.entity.SeasonEntity
 
 @Database(
-    entities = [AnimeEntity::class],
-    version = 4,
+    entities = [AnimeEntity::class, SeasonEntity::class],
+    version = 5,
     exportSchema = false
 )
 abstract class AnimeDatabase : RoomDatabase() {
     abstract fun animeDao(): AnimeDao
-
-    companion object {
-        val MIGRATION_1_2 = object : Migration(1, 2) {
-            override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL("ALTER TABLE anime ADD COLUMN isNotificationsEnabled INTEGER NOT NULL DEFAULT 0")
-                db.execSQL("ALTER TABLE anime ADD COLUMN lastCheckedEpisodeCount INTEGER")
-                db.execSQL("ALTER TABLE anime ADD COLUMN knownSequelMalIds TEXT NOT NULL DEFAULT ''")
-            }
-        }
-
-        val MIGRATION_2_3 = object : Migration(2, 3) {
-            override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL("ALTER TABLE anime ADD COLUMN addedAt INTEGER NOT NULL DEFAULT 0")
-            }
-        }
-
-        val MIGRATION_3_4 = object : Migration(3, 4) {
-            override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL("ALTER TABLE anime RENAME COLUMN lastCheckedEpisodeCount TO lastCheckedAiredEpisodeCount")
-                db.execSQL("ALTER TABLE anime RENAME COLUMN knownSequelMalIds TO knownSequelData")
-            }
-        }
-    }
+    abstract fun seasonDao(): SeasonDao
 }

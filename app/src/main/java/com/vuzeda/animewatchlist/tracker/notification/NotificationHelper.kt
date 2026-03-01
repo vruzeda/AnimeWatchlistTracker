@@ -44,12 +44,12 @@ class NotificationHelper @Inject constructor(
             is AnimeUpdate.NewEpisodes -> Triple(
                 update.anime.title,
                 "Episode ${update.latestAiredEpisode} has aired!",
-                update.anime.malId?.hashCode() ?: update.anime.id.toInt()
+                update.anime.id.toInt()
             )
             is AnimeUpdate.NewSeason -> Triple(
                 update.anime.title,
                 "New season announced: ${update.sequelTitle}",
-                (update.anime.malId?.hashCode() ?: update.anime.id.toInt()) + update.sequelMalId
+                update.anime.id.toInt() + update.sequelMalId
             )
         }
 

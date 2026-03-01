@@ -8,5 +8,6 @@ import javax.inject.Inject
 class UpdateAnimeUseCase @Inject constructor(
     private val animeRepository: AnimeRepository
 ) {
+
     suspend operator fun invoke(anime: Anime) = animeRepository.updateAnime(anime)
 }

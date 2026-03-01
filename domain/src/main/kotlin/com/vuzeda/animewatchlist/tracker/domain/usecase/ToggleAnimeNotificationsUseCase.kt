@@ -7,6 +7,7 @@ import javax.inject.Inject
 class ToggleAnimeNotificationsUseCase @Inject constructor(
     private val animeRepository: AnimeRepository
 ) {
+
     suspend operator fun invoke(id: Long, enabled: Boolean) =
         animeRepository.toggleNotifications(id = id, enabled = enabled)
 }

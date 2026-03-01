@@ -4,7 +4,7 @@ import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
-import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveWatchlistUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveAnimeListUseCase
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -23,12 +23,12 @@ import org.junit.jupiter.api.Test
 class HomeViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
-    private val observeWatchlistUseCase: ObserveWatchlistUseCase = mockk()
+    private val observeAnimeListUseCase: ObserveAnimeListUseCase = mockk()
 
     private val sampleAnimeList = listOf(
-        Anime(id = 1L, title = "Attack on Titan", status = WatchStatus.WATCHING, score = 9.0, userRating = 8, currentEpisode = 10, episodeCount = 25, addedAt = 1000L),
-        Anime(id = 2L, title = "One Punch Man", status = WatchStatus.COMPLETED, score = 8.5, userRating = 9, currentEpisode = 12, episodeCount = 12, addedAt = 3000L),
-        Anime(id = 3L, title = "Bleach", status = WatchStatus.WATCHING, score = 7.9, userRating = 7, currentEpisode = 50, episodeCount = 366, addedAt = 2000L)
+        Anime(id = 1L, title = "Attack on Titan", status = WatchStatus.WATCHING, userRating = 8, addedAt = 1000L),
+        Anime(id = 2L, title = "One Punch Man", status = WatchStatus.COMPLETED, userRating = 9, addedAt = 3000L),
+        Anime(id = 3L, title = "Bleach", status = WatchStatus.WATCHING, userRating = 7, addedAt = 2000L)
     )
 
     @BeforeEach
@@ -43,9 +43,9 @@ class HomeViewModelTest {
 
     @Test
     fun `initial state loads all anime sorted alphabetically`() = runTest {
-        every { observeWatchlistUseCase(null) } returns flowOf(sampleAnimeList)
+        every { observeAnimeListUseCase(null) } returns flowOf(sampleAnimeList)
 
-        val viewModel = HomeViewModel(observeWatchlistUseCase)
+        val viewModel = HomeViewModel(observeAnimeListUseCase)
 
         viewModel.uiState.test {
             val loading = awaitItem()
@@ -64,12 +64,12 @@ class HomeViewModelTest {
 
     @Test
     fun `selectTab filters by status`() = runTest {
-        every { observeWatchlistUseCase(null) } returns flowOf(sampleAnimeList)
-        every { observeWatchlistUseCase(WatchStatus.WATCHING) } returns flowOf(
+        every { observeAnimeListUseCase(null) } returns flowOf(sampleAnimeList)
+        every { observeAnimeListUseCase(WatchStatus.WATCHING) } returns flowOf(
             listOf(sampleAnimeList[0])
         )
 
-        val viewModel = HomeViewModel(observeWatchlistUseCase)
+        val viewModel = HomeViewModel(observeAnimeListUseCase)
 
         viewModel.uiState.test {
             skipItems(2)
@@ -89,12 +89,12 @@ class HomeViewModelTest {
 
     @Test
     fun `selectTab with null shows all anime`() = runTest {
-        every { observeWatchlistUseCase(null) } returns flowOf(sampleAnimeList)
-        every { observeWatchlistUseCase(WatchStatus.WATCHING) } returns flowOf(
+        every { observeAnimeListUseCase(null) } returns flowOf(sampleAnimeList)
+        every { observeAnimeListUseCase(WatchStatus.WATCHING) } returns flowOf(
             listOf(sampleAnimeList[0])
         )
 
-        val viewModel = HomeViewModel(observeWatchlistUseCase)
+        val viewModel = HomeViewModel(observeAnimeListUseCase)
 
         viewModel.uiState.test {
             skipItems(2)
@@ -113,29 +113,10 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun `selectSort with MAL_SCORE sorts by score descending`() = runTest {
-        every { observeWatchlistUseCase(null) } returns flowOf(sampleAnimeList)
-
-        val viewModel = HomeViewModel(observeWatchlistUseCase)
-
-        viewModel.uiState.test {
-            skipItems(2)
-
-            viewModel.selectSort(HomeSortOption.MAL_SCORE)
-
-            val sorted = awaitItem()
-            assertThat(sorted.sortOption).isEqualTo(HomeSortOption.MAL_SCORE)
-            assertThat(sorted.animeList[0].title).isEqualTo("Attack on Titan")
-            assertThat(sorted.animeList[1].title).isEqualTo("One Punch Man")
-            assertThat(sorted.animeList[2].title).isEqualTo("Bleach")
-        }
-    }
-
-    @Test
     fun `selectSort with USER_RATING sorts by user rating descending`() = runTest {
-        every { observeWatchlistUseCase(null) } returns flowOf(sampleAnimeList)
+        every { observeAnimeListUseCase(null) } returns flowOf(sampleAnimeList)
 
-        val viewModel = HomeViewModel(observeWatchlistUseCase)
+        val viewModel = HomeViewModel(observeAnimeListUseCase)
 
         viewModel.uiState.test {
             skipItems(2)
@@ -150,28 +131,10 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun `selectSort with PROGRESS sorts by progress descending`() = runTest {
-        every { observeWatchlistUseCase(null) } returns flowOf(sampleAnimeList)
-
-        val viewModel = HomeViewModel(observeWatchlistUseCase)
-
-        viewModel.uiState.test {
-            skipItems(2)
-
-            viewModel.selectSort(HomeSortOption.PROGRESS)
-
-            val sorted = awaitItem()
-            assertThat(sorted.animeList[0].title).isEqualTo("One Punch Man")
-            assertThat(sorted.animeList[1].title).isEqualTo("Attack on Titan")
-            assertThat(sorted.animeList[2].title).isEqualTo("Bleach")
-        }
-    }
-
-    @Test
     fun `selectSort with RECENTLY_ADDED sorts by addedAt descending`() = runTest {
-        every { observeWatchlistUseCase(null) } returns flowOf(sampleAnimeList)
+        every { observeAnimeListUseCase(null) } returns flowOf(sampleAnimeList)
 
-        val viewModel = HomeViewModel(observeWatchlistUseCase)
+        val viewModel = HomeViewModel(observeAnimeListUseCase)
 
         viewModel.uiState.test {
             skipItems(2)
@@ -188,42 +151,37 @@ class HomeViewModelTest {
 
     @Test
     fun `selectSort toggles direction when same option is selected again`() = runTest {
-        every { observeWatchlistUseCase(null) } returns flowOf(sampleAnimeList)
+        every { observeAnimeListUseCase(null) } returns flowOf(sampleAnimeList)
 
-        val viewModel = HomeViewModel(observeWatchlistUseCase)
+        val viewModel = HomeViewModel(observeAnimeListUseCase)
 
         viewModel.uiState.test {
             skipItems(2)
 
-            viewModel.selectSort(HomeSortOption.MAL_SCORE)
-            val descending = awaitItem()
-            assertThat(descending.isSortAscending).isFalse()
-            assertThat(descending.animeList[0].score).isEqualTo(9.0)
+            viewModel.selectSort(HomeSortOption.ALPHABETICAL)
+            val toggled = awaitItem()
+            assertThat(toggled.isSortAscending).isFalse()
+            assertThat(toggled.animeList[0].title).isEqualTo("One Punch Man")
 
-            viewModel.selectSort(HomeSortOption.MAL_SCORE)
-            val ascending = awaitItem()
-            assertThat(ascending.isSortAscending).isTrue()
-            assertThat(ascending.animeList[0].score).isEqualTo(7.9)
-
-            viewModel.selectSort(HomeSortOption.MAL_SCORE)
-            val descendingAgain = awaitItem()
-            assertThat(descendingAgain.isSortAscending).isFalse()
-            assertThat(descendingAgain.animeList[0].score).isEqualTo(9.0)
+            viewModel.selectSort(HomeSortOption.ALPHABETICAL)
+            val back = awaitItem()
+            assertThat(back.isSortAscending).isTrue()
+            assertThat(back.animeList[0].title).isEqualTo("Attack on Titan")
         }
     }
 
     @Test
     fun `selectSort resets direction to default when switching to different option`() = runTest {
-        every { observeWatchlistUseCase(null) } returns flowOf(sampleAnimeList)
+        every { observeAnimeListUseCase(null) } returns flowOf(sampleAnimeList)
 
-        val viewModel = HomeViewModel(observeWatchlistUseCase)
+        val viewModel = HomeViewModel(observeAnimeListUseCase)
 
         viewModel.uiState.test {
             skipItems(2)
 
-            viewModel.selectSort(HomeSortOption.MAL_SCORE)
+            viewModel.selectSort(HomeSortOption.RECENTLY_ADDED)
             awaitItem()
-            viewModel.selectSort(HomeSortOption.MAL_SCORE)
+            viewModel.selectSort(HomeSortOption.RECENTLY_ADDED)
             val reversed = awaitItem()
             assertThat(reversed.isSortAscending).isTrue()
 
@@ -237,27 +195,26 @@ class HomeViewModelTest {
     @Test
     fun `sort persists when new data arrives from Flow`() = runTest {
         val watchlistFlow = MutableStateFlow(sampleAnimeList)
-        every { observeWatchlistUseCase(null) } returns watchlistFlow
+        every { observeAnimeListUseCase(null) } returns watchlistFlow
 
-        val viewModel = HomeViewModel(observeWatchlistUseCase)
+        val viewModel = HomeViewModel(observeAnimeListUseCase)
 
         viewModel.uiState.test {
             skipItems(2)
 
-            viewModel.selectSort(HomeSortOption.MAL_SCORE)
+            viewModel.selectSort(HomeSortOption.USER_RATING)
             val sorted = awaitItem()
-            assertThat(sorted.animeList[0].score).isEqualTo(9.0)
+            assertThat(sorted.animeList[0].userRating).isEqualTo(9)
 
             val updatedList = sampleAnimeList + Anime(
-                id = 4L, title = "Demon Slayer", status = WatchStatus.WATCHING,
-                score = 8.7, currentEpisode = 5, episodeCount = 26
+                id = 4L, title = "Demon Slayer", status = WatchStatus.WATCHING, userRating = 10
             )
             watchlistFlow.value = updatedList
 
             val updated = awaitItem()
-            assertThat(updated.sortOption).isEqualTo(HomeSortOption.MAL_SCORE)
-            assertThat(updated.animeList[0].score).isEqualTo(9.0)
-            assertThat(updated.animeList[1].score).isEqualTo(8.7)
+            assertThat(updated.sortOption).isEqualTo(HomeSortOption.USER_RATING)
+            assertThat(updated.animeList[0].userRating).isEqualTo(10)
+            assertThat(updated.animeList[1].userRating).isEqualTo(9)
         }
     }
 }

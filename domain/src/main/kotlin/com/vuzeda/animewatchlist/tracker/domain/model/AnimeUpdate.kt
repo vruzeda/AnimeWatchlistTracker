@@ -4,6 +4,7 @@ sealed interface AnimeUpdate {
 
     data class NewEpisodes(
         val anime: Anime,
+        val season: Season,
         val latestAiredEpisode: Int
     ) : AnimeUpdate
 

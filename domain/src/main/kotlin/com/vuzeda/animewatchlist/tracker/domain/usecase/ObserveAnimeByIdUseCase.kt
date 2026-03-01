@@ -9,5 +9,6 @@ import javax.inject.Inject
 class ObserveAnimeByIdUseCase @Inject constructor(
     private val animeRepository: AnimeRepository
 ) {
-    operator fun invoke(id: Long): Flow<Anime?> = animeRepository.observeAnimeById(id)
+
+    operator fun invoke(id: Long): Flow<Anime?> = animeRepository.observeById(id)
 }

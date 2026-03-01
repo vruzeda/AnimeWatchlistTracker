@@ -12,7 +12,13 @@ data class AnimeFullResponseDto(
 data class AnimeFullDataDto(
     @param:Json(name = "mal_id") val malId: Int,
     @param:Json(name = "title") val title: String,
+    @param:Json(name = "type") val type: String? = null,
+    @param:Json(name = "images") val images: AnimeImagesDto? = null,
     @param:Json(name = "episodes") val episodes: Int? = null,
+    @param:Json(name = "score") val score: Double? = null,
+    @param:Json(name = "synopsis") val synopsis: String? = null,
+    @param:Json(name = "genres") val genres: List<GenreDto>? = null,
+    @param:Json(name = "status") val status: String? = null,
     @param:Json(name = "relations") val relations: List<AnimeRelationDto>? = null
 )
 

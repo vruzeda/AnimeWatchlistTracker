@@ -5,16 +5,16 @@ import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeDataDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeImagesDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.GenreDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.ImageUrlDto
-import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import org.junit.jupiter.api.Test
 
 class AnimeDtoMapperTest {
 
     @Test
-    fun `toDomainModel maps all fields correctly`() {
+    fun `toSearchResult maps all fields correctly`() {
         val dto = AnimeDataDto(
             malId = 21,
             title = "One Punch Man",
+            type = "TV",
             images = AnimeImagesDto(
                 jpg = ImageUrlDto(
                     largeImageUrl = "https://cdn.myanimelist.net/large.jpg",
@@ -27,23 +27,20 @@ class AnimeDtoMapperTest {
             genres = listOf(GenreDto(name = "Action"), GenreDto(name = "Comedy"))
         )
 
-        val anime = dto.toDomainModel()
+        val result = dto.toSearchResult()
 
-        assertThat(anime.id).isEqualTo(0L)
-        assertThat(anime.malId).isEqualTo(21)
-        assertThat(anime.title).isEqualTo("One Punch Man")
-        assertThat(anime.imageUrl).isEqualTo("https://cdn.myanimelist.net/large.jpg")
-        assertThat(anime.synopsis).isEqualTo("A hero who defeats enemies with one punch.")
-        assertThat(anime.episodeCount).isEqualTo(12)
-        assertThat(anime.currentEpisode).isEqualTo(0)
-        assertThat(anime.score).isEqualTo(8.7)
-        assertThat(anime.userRating).isNull()
-        assertThat(anime.status).isEqualTo(WatchStatus.PLAN_TO_WATCH)
-        assertThat(anime.genres).containsExactly("Action", "Comedy")
+        assertThat(result.malId).isEqualTo(21)
+        assertThat(result.title).isEqualTo("One Punch Man")
+        assertThat(result.imageUrl).isEqualTo("https://cdn.myanimelist.net/large.jpg")
+        assertThat(result.synopsis).isEqualTo("A hero who defeats enemies with one punch.")
+        assertThat(result.episodeCount).isEqualTo(12)
+        assertThat(result.score).isEqualTo(8.7)
+        assertThat(result.type).isEqualTo("TV")
+        assertThat(result.genres).containsExactly("Action", "Comedy")
     }
 
     @Test
-    fun `toDomainModel prefers largeImageUrl over imageUrl`() {
+    fun `toSearchResult prefers largeImageUrl over imageUrl`() {
         val dto = AnimeDataDto(
             malId = 1,
             title = "Test",
@@ -55,13 +52,11 @@ class AnimeDtoMapperTest {
             )
         )
 
-        val anime = dto.toDomainModel()
-
-        assertThat(anime.imageUrl).isEqualTo("https://large.jpg")
+        assertThat(dto.toSearchResult().imageUrl).isEqualTo("https://large.jpg")
     }
 
     @Test
-    fun `toDomainModel falls back to imageUrl when largeImageUrl is null`() {
+    fun `toSearchResult falls back to imageUrl when largeImageUrl is null`() {
         val dto = AnimeDataDto(
             malId = 1,
             title = "Test",
@@ -73,55 +68,29 @@ class AnimeDtoMapperTest {
             )
         )
 
-        val anime = dto.toDomainModel()
-
-        assertThat(anime.imageUrl).isEqualTo("https://normal.jpg")
+        assertThat(dto.toSearchResult().imageUrl).isEqualTo("https://normal.jpg")
     }
 
     @Test
-    fun `toDomainModel handles null images`() {
-        val dto = AnimeDataDto(
-            malId = 1,
-            title = "Test",
-            images = null
-        )
+    fun `toSearchResult handles null images`() {
+        val dto = AnimeDataDto(malId = 1, title = "Test", images = null)
 
-        val anime = dto.toDomainModel()
-
-        assertThat(anime.imageUrl).isNull()
+        assertThat(dto.toSearchResult().imageUrl).isNull()
     }
 
     @Test
-    fun `toDomainModel handles null jpg`() {
-        val dto = AnimeDataDto(
-            malId = 1,
-            title = "Test",
-            images = AnimeImagesDto(jpg = null)
-        )
+    fun `toSearchResult handles null genres`() {
+        val dto = AnimeDataDto(malId = 1, title = "Test", genres = null)
 
-        val anime = dto.toDomainModel()
-
-        assertThat(anime.imageUrl).isNull()
+        assertThat(dto.toSearchResult().genres).isEmpty()
     }
 
     @Test
-    fun `toDomainModel handles null genres`() {
+    fun `toSearchResult handles null optional fields`() {
         val dto = AnimeDataDto(
             malId = 1,
             title = "Test",
-            genres = null
-        )
-
-        val anime = dto.toDomainModel()
-
-        assertThat(anime.genres).isEmpty()
-    }
-
-    @Test
-    fun `toDomainModel handles null optional fields`() {
-        val dto = AnimeDataDto(
-            malId = 1,
-            title = "Test",
+            type = null,
             images = null,
             synopsis = null,
             episodes = null,
@@ -129,12 +98,13 @@ class AnimeDtoMapperTest {
             genres = null
         )
 
-        val anime = dto.toDomainModel()
+        val result = dto.toSearchResult()
 
-        assertThat(anime.imageUrl).isNull()
-        assertThat(anime.synopsis).isNull()
-        assertThat(anime.episodeCount).isNull()
-        assertThat(anime.score).isNull()
-        assertThat(anime.genres).isEmpty()
+        assertThat(result.imageUrl).isNull()
+        assertThat(result.synopsis).isNull()
+        assertThat(result.episodeCount).isNull()
+        assertThat(result.score).isNull()
+        assertThat(result.type).isNull()
+        assertThat(result.genres).isEmpty()
     }
 }

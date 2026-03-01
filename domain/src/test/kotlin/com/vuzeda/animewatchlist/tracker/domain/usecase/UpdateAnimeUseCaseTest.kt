@@ -19,7 +19,6 @@ class UpdateAnimeUseCaseTest {
         val anime = Anime(
             id = 1,
             title = "Naruto",
-            currentEpisode = 50,
             status = WatchStatus.WATCHING
         )
         coEvery { repository.updateAnime(anime) } returns Unit

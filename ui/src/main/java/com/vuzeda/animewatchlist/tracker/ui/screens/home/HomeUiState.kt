@@ -7,8 +7,6 @@ import com.vuzeda.animewatchlist.tracker.ui.R
 
 enum class HomeSortOption(@param:StringRes val displayLabelRes: Int, val defaultAscending: Boolean) {
     ALPHABETICAL(R.string.sort_alphabetical, true),
-    MAL_SCORE(R.string.sort_mal_score, false),
-    PROGRESS(R.string.sort_progress, false),
     RECENTLY_ADDED(R.string.sort_recently_added, false),
     USER_RATING(R.string.sort_user_rating, false)
 }

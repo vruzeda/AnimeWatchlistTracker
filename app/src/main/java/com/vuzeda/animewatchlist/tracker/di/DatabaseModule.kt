@@ -3,6 +3,7 @@ package com.vuzeda.animewatchlist.tracker.di
 import android.content.Context
 import androidx.room.Room
 import com.vuzeda.animewatchlist.tracker.data.local.dao.AnimeDao
+import com.vuzeda.animewatchlist.tracker.data.local.dao.SeasonDao
 import com.vuzeda.animewatchlist.tracker.data.local.database.AnimeDatabase
 import dagger.Module
 import dagger.Provides
@@ -23,10 +24,14 @@ object DatabaseModule {
             AnimeDatabase::class.java,
             "anime_watchlist.db"
         )
-            .addMigrations(AnimeDatabase.MIGRATION_1_2, AnimeDatabase.MIGRATION_2_3, AnimeDatabase.MIGRATION_3_4)
+            .fallbackToDestructiveMigration()
             .build()
 
     @Provides
     @Singleton
     fun provideAnimeDao(database: AnimeDatabase): AnimeDao = database.animeDao()
+
+    @Provides
+    @Singleton
+    fun provideSeasonDao(database: AnimeDatabase): SeasonDao = database.seasonDao()
 }

@@ -121,22 +121,11 @@ fun HomeScreen(
                         items = uiState.animeList,
                         key = { it.id }
                     ) { anime ->
-                        val episodeText = if (anime.episodeCount != null) {
-                            stringResource(R.string.home_episode_with_total, anime.currentEpisode, anime.episodeCount!!)
-                        } else {
-                            stringResource(R.string.home_episode_without_total, anime.currentEpisode)
-                        }
-                        val progress = anime.episodeCount?.takeIf { it > 0 }?.let {
-                            (anime.currentEpisode.toFloat() / it).coerceIn(0f, 1f)
-                        }
                         AnimeCard(
                             title = anime.title,
                             imageUrl = anime.imageUrl,
                             onClick = { onAnimeClick(anime.id) },
-                            score = anime.score,
                             genresText = anime.genres.takeIf { it.isNotEmpty() }?.joinToString(", "),
-                            episodeText = episodeText,
-                            progress = progress,
                             trailingContent = {
                                 StatusChip(
                                     label = stringResource(anime.status.toDisplayLabelRes()),

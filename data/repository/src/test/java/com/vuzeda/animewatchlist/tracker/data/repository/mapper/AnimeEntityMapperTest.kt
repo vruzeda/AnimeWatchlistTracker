@@ -3,7 +3,6 @@ package com.vuzeda.animewatchlist.tracker.data.repository.mapper
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.data.local.entity.AnimeEntity
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
-import com.vuzeda.animewatchlist.tracker.domain.model.KnownSequel
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import org.junit.jupiter.api.Test
 
@@ -13,31 +12,27 @@ class AnimeEntityMapperTest {
     fun `toDomainModel maps all fields correctly`() {
         val entity = AnimeEntity(
             id = 1L,
-            malId = 21,
-            title = "One Punch Man",
-            imageUrl = "https://example.com/opm.jpg",
-            synopsis = "A hero who defeats enemies with one punch.",
-            episodeCount = 12,
-            currentEpisode = 6,
-            score = 8.7,
-            userRating = 9,
+            title = "Attack on Titan",
+            imageUrl = "https://example.com/aot.jpg",
+            synopsis = "Humanity fights titans.",
+            genres = "Action,Drama",
             status = "WATCHING",
-            genres = "Action,Comedy"
+            userRating = 9,
+            isNotificationsEnabled = 1,
+            addedAt = 1000L
         )
 
         val anime = entity.toDomainModel()
 
         assertThat(anime.id).isEqualTo(1L)
-        assertThat(anime.malId).isEqualTo(21)
-        assertThat(anime.title).isEqualTo("One Punch Man")
-        assertThat(anime.imageUrl).isEqualTo("https://example.com/opm.jpg")
-        assertThat(anime.synopsis).isEqualTo("A hero who defeats enemies with one punch.")
-        assertThat(anime.episodeCount).isEqualTo(12)
-        assertThat(anime.currentEpisode).isEqualTo(6)
-        assertThat(anime.score).isEqualTo(8.7)
-        assertThat(anime.userRating).isEqualTo(9)
+        assertThat(anime.title).isEqualTo("Attack on Titan")
+        assertThat(anime.imageUrl).isEqualTo("https://example.com/aot.jpg")
+        assertThat(anime.synopsis).isEqualTo("Humanity fights titans.")
+        assertThat(anime.genres).containsExactly("Action", "Drama")
         assertThat(anime.status).isEqualTo(WatchStatus.WATCHING)
-        assertThat(anime.genres).containsExactly("Action", "Comedy")
+        assertThat(anime.userRating).isEqualTo(9)
+        assertThat(anime.isNotificationsEnabled).isTrue()
+        assertThat(anime.addedAt).isEqualTo(1000L)
     }
 
     @Test
@@ -58,13 +53,9 @@ class AnimeEntityMapperTest {
     fun `toDomainModel handles null optional fields`() {
         val entity = AnimeEntity(
             id = 1L,
-            malId = null,
             title = "Test",
             imageUrl = null,
             synopsis = null,
-            episodeCount = null,
-            currentEpisode = 0,
-            score = null,
             userRating = null,
             status = "PLAN_TO_WATCH",
             genres = ""
@@ -72,11 +63,8 @@ class AnimeEntityMapperTest {
 
         val anime = entity.toDomainModel()
 
-        assertThat(anime.malId).isNull()
         assertThat(anime.imageUrl).isNull()
         assertThat(anime.synopsis).isNull()
-        assertThat(anime.episodeCount).isNull()
-        assertThat(anime.score).isNull()
         assertThat(anime.userRating).isNull()
     }
 
@@ -112,31 +100,27 @@ class AnimeEntityMapperTest {
     fun `toEntity maps all fields correctly`() {
         val anime = Anime(
             id = 1L,
-            malId = 21,
-            title = "One Punch Man",
-            imageUrl = "https://example.com/opm.jpg",
-            synopsis = "A hero who defeats enemies with one punch.",
-            episodeCount = 12,
-            currentEpisode = 6,
-            score = 8.7,
-            userRating = 9,
+            title = "Attack on Titan",
+            imageUrl = "https://example.com/aot.jpg",
+            synopsis = "Humanity fights titans.",
+            genres = listOf("Action", "Drama"),
             status = WatchStatus.WATCHING,
-            genres = listOf("Action", "Comedy")
+            userRating = 9,
+            isNotificationsEnabled = true,
+            addedAt = 1000L
         )
 
         val entity = anime.toEntity()
 
         assertThat(entity.id).isEqualTo(1L)
-        assertThat(entity.malId).isEqualTo(21)
-        assertThat(entity.title).isEqualTo("One Punch Man")
-        assertThat(entity.imageUrl).isEqualTo("https://example.com/opm.jpg")
-        assertThat(entity.synopsis).isEqualTo("A hero who defeats enemies with one punch.")
-        assertThat(entity.episodeCount).isEqualTo(12)
-        assertThat(entity.currentEpisode).isEqualTo(6)
-        assertThat(entity.score).isEqualTo(8.7)
-        assertThat(entity.userRating).isEqualTo(9)
+        assertThat(entity.title).isEqualTo("Attack on Titan")
+        assertThat(entity.imageUrl).isEqualTo("https://example.com/aot.jpg")
+        assertThat(entity.synopsis).isEqualTo("Humanity fights titans.")
+        assertThat(entity.genres).isEqualTo("Action,Drama")
         assertThat(entity.status).isEqualTo("WATCHING")
-        assertThat(entity.genres).isEqualTo("Action,Comedy")
+        assertThat(entity.userRating).isEqualTo(9)
+        assertThat(entity.isNotificationsEnabled).isEqualTo(1)
+        assertThat(entity.addedAt).isEqualTo(1000L)
     }
 
     @Test
@@ -153,94 +137,17 @@ class AnimeEntityMapperTest {
     }
 
     @Test
-    fun `toDomainModel maps notification fields correctly`() {
-        val entity = AnimeEntity(
-            id = 1L,
-            title = "Test",
-            status = "WATCHING",
-            genres = "",
-            isNotificationsEnabled = 1,
-            lastCheckedAiredEpisodeCount = 12,
-            knownSequelData = "200:true,300:false"
-        )
-
-        val anime = entity.toDomainModel()
-
-        assertThat(anime.isNotificationsEnabled).isTrue()
-        assertThat(anime.lastCheckedAiredEpisodeCount).isEqualTo(12)
-        assertThat(anime.knownSequels).containsExactly(
-            KnownSequel(200, true),
-            KnownSequel(300, false)
-        )
-    }
-
-    @Test
-    fun `toDomainModel handles empty knownSequelData`() {
-        val entity = AnimeEntity(
-            id = 1L,
-            title = "Test",
-            status = "WATCHING",
-            genres = "",
-            knownSequelData = ""
-        )
-
-        val anime = entity.toDomainModel()
-
-        assertThat(anime.knownSequels).isEmpty()
-    }
-
-    @Test
-    fun `toDomainModel parses legacy knownSequelData format`() {
-        val entity = AnimeEntity(
-            id = 1L,
-            title = "Test",
-            status = "WATCHING",
-            genres = "",
-            knownSequelData = "200,300"
-        )
-
-        val anime = entity.toDomainModel()
-
-        assertThat(anime.knownSequels).containsExactly(
-            KnownSequel(200, true),
-            KnownSequel(300, true)
-        )
-    }
-
-    @Test
-    fun `toEntity maps notification fields correctly`() {
-        val anime = Anime(
-            id = 1L,
-            title = "Test",
-            isNotificationsEnabled = true,
-            lastCheckedAiredEpisodeCount = 24,
-            knownSequels = listOf(KnownSequel(200, true), KnownSequel(300, false))
-        )
-
-        val entity = anime.toEntity()
-
-        assertThat(entity.isNotificationsEnabled).isEqualTo(1)
-        assertThat(entity.lastCheckedAiredEpisodeCount).isEqualTo(24)
-        assertThat(entity.knownSequelData).isEqualTo("200:true,300:false")
-    }
-
-    @Test
     fun `round trip preserves data`() {
         val original = Anime(
             id = 5L,
-            malId = 100,
             title = "Attack on Titan",
             imageUrl = "https://example.com/aot.jpg",
             synopsis = "Humanity fights titans.",
-            episodeCount = 25,
-            currentEpisode = 10,
-            score = 9.0,
-            userRating = 10,
-            status = WatchStatus.WATCHING,
             genres = listOf("Action", "Drama", "Fantasy"),
+            status = WatchStatus.WATCHING,
+            userRating = 10,
             isNotificationsEnabled = true,
-            lastCheckedAiredEpisodeCount = 25,
-            knownSequels = listOf(KnownSequel(200, true), KnownSequel(300, false))
+            addedAt = 1000L
         )
 
         val roundTripped = original.toEntity().toDomainModel()

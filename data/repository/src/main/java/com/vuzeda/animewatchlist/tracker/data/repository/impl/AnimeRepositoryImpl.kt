@@ -1,18 +1,11 @@
 package com.vuzeda.animewatchlist.tracker.data.repository.impl
 
-import com.vuzeda.animewatchlist.tracker.data.api.service.JikanApiService
 import com.vuzeda.animewatchlist.tracker.data.local.dao.AnimeDao
-import com.vuzeda.animewatchlist.tracker.data.repository.mapper.serializeKnownSequelData
-import com.vuzeda.animewatchlist.tracker.data.repository.mapper.toAnimeBasicInfo
-import com.vuzeda.animewatchlist.tracker.data.repository.mapper.toAnimeFullDetails
+import com.vuzeda.animewatchlist.tracker.data.local.dao.SeasonDao
 import com.vuzeda.animewatchlist.tracker.data.repository.mapper.toDomainModel
 import com.vuzeda.animewatchlist.tracker.data.repository.mapper.toEntity
-import com.vuzeda.animewatchlist.tracker.data.repository.mapper.toEpisodePage
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
-import com.vuzeda.animewatchlist.tracker.domain.model.AnimeBasicInfo
-import com.vuzeda.animewatchlist.tracker.domain.model.AnimeFullDetails
-import com.vuzeda.animewatchlist.tracker.domain.model.EpisodePage
-import com.vuzeda.animewatchlist.tracker.domain.model.KnownSequel
+import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.repository.AnimeRepository
 import kotlinx.coroutines.flow.Flow
@@ -21,89 +14,62 @@ import javax.inject.Inject
 
 class AnimeRepositoryImpl @Inject constructor(
     private val animeDao: AnimeDao,
-    private val jikanApiService: JikanApiService
+    private val seasonDao: SeasonDao
 ) : AnimeRepository {
 
-    override fun observeWatchlist(): Flow<List<Anime>> =
+    override fun observeAll(): Flow<List<Anime>> =
         animeDao.observeAll().map { entities -> entities.map { it.toDomainModel() } }
 
-    override fun observeWatchlistByStatus(status: WatchStatus): Flow<List<Anime>> =
+    override fun observeByStatus(status: WatchStatus): Flow<List<Anime>> =
         animeDao.observeByStatus(status.name).map { entities -> entities.map { it.toDomainModel() } }
 
-    override suspend fun getAnimeById(id: Long): Anime? =
-        animeDao.getById(id)?.toDomainModel()
-
-    override fun observeAnimeById(id: Long): Flow<Anime?> =
+    override fun observeById(id: Long): Flow<Anime?> =
         animeDao.observeById(id).map { it?.toDomainModel() }
 
-    override suspend fun addAnime(anime: Anime): Long {
-        val withTimestamp = anime.copy(addedAt = System.currentTimeMillis())
-        return animeDao.insert(withTimestamp.toEntity())
+    override fun observeSeasonsForAnime(animeId: Long): Flow<List<Season>> =
+        seasonDao.observeByAnimeId(animeId).map { entities -> entities.map { it.toDomainModel() } }
+
+    override suspend fun addAnime(anime: Anime, seasons: List<Season>): Long {
+        val animeId = animeDao.insert(anime.toEntity())
+        val seasonEntities = seasons.map { it.copy(animeId = animeId).toEntity() }
+        seasonDao.insertAll(seasonEntities)
+        return animeId
     }
 
     override suspend fun updateAnime(anime: Anime) {
         animeDao.update(anime.toEntity())
     }
 
+    override suspend fun updateSeason(season: Season) {
+        seasonDao.update(season.toEntity())
+    }
+
     override suspend fun deleteAnime(id: Long) {
         animeDao.deleteById(id)
-    }
-
-    override suspend fun searchAnime(query: String): Result<List<Anime>> = runCatching {
-        jikanApiService.searchAnime(query = query).data.map { it.toDomainModel() }
-    }
-
-    override suspend fun getNotifiedAnime(): List<Anime> =
-        animeDao.getNotifiedAnime().map { it.toDomainModel() }
-
-    override suspend fun fetchAnimeByMalId(malId: Int): Result<Anime> = runCatching {
-        jikanApiService.getAnimeById(malId).data.toDomainModel()
-    }
-
-    override suspend fun fetchAnimeFullDetails(malId: Int): Result<AnimeFullDetails> = runCatching {
-        jikanApiService.getAnimeFullById(malId).data.toAnimeFullDetails()
-    }
-
-    override suspend fun fetchLastAiredEpisodeNumber(malId: Int): Result<Int?> = runCatching {
-        val firstPage = jikanApiService.getAnimeEpisodes(malId = malId, page = 1)
-        val lastPage = if (firstPage.pagination.lastVisiblePage > 1) {
-            jikanApiService.getAnimeEpisodes(
-                malId = malId,
-                page = firstPage.pagination.lastVisiblePage
-            )
-        } else {
-            firstPage
-        }
-        lastPage.data
-            .filter { it.aired != null }
-            .maxByOrNull { it.malId }
-            ?.malId
-    }
-
-    override suspend fun fetchAnimeBasicInfo(malId: Int): Result<AnimeBasicInfo> = runCatching {
-        jikanApiService.getAnimeById(malId).data.toAnimeBasicInfo()
-    }
-
-    override suspend fun fetchAnimeEpisodes(malId: Int, page: Int): Result<EpisodePage> = runCatching {
-        jikanApiService.getAnimeEpisodes(malId = malId, page = page).toEpisodePage(currentPage = page)
-    }
-
-    override suspend fun updateNotificationData(
-        id: Long,
-        lastCheckedAiredEpisodeCount: Int?,
-        knownSequels: List<KnownSequel>
-    ) {
-        animeDao.updateNotificationData(
-            id = id,
-            count = lastCheckedAiredEpisodeCount,
-            sequelData = serializeKnownSequelData(knownSequels)
-        )
     }
 
     override suspend fun toggleNotifications(id: Long, enabled: Boolean) {
         animeDao.updateNotificationsEnabled(id = id, enabled = if (enabled) 1 else 0)
     }
 
-    override fun observeAnimeByMalIds(malIds: List<Int>): Flow<List<Anime>> =
-        animeDao.observeByMalIds(malIds).map { entities -> entities.map { it.toDomainModel() } }
+    override suspend fun getNotificationEnabledAnime(): List<Anime> =
+        animeDao.getNotificationEnabledAnime().map { it.toDomainModel() }
+
+    override suspend fun getSeasonsForAnime(animeId: Long): List<Season> =
+        seasonDao.getByAnimeId(animeId).map { it.toDomainModel() }
+
+    override suspend fun updateSeasonNotificationData(
+        seasonId: Long,
+        lastCheckedAiredEpisodeCount: Int?
+    ) {
+        seasonDao.updateNotificationData(
+            seasonId = seasonId,
+            count = lastCheckedAiredEpisodeCount
+        )
+    }
+
+    override suspend fun addSeasonsToAnime(animeId: Long, seasons: List<Season>) {
+        val seasonEntities = seasons.map { it.copy(animeId = animeId).toEntity() }
+        seasonDao.insertAll(seasonEntities)
+    }
 }

@@ -42,30 +42,15 @@ import com.vuzeda.animewatchlist.tracker.designsystem.component.AnimeCard
 import com.vuzeda.animewatchlist.tracker.designsystem.component.AnimeSearchBar
 import com.vuzeda.animewatchlist.tracker.designsystem.component.EmptyStateMessage
 import com.vuzeda.animewatchlist.tracker.designsystem.component.SortMenuButton
-import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusChip
-import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusOption
-import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusSelectionSheet
-import com.vuzeda.animewatchlist.tracker.domain.model.Anime
-import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
+import com.vuzeda.animewatchlist.tracker.domain.model.SearchResult
 import com.vuzeda.animewatchlist.tracker.ui.R
-import com.vuzeda.animewatchlist.tracker.ui.screens.home.toColor
-import com.vuzeda.animewatchlist.tracker.ui.screens.home.toDisplayLabelRes
 
 @Composable
 fun SearchScreenRoute(
-    onNavigateToDetail: (Long) -> Unit,
     onNavigateToDetailByMalId: (Int) -> Unit,
     viewModel: SearchViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-    LaunchedEffect(uiState.pendingNavigationId) {
-        val id = uiState.pendingNavigationId
-        if (id != null) {
-            viewModel.onNavigated()
-            onNavigateToDetail(id)
-        }
-    }
 
     LaunchedEffect(uiState.pendingNavigationMalId) {
         val malId = uiState.pendingNavigationMalId
@@ -79,12 +64,8 @@ fun SearchScreenRoute(
         uiState = uiState,
         onQueryChanged = viewModel::updateQuery,
         onSearch = viewModel::search,
-        onAnimeClick = viewModel::onAnimeClick,
-        onAddClick = viewModel::onAddClick,
-        onFilterSelected = viewModel::selectFilter,
+        onResultClick = viewModel::onResultClick,
         onSortSelected = viewModel::selectSort,
-        onStatusSelected = viewModel::onStatusSelected,
-        onDismissBottomSheet = viewModel::dismissBottomSheet,
         onSnackbarDismissed = viewModel::clearSnackbar
     )
 }
@@ -95,17 +76,12 @@ fun SearchScreen(
     uiState: SearchUiState,
     onQueryChanged: (String) -> Unit,
     onSearch: () -> Unit,
-    onAnimeClick: (Anime) -> Unit,
-    onAddClick: (Anime) -> Unit,
-    onFilterSelected: (SearchFilter) -> Unit,
+    onResultClick: (SearchResult) -> Unit,
     onSortSelected: (SearchSortOption) -> Unit,
-    onStatusSelected: (WatchStatus) -> Unit,
-    onDismissBottomSheet: () -> Unit,
     onSnackbarDismissed: () -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val sortOptions = SearchSortOption.entries.map { stringResource(it.displayLabelRes) }
-    val filterTabs = SearchFilter.entries.map { stringResource(it.displayLabelRes) }
 
     val addedFormat = stringResource(R.string.search_added_to_watchlist, uiState.snackbarMessage ?: "")
     LaunchedEffect(uiState.snackbarMessage) {
@@ -148,18 +124,6 @@ fun SearchScreen(
             )
 
             Spacer(modifier = Modifier.height(8.dp))
-
-            if (uiState.hasSearched && uiState.results.isNotEmpty()) {
-                PrimaryScrollableTabRow(selectedTabIndex = uiState.selectedFilter.ordinal) {
-                    filterTabs.forEachIndexed { index, label ->
-                        Tab(
-                            selected = index == uiState.selectedFilter.ordinal,
-                            onClick = { onFilterSelected(SearchFilter.entries[index]) },
-                            text = { Text(label) }
-                        )
-                    }
-                }
-            }
 
             when {
                 uiState.isLoading -> {
@@ -206,59 +170,20 @@ fun SearchScreen(
                     ) {
                         items(
                             items = uiState.displayedResults,
-                            key = { it.malId ?: it.hashCode() }
-                        ) { anime ->
-                            val watchlistEntry = anime.malId?.let { uiState.watchlistEntries[it] }
+                            key = { it.malId }
+                        ) { result ->
                             AnimeCard(
-                                title = anime.title,
-                                imageUrl = anime.imageUrl,
-                                onClick = { onAnimeClick(anime) },
-                                score = anime.score,
-                                episodeText = anime.episodeCount?.let { stringResource(R.string.search_episode_count, it) },
-                                genresText = anime.genres.takeIf { it.isNotEmpty() }?.joinToString(", "),
-                                trailingContent = {
-                                    if (watchlistEntry != null) {
-                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                            Icon(
-                                                imageVector = Icons.Default.Check,
-                                                contentDescription = stringResource(R.string.cd_already_in_watchlist),
-                                                tint = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier.size(20.dp)
-                                            )
-                                            Spacer(modifier = Modifier.height(4.dp))
-                                            StatusChip(
-                                                label = stringResource(watchlistEntry.status.toDisplayLabelRes()),
-                                                color = watchlistEntry.status.toColor()
-                                            )
-                                        }
-                                    } else {
-                                        IconButton(onClick = { onAddClick(anime) }) {
-                                            Icon(
-                                                imageVector = Icons.Default.Add,
-                                                contentDescription = stringResource(R.string.cd_add_to_watchlist),
-                                                tint = MaterialTheme.colorScheme.primary
-                                            )
-                                        }
-                                    }
-                                }
+                                title = result.title,
+                                imageUrl = result.imageUrl,
+                                onClick = { onResultClick(result) },
+                                score = result.score,
+                                episodeText = result.episodeCount?.let { stringResource(R.string.search_episode_count, it) },
+                                genresText = result.genres.takeIf { it.isNotEmpty() }?.joinToString(", ")
                             )
                         }
                     }
                 }
             }
         }
-    }
-
-    if (uiState.selectedAnimeForAdd != null) {
-        val statusOptions = WatchStatus.entries.map {
-            StatusOption(stringResource(it.toDisplayLabelRes()), it.toColor())
-        }
-        StatusSelectionSheet(
-            title = stringResource(R.string.search_add_sheet_title),
-            subtitle = uiState.selectedAnimeForAdd.title,
-            options = statusOptions,
-            onOptionSelected = { index -> onStatusSelected(WatchStatus.entries[index]) },
-            onDismiss = onDismissBottomSheet
-        )
     }
 }

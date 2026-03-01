@@ -20,7 +20,7 @@ class ObserveAnimeByIdUseCaseTest {
     @Test
     fun `emits anime when found`() = runTest {
         val anime = Anime(id = 1L, title = "Naruto", status = WatchStatus.WATCHING)
-        every { repository.observeAnimeById(1L) } returns flowOf(anime)
+        every { repository.observeById(1L) } returns flowOf(anime)
 
         useCase(1L).test {
             val result = awaitItem()
@@ -29,12 +29,12 @@ class ObserveAnimeByIdUseCaseTest {
             awaitComplete()
         }
 
-        verify { repository.observeAnimeById(1L) }
+        verify { repository.observeById(1L) }
     }
 
     @Test
     fun `emits null when anime not found`() = runTest {
-        every { repository.observeAnimeById(999L) } returns flowOf(null)
+        every { repository.observeById(999L) } returns flowOf(null)
 
         useCase(999L).test {
             val result = awaitItem()

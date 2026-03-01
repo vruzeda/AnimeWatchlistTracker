@@ -6,11 +6,12 @@ import com.vuzeda.animewatchlist.tracker.domain.repository.AnimeRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-/** Observes the watchlist, optionally filtered by status. */
-class ObserveWatchlistUseCase @Inject constructor(
+/** Observes the anime watchlist, optionally filtered by status. */
+class ObserveAnimeListUseCase @Inject constructor(
     private val animeRepository: AnimeRepository
 ) {
+
     operator fun invoke(status: WatchStatus? = null): Flow<List<Anime>> =
-        if (status != null) animeRepository.observeWatchlistByStatus(status)
-        else animeRepository.observeWatchlist()
+        if (status != null) animeRepository.observeByStatus(status)
+        else animeRepository.observeAll()
 }

@@ -18,9 +18,6 @@ interface AnimeDao {
     fun observeByStatus(status: String): Flow<List<AnimeEntity>>
 
     @Query("SELECT * FROM anime WHERE id = :id")
-    suspend fun getById(id: Long): AnimeEntity?
-
-    @Query("SELECT * FROM anime WHERE id = :id")
     fun observeById(id: Long): Flow<AnimeEntity?>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -33,14 +30,8 @@ interface AnimeDao {
     suspend fun deleteById(id: Long)
 
     @Query("SELECT * FROM anime WHERE isNotificationsEnabled = 1")
-    suspend fun getNotifiedAnime(): List<AnimeEntity>
+    suspend fun getNotificationEnabledAnime(): List<AnimeEntity>
 
     @Query("UPDATE anime SET isNotificationsEnabled = :enabled WHERE id = :id")
     suspend fun updateNotificationsEnabled(id: Long, enabled: Int)
-
-    @Query("UPDATE anime SET lastCheckedAiredEpisodeCount = :count, knownSequelData = :sequelData WHERE id = :id")
-    suspend fun updateNotificationData(id: Long, count: Int?, sequelData: String)
-
-    @Query("SELECT * FROM anime WHERE malId IN (:malIds)")
-    fun observeByMalIds(malIds: List<Int>): Flow<List<AnimeEntity>>
 }

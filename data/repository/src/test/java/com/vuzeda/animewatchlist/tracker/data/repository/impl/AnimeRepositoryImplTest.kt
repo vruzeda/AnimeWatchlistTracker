@@ -2,67 +2,71 @@ package com.vuzeda.animewatchlist.tracker.data.repository.impl
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
-import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeDataDto
-import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeFullDataDto
-import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeFullResponseDto
-import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeRelationDto
-import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeSearchResponseDto
-import com.vuzeda.animewatchlist.tracker.data.api.dto.GenreDto
-import com.vuzeda.animewatchlist.tracker.data.api.dto.RelatedEntryDto
-import com.vuzeda.animewatchlist.tracker.data.api.service.JikanApiService
 import com.vuzeda.animewatchlist.tracker.data.local.dao.AnimeDao
+import com.vuzeda.animewatchlist.tracker.data.local.dao.SeasonDao
 import com.vuzeda.animewatchlist.tracker.data.local.entity.AnimeEntity
+import com.vuzeda.animewatchlist.tracker.data.local.entity.SeasonEntity
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
-import com.vuzeda.animewatchlist.tracker.domain.model.KnownSequel
+import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
-import java.io.IOException
 
 class AnimeRepositoryImplTest {
 
     private val animeDao: AnimeDao = mockk()
-    private val jikanApiService: JikanApiService = mockk()
-    private val repository = AnimeRepositoryImpl(animeDao, jikanApiService)
+    private val seasonDao: SeasonDao = mockk()
+    private val repository = AnimeRepositoryImpl(animeDao, seasonDao)
 
     private val sampleEntity = AnimeEntity(
         id = 1L,
-        malId = 21,
-        title = "One Punch Man",
-        imageUrl = "https://example.com/opm.jpg",
-        synopsis = "A hero.",
-        episodeCount = 12,
-        currentEpisode = 6,
-        score = 8.7,
-        userRating = 9,
+        title = "Attack on Titan",
+        imageUrl = "https://example.com/aot.jpg",
+        synopsis = "Humanity fights titans.",
+        genres = "Action,Drama",
         status = "WATCHING",
-        genres = "Action,Comedy"
+        userRating = 9,
+        isNotificationsEnabled = 0,
+        addedAt = 1000L
+    )
+
+    private val sampleSeasonEntity = SeasonEntity(
+        id = 1L,
+        animeId = 1L,
+        malId = 16498,
+        title = "Attack on Titan",
+        type = "TV",
+        episodeCount = 25,
+        currentEpisode = 12,
+        score = 8.5,
+        orderIndex = 0
     )
 
     @Test
-    fun `observeWatchlist emits mapped domain models`() = runTest {
+    fun `observeAll emits mapped domain models`() = runTest {
         every { animeDao.observeAll() } returns flowOf(listOf(sampleEntity))
 
-        repository.observeWatchlist().test {
+        repository.observeAll().test {
             val result = awaitItem()
 
             assertThat(result).hasSize(1)
-            assertThat(result[0].title).isEqualTo("One Punch Man")
+            assertThat(result[0].title).isEqualTo("Attack on Titan")
             assertThat(result[0].status).isEqualTo(WatchStatus.WATCHING)
             awaitComplete()
         }
     }
 
     @Test
-    fun `observeWatchlistByStatus passes correct status string to dao`() = runTest {
+    fun `observeByStatus passes correct status string to dao`() = runTest {
         every { animeDao.observeByStatus("COMPLETED") } returns flowOf(listOf(sampleEntity.copy(status = "COMPLETED")))
 
-        repository.observeWatchlistByStatus(WatchStatus.COMPLETED).test {
+        repository.observeByStatus(WatchStatus.COMPLETED).test {
             val result = awaitItem()
 
             assertThat(result).hasSize(1)
@@ -71,79 +75,81 @@ class AnimeRepositoryImplTest {
     }
 
     @Test
-    fun `getAnimeById returns mapped domain model when found`() = runTest {
-        coEvery { animeDao.getById(1L) } returns sampleEntity
-
-        val result = repository.getAnimeById(1L)
-
-        assertThat(result).isNotNull()
-        assertThat(result?.title).isEqualTo("One Punch Man")
-    }
-
-    @Test
-    fun `getAnimeById returns null when not found`() = runTest {
-        coEvery { animeDao.getById(999L) } returns null
-
-        val result = repository.getAnimeById(999L)
-
-        assertThat(result).isNull()
-    }
-
-    @Test
-    fun `observeAnimeById emits mapped domain model`() = runTest {
+    fun `observeById emits mapped domain model`() = runTest {
         every { animeDao.observeById(1L) } returns flowOf(sampleEntity)
 
-        repository.observeAnimeById(1L).test {
+        repository.observeById(1L).test {
             val result = awaitItem()
 
             assertThat(result).isNotNull()
-            assertThat(result?.title).isEqualTo("One Punch Man")
-            assertThat(result?.status).isEqualTo(WatchStatus.WATCHING)
+            assertThat(result?.title).isEqualTo("Attack on Titan")
             awaitComplete()
         }
     }
 
     @Test
-    fun `observeAnimeById emits null when not found`() = runTest {
+    fun `observeById emits null when not found`() = runTest {
         every { animeDao.observeById(999L) } returns flowOf(null)
 
-        repository.observeAnimeById(999L).test {
-            val result = awaitItem()
-
-            assertThat(result).isNull()
+        repository.observeById(999L).test {
+            assertThat(awaitItem()).isNull()
             awaitComplete()
         }
     }
 
     @Test
-    fun `addAnime inserts entity and returns id`() = runTest {
-        coEvery { animeDao.insert(any()) } returns 1L
+    fun `observeSeasonsForAnime emits mapped season domain models`() = runTest {
+        every { seasonDao.observeByAnimeId(1L) } returns flowOf(listOf(sampleSeasonEntity))
+
+        repository.observeSeasonsForAnime(1L).test {
+            val result = awaitItem()
+
+            assertThat(result).hasSize(1)
+            assertThat(result[0].malId).isEqualTo(16498)
+            assertThat(result[0].title).isEqualTo("Attack on Titan")
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `addAnime inserts anime and seasons and returns id`() = runTest {
+        coEvery { animeDao.insert(any()) } returns 5L
+        coEvery { seasonDao.insertAll(any()) } returns Unit
 
         val anime = Anime(
-            title = "One Punch Man",
+            title = "Attack on Titan",
             status = WatchStatus.WATCHING,
-            genres = listOf("Action", "Comedy")
+            genres = listOf("Action")
+        )
+        val seasons = listOf(
+            Season(malId = 16498, title = "Season 1", orderIndex = 0)
         )
 
-        val result = repository.addAnime(anime)
+        val result = repository.addAnime(anime, seasons)
 
-        assertThat(result).isEqualTo(1L)
-        coVerify { animeDao.insert(any()) }
+        assertThat(result).isEqualTo(5L)
+
+        val seasonSlot = slot<List<SeasonEntity>>()
+        coVerify { seasonDao.insertAll(capture(seasonSlot)) }
+        assertThat(seasonSlot.captured[0].animeId).isEqualTo(5L)
     }
 
     @Test
     fun `updateAnime delegates to dao`() = runTest {
         coEvery { animeDao.update(any()) } returns Unit
 
-        val anime = Anime(
-            id = 1L,
-            title = "One Punch Man",
-            status = WatchStatus.COMPLETED
-        )
-
-        repository.updateAnime(anime)
+        repository.updateAnime(Anime(id = 1L, title = "Test", status = WatchStatus.COMPLETED))
 
         coVerify { animeDao.update(any()) }
+    }
+
+    @Test
+    fun `updateSeason delegates to seasonDao`() = runTest {
+        coEvery { seasonDao.update(any()) } returns Unit
+
+        repository.updateSeason(Season(id = 1L, animeId = 1L, malId = 100, title = "S1", currentEpisode = 5))
+
+        coVerify { seasonDao.update(any()) }
     }
 
     @Test
@@ -156,84 +162,6 @@ class AnimeRepositoryImplTest {
     }
 
     @Test
-    fun `searchAnime returns success with mapped results`() = runTest {
-        val apiResponse = AnimeSearchResponseDto(
-            data = listOf(
-                AnimeDataDto(
-                    malId = 21,
-                    title = "One Punch Man",
-                    genres = listOf(GenreDto(name = "Action"))
-                )
-            )
-        )
-        coEvery { jikanApiService.searchAnime(query = "one punch") } returns apiResponse
-
-        val result = repository.searchAnime("one punch")
-
-        assertThat(result.isSuccess).isTrue()
-        assertThat(result.getOrNull()).hasSize(1)
-        assertThat(result.getOrNull()?.get(0)?.title).isEqualTo("One Punch Man")
-        assertThat(result.getOrNull()?.get(0)?.status).isEqualTo(WatchStatus.PLAN_TO_WATCH)
-    }
-
-    @Test
-    fun `searchAnime returns failure on network error`() = runTest {
-        coEvery { jikanApiService.searchAnime(query = "test") } throws IOException("Network error")
-
-        val result = repository.searchAnime("test")
-
-        assertThat(result.isFailure).isTrue()
-        assertThat(result.exceptionOrNull()).isInstanceOf(IOException::class.java)
-    }
-
-    @Test
-    fun `getNotifiedAnime returns mapped domain models`() = runTest {
-        val notifiedEntity = sampleEntity.copy(isNotificationsEnabled = 1)
-        coEvery { animeDao.getNotifiedAnime() } returns listOf(notifiedEntity)
-
-        val result = repository.getNotifiedAnime()
-
-        assertThat(result).hasSize(1)
-        assertThat(result[0].isNotificationsEnabled).isTrue()
-    }
-
-    @Test
-    fun `fetchAnimeFullDetails returns mapped full details on success`() = runTest {
-        val apiResponse = AnimeFullResponseDto(
-            data = AnimeFullDataDto(
-                malId = 100,
-                title = "Test",
-                episodes = 24,
-                relations = listOf(
-                    AnimeRelationDto(
-                        relation = "Sequel",
-                        entry = listOf(RelatedEntryDto(malId = 200, type = "anime", name = "Season 2"))
-                    )
-                )
-            )
-        )
-        coEvery { jikanApiService.getAnimeFullById(100) } returns apiResponse
-
-        val result = repository.fetchAnimeFullDetails(100)
-
-        assertThat(result.isSuccess).isTrue()
-        val details = result.getOrNull()
-        assertThat(details?.malId).isEqualTo(100)
-        assertThat(details?.episodes).isEqualTo(24)
-        assertThat(details?.sequels).hasSize(1)
-        assertThat(details?.sequels?.get(0)?.malId).isEqualTo(200)
-    }
-
-    @Test
-    fun `fetchAnimeFullDetails returns failure on network error`() = runTest {
-        coEvery { jikanApiService.getAnimeFullById(100) } throws IOException("Network error")
-
-        val result = repository.fetchAnimeFullDetails(100)
-
-        assertThat(result.isFailure).isTrue()
-    }
-
-    @Test
     fun `toggleNotifications delegates to dao with correct int value`() = runTest {
         coEvery { animeDao.updateNotificationsEnabled(id = 1L, enabled = 1) } returns Unit
 
@@ -243,51 +171,48 @@ class AnimeRepositoryImplTest {
     }
 
     @Test
-    fun `updateNotificationData delegates to dao with serialized sequel data`() = runTest {
-        coEvery { animeDao.updateNotificationData(any(), any(), any()) } returns Unit
+    fun `getNotificationEnabledAnime returns mapped domain models`() = runTest {
+        val notifiedEntity = sampleEntity.copy(isNotificationsEnabled = 1)
+        coEvery { animeDao.getNotificationEnabledAnime() } returns listOf(notifiedEntity)
 
-        repository.updateNotificationData(
-            id = 1L,
-            lastCheckedAiredEpisodeCount = 24,
-            knownSequels = listOf(KnownSequel(200, true), KnownSequel(300, false))
-        )
+        val result = repository.getNotificationEnabledAnime()
 
-        coVerify {
-            animeDao.updateNotificationData(
-                id = 1L,
-                count = 24,
-                sequelData = "200:true,300:false"
-            )
-        }
+        assertThat(result).hasSize(1)
+        assertThat(result[0].isNotificationsEnabled).isTrue()
     }
 
     @Test
-    fun `observeAnimeByMalIds emits mapped domain models`() = runTest {
-        val entities = listOf(
-            sampleEntity.copy(id = 1L, malId = 21),
-            sampleEntity.copy(id = 2L, malId = 30, title = "Naruto")
-        )
-        every { animeDao.observeByMalIds(listOf(21, 30)) } returns flowOf(entities)
+    fun `getSeasonsForAnime returns mapped season domain models`() = runTest {
+        coEvery { seasonDao.getByAnimeId(1L) } returns listOf(sampleSeasonEntity)
 
-        repository.observeAnimeByMalIds(listOf(21, 30)).test {
-            val result = awaitItem()
+        val result = repository.getSeasonsForAnime(1L)
 
-            assertThat(result).hasSize(2)
-            assertThat(result[0].malId).isEqualTo(21)
-            assertThat(result[1].malId).isEqualTo(30)
-            awaitComplete()
-        }
+        assertThat(result).hasSize(1)
+        assertThat(result[0].malId).isEqualTo(16498)
     }
 
     @Test
-    fun `observeAnimeByMalIds emits empty list when no matches`() = runTest {
-        every { animeDao.observeByMalIds(listOf(999)) } returns flowOf(emptyList())
+    fun `updateSeasonNotificationData delegates to seasonDao`() = runTest {
+        coEvery { seasonDao.updateNotificationData(any(), any()) } returns Unit
 
-        repository.observeAnimeByMalIds(listOf(999)).test {
-            val result = awaitItem()
+        repository.updateSeasonNotificationData(seasonId = 1L, lastCheckedAiredEpisodeCount = 25)
 
-            assertThat(result).isEmpty()
-            awaitComplete()
-        }
+        coVerify { seasonDao.updateNotificationData(seasonId = 1L, count = 25) }
+    }
+
+    @Test
+    fun `addSeasonsToAnime inserts seasons with correct animeId`() = runTest {
+        coEvery { seasonDao.insertAll(any()) } returns Unit
+
+        val seasons = listOf(
+            Season(malId = 200, title = "Season 2", orderIndex = 1)
+        )
+
+        repository.addSeasonsToAnime(animeId = 5L, seasons = seasons)
+
+        val seasonSlot = slot<List<SeasonEntity>>()
+        coVerify { seasonDao.insertAll(capture(seasonSlot)) }
+        assertThat(seasonSlot.captured[0].animeId).isEqualTo(5L)
+        assertThat(seasonSlot.captured[0].malId).isEqualTo(200)
     }
 }
