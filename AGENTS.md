@@ -294,13 +294,14 @@ Every component must have unit tests. This is non-negotiable.
 
 ### Milestone-Based Commits
 
-At each meaningful step during development, the project must be built and all unit tests must pass before committing. Follow this workflow:
+You MUST commit at each meaningful milestone during development — do NOT wait until the end or wait to be asked. At each meaningful step, the project must be built and all unit tests must pass before committing. Follow this workflow:
 
 1. Complete a logical unit of work (e.g., a new module, a feature, a layer of the architecture).
 2. Build the project — ensure it compiles without errors or warnings.
 3. Run all existing unit tests — ensure they all pass.
 4. If anything fails, fix it before proceeding.
 5. Once the build and tests succeed, commit with a clear, descriptive message.
+6. Continue to the next unit of work and repeat.
 
 This ensures that every commit in the history represents a working, verified state of the project. Never commit code that does not compile or has failing tests.
 
