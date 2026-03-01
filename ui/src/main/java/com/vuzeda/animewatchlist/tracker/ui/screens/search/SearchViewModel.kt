@@ -3,13 +3,19 @@ package com.vuzeda.animewatchlist.tracker.ui.screens.search
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
+import com.vuzeda.animewatchlist.tracker.domain.model.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.domain.model.SearchResult
 import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.usecase.AddAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.AddSeasonsToAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FindAnimeBySeasonMalIdUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.GetSeasonsForAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ResolveAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.SearchAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.UpdateAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.UpdateSeasonUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,16 +27,20 @@ import javax.inject.Inject
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val searchAnimeUseCase: SearchAnimeUseCase,
+    private val fetchSeasonDetailUseCase: FetchSeasonDetailUseCase,
     private val resolveAnimeUseCase: ResolveAnimeUseCase,
     private val addAnimeUseCase: AddAnimeUseCase,
+    private val updateAnimeUseCase: UpdateAnimeUseCase,
+    private val updateSeasonUseCase: UpdateSeasonUseCase,
+    private val getSeasonsForAnimeUseCase: GetSeasonsForAnimeUseCase,
+    private val addSeasonsToAnimeUseCase: AddSeasonsToAnimeUseCase,
     private val findAnimeBySeasonMalIdUseCase: FindAnimeBySeasonMalIdUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SearchUiState())
     val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
 
-    private var pendingResolvedAnime: Anime? = null
-    private var pendingResolvedSeasons: List<Season> = emptyList()
+    private var pendingDetails: AnimeFullDetails? = null
 
     fun updateQuery(query: String) {
         _uiState.update { it.copy(query = query) }
@@ -91,26 +101,9 @@ class SearchViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(resolvingMalId = result.malId) }
 
-            resolveAnimeUseCase(result.malId)
-                .onSuccess { resolved ->
-                    pendingResolvedAnime = Anime(
-                        title = resolved.title,
-                        imageUrl = resolved.imageUrl,
-                        synopsis = resolved.synopsis,
-                        genres = resolved.genres
-                    )
-                    pendingResolvedSeasons = resolved.seasons.mapIndexed { index, seasonData ->
-                        Season(
-                            malId = seasonData.malId,
-                            title = seasonData.title,
-                            imageUrl = seasonData.imageUrl,
-                            type = seasonData.type,
-                            episodeCount = seasonData.episodeCount,
-                            score = seasonData.score,
-                            airingStatus = seasonData.airingStatus,
-                            orderIndex = index
-                        )
-                    }
+            fetchSeasonDetailUseCase(result.malId)
+                .onSuccess { details ->
+                    pendingDetails = details
                     _uiState.update {
                         it.copy(
                             resolvingMalId = null,
@@ -130,31 +123,107 @@ class SearchViewModel @Inject constructor(
     }
 
     fun addToWatchlist(status: WatchStatus) {
-        val anime = pendingResolvedAnime ?: return
-        val seasons = pendingResolvedSeasons
+        val details = pendingDetails ?: return
         val result = _uiState.value.selectedResultForAdd
 
         viewModelScope.launch {
-            addAnimeUseCase(anime = anime, seasons = seasons, status = status)
-            pendingResolvedAnime = null
-            pendingResolvedSeasons = emptyList()
+            val anime = Anime(
+                title = details.title,
+                imageUrl = details.imageUrl,
+                synopsis = details.synopsis,
+                genres = details.genres
+            )
+            val season = Season(
+                malId = details.malId,
+                title = details.title,
+                imageUrl = details.imageUrl,
+                type = details.type,
+                episodeCount = details.episodes,
+                score = details.score,
+                airingStatus = details.airingStatus,
+                orderIndex = 0
+            )
 
-            val addedMalIds = _uiState.value.addedMalIds.toMutableSet()
-            seasons.forEach { addedMalIds.add(it.malId) }
+            val animeId = addAnimeUseCase(
+                anime = anime,
+                seasons = listOf(season),
+                status = status
+            )
 
+            pendingDetails = null
             _uiState.update {
                 it.copy(
                     selectedResultForAdd = null,
-                    addedMalIds = addedMalIds,
+                    addedMalIds = it.addedMalIds + details.malId,
                     snackbarMessage = result?.title
                 )
             }
+
+            resolveRemainingSeasonsInBackground(animeId, details, status)
         }
     }
 
+    private suspend fun resolveRemainingSeasonsInBackground(
+        animeId: Long,
+        initialDetails: AnimeFullDetails,
+        status: WatchStatus
+    ) {
+        resolveAnimeUseCase(initialDetails.malId)
+            .onSuccess { resolved ->
+                val existingSeasons = getSeasonsForAnimeUseCase(animeId)
+                val existingMalIds = existingSeasons.map { it.malId }.toSet()
+
+                val resolvedSeasonEntries = resolved.seasons.mapIndexed { index, seasonData ->
+                    seasonData to index
+                }
+
+                val initialEntry = existingSeasons.firstOrNull { it.malId == initialDetails.malId }
+                val correctOrderIndex = resolvedSeasonEntries
+                    .firstOrNull { it.first.malId == initialDetails.malId }
+                    ?.second ?: 0
+
+                if (initialEntry != null && initialEntry.orderIndex != correctOrderIndex) {
+                    updateSeasonUseCase(initialEntry.copy(orderIndex = correctOrderIndex))
+                }
+
+                val remainingSeasons = resolvedSeasonEntries
+                    .filter { it.first.malId !in existingMalIds }
+                    .map { (seasonData, index) ->
+                        Season(
+                            malId = seasonData.malId,
+                            title = seasonData.title,
+                            imageUrl = seasonData.imageUrl,
+                            type = seasonData.type,
+                            episodeCount = seasonData.episodeCount,
+                            score = seasonData.score,
+                            airingStatus = seasonData.airingStatus,
+                            orderIndex = index
+                        )
+                    }
+
+                if (remainingSeasons.isNotEmpty()) {
+                    addSeasonsToAnimeUseCase(animeId, remainingSeasons)
+                }
+
+                updateAnimeUseCase(
+                    Anime(
+                        id = animeId,
+                        title = resolved.title,
+                        imageUrl = resolved.imageUrl,
+                        synopsis = resolved.synopsis,
+                        genres = resolved.genres,
+                        status = status,
+                        addedAt = System.currentTimeMillis()
+                    )
+                )
+
+                val allResolvedMalIds = resolved.seasons.map { it.malId }.toSet()
+                _uiState.update { it.copy(addedMalIds = it.addedMalIds + allResolvedMalIds) }
+            }
+    }
+
     fun dismissBottomSheet() {
-        pendingResolvedAnime = null
-        pendingResolvedSeasons = emptyList()
+        pendingDetails = null
         _uiState.update { it.copy(selectedResultForAdd = null) }
     }
 

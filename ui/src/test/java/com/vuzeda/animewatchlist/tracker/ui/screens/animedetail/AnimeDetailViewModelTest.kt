@@ -4,7 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
-import com.vuzeda.animewatchlist.tracker.domain.model.ResolvedSeries
+import com.vuzeda.animewatchlist.tracker.domain.model.ProgressiveResolveResult
 import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import com.vuzeda.animewatchlist.tracker.domain.model.SeasonData
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
@@ -13,7 +13,7 @@ import com.vuzeda.animewatchlist.tracker.domain.usecase.DeleteAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FindAnimeBySeasonMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveAnimeByIdUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveSeasonsForAnimeUseCase
-import com.vuzeda.animewatchlist.tracker.domain.usecase.ResolveAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.ResolveAnimeProgressivelyUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ToggleAnimeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.UpdateAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.ui.navigation.Route
@@ -22,6 +22,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -41,7 +42,7 @@ class AnimeDetailViewModelTest {
     private val updateAnimeUseCase: UpdateAnimeUseCase = mockk()
     private val deleteAnimeUseCase: DeleteAnimeUseCase = mockk()
     private val toggleAnimeNotificationsUseCase: ToggleAnimeNotificationsUseCase = mockk(relaxed = true)
-    private val resolveAnimeUseCase: ResolveAnimeUseCase = mockk()
+    private val resolveAnimeProgressivelyUseCase: ResolveAnimeProgressivelyUseCase = mockk()
     private val addAnimeUseCase: AddAnimeUseCase = mockk()
     private val findAnimeBySeasonMalIdUseCase: FindAnimeBySeasonMalIdUseCase = mockk()
 
@@ -88,7 +89,7 @@ class AnimeDetailViewModelTest {
             updateAnimeUseCase = updateAnimeUseCase,
             deleteAnimeUseCase = deleteAnimeUseCase,
             toggleAnimeNotificationsUseCase = toggleAnimeNotificationsUseCase,
-            resolveAnimeUseCase = resolveAnimeUseCase,
+            resolveAnimeProgressivelyUseCase = resolveAnimeProgressivelyUseCase,
             addAnimeUseCase = addAnimeUseCase,
             findAnimeBySeasonMalIdUseCase = findAnimeBySeasonMalIdUseCase
         )
@@ -140,20 +141,37 @@ class AnimeDetailViewModelTest {
     }
 
     @Test
-    fun `resolves anime from API when malId is provided`() = runTest {
+    fun `resolves anime from API progressively when malId is provided`() = runTest {
         coEvery { findAnimeBySeasonMalIdUseCase(50) } returns null
-        coEvery { resolveAnimeUseCase(50) } returns Result.success(
-            ResolvedSeries(
-                title = "Spy x Family",
-                imageUrl = "https://example.com/spy.jpg",
-                synopsis = "A spy forms a pretend family.",
-                genres = listOf("Action", "Comedy"),
-                seasons = listOf(
-                    SeasonData(malId = 50, title = "Season 1", type = "TV", episodeCount = 12, score = 8.5),
-                    SeasonData(malId = 51, title = "Season 2", type = "TV", episodeCount = 12, score = 8.3)
+        every { resolveAnimeProgressivelyUseCase(50) } returns flow {
+            emit(
+                ProgressiveResolveResult(
+                    title = "Spy x Family",
+                    imageUrl = "https://example.com/spy.jpg",
+                    synopsis = "A spy forms a pretend family.",
+                    genres = listOf("Action", "Comedy"),
+                    seasons = listOf(
+                        SeasonData(malId = 50, title = "Season 1", type = "TV", episodeCount = 12, score = 8.5)
+                    ),
+                    isResolvingPrequels = false,
+                    isResolvingSequels = true
                 )
             )
-        )
+            emit(
+                ProgressiveResolveResult(
+                    title = "Spy x Family",
+                    imageUrl = "https://example.com/spy.jpg",
+                    synopsis = "A spy forms a pretend family.",
+                    genres = listOf("Action", "Comedy"),
+                    seasons = listOf(
+                        SeasonData(malId = 50, title = "Season 1", type = "TV", episodeCount = 12, score = 8.5),
+                        SeasonData(malId = 51, title = "Season 2", type = "TV", episodeCount = 12, score = 8.3)
+                    ),
+                    isResolvingPrequels = false,
+                    isResolvingSequels = false
+                )
+            )
+        }
 
         val viewModel = createViewModel(animeId = 0L, malId = 50)
 
@@ -161,13 +179,15 @@ class AnimeDetailViewModelTest {
             val loading = awaitItem()
             assertThat(loading).isInstanceOf(AnimeDetailUiState.Loading::class.java)
 
-            val resolving = awaitItem()
-            assertThat(resolving).isInstanceOf(AnimeDetailUiState.Resolving::class.java)
+            val partial = awaitItem() as AnimeDetailUiState.Success
+            assertThat(partial.anime.title).isEqualTo("Spy x Family")
+            assertThat(partial.seasons).hasSize(1)
+            assertThat(partial.isResolvingSequels).isTrue()
+            assertThat(partial.isInWatchlist).isFalse()
 
-            val success = awaitItem() as AnimeDetailUiState.Success
-            assertThat(success.anime.title).isEqualTo("Spy x Family")
-            assertThat(success.seasons).hasSize(2)
-            assertThat(success.isInWatchlist).isFalse()
+            val complete = awaitItem() as AnimeDetailUiState.Success
+            assertThat(complete.seasons).hasSize(2)
+            assertThat(complete.isResolvingSequels).isFalse()
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -192,12 +212,13 @@ class AnimeDetailViewModelTest {
     @Test
     fun `shows not found when API resolve fails`() = runTest {
         coEvery { findAnimeBySeasonMalIdUseCase(999) } returns null
-        coEvery { resolveAnimeUseCase(999) } returns Result.failure(Exception("Not found"))
+        every { resolveAnimeProgressivelyUseCase(999) } returns flow {
+            throw Exception("Not found")
+        }
 
         val viewModel = createViewModel(animeId = 0L, malId = 999)
 
         viewModel.uiState.test {
-            awaitItem()
             awaitItem()
 
             val notFound = awaitItem()
@@ -306,14 +327,18 @@ class AnimeDetailViewModelTest {
     @Test
     fun `addToWatchlist flow transitions to watchlist mode`() = runTest {
         coEvery { findAnimeBySeasonMalIdUseCase(50) } returns null
-        coEvery { resolveAnimeUseCase(50) } returns Result.success(
-            ResolvedSeries(
-                title = "Spy x Family",
-                seasons = listOf(
-                    SeasonData(malId = 50, title = "Season 1", type = "TV")
+        every { resolveAnimeProgressivelyUseCase(50) } returns flow {
+            emit(
+                ProgressiveResolveResult(
+                    title = "Spy x Family",
+                    seasons = listOf(
+                        SeasonData(malId = 50, title = "Season 1", type = "TV")
+                    ),
+                    isResolvingPrequels = false,
+                    isResolvingSequels = false
                 )
             )
-        )
+        }
         coEvery { addAnimeUseCase(any(), any(), any()) } returns 10L
 
         val addedAnimeFlow = MutableStateFlow<Anime?>(

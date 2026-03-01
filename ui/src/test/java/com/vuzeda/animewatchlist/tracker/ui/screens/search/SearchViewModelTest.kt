@@ -2,14 +2,21 @@ package com.vuzeda.animewatchlist.tracker.ui.screens.search
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
+import com.vuzeda.animewatchlist.tracker.domain.model.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.domain.model.ResolvedSeries
 import com.vuzeda.animewatchlist.tracker.domain.model.SearchResult
+import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import com.vuzeda.animewatchlist.tracker.domain.model.SeasonData
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.usecase.AddAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.AddSeasonsToAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FindAnimeBySeasonMalIdUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.GetSeasonsForAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ResolveAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.SearchAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.UpdateAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.UpdateSeasonUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -29,8 +36,13 @@ class SearchViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
     private val searchAnimeUseCase: SearchAnimeUseCase = mockk()
+    private val fetchSeasonDetailUseCase: FetchSeasonDetailUseCase = mockk()
     private val resolveAnimeUseCase: ResolveAnimeUseCase = mockk()
     private val addAnimeUseCase: AddAnimeUseCase = mockk()
+    private val updateAnimeUseCase: UpdateAnimeUseCase = mockk(relaxed = true)
+    private val updateSeasonUseCase: UpdateSeasonUseCase = mockk(relaxed = true)
+    private val getSeasonsForAnimeUseCase: GetSeasonsForAnimeUseCase = mockk()
+    private val addSeasonsToAnimeUseCase: AddSeasonsToAnimeUseCase = mockk(relaxed = true)
     private val findAnimeBySeasonMalIdUseCase: FindAnimeBySeasonMalIdUseCase = mockk()
 
     private lateinit var viewModel: SearchViewModel
@@ -41,14 +53,38 @@ class SearchViewModelTest {
 
     private val multiResults = listOf(sampleResult, sampleResultB, sampleResultC)
 
+    private val sampleDetails = AnimeFullDetails(
+        malId = 21,
+        title = "One Punch Man",
+        type = "TV",
+        episodes = 12,
+        score = 8.5,
+        sequels = emptyList(),
+        prequels = emptyList()
+    )
+
     @BeforeEach
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         coEvery { findAnimeBySeasonMalIdUseCase(any()) } returns null
+        coEvery { resolveAnimeUseCase(any()) } returns Result.success(
+            ResolvedSeries(
+                title = "One Punch Man",
+                seasons = listOf(SeasonData(malId = 21, title = "Season 1", type = "TV"))
+            )
+        )
+        coEvery { getSeasonsForAnimeUseCase(any()) } returns listOf(
+            Season(id = 1L, animeId = 10L, malId = 21, title = "Season 1", orderIndex = 0)
+        )
         viewModel = SearchViewModel(
             searchAnimeUseCase = searchAnimeUseCase,
+            fetchSeasonDetailUseCase = fetchSeasonDetailUseCase,
             resolveAnimeUseCase = resolveAnimeUseCase,
             addAnimeUseCase = addAnimeUseCase,
+            updateAnimeUseCase = updateAnimeUseCase,
+            updateSeasonUseCase = updateSeasonUseCase,
+            getSeasonsForAnimeUseCase = getSeasonsForAnimeUseCase,
+            addSeasonsToAnimeUseCase = addSeasonsToAnimeUseCase,
             findAnimeBySeasonMalIdUseCase = findAnimeBySeasonMalIdUseCase
         )
     }
@@ -153,13 +189,8 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun `onAddClick resolves and sets selectedResultForAdd`() = runTest {
-        coEvery { resolveAnimeUseCase(21) } returns Result.success(
-            ResolvedSeries(
-                title = "One Punch Man",
-                seasons = listOf(SeasonData(malId = 21, title = "Season 1", type = "TV"))
-            )
-        )
+    fun `onAddClick fetches details and sets selectedResultForAdd`() = runTest {
+        coEvery { fetchSeasonDetailUseCase(21) } returns Result.success(sampleDetails)
 
         viewModel.uiState.test {
             awaitItem()
@@ -177,12 +208,7 @@ class SearchViewModelTest {
 
     @Test
     fun `dismissBottomSheet clears selected result`() = runTest {
-        coEvery { resolveAnimeUseCase(21) } returns Result.success(
-            ResolvedSeries(
-                title = "One Punch Man",
-                seasons = listOf(SeasonData(malId = 21, title = "Season 1", type = "TV"))
-            )
-        )
+        coEvery { fetchSeasonDetailUseCase(21) } returns Result.success(sampleDetails)
 
         viewModel.uiState.test {
             awaitItem()
@@ -199,13 +225,8 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun `addToWatchlist calls use case and updates addedMalIds`() = runTest {
-        coEvery { resolveAnimeUseCase(21) } returns Result.success(
-            ResolvedSeries(
-                title = "One Punch Man",
-                seasons = listOf(SeasonData(malId = 21, title = "Season 1", type = "TV"))
-            )
-        )
+    fun `addToWatchlist immediately adds single season and updates addedMalIds`() = runTest {
+        coEvery { fetchSeasonDetailUseCase(21) } returns Result.success(sampleDetails)
         coEvery { addAnimeUseCase(any(), any(), any()) } returns 10L
 
         viewModel.uiState.test {
@@ -223,7 +244,42 @@ class SearchViewModelTest {
             assertThat(updated.addedMalIds).contains(21)
             assertThat(updated.snackbarMessage).isEqualTo("One Punch Man")
 
-            coVerify { addAnimeUseCase(any(), any(), eq(WatchStatus.PLAN_TO_WATCH)) }
+            coVerify { addAnimeUseCase(any(), match { it.size == 1 }, eq(WatchStatus.PLAN_TO_WATCH)) }
+        }
+    }
+
+    @Test
+    fun `addToWatchlist triggers background resolution of remaining seasons`() = runTest {
+        val detailsWithSequels = sampleDetails.copy(
+            sequels = listOf(com.vuzeda.animewatchlist.tracker.domain.model.SequelInfo(22, "Season 2"))
+        )
+        coEvery { fetchSeasonDetailUseCase(21) } returns Result.success(detailsWithSequels)
+        coEvery { addAnimeUseCase(any(), any(), any()) } returns 10L
+        coEvery { resolveAnimeUseCase(21) } returns Result.success(
+            ResolvedSeries(
+                title = "One Punch Man",
+                seasons = listOf(
+                    SeasonData(malId = 21, title = "Season 1", type = "TV"),
+                    SeasonData(malId = 22, title = "Season 2", type = "TV")
+                )
+            )
+        )
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            viewModel.onAddClick(sampleResult)
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.addToWatchlist(WatchStatus.PLAN_TO_WATCH)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val updated = expectMostRecentItem()
+            assertThat(updated.addedMalIds).containsAtLeast(21, 22)
+
+            coVerify { addSeasonsToAnimeUseCase(10L, any()) }
+            coVerify { updateAnimeUseCase(match { it.id == 10L && it.title == "One Punch Man" }) }
         }
     }
 

@@ -11,13 +11,14 @@ import com.vuzeda.animewatchlist.tracker.domain.usecase.DeleteAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FindAnimeBySeasonMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveAnimeByIdUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveSeasonsForAnimeUseCase
-import com.vuzeda.animewatchlist.tracker.domain.usecase.ResolveAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.ResolveAnimeProgressivelyUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ToggleAnimeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.UpdateAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.ui.navigation.Route
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -33,7 +34,7 @@ class AnimeDetailViewModel @Inject constructor(
     private val updateAnimeUseCase: UpdateAnimeUseCase,
     private val deleteAnimeUseCase: DeleteAnimeUseCase,
     private val toggleAnimeNotificationsUseCase: ToggleAnimeNotificationsUseCase,
-    private val resolveAnimeUseCase: ResolveAnimeUseCase,
+    private val resolveAnimeProgressivelyUseCase: ResolveAnimeProgressivelyUseCase,
     private val addAnimeUseCase: AddAnimeUseCase,
     private val findAnimeBySeasonMalIdUseCase: FindAnimeBySeasonMalIdUseCase
 ) : ViewModel() {
@@ -99,17 +100,16 @@ class AnimeDetailViewModel @Inject constructor(
                 return@launch
             }
 
-            _uiState.value = AnimeDetailUiState.Resolving()
-
-            resolveAnimeUseCase(malId)
-                .onSuccess { resolved ->
+            resolveAnimeProgressivelyUseCase(malId)
+                .catch { _uiState.value = AnimeDetailUiState.NotFound }
+                .collect { result ->
                     val anime = Anime(
-                        title = resolved.title,
-                        imageUrl = resolved.imageUrl,
-                        synopsis = resolved.synopsis,
-                        genres = resolved.genres
+                        title = result.title,
+                        imageUrl = result.imageUrl,
+                        synopsis = result.synopsis,
+                        genres = result.genres
                     )
-                    val seasons = resolved.seasons.mapIndexed { index, seasonData ->
+                    val seasons = result.seasons.mapIndexed { index, seasonData ->
                         Season(
                             malId = seasonData.malId,
                             title = seasonData.title,
@@ -126,11 +126,10 @@ class AnimeDetailViewModel @Inject constructor(
                     _uiState.value = AnimeDetailUiState.Success(
                         anime = anime,
                         seasons = seasons,
-                        isInWatchlist = false
+                        isInWatchlist = false,
+                        isResolvingPrequels = result.isResolvingPrequels,
+                        isResolvingSequels = result.isResolvingSequels
                     )
-                }
-                .onFailure {
-                    _uiState.value = AnimeDetailUiState.NotFound
                 }
         }
     }

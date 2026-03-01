@@ -62,7 +62,6 @@
     <string name="anime_detail_section_seasons">Seasons</string>
     <string name="anime_detail_add_to_watchlist">Add to Watchlist</string>
     <string name="anime_detail_add_sheet_title">Add to watchlist</string>
-    <string name="anime_detail_resolving">Resolving anime series…</string>
     <string name="anime_detail_added_to_watchlist">%1$s added to watchlist</string>
     <string name="anime_detail_season_score">★ %1$s</string>
     <string name="anime_detail_season_episodes">%1$d / %2$d ep</string>
