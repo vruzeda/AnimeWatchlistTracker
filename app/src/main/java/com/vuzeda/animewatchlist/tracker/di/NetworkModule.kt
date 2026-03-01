@@ -46,9 +46,4 @@ object NetworkModule {
             .client(okHttpClient)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
-
-    @Provides
-    @Singleton
-    fun provideJikanApiService(retrofit: Retrofit): JikanApiService =
-        retrofit.create(JikanApiService::class.java)
 }

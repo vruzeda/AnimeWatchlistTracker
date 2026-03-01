@@ -43,6 +43,16 @@ android {
         }
     }
 
+    flavorDimensions += "environment"
+    productFlavors {
+        create("prod") {
+            isDefault = true
+        }
+        create("mock") {
+            applicationIdSuffix = ".mock"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
