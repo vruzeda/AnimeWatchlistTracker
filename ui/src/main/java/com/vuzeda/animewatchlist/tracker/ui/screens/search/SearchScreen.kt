@@ -22,7 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
@@ -36,7 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vuzeda.animewatchlist.tracker.designsystem.component.AnimeCard
 import com.vuzeda.animewatchlist.tracker.designsystem.component.AnimeSearchBar
@@ -150,7 +150,7 @@ fun SearchScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             if (uiState.hasSearched && uiState.results.isNotEmpty()) {
-                ScrollableTabRow(selectedTabIndex = uiState.selectedFilter.ordinal) {
+                PrimaryScrollableTabRow(selectedTabIndex = uiState.selectedFilter.ordinal) {
                     filterTabs.forEachIndexed { index, label ->
                         Tab(
                             selected = index == uiState.selectedFilter.ordinal,

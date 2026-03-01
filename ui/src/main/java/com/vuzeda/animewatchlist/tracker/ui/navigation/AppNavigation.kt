@@ -55,7 +55,7 @@ fun AppNavigation(modifier: Modifier = Modifier) {
                         NavigationBarItem(
                             icon = { Icon(imageVector = item.icon, contentDescription = item.label) },
                             label = { Text(item.label) },
-                            selected = currentDestination?.hierarchy?.any { it.route == item.route } == true,
+                            selected = currentDestination.hierarchy.any { it.route == item.route },
                             onClick = {
                                 navController.navigate(item.route) {
                                     popUpTo(navController.graph.findStartDestination().id) {

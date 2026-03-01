@@ -5,7 +5,7 @@ import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.ui.R
 
-enum class HomeSortOption(@StringRes val displayLabelRes: Int, val defaultAscending: Boolean) {
+enum class HomeSortOption(@param:StringRes val displayLabelRes: Int, val defaultAscending: Boolean) {
     ALPHABETICAL(R.string.sort_alphabetical, true),
     MAL_SCORE(R.string.sort_mal_score, false),
     PROGRESS(R.string.sort_progress, false),

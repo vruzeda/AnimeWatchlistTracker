@@ -5,14 +5,14 @@ import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.ui.R
 
-enum class SearchSortOption(@StringRes val displayLabelRes: Int, val defaultAscending: Boolean) {
+enum class SearchSortOption(@param:StringRes val displayLabelRes: Int, val defaultAscending: Boolean) {
     ALPHABETICAL(R.string.sort_alphabetical, true),
     RECENTLY_ADDED(R.string.sort_recently_added, false),
     DEFAULT(R.string.sort_relevance, true),
     SCORE(R.string.sort_score, false)
 }
 
-enum class SearchFilter(@StringRes val displayLabelRes: Int) {
+enum class SearchFilter(@param:StringRes val displayLabelRes: Int) {
     ALL(R.string.filter_all),
     NOT_ADDED(R.string.filter_not_added),
     ALREADY_ADDED(R.string.filter_already_added)
