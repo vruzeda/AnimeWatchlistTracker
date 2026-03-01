@@ -148,60 +148,30 @@ class ResolveAnimeProgressivelyUseCaseTest {
     }
 
     @Test
-    fun `emits only Jikan result when Chiaki returns empty seasons`() = runTest {
+    fun `throws when watch order returns empty seasons`() = runTest {
         coEvery { remoteRepository.fetchWatchOrder(42) } returns Result.success(emptyList())
-        coEvery { remoteRepository.fetchAnimeFullById(42) } returns Result.success(
-            AnimeFullDetails(
-                malId = 42,
-                title = "Standalone Anime",
-                type = "TV",
-                episodes = 12,
-                score = 7.5,
-                synopsis = "An anime with no Chiaki data.",
-                genres = listOf("Slice of Life"),
-                imageUrl = "https://example.com/standalone.jpg",
-                sequels = emptyList(),
-                prequels = emptyList()
-            )
-        )
 
         useCase(42).test {
-            val result = awaitItem()
-            assertThat(result.title).isEqualTo("Standalone Anime")
-            assertThat(result.synopsis).isEqualTo("An anime with no Chiaki data.")
-            assertThat(result.genres).containsExactly("Slice of Life")
-            assertThat(result.imageUrl).isEqualTo("https://example.com/standalone.jpg")
-            assertThat(result.seasons).isEmpty()
-
-            awaitComplete()
+            val error = awaitError()
+            assertThat(error).isInstanceOf(IllegalStateException::class.java)
         }
     }
 
     @Test
-    fun `completes with no emissions when Chiaki returns empty and Jikan fails`() = runTest {
-        coEvery { remoteRepository.fetchWatchOrder(42) } returns Result.success(emptyList())
-        coEvery { remoteRepository.fetchAnimeFullById(42) } returns Result.failure(Exception("API error"))
-
-        useCase(42).test {
-            awaitComplete()
-        }
-    }
-
-    @Test
-    fun `fetches full details using original malId not root season malId`() = runTest {
+    fun `fetches full details using root season malId`() = runTest {
         val seasons = listOf(
             SeasonData(malId = 100, title = "Prequel", type = "TV"),
             SeasonData(malId = 200, title = "Main", type = "TV")
         )
         coEvery { remoteRepository.fetchWatchOrder(200) } returns Result.success(seasons)
-        coEvery { remoteRepository.fetchAnimeFullById(200) } returns Result.success(
+        coEvery { remoteRepository.fetchAnimeFullById(100) } returns Result.success(
             AnimeFullDetails(
-                malId = 200,
-                title = "Main Full",
+                malId = 100,
+                title = "Prequel Full",
                 type = "TV",
-                episodes = 24,
-                score = 8.0,
-                synopsis = "The main anime.",
+                episodes = 12,
+                score = 7.5,
+                synopsis = "The prequel story.",
                 genres = listOf("Action"),
                 sequels = emptyList(),
                 prequels = emptyList()
@@ -213,33 +183,8 @@ class ResolveAnimeProgressivelyUseCaseTest {
             assertThat(initial.title).isEqualTo("Prequel")
 
             val enriched = awaitItem()
-            assertThat(enriched.title).isEqualTo("Main Full")
-            assertThat(enriched.synopsis).isEqualTo("The main anime.")
-
-            awaitComplete()
-        }
-
-        coEvery { remoteRepository.fetchAnimeFullById(100) } returns Result.failure(Exception("Should not be called"))
-    }
-
-    @Test
-    fun `image is null when both Jikan and Chiaki images are null`() = runTest {
-        coEvery { remoteRepository.fetchWatchOrder(50) } returns Result.success(emptyList())
-        coEvery { remoteRepository.fetchAnimeFullById(50) } returns Result.success(
-            AnimeFullDetails(
-                malId = 50,
-                title = "No Image Anime",
-                type = "TV",
-                episodes = null,
-                imageUrl = null,
-                sequels = emptyList(),
-                prequels = emptyList()
-            )
-        )
-
-        useCase(50).test {
-            val result = awaitItem()
-            assertThat(result.imageUrl).isNull()
+            assertThat(enriched.title).isEqualTo("Prequel Full")
+            assertThat(enriched.synopsis).isEqualTo("The prequel story.")
 
             awaitComplete()
         }
