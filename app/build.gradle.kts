@@ -30,6 +30,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        ndk {
+            debugSymbolLevel = "SYMBOL_TABLE"
+        }
     }
 
     if (keystorePropertiesFile.exists()) {
