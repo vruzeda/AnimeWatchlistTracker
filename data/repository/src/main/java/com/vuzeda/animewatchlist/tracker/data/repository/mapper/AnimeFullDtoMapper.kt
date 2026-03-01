@@ -7,12 +7,16 @@ import com.vuzeda.animewatchlist.tracker.domain.model.SequelInfo
 fun AnimeFullDataDto.toAnimeFullDetails(): AnimeFullDetails = AnimeFullDetails(
     malId = malId,
     episodes = episodes,
-    sequels = relations
-        ?.filter { it.relation == "Sequel" }
+    sequels = extractRelations("Sequel"),
+    prequels = extractRelations("Prequel")
+)
+
+private fun AnimeFullDataDto.extractRelations(relationType: String): List<SequelInfo> =
+    relations
+        ?.filter { it.relation == relationType }
         ?.flatMap { relation ->
             relation.entry
                 .filter { it.type == "anime" }
                 .map { SequelInfo(malId = it.malId, title = it.name) }
         }
         ?: emptyList()
-)

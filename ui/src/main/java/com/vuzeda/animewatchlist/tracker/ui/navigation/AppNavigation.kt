@@ -108,7 +108,10 @@ fun AppNavigation(modifier: Modifier = Modifier) {
                 )
             ) {
                 DetailScreenRoute(
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToRelated = { malId ->
+                        navController.navigate(Route.Detail(malId = malId).route)
+                    }
                 )
             }
         }

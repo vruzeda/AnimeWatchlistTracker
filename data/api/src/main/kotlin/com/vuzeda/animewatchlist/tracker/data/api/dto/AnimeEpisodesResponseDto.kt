@@ -18,5 +18,8 @@ data class EpisodesPaginationDto(
 @JsonClass(generateAdapter = false)
 data class EpisodeDto(
     @param:Json(name = "mal_id") val malId: Int,
-    @param:Json(name = "aired") val aired: String? = null
+    @param:Json(name = "title") val title: String? = null,
+    @param:Json(name = "aired") val aired: String? = null,
+    @param:Json(name = "filler") val filler: Boolean = false,
+    @param:Json(name = "recap") val recap: Boolean = false
 )

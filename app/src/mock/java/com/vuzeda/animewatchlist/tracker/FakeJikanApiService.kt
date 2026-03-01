@@ -5,11 +5,14 @@ import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeEpisodesResponseDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeFullDataDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeFullResponseDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeImagesDto
+import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeRelationDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeSearchResponseDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeSingleResponseDto
+import com.vuzeda.animewatchlist.tracker.data.api.dto.EpisodeDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.EpisodesPaginationDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.GenreDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.ImageUrlDto
+import com.vuzeda.animewatchlist.tracker.data.api.dto.RelatedEntryDto
 import com.vuzeda.animewatchlist.tracker.data.api.service.JikanApiService
 
 class FakeJikanApiService : JikanApiService {
@@ -22,21 +25,42 @@ class FakeJikanApiService : JikanApiService {
         return AnimeSingleResponseDto(data = anime)
     }
 
-    override suspend fun getAnimeFullById(malId: Int): AnimeFullResponseDto =
-        AnimeFullResponseDto(
+    override suspend fun getAnimeFullById(malId: Int): AnimeFullResponseDto {
+        val anime = fakeResults.first { it.malId == malId }
+        val relations = fakeRelations[malId] ?: emptyList()
+        return AnimeFullResponseDto(
             data = AnimeFullDataDto(
                 malId = malId,
-                title = fakeResults.first { it.malId == malId }.title,
-                episodes = fakeResults.first { it.malId == malId }.episodes,
-                relations = emptyList()
+                title = anime.title,
+                episodes = anime.episodes,
+                relations = relations
             )
         )
+    }
 
-    override suspend fun getAnimeEpisodes(malId: Int, page: Int): AnimeEpisodesResponseDto =
-        AnimeEpisodesResponseDto(
-            pagination = EpisodesPaginationDto(lastVisiblePage = 1, hasNextPage = false),
-            data = emptyList()
+    override suspend fun getAnimeEpisodes(malId: Int, page: Int): AnimeEpisodesResponseDto {
+        val anime = fakeResults.firstOrNull { it.malId == malId }
+        val totalEpisodes = anime?.episodes ?: 0
+        val pageSize = 5
+        val start = (page - 1) * pageSize + 1
+        val end = minOf(start + pageSize - 1, totalEpisodes)
+        val episodes = (start..end).map { ep ->
+            EpisodeDto(
+                malId = ep,
+                title = "Episode $ep",
+                aired = "2024-01-${ep.toString().padStart(2, '0')}T00:00:00+00:00"
+            )
+        }
+        val hasNext = end < totalEpisodes
+        val lastPage = if (totalEpisodes > 0) (totalEpisodes + pageSize - 1) / pageSize else 1
+        return AnimeEpisodesResponseDto(
+            pagination = EpisodesPaginationDto(
+                lastVisiblePage = lastPage,
+                hasNextPage = hasNext
+            ),
+            data = episodes
         )
+    }
 
     private val fakeResults = listOf(
         // Already in watchlist (seeded) — will show check + status chip
@@ -112,6 +136,25 @@ class FakeJikanApiService : JikanApiService {
             episodes = 12,
             score = 8.25,
             genres = genres("Action", "Fantasy", "Horror")
+        )
+    )
+
+    private val fakeRelations: Map<Int, List<AnimeRelationDto>> = mapOf(
+        16498 to listOf(
+            AnimeRelationDto(
+                relation = "Sequel",
+                entry = listOf(
+                    RelatedEntryDto(malId = 25777, type = "anime", name = "Attack on Titan Season 2")
+                )
+            )
+        ),
+        38000 to listOf(
+            AnimeRelationDto(
+                relation = "Sequel",
+                entry = listOf(
+                    RelatedEntryDto(malId = 47778, type = "anime", name = "Demon Slayer: Mugen Train Arc")
+                )
+            )
         )
     )
 

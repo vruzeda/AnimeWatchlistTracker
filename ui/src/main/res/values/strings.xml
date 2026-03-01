@@ -60,4 +60,10 @@
     <string name="detail_section_your_rating">Your Rating</string>
     <string name="detail_episode_count">%1$d episodes</string>
     <string name="detail_section_synopsis">Synopsis</string>
+    <string name="detail_section_related">Related</string>
+    <string name="detail_section_episodes">Episodes</string>
+    <string name="detail_relation_prequel">Prequel</string>
+    <string name="detail_relation_sequel">Sequel</string>
+    <string name="detail_load_more_episodes">Load more episodes</string>
+    <string name="detail_add_sheet_title">Add to watchlist</string>
 </resources>

@@ -7,9 +7,11 @@ import com.vuzeda.animewatchlist.tracker.data.repository.mapper.toAnimeBasicInfo
 import com.vuzeda.animewatchlist.tracker.data.repository.mapper.toAnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.data.repository.mapper.toDomainModel
 import com.vuzeda.animewatchlist.tracker.data.repository.mapper.toEntity
+import com.vuzeda.animewatchlist.tracker.data.repository.mapper.toEpisodePage
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.AnimeBasicInfo
 import com.vuzeda.animewatchlist.tracker.domain.model.AnimeFullDetails
+import com.vuzeda.animewatchlist.tracker.domain.model.EpisodePage
 import com.vuzeda.animewatchlist.tracker.domain.model.KnownSequel
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.repository.AnimeRepository
@@ -80,6 +82,10 @@ class AnimeRepositoryImpl @Inject constructor(
 
     override suspend fun fetchAnimeBasicInfo(malId: Int): Result<AnimeBasicInfo> = runCatching {
         jikanApiService.getAnimeById(malId).data.toAnimeBasicInfo()
+    }
+
+    override suspend fun fetchAnimeEpisodes(malId: Int, page: Int): Result<EpisodePage> = runCatching {
+        jikanApiService.getAnimeEpisodes(malId = malId, page = page).toEpisodePage(currentPage = page)
     }
 
     override suspend fun updateNotificationData(

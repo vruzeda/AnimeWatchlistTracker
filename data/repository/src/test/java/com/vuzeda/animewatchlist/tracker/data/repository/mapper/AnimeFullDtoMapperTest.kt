@@ -124,4 +124,79 @@ class AnimeFullDtoMapperTest {
 
         assertThat(details.episodes).isNull()
     }
+
+    @Test
+    fun `extracts prequels from relations`() {
+        val dto = AnimeFullDataDto(
+            malId = 100,
+            title = "Test Anime",
+            episodes = 12,
+            relations = listOf(
+                AnimeRelationDto(
+                    relation = "Prequel",
+                    entry = listOf(
+                        RelatedEntryDto(malId = 50, type = "anime", name = "Test Prequel")
+                    )
+                ),
+                AnimeRelationDto(
+                    relation = "Sequel",
+                    entry = listOf(
+                        RelatedEntryDto(malId = 200, type = "anime", name = "Test Sequel")
+                    )
+                )
+            )
+        )
+
+        val details = dto.toAnimeFullDetails()
+
+        assertThat(details.prequels).hasSize(1)
+        assertThat(details.prequels[0].malId).isEqualTo(50)
+        assertThat(details.prequels[0].title).isEqualTo("Test Prequel")
+        assertThat(details.sequels).hasSize(1)
+        assertThat(details.sequels[0].malId).isEqualTo(200)
+    }
+
+    @Test
+    fun `returns empty prequels when none exist`() {
+        val dto = AnimeFullDataDto(
+            malId = 100,
+            title = "Test Anime",
+            episodes = 12,
+            relations = listOf(
+                AnimeRelationDto(
+                    relation = "Sequel",
+                    entry = listOf(
+                        RelatedEntryDto(malId = 200, type = "anime", name = "Sequel")
+                    )
+                )
+            )
+        )
+
+        val details = dto.toAnimeFullDetails()
+
+        assertThat(details.prequels).isEmpty()
+    }
+
+    @Test
+    fun `filters non-anime entries from prequels`() {
+        val dto = AnimeFullDataDto(
+            malId = 100,
+            title = "Test Anime",
+            episodes = 12,
+            relations = listOf(
+                AnimeRelationDto(
+                    relation = "Prequel",
+                    entry = listOf(
+                        RelatedEntryDto(malId = 50, type = "anime", name = "Anime Prequel"),
+                        RelatedEntryDto(malId = 60, type = "manga", name = "Manga Prequel")
+                    )
+                )
+            )
+        )
+
+        val details = dto.toAnimeFullDetails()
+
+        assertThat(details.prequels).hasSize(1)
+        assertThat(details.prequels[0].malId).isEqualTo(50)
+    }
 }

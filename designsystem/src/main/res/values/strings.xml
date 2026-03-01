@@ -19,6 +19,12 @@
     <string name="episode_stepper_with_total">%1$d / %2$d</string>
     <string name="episode_stepper_without_total">%1$d</string>
 
+    <!-- EpisodeListItem -->
+    <string name="episode_number_format">EP %1$d</string>
+    <string name="episode_title_unknown">TBA</string>
+    <string name="episode_badge_filler">Filler</string>
+    <string name="episode_badge_recap">Recap</string>
+
     <!-- RatingBar -->
     <string name="cd_star">Star %1$d of %2$d</string>
 </resources>
