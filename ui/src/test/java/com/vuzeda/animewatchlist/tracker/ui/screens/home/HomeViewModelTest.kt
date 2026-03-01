@@ -4,6 +4,7 @@ import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
+import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveAnimeByNotificationUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveAnimeListUseCase
 import io.mockk.every
 import io.mockk.mockk
@@ -24,11 +25,12 @@ class HomeViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
     private val observeAnimeListUseCase: ObserveAnimeListUseCase = mockk()
+    private val observeAnimeByNotificationUseCase: ObserveAnimeByNotificationUseCase = mockk()
 
     private val sampleAnimeList = listOf(
-        Anime(id = 1L, title = "Attack on Titan", status = WatchStatus.WATCHING, userRating = 8, addedAt = 1000L),
-        Anime(id = 2L, title = "One Punch Man", status = WatchStatus.COMPLETED, userRating = 9, addedAt = 3000L),
-        Anime(id = 3L, title = "Bleach", status = WatchStatus.WATCHING, userRating = 7, addedAt = 2000L)
+        Anime(id = 1L, title = "Attack on Titan", status = WatchStatus.WATCHING, userRating = 8, addedAt = 1000L, isNotificationsEnabled = true),
+        Anime(id = 2L, title = "One Punch Man", status = WatchStatus.COMPLETED, userRating = 9, addedAt = 3000L, isNotificationsEnabled = false),
+        Anime(id = 3L, title = "Bleach", status = WatchStatus.WATCHING, userRating = 7, addedAt = 2000L, isNotificationsEnabled = true)
     )
 
     @BeforeEach
@@ -41,11 +43,14 @@ class HomeViewModelTest {
         Dispatchers.resetMain()
     }
 
+    private fun createViewModel(): HomeViewModel {
+        every { observeAnimeListUseCase() } returns flowOf(sampleAnimeList)
+        return HomeViewModel(observeAnimeListUseCase, observeAnimeByNotificationUseCase)
+    }
+
     @Test
     fun `initial state loads all anime sorted alphabetically`() = runTest {
-        every { observeAnimeListUseCase(null) } returns flowOf(sampleAnimeList)
-
-        val viewModel = HomeViewModel(observeAnimeListUseCase)
+        val viewModel = createViewModel()
 
         viewModel.uiState.test {
             val loading = awaitItem()
@@ -57,27 +62,26 @@ class HomeViewModelTest {
             assertThat(loaded.animeList[0].title).isEqualTo("Attack on Titan")
             assertThat(loaded.animeList[1].title).isEqualTo("Bleach")
             assertThat(loaded.animeList[2].title).isEqualTo("One Punch Man")
-            assertThat(loaded.selectedFilter).isNull()
+            assertThat(loaded.selectedFilter).isEqualTo(HomeFilter.All)
             assertThat(loaded.sortOption).isEqualTo(HomeSortOption.ALPHABETICAL)
         }
     }
 
     @Test
     fun `selectFilter filters by status`() = runTest {
-        every { observeAnimeListUseCase(null) } returns flowOf(sampleAnimeList)
         every { observeAnimeListUseCase(WatchStatus.WATCHING) } returns flowOf(
             listOf(sampleAnimeList[0])
         )
 
-        val viewModel = HomeViewModel(observeAnimeListUseCase)
+        val viewModel = createViewModel()
 
         viewModel.uiState.test {
             skipItems(2)
 
-            viewModel.selectFilter(WatchStatus.WATCHING)
+            viewModel.selectFilter(HomeFilter.ByStatus(WatchStatus.WATCHING))
 
             val tabChanged = awaitItem()
-            assertThat(tabChanged.selectedFilter).isEqualTo(WatchStatus.WATCHING)
+            assertThat(tabChanged.selectedFilter).isEqualTo(HomeFilter.ByStatus(WatchStatus.WATCHING))
             assertThat(tabChanged.isLoading).isTrue()
 
             val filtered = awaitItem()
@@ -88,24 +92,23 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun `selectFilter with null shows all anime`() = runTest {
-        every { observeAnimeListUseCase(null) } returns flowOf(sampleAnimeList)
+    fun `selectFilter with All shows all anime`() = runTest {
         every { observeAnimeListUseCase(WatchStatus.WATCHING) } returns flowOf(
             listOf(sampleAnimeList[0])
         )
 
-        val viewModel = HomeViewModel(observeAnimeListUseCase)
+        val viewModel = createViewModel()
 
         viewModel.uiState.test {
             skipItems(2)
 
-            viewModel.selectFilter(WatchStatus.WATCHING)
+            viewModel.selectFilter(HomeFilter.ByStatus(WatchStatus.WATCHING))
             skipItems(2)
 
-            viewModel.selectFilter(null)
+            viewModel.selectFilter(HomeFilter.All)
 
             val tabChanged = awaitItem()
-            assertThat(tabChanged.selectedFilter).isNull()
+            assertThat(tabChanged.selectedFilter).isEqualTo(HomeFilter.All)
 
             val allAnime = awaitItem()
             assertThat(allAnime.animeList).hasSize(3)
@@ -113,10 +116,53 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun `selectSort with USER_RATING sorts by user rating descending`() = runTest {
-        every { observeAnimeListUseCase(null) } returns flowOf(sampleAnimeList)
+    fun `selectFilter with NotificationsOn shows only notification enabled anime`() = runTest {
+        val notifiedAnime = sampleAnimeList.filter { it.isNotificationsEnabled }
+        every { observeAnimeByNotificationUseCase(enabled = true) } returns flowOf(notifiedAnime)
 
-        val viewModel = HomeViewModel(observeAnimeListUseCase)
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            skipItems(2)
+
+            viewModel.selectFilter(HomeFilter.NotificationsOn)
+
+            val filterChanged = awaitItem()
+            assertThat(filterChanged.selectedFilter).isEqualTo(HomeFilter.NotificationsOn)
+            assertThat(filterChanged.isLoading).isTrue()
+
+            val filtered = awaitItem()
+            assertThat(filtered.animeList).hasSize(2)
+            assertThat(filtered.animeList.all { it.isNotificationsEnabled }).isTrue()
+            assertThat(filtered.isLoading).isFalse()
+        }
+    }
+
+    @Test
+    fun `selectFilter with NotificationsOff shows only notification disabled anime`() = runTest {
+        val nonNotifiedAnime = sampleAnimeList.filter { !it.isNotificationsEnabled }
+        every { observeAnimeByNotificationUseCase(enabled = false) } returns flowOf(nonNotifiedAnime)
+
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            skipItems(2)
+
+            viewModel.selectFilter(HomeFilter.NotificationsOff)
+
+            val filterChanged = awaitItem()
+            assertThat(filterChanged.selectedFilter).isEqualTo(HomeFilter.NotificationsOff)
+
+            val filtered = awaitItem()
+            assertThat(filtered.animeList).hasSize(1)
+            assertThat(filtered.animeList[0].title).isEqualTo("One Punch Man")
+            assertThat(filtered.animeList.none { it.isNotificationsEnabled }).isTrue()
+        }
+    }
+
+    @Test
+    fun `selectSort with USER_RATING sorts by user rating descending`() = runTest {
+        val viewModel = createViewModel()
 
         viewModel.uiState.test {
             skipItems(2)
@@ -132,9 +178,7 @@ class HomeViewModelTest {
 
     @Test
     fun `selectSort with RECENTLY_ADDED sorts by addedAt descending`() = runTest {
-        every { observeAnimeListUseCase(null) } returns flowOf(sampleAnimeList)
-
-        val viewModel = HomeViewModel(observeAnimeListUseCase)
+        val viewModel = createViewModel()
 
         viewModel.uiState.test {
             skipItems(2)
@@ -151,9 +195,7 @@ class HomeViewModelTest {
 
     @Test
     fun `selectSort toggles direction when same option is selected again`() = runTest {
-        every { observeAnimeListUseCase(null) } returns flowOf(sampleAnimeList)
-
-        val viewModel = HomeViewModel(observeAnimeListUseCase)
+        val viewModel = createViewModel()
 
         viewModel.uiState.test {
             skipItems(2)
@@ -172,9 +214,7 @@ class HomeViewModelTest {
 
     @Test
     fun `selectSort resets direction to default when switching to different option`() = runTest {
-        every { observeAnimeListUseCase(null) } returns flowOf(sampleAnimeList)
-
-        val viewModel = HomeViewModel(observeAnimeListUseCase)
+        val viewModel = createViewModel()
 
         viewModel.uiState.test {
             skipItems(2)
@@ -195,9 +235,9 @@ class HomeViewModelTest {
     @Test
     fun `sort persists when new data arrives from Flow`() = runTest {
         val watchlistFlow = MutableStateFlow(sampleAnimeList)
-        every { observeAnimeListUseCase(null) } returns watchlistFlow
+        every { observeAnimeListUseCase() } returns watchlistFlow
 
-        val viewModel = HomeViewModel(observeAnimeListUseCase)
+        val viewModel = HomeViewModel(observeAnimeListUseCase, observeAnimeByNotificationUseCase)
 
         viewModel.uiState.test {
             skipItems(2)

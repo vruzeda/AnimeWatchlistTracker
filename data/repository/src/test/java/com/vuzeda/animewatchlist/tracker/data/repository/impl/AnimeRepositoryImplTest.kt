@@ -259,6 +259,33 @@ class AnimeRepositoryImplTest {
     }
 
     @Test
+    fun `observeByNotificationEnabled emits mapped domain models for enabled`() = runTest {
+        val notifiedEntity = sampleEntity.copy(isNotificationsEnabled = 1)
+        every { animeDao.observeByNotificationEnabled(1) } returns flowOf(listOf(notifiedEntity))
+
+        repository.observeByNotificationEnabled(true).test {
+            val result = awaitItem()
+
+            assertThat(result).hasSize(1)
+            assertThat(result[0].isNotificationsEnabled).isTrue()
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `observeByNotificationEnabled emits mapped domain models for disabled`() = runTest {
+        every { animeDao.observeByNotificationEnabled(0) } returns flowOf(listOf(sampleEntity))
+
+        repository.observeByNotificationEnabled(false).test {
+            val result = awaitItem()
+
+            assertThat(result).hasSize(1)
+            assertThat(result[0].isNotificationsEnabled).isFalse()
+            awaitComplete()
+        }
+    }
+
+    @Test
     fun `deleteAllData delegates to animeDao deleteAll`() = runTest {
         coEvery { animeDao.deleteAll() } returns Unit
 

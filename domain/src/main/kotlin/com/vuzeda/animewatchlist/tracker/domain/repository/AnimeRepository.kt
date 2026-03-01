@@ -13,6 +13,8 @@ interface AnimeRepository {
 
     fun observeById(id: Long): Flow<Anime?>
 
+    fun observeByNotificationEnabled(enabled: Boolean): Flow<List<Anime>>
+
     fun observeSeasonsForAnime(animeId: Long): Flow<List<Season>>
 
     fun observeSeasonById(id: Long): Flow<Season?>

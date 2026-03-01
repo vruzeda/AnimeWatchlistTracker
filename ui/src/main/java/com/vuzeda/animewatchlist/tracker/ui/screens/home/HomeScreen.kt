@@ -49,23 +49,45 @@ fun HomeScreenRoute(
     )
 }
 
+private fun buildFilterOptions(
+    allLabel: String,
+    watchingLabel: String,
+    completedLabel: String,
+    planToWatchLabel: String,
+    onHoldLabel: String,
+    droppedLabel: String,
+    notificationsOnLabel: String,
+    notificationsOffLabel: String
+): List<Pair<String, HomeFilter>> = listOf(
+    allLabel to HomeFilter.All,
+    watchingLabel to HomeFilter.ByStatus(WatchStatus.WATCHING),
+    completedLabel to HomeFilter.ByStatus(WatchStatus.COMPLETED),
+    planToWatchLabel to HomeFilter.ByStatus(WatchStatus.PLAN_TO_WATCH),
+    onHoldLabel to HomeFilter.ByStatus(WatchStatus.ON_HOLD),
+    droppedLabel to HomeFilter.ByStatus(WatchStatus.DROPPED),
+    notificationsOnLabel to HomeFilter.NotificationsOn,
+    notificationsOffLabel to HomeFilter.NotificationsOff
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     uiState: HomeUiState,
-    onFilterSelected: (WatchStatus?) -> Unit,
+    onFilterSelected: (HomeFilter) -> Unit,
     onSortSelected: (HomeSortOption) -> Unit,
     onAnimeClick: (Long) -> Unit
 ) {
     val sortOptions = HomeSortOption.entries.map { stringResource(it.displayLabelRes) }
 
-    val filterOptions = listOf(
-        stringResource(R.string.home_tab_all) to null,
-        stringResource(R.string.status_watching) to WatchStatus.WATCHING,
-        stringResource(R.string.status_completed) to WatchStatus.COMPLETED,
-        stringResource(R.string.status_plan_to_watch) to WatchStatus.PLAN_TO_WATCH,
-        stringResource(R.string.status_on_hold) to WatchStatus.ON_HOLD,
-        stringResource(R.string.status_dropped) to WatchStatus.DROPPED
+    val filterOptions = buildFilterOptions(
+        allLabel = stringResource(R.string.home_tab_all),
+        watchingLabel = stringResource(R.string.status_watching),
+        completedLabel = stringResource(R.string.status_completed),
+        planToWatchLabel = stringResource(R.string.status_plan_to_watch),
+        onHoldLabel = stringResource(R.string.status_on_hold),
+        droppedLabel = stringResource(R.string.status_dropped),
+        notificationsOnLabel = stringResource(R.string.filter_notifications_on),
+        notificationsOffLabel = stringResource(R.string.filter_notifications_off)
     )
     val selectedFilterIndex = filterOptions.indexOfFirst { it.second == uiState.selectedFilter }
 

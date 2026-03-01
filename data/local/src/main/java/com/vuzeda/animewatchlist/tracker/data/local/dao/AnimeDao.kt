@@ -32,6 +32,9 @@ interface AnimeDao {
     @Query("DELETE FROM anime")
     suspend fun deleteAll()
 
+    @Query("SELECT * FROM anime WHERE isNotificationsEnabled = :enabled ORDER BY title ASC")
+    fun observeByNotificationEnabled(enabled: Int): Flow<List<AnimeEntity>>
+
     @Query("SELECT * FROM anime WHERE isNotificationsEnabled = 1")
     suspend fun getNotificationEnabledAnime(): List<AnimeEntity>
 
