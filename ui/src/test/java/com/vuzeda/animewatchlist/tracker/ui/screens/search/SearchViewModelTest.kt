@@ -10,6 +10,7 @@ import com.vuzeda.animewatchlist.tracker.domain.model.SeasonData
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.usecase.AddAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.AddSeasonsToAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.DeleteAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.domain.model.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FindAnimeBySeasonMalIdUseCase
@@ -47,6 +48,7 @@ class SearchViewModelTest {
     private val updateSeasonUseCase: UpdateSeasonUseCase = mockk(relaxed = true)
     private val getSeasonsForAnimeUseCase: GetSeasonsForAnimeUseCase = mockk()
     private val addSeasonsToAnimeUseCase: AddSeasonsToAnimeUseCase = mockk(relaxed = true)
+    private val deleteAnimeUseCase: DeleteAnimeUseCase = mockk(relaxed = true)
     private val findAnimeBySeasonMalIdUseCase: FindAnimeBySeasonMalIdUseCase = mockk()
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
 
@@ -91,6 +93,7 @@ class SearchViewModelTest {
             updateSeasonUseCase = updateSeasonUseCase,
             getSeasonsForAnimeUseCase = getSeasonsForAnimeUseCase,
             addSeasonsToAnimeUseCase = addSeasonsToAnimeUseCase,
+            deleteAnimeUseCase = deleteAnimeUseCase,
             findAnimeBySeasonMalIdUseCase = findAnimeBySeasonMalIdUseCase,
             observeTitleLanguageUseCase = observeTitleLanguageUseCase
         )
@@ -383,6 +386,78 @@ class SearchViewModelTest {
             viewModel.clearSnackbar()
 
             expectNoEvents()
+        }
+    }
+
+    @Test
+    fun `onRemoveClick sets selectedResultForDelete`() = runTest {
+        viewModel.uiState.test {
+            awaitItem()
+
+            viewModel.onRemoveClick(sampleResult)
+
+            val updated = awaitItem()
+            assertThat(updated.selectedResultForDelete).isEqualTo(sampleResult)
+        }
+    }
+
+    @Test
+    fun `dismissDeleteConfirmation clears selectedResultForDelete`() = runTest {
+        viewModel.uiState.test {
+            awaitItem()
+
+            viewModel.onRemoveClick(sampleResult)
+            awaitItem()
+
+            viewModel.dismissDeleteConfirmation()
+
+            val dismissed = awaitItem()
+            assertThat(dismissed.selectedResultForDelete).isNull()
+        }
+    }
+
+    @Test
+    fun `confirmRemoveFromWatchlist deletes anime and removes malIds from addedMalIds`() = runTest {
+        coEvery { searchAnimeUseCase("one punch") } returns Result.success(listOf(sampleResult))
+        coEvery { fetchSeasonDetailUseCase(21) } returns Result.success(sampleDetails)
+        coEvery { addAnimeUseCase(any(), any(), any()) } returns 10L
+        coEvery { findAnimeBySeasonMalIdUseCase(21) } returns 10L
+        coEvery { getSeasonsForAnimeUseCase(10L) } returns listOf(
+            Season(id = 1L, animeId = 10L, malId = 21, title = "Season 1", orderIndex = 0),
+            Season(id = 2L, animeId = 10L, malId = 22, title = "Season 2", orderIndex = 1)
+        )
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            viewModel.updateQuery("one punch")
+            awaitItem()
+            viewModel.search()
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.onAddClick(sampleResult)
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.addToWatchlist(WatchStatus.WATCHING)
+            testDispatcher.scheduler.advanceUntilIdle()
+            val afterAdd = expectMostRecentItem()
+            assertThat(afterAdd.addedMalIds).contains(21)
+
+            viewModel.onRemoveClick(sampleResult)
+            val withDialog = awaitItem()
+            assertThat(withDialog.selectedResultForDelete).isEqualTo(sampleResult)
+
+            viewModel.confirmRemoveFromWatchlist()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val afterRemove = expectMostRecentItem()
+            assertThat(afterRemove.selectedResultForDelete).isNull()
+            assertThat(afterRemove.addedMalIds).containsNoneOf(21, 22)
+
+            coVerify { deleteAnimeUseCase(10L) }
+            cancelAndIgnoreRemainingEvents()
         }
     }
 }

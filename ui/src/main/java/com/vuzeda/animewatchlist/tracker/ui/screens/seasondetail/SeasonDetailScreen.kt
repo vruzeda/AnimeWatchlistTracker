@@ -15,6 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -36,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.vuzeda.animewatchlist.tracker.designsystem.component.ConfirmationDialog
 import com.vuzeda.animewatchlist.tracker.designsystem.component.EmptyStateMessage
 import com.vuzeda.animewatchlist.tracker.designsystem.component.EpisodeListItem
 import com.vuzeda.animewatchlist.tracker.designsystem.component.EpisodeStepper
@@ -55,7 +57,10 @@ fun SeasonDetailScreenRoute(
         uiState = uiState,
         onNavigateBack = onNavigateBack,
         onEpisodeProgressChanged = viewModel::updateEpisodeProgress,
-        onLoadMoreEpisodes = viewModel::loadMoreEpisodes
+        onLoadMoreEpisodes = viewModel::loadMoreEpisodes,
+        onDeleteClick = viewModel::showDeleteConfirmation,
+        onConfirmDelete = { viewModel.confirmDelete(onNavigateBack) },
+        onDismissDeleteConfirmation = viewModel::dismissDeleteConfirmation
     )
 }
 
@@ -65,7 +70,10 @@ fun SeasonDetailScreen(
     uiState: SeasonDetailUiState,
     onNavigateBack: () -> Unit,
     onEpisodeProgressChanged: (Int) -> Unit,
-    onLoadMoreEpisodes: () -> Unit
+    onLoadMoreEpisodes: () -> Unit,
+    onDeleteClick: () -> Unit,
+    onConfirmDelete: () -> Unit,
+    onDismissDeleteConfirmation: () -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
@@ -77,6 +85,16 @@ fun SeasonDetailScreen(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = stringResource(R.string.cd_back)
                     )
+                }
+            },
+            actions = {
+                if (uiState is SeasonDetailUiState.Success && uiState.isInWatchlist) {
+                    IconButton(onClick = onDeleteClick) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = stringResource(R.string.cd_delete)
+                        )
+                    }
                 }
             }
         )
@@ -102,6 +120,17 @@ fun SeasonDetailScreen(
                     onEpisodeProgressChanged = onEpisodeProgressChanged,
                     onLoadMoreEpisodes = onLoadMoreEpisodes
                 )
+
+                if (uiState.isDeleteConfirmationVisible) {
+                    ConfirmationDialog(
+                        title = stringResource(R.string.delete_anime_dialog_title),
+                        message = stringResource(R.string.delete_anime_dialog_message),
+                        confirmText = stringResource(R.string.delete_anime_dialog_confirm),
+                        dismissText = stringResource(R.string.delete_anime_dialog_dismiss),
+                        onConfirm = onConfirmDelete,
+                        onDismiss = onDismissDeleteConfirmation
+                    )
+                }
             }
         }
     }

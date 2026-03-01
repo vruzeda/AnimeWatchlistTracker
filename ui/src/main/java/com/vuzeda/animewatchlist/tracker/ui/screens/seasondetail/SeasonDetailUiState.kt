@@ -14,6 +14,7 @@ sealed interface SeasonDetailUiState {
         val episodes: List<EpisodeInfo> = emptyList(),
         val isLoadingEpisodes: Boolean = false,
         val hasMoreEpisodes: Boolean = false,
-        val nextEpisodePage: Int = 1
+        val nextEpisodePage: Int = 1,
+        val isDeleteConfirmationVisible: Boolean = false
     ) : SeasonDetailUiState
 }

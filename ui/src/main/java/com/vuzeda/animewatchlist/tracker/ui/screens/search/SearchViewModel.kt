@@ -9,6 +9,7 @@ import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.usecase.AddAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.AddSeasonsToAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.DeleteAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FindAnimeBySeasonMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.GetSeasonsForAnimeUseCase
@@ -36,6 +37,7 @@ class SearchViewModel @Inject constructor(
     private val updateSeasonUseCase: UpdateSeasonUseCase,
     private val getSeasonsForAnimeUseCase: GetSeasonsForAnimeUseCase,
     private val addSeasonsToAnimeUseCase: AddSeasonsToAnimeUseCase,
+    private val deleteAnimeUseCase: DeleteAnimeUseCase,
     private val findAnimeBySeasonMalIdUseCase: FindAnimeBySeasonMalIdUseCase,
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase
 ) : ViewModel() {
@@ -245,6 +247,33 @@ class SearchViewModel @Inject constructor(
     fun dismissBottomSheet() {
         pendingDetails = null
         _uiState.update { it.copy(selectedResultForAdd = null) }
+    }
+
+    fun onRemoveClick(result: SearchResult) {
+        _uiState.update { it.copy(selectedResultForDelete = result) }
+    }
+
+    fun dismissDeleteConfirmation() {
+        _uiState.update { it.copy(selectedResultForDelete = null) }
+    }
+
+    fun confirmRemoveFromWatchlist() {
+        val result = _uiState.value.selectedResultForDelete ?: return
+
+        viewModelScope.launch {
+            val animeId = findAnimeBySeasonMalIdUseCase(result.malId) ?: return@launch
+            val seasons = getSeasonsForAnimeUseCase(animeId)
+            val allMalIds = seasons.map { it.malId }.toSet()
+
+            deleteAnimeUseCase(animeId)
+
+            _uiState.update {
+                it.copy(
+                    selectedResultForDelete = null,
+                    addedMalIds = it.addedMalIds - allMalIds
+                )
+            }
+        }
     }
 
     fun clearSnackbar() {

@@ -47,6 +47,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.vuzeda.animewatchlist.tracker.designsystem.component.AnimeCard
+import com.vuzeda.animewatchlist.tracker.designsystem.component.ConfirmationDialog
 import com.vuzeda.animewatchlist.tracker.designsystem.component.EmptyStateMessage
 import com.vuzeda.animewatchlist.tracker.designsystem.component.RatingBar
 import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusChip
@@ -76,7 +77,9 @@ fun AnimeDetailScreenRoute(
         onStatusSelected = viewModel::updateStatus,
         onDismissStatusSheet = viewModel::dismissStatusSheet,
         onRatingChanged = viewModel::updateUserRating,
-        onDelete = { viewModel.deleteAnime(onNavigateBack) },
+        onDeleteClick = viewModel::showDeleteConfirmation,
+        onConfirmDelete = { viewModel.confirmDelete(onNavigateBack) },
+        onDismissDeleteConfirmation = viewModel::dismissDeleteConfirmation,
         onToggleNotifications = viewModel::toggleNotifications,
         onAddToWatchlistClick = viewModel::showAddSheet,
         onAddStatusSelected = viewModel::addToWatchlist,
@@ -95,7 +98,9 @@ fun AnimeDetailScreen(
     onStatusSelected: (WatchStatus) -> Unit,
     onDismissStatusSheet: () -> Unit,
     onRatingChanged: (Int) -> Unit,
-    onDelete: () -> Unit,
+    onDeleteClick: () -> Unit,
+    onConfirmDelete: () -> Unit,
+    onDismissDeleteConfirmation: () -> Unit,
     onToggleNotifications: () -> Unit,
     onAddToWatchlistClick: () -> Unit,
     onAddStatusSelected: (WatchStatus) -> Unit,
@@ -141,7 +146,7 @@ fun AnimeDetailScreen(
                                 )
                             )
                         }
-                        IconButton(onClick = onDelete) {
+                        IconButton(onClick = onDeleteClick) {
                             Icon(
                                 imageVector = Icons.Default.Delete,
                                 contentDescription = stringResource(R.string.cd_delete)
@@ -217,6 +222,17 @@ fun AnimeDetailScreen(
                                 onDismissAddSheet()
                             },
                             onDismiss = onDismissAddSheet
+                        )
+                    }
+
+                    if (uiState.isDeleteConfirmationVisible) {
+                        ConfirmationDialog(
+                            title = stringResource(R.string.delete_anime_dialog_title),
+                            message = stringResource(R.string.delete_anime_dialog_message),
+                            confirmText = stringResource(R.string.delete_anime_dialog_confirm),
+                            dismissText = stringResource(R.string.delete_anime_dialog_dismiss),
+                            onConfirm = onConfirmDelete,
+                            onDismiss = onDismissDeleteConfirmation
                         )
                     }
                 }

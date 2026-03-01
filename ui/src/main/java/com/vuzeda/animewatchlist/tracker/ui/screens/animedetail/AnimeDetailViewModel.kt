@@ -227,7 +227,21 @@ class AnimeDetailViewModel @Inject constructor(
         }
     }
 
-    fun deleteAnime(onDeleted: () -> Unit) {
+    fun showDeleteConfirmation() {
+        _uiState.update { state ->
+            if (state is AnimeDetailUiState.Success) state.copy(isDeleteConfirmationVisible = true)
+            else state
+        }
+    }
+
+    fun dismissDeleteConfirmation() {
+        _uiState.update { state ->
+            if (state is AnimeDetailUiState.Success) state.copy(isDeleteConfirmationVisible = false)
+            else state
+        }
+    }
+
+    fun confirmDelete(onDeleted: () -> Unit) {
         val state = _uiState.value
         if (state !is AnimeDetailUiState.Success) return
 

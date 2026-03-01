@@ -17,6 +17,7 @@ sealed interface AnimeDetailUiState {
         val isResolvingSequels: Boolean = false,
         val isStatusSheetVisible: Boolean = false,
         val isAddSheetVisible: Boolean = false,
+        val isDeleteConfirmationVisible: Boolean = false,
         val snackbarMessage: String? = null
     ) : AnimeDetailUiState
 }

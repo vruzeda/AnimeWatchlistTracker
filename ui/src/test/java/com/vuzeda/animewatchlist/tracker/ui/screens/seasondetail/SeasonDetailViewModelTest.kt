@@ -8,6 +8,7 @@ import com.vuzeda.animewatchlist.tracker.domain.model.EpisodeInfo
 import com.vuzeda.animewatchlist.tracker.domain.model.EpisodePage
 import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import com.vuzeda.animewatchlist.tracker.domain.model.TitleLanguage
+import com.vuzeda.animewatchlist.tracker.domain.usecase.DeleteAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchEpisodesUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveSeasonByIdUseCase
@@ -38,6 +39,7 @@ class SeasonDetailViewModelTest {
     private val fetchSeasonDetailUseCase: FetchSeasonDetailUseCase = mockk()
     private val fetchEpisodesUseCase: FetchEpisodesUseCase = mockk()
     private val updateSeasonProgressUseCase: UpdateSeasonProgressUseCase = mockk(relaxed = true)
+    private val deleteAnimeUseCase: DeleteAnimeUseCase = mockk(relaxed = true)
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
 
     private val sampleSeason = Season(
@@ -88,6 +90,7 @@ class SeasonDetailViewModelTest {
             fetchSeasonDetailUseCase = fetchSeasonDetailUseCase,
             fetchEpisodesUseCase = fetchEpisodesUseCase,
             updateSeasonProgressUseCase = updateSeasonProgressUseCase,
+            deleteAnimeUseCase = deleteAnimeUseCase,
             observeTitleLanguageUseCase = observeTitleLanguageUseCase
         )
     }
@@ -277,6 +280,43 @@ class SeasonDetailViewModelTest {
         viewModel.uiState.test {
             val notFound = awaitItem()
             assertThat(notFound).isInstanceOf(SeasonDetailUiState.NotFound::class.java)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `showDeleteConfirmation and dismissDeleteConfirmation toggle visibility`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.showDeleteConfirmation()
+            val shown = awaitItem() as SeasonDetailUiState.Success
+            assertThat(shown.isDeleteConfirmationVisible).isTrue()
+
+            viewModel.dismissDeleteConfirmation()
+            val hidden = awaitItem() as SeasonDetailUiState.Success
+            assertThat(hidden.isDeleteConfirmationVisible).isFalse()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `confirmDelete calls delete use case with animeId and invokes callback`() = runTest {
+        val viewModel = createViewModel()
+        var callbackInvoked = false
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.confirmDelete { callbackInvoked = true }
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            assertThat(callbackInvoked).isTrue()
+            coVerify { deleteAnimeUseCase(1L) }
             cancelAndIgnoreRemainingEvents()
         }
     }

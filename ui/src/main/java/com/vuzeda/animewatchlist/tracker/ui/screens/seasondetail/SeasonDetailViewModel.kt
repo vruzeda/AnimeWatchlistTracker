@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vuzeda.animewatchlist.tracker.domain.model.Season
+import com.vuzeda.animewatchlist.tracker.domain.usecase.DeleteAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchEpisodesUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveSeasonByIdUseCase
@@ -25,6 +26,7 @@ class SeasonDetailViewModel @Inject constructor(
     private val fetchSeasonDetailUseCase: FetchSeasonDetailUseCase,
     private val fetchEpisodesUseCase: FetchEpisodesUseCase,
     private val updateSeasonProgressUseCase: UpdateSeasonProgressUseCase,
+    private val deleteAnimeUseCase: DeleteAnimeUseCase,
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase
 ) : ViewModel() {
 
@@ -154,6 +156,30 @@ class SeasonDetailViewModel @Inject constructor(
 
         viewModelScope.launch {
             updateSeasonProgressUseCase(state.season, clamped)
+        }
+    }
+
+    fun showDeleteConfirmation() {
+        _uiState.update { state ->
+            if (state is SeasonDetailUiState.Success) state.copy(isDeleteConfirmationVisible = true)
+            else state
+        }
+    }
+
+    fun dismissDeleteConfirmation() {
+        _uiState.update { state ->
+            if (state is SeasonDetailUiState.Success) state.copy(isDeleteConfirmationVisible = false)
+            else state
+        }
+    }
+
+    fun confirmDelete(onDeleted: () -> Unit) {
+        val state = _uiState.value
+        if (state !is SeasonDetailUiState.Success) return
+
+        viewModelScope.launch {
+            deleteAnimeUseCase(state.season.animeId)
+            onDeleted()
         }
     }
 }

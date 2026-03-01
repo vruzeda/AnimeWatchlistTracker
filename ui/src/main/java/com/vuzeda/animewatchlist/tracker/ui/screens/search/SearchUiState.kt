@@ -29,6 +29,7 @@ data class SearchUiState(
     val errorMessage: String? = null,
     val hasSearched: Boolean = false,
     val selectedResultForAdd: SearchResult? = null,
+    val selectedResultForDelete: SearchResult? = null,
     val sortOption: SearchSortOption = SearchSortOption.DEFAULT,
     val isSortAscending: Boolean = SearchSortOption.DEFAULT.defaultAscending,
     val selectedFilter: SearchFilter = SearchFilter.ALL,

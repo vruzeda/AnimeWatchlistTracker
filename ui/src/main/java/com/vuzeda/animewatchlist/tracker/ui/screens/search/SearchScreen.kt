@@ -40,6 +40,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vuzeda.animewatchlist.tracker.designsystem.component.AnimeCard
 import com.vuzeda.animewatchlist.tracker.designsystem.component.AnimeSearchBar
+import com.vuzeda.animewatchlist.tracker.designsystem.component.ConfirmationDialog
 import com.vuzeda.animewatchlist.tracker.designsystem.component.EmptyStateMessage
 import com.vuzeda.animewatchlist.tracker.designsystem.component.SortMenuButton
 import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusOption
@@ -72,8 +73,11 @@ fun SearchScreenRoute(
         onSearch = viewModel::search,
         onResultClick = viewModel::onResultClick,
         onAddClick = viewModel::onAddClick,
+        onRemoveClick = viewModel::onRemoveClick,
         onAddStatusSelected = viewModel::addToWatchlist,
         onDismissAddSheet = viewModel::dismissBottomSheet,
+        onConfirmRemove = viewModel::confirmRemoveFromWatchlist,
+        onDismissRemoveConfirmation = viewModel::dismissDeleteConfirmation,
         onSortSelected = viewModel::selectSort,
         onSnackbarDismissed = viewModel::clearSnackbar
     )
@@ -87,8 +91,11 @@ fun SearchScreen(
     onSearch: () -> Unit,
     onResultClick: (SearchResult) -> Unit,
     onAddClick: (SearchResult) -> Unit,
+    onRemoveClick: (SearchResult) -> Unit,
     onAddStatusSelected: (WatchStatus) -> Unit,
     onDismissAddSheet: () -> Unit,
+    onConfirmRemove: () -> Unit,
+    onDismissRemoveConfirmation: () -> Unit,
     onSortSelected: (SearchSortOption) -> Unit,
     onSnackbarDismissed: () -> Unit
 ) {
@@ -206,11 +213,13 @@ fun SearchScreen(
                                             strokeWidth = 2.dp
                                         )
                                     } else if (isAdded) {
-                                        Icon(
-                                            imageVector = Icons.Default.Check,
-                                            contentDescription = stringResource(R.string.cd_already_in_watchlist),
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
+                                        IconButton(onClick = { onRemoveClick(result) }) {
+                                            Icon(
+                                                imageVector = Icons.Default.Check,
+                                                contentDescription = stringResource(R.string.cd_already_in_watchlist),
+                                                tint = MaterialTheme.colorScheme.primary
+                                            )
+                                        }
                                     } else {
                                         IconButton(onClick = { onAddClick(result) }) {
                                             Icon(
@@ -243,6 +252,17 @@ fun SearchScreen(
                                 onAddStatusSelected(WatchStatus.entries[index])
                             },
                             onDismiss = onDismissAddSheet
+                        )
+                    }
+
+                    if (uiState.selectedResultForDelete != null) {
+                        ConfirmationDialog(
+                            title = stringResource(R.string.delete_anime_dialog_title),
+                            message = stringResource(R.string.delete_anime_dialog_message),
+                            confirmText = stringResource(R.string.delete_anime_dialog_confirm),
+                            dismissText = stringResource(R.string.delete_anime_dialog_dismiss),
+                            onConfirm = onConfirmRemove,
+                            onDismiss = onDismissRemoveConfirmation
                         )
                     }
                 }
