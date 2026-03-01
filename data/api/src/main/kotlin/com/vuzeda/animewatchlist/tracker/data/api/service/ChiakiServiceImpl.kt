@@ -41,6 +41,9 @@ class ChiakiServiceImpl(
         private val TITLE_PATTERN = Regex(
             """<span\s+class="wo_title"[^>]*>([^<]+)</span>"""
         )
+        private val ENGLISH_TITLE_PATTERN = Regex(
+            """<div[^>]*class="[^"]*uk-text-small[^"]*"[^>]*>([^<]+)</div>"""
+        )
         private val SCORE_PATTERN = Regex(
             """<span\s+class="wo_rating"[^>]*>★([\d.]+)"""
         )
@@ -64,6 +67,8 @@ class ChiakiServiceImpl(
 
                 val title = TITLE_PATTERN.find(rowHtml)?.groupValues?.get(1)
                     ?.decodeHtmlEntities() ?: continue
+                val titleEnglish = ENGLISH_TITLE_PATTERN.find(rowHtml)?.groupValues?.get(1)
+                    ?.decodeHtmlEntities()?.takeIf { it.isNotBlank() }
                 val score = SCORE_PATTERN.find(rowHtml)?.groupValues?.get(1)?.toDoubleOrNull()
                 val imageRelativePath = IMAGE_PATTERN.find(rowHtml)?.groupValues?.get(1)
                 val imageUrl = imageRelativePath?.let { path ->
@@ -73,6 +78,7 @@ class ChiakiServiceImpl(
                 entries += ChiakiWatchOrderEntryDto(
                     malId = malId,
                     title = title,
+                    titleEnglish = titleEnglish,
                     typeCode = typeCode,
                     episodeCount = episodeCount,
                     score = score,

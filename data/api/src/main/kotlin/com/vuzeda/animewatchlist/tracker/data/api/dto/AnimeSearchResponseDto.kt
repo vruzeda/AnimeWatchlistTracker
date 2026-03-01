@@ -19,6 +19,8 @@ data class AnimeSearchResponseDto(
 data class AnimeDataDto(
     @param:Json(name = "mal_id") val malId: Int,
     @param:Json(name = "title") val title: String,
+    @param:Json(name = "title_english") val titleEnglish: String? = null,
+    @param:Json(name = "title_japanese") val titleJapanese: String? = null,
     @param:Json(name = "type") val type: String? = null,
     @param:Json(name = "images") val images: AnimeImagesDto? = null,
     @param:Json(name = "synopsis") val synopsis: String? = null,
