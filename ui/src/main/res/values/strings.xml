@@ -96,4 +96,13 @@
     <string name="seasons_added_to_watchlist">%1$s added to watchlist</string>
     <string name="seasons_add_sheet_title">Add to watchlist</string>
     <string name="seasons_load_more">Load more</string>
+
+    <!-- SettingsScreen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_delete_all_data">Delete all data</string>
+    <string name="settings_delete_dialog_title">Delete all data?</string>
+    <string name="settings_delete_dialog_message">This will permanently remove all anime and seasons from your watchlist. This action cannot be undone.</string>
+    <string name="settings_delete_dialog_confirm">Delete</string>
+    <string name="settings_delete_dialog_dismiss">Cancel</string>
+    <string name="settings_data_deleted">All data deleted</string>
 </resources>

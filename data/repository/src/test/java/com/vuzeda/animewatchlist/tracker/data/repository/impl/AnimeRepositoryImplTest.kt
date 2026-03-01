@@ -257,4 +257,13 @@ class AnimeRepositoryImplTest {
 
         assertThat(result).isNull()
     }
+
+    @Test
+    fun `deleteAllData delegates to animeDao deleteAll`() = runTest {
+        coEvery { animeDao.deleteAll() } returns Unit
+
+        repository.deleteAllData()
+
+        coVerify(exactly = 1) { animeDao.deleteAll() }
+    }
 }

@@ -39,4 +39,6 @@ interface AnimeRepository {
     )
 
     suspend fun addSeasonsToAnime(animeId: Long, seasons: List<Season>)
+
+    suspend fun deleteAllData()
 }

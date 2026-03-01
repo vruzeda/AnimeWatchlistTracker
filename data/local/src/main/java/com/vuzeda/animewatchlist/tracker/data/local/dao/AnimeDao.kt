@@ -29,6 +29,9 @@ interface AnimeDao {
     @Query("DELETE FROM anime WHERE id = :id")
     suspend fun deleteById(id: Long)
 
+    @Query("DELETE FROM anime")
+    suspend fun deleteAll()
+
     @Query("SELECT * FROM anime WHERE isNotificationsEnabled = 1")
     suspend fun getNotificationEnabledAnime(): List<AnimeEntity>
 

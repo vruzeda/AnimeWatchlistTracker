@@ -5,6 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -27,6 +28,7 @@ import com.vuzeda.animewatchlist.tracker.ui.screens.home.HomeScreenRoute
 import com.vuzeda.animewatchlist.tracker.ui.screens.search.SearchScreenRoute
 import com.vuzeda.animewatchlist.tracker.ui.screens.seasondetail.SeasonDetailScreenRoute
 import com.vuzeda.animewatchlist.tracker.ui.screens.seasons.SeasonsScreenRoute
+import com.vuzeda.animewatchlist.tracker.ui.screens.settings.SettingsScreenRoute
 
 private data class BottomNavItem(
     val label: String,
@@ -37,7 +39,8 @@ private data class BottomNavItem(
 private val BottomNavItems = listOf(
     BottomNavItem(label = "Home", icon = Icons.Default.Home, route = Route.Home.route),
     BottomNavItem(label = "Seasons", icon = Icons.Default.DateRange, route = Route.Seasons.route),
-    BottomNavItem(label = "Search", icon = Icons.Default.Search, route = Route.Search.route)
+    BottomNavItem(label = "Search", icon = Icons.Default.Search, route = Route.Search.route),
+    BottomNavItem(label = "Settings", icon = Icons.Default.Settings, route = Route.Settings.route)
 )
 
 @Composable
@@ -94,6 +97,10 @@ fun AppNavigation(modifier: Modifier = Modifier) {
                         navController.navigate(Route.AnimeDetail(malId = malId).route)
                     }
                 )
+            }
+
+            composable(Route.Settings.route) {
+                SettingsScreenRoute()
             }
 
             composable(Route.Search.route) {

@@ -78,4 +78,8 @@ class AnimeRepositoryImpl @Inject constructor(
         val seasonEntities = seasons.map { it.copy(animeId = animeId).toEntity() }
         seasonDao.insertAll(seasonEntities)
     }
+
+    override suspend fun deleteAllData() {
+        animeDao.deleteAll()
+    }
 }
