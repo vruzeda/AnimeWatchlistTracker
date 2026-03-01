@@ -4,7 +4,6 @@ import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
-import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveAnimeByNotificationUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveAnimeListUseCase
 import io.mockk.every
 import io.mockk.mockk
@@ -25,7 +24,6 @@ class HomeViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
     private val observeAnimeListUseCase: ObserveAnimeListUseCase = mockk()
-    private val observeAnimeByNotificationUseCase: ObserveAnimeByNotificationUseCase = mockk()
 
     private val sampleAnimeList = listOf(
         Anime(id = 1L, title = "Attack on Titan", status = WatchStatus.WATCHING, userRating = 8, addedAt = 1000L, isNotificationsEnabled = true),
@@ -45,7 +43,7 @@ class HomeViewModelTest {
 
     private fun createViewModel(): HomeViewModel {
         every { observeAnimeListUseCase() } returns flowOf(sampleAnimeList)
-        return HomeViewModel(observeAnimeListUseCase, observeAnimeByNotificationUseCase)
+        return HomeViewModel(observeAnimeListUseCase)
     }
 
     @Test
@@ -62,101 +60,114 @@ class HomeViewModelTest {
             assertThat(loaded.animeList[0].title).isEqualTo("Attack on Titan")
             assertThat(loaded.animeList[1].title).isEqualTo("Bleach")
             assertThat(loaded.animeList[2].title).isEqualTo("One Punch Man")
-            assertThat(loaded.selectedFilter).isEqualTo(HomeFilter.All)
+            assertThat(loaded.filterState).isEqualTo(HomeFilterState())
             assertThat(loaded.sortOption).isEqualTo(HomeSortOption.ALPHABETICAL)
         }
     }
 
     @Test
-    fun `selectFilter filters by status`() = runTest {
-        every { observeAnimeListUseCase(WatchStatus.WATCHING) } returns flowOf(
-            listOf(sampleAnimeList[0])
-        )
-
+    fun `selectStatusFilter filters by status`() = runTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
             skipItems(2)
 
-            viewModel.selectFilter(HomeFilter.ByStatus(WatchStatus.WATCHING))
-
-            val tabChanged = awaitItem()
-            assertThat(tabChanged.selectedFilter).isEqualTo(HomeFilter.ByStatus(WatchStatus.WATCHING))
-            assertThat(tabChanged.isLoading).isTrue()
+            viewModel.selectStatusFilter(WatchStatus.WATCHING)
 
             val filtered = awaitItem()
-            assertThat(filtered.animeList).hasSize(1)
-            assertThat(filtered.animeList[0].title).isEqualTo("Attack on Titan")
-            assertThat(filtered.isLoading).isFalse()
+            assertThat(filtered.filterState.statusFilter).isEqualTo(WatchStatus.WATCHING)
+            assertThat(filtered.animeList).hasSize(2)
+            assertThat(filtered.animeList.all { it.status == WatchStatus.WATCHING }).isTrue()
         }
     }
 
     @Test
-    fun `selectFilter with All shows all anime`() = runTest {
-        every { observeAnimeListUseCase(WatchStatus.WATCHING) } returns flowOf(
-            listOf(sampleAnimeList[0])
-        )
-
+    fun `selectStatusFilter with null shows all anime`() = runTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
             skipItems(2)
 
-            viewModel.selectFilter(HomeFilter.ByStatus(WatchStatus.WATCHING))
-            skipItems(2)
+            viewModel.selectStatusFilter(WatchStatus.WATCHING)
+            awaitItem()
 
-            viewModel.selectFilter(HomeFilter.All)
-
-            val tabChanged = awaitItem()
-            assertThat(tabChanged.selectedFilter).isEqualTo(HomeFilter.All)
+            viewModel.selectStatusFilter(null)
 
             val allAnime = awaitItem()
+            assertThat(allAnime.filterState.statusFilter).isNull()
             assertThat(allAnime.animeList).hasSize(3)
         }
     }
 
     @Test
-    fun `selectFilter with NotificationsOn shows only notification enabled anime`() = runTest {
-        val notifiedAnime = sampleAnimeList.filter { it.isNotificationsEnabled }
-        every { observeAnimeByNotificationUseCase(enabled = true) } returns flowOf(notifiedAnime)
-
+    fun `selectNotificationFilter with true shows only notification enabled anime`() = runTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
             skipItems(2)
 
-            viewModel.selectFilter(HomeFilter.NotificationsOn)
-
-            val filterChanged = awaitItem()
-            assertThat(filterChanged.selectedFilter).isEqualTo(HomeFilter.NotificationsOn)
-            assertThat(filterChanged.isLoading).isTrue()
+            viewModel.selectNotificationFilter(true)
 
             val filtered = awaitItem()
+            assertThat(filtered.filterState.notificationFilter).isTrue()
             assertThat(filtered.animeList).hasSize(2)
             assertThat(filtered.animeList.all { it.isNotificationsEnabled }).isTrue()
-            assertThat(filtered.isLoading).isFalse()
         }
     }
 
     @Test
-    fun `selectFilter with NotificationsOff shows only notification disabled anime`() = runTest {
-        val nonNotifiedAnime = sampleAnimeList.filter { !it.isNotificationsEnabled }
-        every { observeAnimeByNotificationUseCase(enabled = false) } returns flowOf(nonNotifiedAnime)
-
+    fun `selectNotificationFilter with false shows only notification disabled anime`() = runTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
             skipItems(2)
 
-            viewModel.selectFilter(HomeFilter.NotificationsOff)
-
-            val filterChanged = awaitItem()
-            assertThat(filterChanged.selectedFilter).isEqualTo(HomeFilter.NotificationsOff)
+            viewModel.selectNotificationFilter(false)
 
             val filtered = awaitItem()
+            assertThat(filtered.filterState.notificationFilter).isFalse()
             assertThat(filtered.animeList).hasSize(1)
             assertThat(filtered.animeList[0].title).isEqualTo("One Punch Man")
-            assertThat(filtered.animeList.none { it.isNotificationsEnabled }).isTrue()
+        }
+    }
+
+    @Test
+    fun `combined status and notification filters apply together`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            skipItems(2)
+
+            viewModel.selectStatusFilter(WatchStatus.WATCHING)
+            awaitItem()
+
+            viewModel.selectNotificationFilter(true)
+
+            val combined = awaitItem()
+            assertThat(combined.filterState.statusFilter).isEqualTo(WatchStatus.WATCHING)
+            assertThat(combined.filterState.notificationFilter).isTrue()
+            assertThat(combined.animeList).hasSize(2)
+            assertThat(combined.animeList.all { it.status == WatchStatus.WATCHING && it.isNotificationsEnabled }).isTrue()
+        }
+    }
+
+    @Test
+    fun `resetFilters clears both filters`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            skipItems(2)
+
+            viewModel.selectStatusFilter(WatchStatus.WATCHING)
+            awaitItem()
+            viewModel.selectNotificationFilter(true)
+            awaitItem()
+
+            viewModel.resetFilters()
+
+            val reset = awaitItem()
+            assertThat(reset.filterState).isEqualTo(HomeFilterState())
+            assertThat(reset.animeList).hasSize(3)
         }
     }
 
@@ -237,7 +248,7 @@ class HomeViewModelTest {
         val watchlistFlow = MutableStateFlow(sampleAnimeList)
         every { observeAnimeListUseCase() } returns watchlistFlow
 
-        val viewModel = HomeViewModel(observeAnimeListUseCase, observeAnimeByNotificationUseCase)
+        val viewModel = HomeViewModel(observeAnimeListUseCase)
 
         viewModel.uiState.test {
             skipItems(2)

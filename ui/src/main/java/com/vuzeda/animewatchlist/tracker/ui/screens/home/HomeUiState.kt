@@ -5,12 +5,10 @@ import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.ui.R
 
-sealed interface HomeFilter {
-    data object All : HomeFilter
-    data class ByStatus(val status: WatchStatus) : HomeFilter
-    data object NotificationsOn : HomeFilter
-    data object NotificationsOff : HomeFilter
-}
+data class HomeFilterState(
+    val statusFilter: WatchStatus? = null,
+    val notificationFilter: Boolean? = null
+)
 
 enum class HomeSortOption(@param:StringRes val displayLabelRes: Int, val defaultAscending: Boolean) {
     ALPHABETICAL(R.string.sort_alphabetical, true),
@@ -20,7 +18,7 @@ enum class HomeSortOption(@param:StringRes val displayLabelRes: Int, val default
 
 data class HomeUiState(
     val animeList: List<Anime> = emptyList(),
-    val selectedFilter: HomeFilter = HomeFilter.All,
+    val filterState: HomeFilterState = HomeFilterState(),
     val sortOption: HomeSortOption = HomeSortOption.ALPHABETICAL,
     val isSortAscending: Boolean = HomeSortOption.ALPHABETICAL.defaultAscending,
     val isLoading: Boolean = true

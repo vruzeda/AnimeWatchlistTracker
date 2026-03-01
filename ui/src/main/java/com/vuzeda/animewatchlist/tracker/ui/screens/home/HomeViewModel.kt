@@ -3,35 +3,55 @@ package com.vuzeda.animewatchlist.tracker.ui.screens.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
-import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveAnimeByNotificationUseCase
+import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveAnimeListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val observeAnimeListUseCase: ObserveAnimeListUseCase,
-    private val observeAnimeByNotificationUseCase: ObserveAnimeByNotificationUseCase
+    private val observeAnimeListUseCase: ObserveAnimeListUseCase
 ) : ViewModel() {
 
+    private val _filterState = MutableStateFlow(HomeFilterState())
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
-    private var observeJob: Job? = null
-
     init {
-        observeWatchlist(HomeFilter.All)
+        viewModelScope.launch {
+            combine(
+                observeAnimeListUseCase(),
+                _filterState
+            ) { animeList, filterState ->
+                applyFilters(animeList, filterState) to filterState
+            }.collect { (filteredList, filterState) ->
+                _uiState.update {
+                    it.copy(
+                        animeList = sortAnimeList(filteredList, it.sortOption, it.isSortAscending),
+                        filterState = filterState,
+                        isLoading = false
+                    )
+                }
+            }
+        }
     }
 
-    fun selectFilter(filter: HomeFilter) {
-        _uiState.update { it.copy(selectedFilter = filter, isLoading = true) }
-        observeWatchlist(filter)
+    fun selectStatusFilter(status: WatchStatus?) {
+        _filterState.update { it.copy(statusFilter = status) }
+    }
+
+    fun selectNotificationFilter(enabled: Boolean?) {
+        _filterState.update { it.copy(notificationFilter = enabled) }
+    }
+
+    fun resetFilters() {
+        _filterState.update { HomeFilterState() }
     }
 
     fun selectSort(option: HomeSortOption) {
@@ -48,27 +68,17 @@ class HomeViewModel @Inject constructor(
             )
         }
     }
+}
 
-    private fun observeWatchlist(filter: HomeFilter) {
-        observeJob?.cancel()
-        observeJob = viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            val flow = when (filter) {
-                is HomeFilter.All -> observeAnimeListUseCase()
-                is HomeFilter.ByStatus -> observeAnimeListUseCase(filter.status)
-                is HomeFilter.NotificationsOn -> observeAnimeByNotificationUseCase(enabled = true)
-                is HomeFilter.NotificationsOff -> observeAnimeByNotificationUseCase(enabled = false)
-            }
-            flow.collect { animeList ->
-                _uiState.update {
-                    it.copy(
-                        animeList = sortAnimeList(animeList, it.sortOption, it.isSortAscending),
-                        isLoading = false
-                    )
-                }
-            }
-        }
+fun applyFilters(list: List<Anime>, filterState: HomeFilterState): List<Anime> {
+    var filtered = list
+    filterState.statusFilter?.let { status ->
+        filtered = filtered.filter { it.status == status }
     }
+    filterState.notificationFilter?.let { enabled ->
+        filtered = filtered.filter { it.isNotificationsEnabled == enabled }
+    }
+    return filtered
 }
 
 fun sortAnimeList(

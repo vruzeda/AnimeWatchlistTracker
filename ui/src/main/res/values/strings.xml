@@ -23,9 +23,12 @@
     <string name="filter_not_added">Not Added</string>
     <string name="filter_already_added">Already Added</string>
 
-    <!-- HomeScreen -->
-    <string name="filter_notifications_on">Notifications On</string>
-    <string name="filter_notifications_off">Notifications Off</string>
+    <!-- HomeScreen filters -->
+    <string name="filter_group_status">By Status</string>
+    <string name="filter_group_notification">By Notification</string>
+    <string name="filter_notification_on">On</string>
+    <string name="filter_notification_off">Off</string>
+    <string name="filter_reset">Reset Filters</string>
     <string name="home_title">My Watchlist</string>
     <string name="home_empty_title">No anime here yet</string>
     <string name="home_empty_subtitle">Search for anime to add to your watchlist</string>

@@ -24,7 +24,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vuzeda.animewatchlist.tracker.designsystem.component.AnimeCard
 import com.vuzeda.animewatchlist.tracker.designsystem.component.EmptyStateMessage
-import com.vuzeda.animewatchlist.tracker.designsystem.component.FilterMenuButton
+import com.vuzeda.animewatchlist.tracker.designsystem.component.FilterGroup
+import com.vuzeda.animewatchlist.tracker.designsystem.component.NestedFilterMenuButton
 import com.vuzeda.animewatchlist.tracker.designsystem.component.SortMenuButton
 import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusChip
 import com.vuzeda.animewatchlist.tracker.designsystem.theme.StatusCompleted
@@ -35,6 +36,12 @@ import com.vuzeda.animewatchlist.tracker.designsystem.theme.StatusOnHold
 import com.vuzeda.animewatchlist.tracker.designsystem.theme.StatusPlanToWatch
 import com.vuzeda.animewatchlist.tracker.designsystem.theme.StatusWatching
 
+private const val GROUP_STATUS = 0
+private const val GROUP_NOTIFICATION = 1
+
+private val statusValues = listOf(null) + WatchStatus.entries
+private val notificationValues = listOf(null, true, false)
+
 @Composable
 fun HomeScreenRoute(
     onAnimeClick: (Long) -> Unit,
@@ -43,63 +50,64 @@ fun HomeScreenRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     HomeScreen(
         uiState = uiState,
-        onFilterSelected = viewModel::selectFilter,
+        onStatusFilterSelected = viewModel::selectStatusFilter,
+        onNotificationFilterSelected = viewModel::selectNotificationFilter,
+        onResetFilters = viewModel::resetFilters,
         onSortSelected = viewModel::selectSort,
         onAnimeClick = onAnimeClick
     )
 }
 
-private fun buildFilterOptions(
-    allLabel: String,
-    watchingLabel: String,
-    completedLabel: String,
-    planToWatchLabel: String,
-    onHoldLabel: String,
-    droppedLabel: String,
-    notificationsOnLabel: String,
-    notificationsOffLabel: String
-): List<Pair<String, HomeFilter>> = listOf(
-    allLabel to HomeFilter.All,
-    watchingLabel to HomeFilter.ByStatus(WatchStatus.WATCHING),
-    completedLabel to HomeFilter.ByStatus(WatchStatus.COMPLETED),
-    planToWatchLabel to HomeFilter.ByStatus(WatchStatus.PLAN_TO_WATCH),
-    onHoldLabel to HomeFilter.ByStatus(WatchStatus.ON_HOLD),
-    droppedLabel to HomeFilter.ByStatus(WatchStatus.DROPPED),
-    notificationsOnLabel to HomeFilter.NotificationsOn,
-    notificationsOffLabel to HomeFilter.NotificationsOff
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     uiState: HomeUiState,
-    onFilterSelected: (HomeFilter) -> Unit,
+    onStatusFilterSelected: (WatchStatus?) -> Unit,
+    onNotificationFilterSelected: (Boolean?) -> Unit,
+    onResetFilters: () -> Unit,
     onSortSelected: (HomeSortOption) -> Unit,
     onAnimeClick: (Long) -> Unit
 ) {
     val sortOptions = HomeSortOption.entries.map { stringResource(it.displayLabelRes) }
 
-    val filterOptions = buildFilterOptions(
-        allLabel = stringResource(R.string.home_tab_all),
-        watchingLabel = stringResource(R.string.status_watching),
-        completedLabel = stringResource(R.string.status_completed),
-        planToWatchLabel = stringResource(R.string.status_plan_to_watch),
-        onHoldLabel = stringResource(R.string.status_on_hold),
-        droppedLabel = stringResource(R.string.status_dropped),
-        notificationsOnLabel = stringResource(R.string.filter_notifications_on),
-        notificationsOffLabel = stringResource(R.string.filter_notifications_off)
+    val statusFilterGroup = FilterGroup(
+        label = stringResource(R.string.filter_group_status),
+        options = listOf(
+            stringResource(R.string.home_tab_all),
+            stringResource(R.string.status_watching),
+            stringResource(R.string.status_completed),
+            stringResource(R.string.status_plan_to_watch),
+            stringResource(R.string.status_on_hold),
+            stringResource(R.string.status_dropped)
+        ),
+        selectedIndex = statusValues.indexOf(uiState.filterState.statusFilter)
     )
-    val selectedFilterIndex = filterOptions.indexOfFirst { it.second == uiState.selectedFilter }
+
+    val notificationFilterGroup = FilterGroup(
+        label = stringResource(R.string.filter_group_notification),
+        options = listOf(
+            stringResource(R.string.home_tab_all),
+            stringResource(R.string.filter_notification_on),
+            stringResource(R.string.filter_notification_off)
+        ),
+        selectedIndex = notificationValues.indexOf(uiState.filterState.notificationFilter)
+    )
 
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
             title = { Text(stringResource(R.string.home_title)) },
             windowInsets = WindowInsets(0, 0, 0, 0),
             actions = {
-                FilterMenuButton(
-                    options = filterOptions.map { it.first },
-                    selectedIndex = selectedFilterIndex,
-                    onOptionSelected = { index -> onFilterSelected(filterOptions[index].second) }
+                NestedFilterMenuButton(
+                    filterGroups = listOf(statusFilterGroup, notificationFilterGroup),
+                    onOptionSelected = { groupIndex, optionIndex ->
+                        when (groupIndex) {
+                            GROUP_STATUS -> onStatusFilterSelected(statusValues[optionIndex])
+                            GROUP_NOTIFICATION -> onNotificationFilterSelected(notificationValues[optionIndex])
+                        }
+                    },
+                    resetLabel = stringResource(R.string.filter_reset),
+                    onReset = onResetFilters
                 )
                 SortMenuButton(
                     options = sortOptions,
