@@ -11,6 +11,11 @@ enum class SeasonsSortOption(@param:StringRes val displayLabelRes: Int, val defa
     SCORE(R.string.sort_score, false)
 }
 
+data class SeasonsSortState(
+    val option: SeasonsSortOption = SeasonsSortOption.DEFAULT,
+    val isAscending: Boolean = SeasonsSortOption.DEFAULT.defaultAscending
+)
+
 data class SeasonsUiState(
     val selectedYear: Int = 0,
     val selectedSeason: AnimeSeason = AnimeSeason.WINTER,

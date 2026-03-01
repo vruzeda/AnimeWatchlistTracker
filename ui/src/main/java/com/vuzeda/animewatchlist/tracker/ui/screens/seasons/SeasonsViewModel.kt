@@ -21,6 +21,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -39,6 +40,8 @@ class SeasonsViewModel @Inject constructor(
     private val findAnimeBySeasonMalIdUseCase: FindAnimeBySeasonMalIdUseCase
 ) : ViewModel() {
 
+    private val _rawAnimeList = MutableStateFlow<List<SearchResult>>(emptyList())
+    private val _sortState = MutableStateFlow(SeasonsSortState())
     private val _uiState = MutableStateFlow(SeasonsUiState())
     val uiState: StateFlow<SeasonsUiState> = _uiState.asStateFlow()
 
@@ -58,22 +61,27 @@ class SeasonsViewModel @Inject constructor(
             )
         }
 
+        viewModelScope.launch {
+            combine(_rawAnimeList, _sortState) { animeList, sortState ->
+                sortSeasonResults(animeList, sortState.option, sortState.isAscending) to sortState
+            }.collect { (displayedAnimeList, sortState) ->
+                _uiState.update {
+                    it.copy(
+                        displayedAnimeList = displayedAnimeList,
+                        sortOption = sortState.option,
+                        isSortAscending = sortState.isAscending
+                    )
+                }
+            }
+        }
+
         loadSeason(year = currentYear, season = currentSeason)
     }
 
     fun selectSort(option: SeasonsSortOption) {
-        _uiState.update { currentState ->
-            val isAscending = if (option == currentState.sortOption) {
-                !currentState.isSortAscending
-            } else {
-                option.defaultAscending
-            }
-            val displayed = sortSeasonResults(currentState.animeList, option, isAscending)
-            currentState.copy(
-                sortOption = option,
-                isSortAscending = isAscending,
-                displayedAnimeList = displayed
-            )
+        _sortState.update { current ->
+            val isAscending = if (option == current.option) !current.isAscending else option.defaultAscending
+            current.copy(option = option, isAscending = isAscending)
         }
     }
 
@@ -81,14 +89,13 @@ class SeasonsViewModel @Inject constructor(
         val state = _uiState.value
         val (nextSeason, yearDelta) = state.selectedSeason.next()
         val nextYear = state.selectedYear + yearDelta
+        _rawAnimeList.value = emptyList()
+        _sortState.value = SeasonsSortState()
         _uiState.update {
             it.copy(
                 selectedYear = nextYear,
                 selectedSeason = nextSeason,
                 animeList = emptyList(),
-                displayedAnimeList = emptyList(),
-                sortOption = SeasonsSortOption.DEFAULT,
-                isSortAscending = SeasonsSortOption.DEFAULT.defaultAscending,
                 hasNextPage = false,
                 currentPage = 1,
                 errorMessage = null
@@ -101,14 +108,13 @@ class SeasonsViewModel @Inject constructor(
         val state = _uiState.value
         val (prevSeason, yearDelta) = state.selectedSeason.previous()
         val prevYear = state.selectedYear + yearDelta
+        _rawAnimeList.value = emptyList()
+        _sortState.value = SeasonsSortState()
         _uiState.update {
             it.copy(
                 selectedYear = prevYear,
                 selectedSeason = prevSeason,
                 animeList = emptyList(),
-                displayedAnimeList = emptyList(),
-                sortOption = SeasonsSortOption.DEFAULT,
-                isSortAscending = SeasonsSortOption.DEFAULT.defaultAscending,
                 hasNextPage = false,
                 currentPage = 1,
                 errorMessage = null
@@ -130,11 +136,10 @@ class SeasonsViewModel @Inject constructor(
                 page = nextPage
             )
                 .onSuccess { page ->
+                    _rawAnimeList.update { it + page.results }
                     _uiState.update {
-                        val newList = it.animeList + page.results
                         it.copy(
-                            animeList = newList,
-                            displayedAnimeList = sortSeasonResults(newList, it.sortOption, it.isSortAscending),
+                            animeList = it.animeList + page.results,
                             hasNextPage = page.hasNextPage,
                             currentPage = page.currentPage,
                             isLoadingMore = false
@@ -233,10 +238,10 @@ class SeasonsViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             getSeasonAnimeUseCase(year = year, season = season, page = 1)
                 .onSuccess { page ->
+                    _rawAnimeList.value = page.results
                     _uiState.update {
                         it.copy(
                             animeList = page.results,
-                            displayedAnimeList = sortSeasonResults(page.results, it.sortOption, it.isSortAscending),
                             hasNextPage = page.hasNextPage,
                             currentPage = page.currentPage,
                             isLoading = false

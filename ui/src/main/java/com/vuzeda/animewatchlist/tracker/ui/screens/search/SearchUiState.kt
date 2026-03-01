@@ -11,6 +11,11 @@ enum class SearchSortOption(@param:StringRes val displayLabelRes: Int, val defau
     SCORE(R.string.sort_score, false)
 }
 
+data class SearchSortState(
+    val option: SearchSortOption = SearchSortOption.DEFAULT,
+    val isAscending: Boolean = SearchSortOption.DEFAULT.defaultAscending
+)
+
 enum class SearchFilter(@param:StringRes val displayLabelRes: Int) {
     ALL(R.string.filter_all)
 }

@@ -20,6 +20,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -37,10 +38,28 @@ class SearchViewModel @Inject constructor(
     private val findAnimeBySeasonMalIdUseCase: FindAnimeBySeasonMalIdUseCase
 ) : ViewModel() {
 
+    private val _rawResults = MutableStateFlow<List<SearchResult>>(emptyList())
+    private val _sortState = MutableStateFlow(SearchSortState())
     private val _uiState = MutableStateFlow(SearchUiState())
     val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
 
     private var pendingDetails: AnimeFullDetails? = null
+
+    init {
+        viewModelScope.launch {
+            combine(_rawResults, _sortState) { results, sortState ->
+                sortResults(results, sortState.option, sortState.isAscending) to sortState
+            }.collect { (displayedResults, sortState) ->
+                _uiState.update {
+                    it.copy(
+                        displayedResults = displayedResults,
+                        sortOption = sortState.option,
+                        isSortAscending = sortState.isAscending
+                    )
+                }
+            }
+        }
+    }
 
     fun updateQuery(query: String) {
         _uiState.update { it.copy(query = query) }
@@ -54,11 +73,10 @@ class SearchViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             searchAnimeUseCase(query)
                 .onSuccess { results ->
-                    val displayed = sortResults(results, _uiState.value.sortOption, _uiState.value.isSortAscending)
+                    _rawResults.value = results
                     _uiState.update {
                         it.copy(
                             results = results,
-                            displayedResults = displayed,
                             isLoading = false,
                             hasSearched = true
                         )
@@ -78,18 +96,9 @@ class SearchViewModel @Inject constructor(
     }
 
     fun selectSort(option: SearchSortOption) {
-        _uiState.update { currentState ->
-            val isAscending = if (option == currentState.sortOption) {
-                !currentState.isSortAscending
-            } else {
-                option.defaultAscending
-            }
-            val displayed = sortResults(currentState.results, option, isAscending)
-            currentState.copy(
-                sortOption = option,
-                isSortAscending = isAscending,
-                displayedResults = displayed
-            )
+        _sortState.update { current ->
+            val isAscending = if (option == current.option) !current.isAscending else option.defaultAscending
+            current.copy(option = option, isAscending = isAscending)
         }
     }
 

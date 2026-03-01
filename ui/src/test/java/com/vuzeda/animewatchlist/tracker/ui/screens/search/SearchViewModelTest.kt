@@ -128,11 +128,9 @@ class SearchViewModelTest {
             awaitItem()
 
             viewModel.search()
+            testDispatcher.scheduler.advanceUntilIdle()
 
-            val loading = awaitItem()
-            assertThat(loading.isLoading).isTrue()
-
-            val loaded = awaitItem()
+            val loaded = expectMostRecentItem()
             assertThat(loaded.isLoading).isFalse()
             assertThat(loaded.results).hasSize(1)
             assertThat(loaded.displayedResults).hasSize(1)
@@ -309,8 +307,8 @@ class SearchViewModelTest {
             viewModel.updateQuery("anime")
             awaitItem()
             viewModel.search()
-            awaitItem()
-            awaitItem()
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
 
             viewModel.selectSort(SearchSortOption.ALPHABETICAL)
             val ascending = awaitItem()
@@ -334,8 +332,8 @@ class SearchViewModelTest {
             viewModel.updateQuery("anime")
             awaitItem()
             viewModel.search()
-            awaitItem()
-            awaitItem()
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
 
             viewModel.selectSort(SearchSortOption.ALPHABETICAL)
 
@@ -357,8 +355,8 @@ class SearchViewModelTest {
             viewModel.updateQuery("anime")
             awaitItem()
             viewModel.search()
-            awaitItem()
-            awaitItem()
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
 
             viewModel.selectSort(SearchSortOption.SCORE)
 

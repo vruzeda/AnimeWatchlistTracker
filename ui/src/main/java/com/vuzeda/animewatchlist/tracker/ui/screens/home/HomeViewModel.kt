@@ -20,6 +20,7 @@ class HomeViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _filterState = MutableStateFlow(HomeFilterState())
+    private val _sortState = MutableStateFlow(HomeSortState())
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
@@ -27,17 +28,22 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             combine(
                 observeAnimeListUseCase(),
-                _filterState
-            ) { animeList, filterState ->
-                applyFilters(animeList, filterState) to filterState
-            }.collect { (filteredList, filterState) ->
-                _uiState.update {
-                    it.copy(
-                        animeList = sortAnimeList(filteredList, it.sortOption, it.isSortAscending),
-                        filterState = filterState,
-                        isLoading = false
-                    )
-                }
+                _filterState,
+                _sortState
+            ) { animeList, filterState, sortState ->
+                HomeUiState(
+                    animeList = sortAnimeList(
+                        list = applyFilters(animeList, filterState),
+                        option = sortState.option,
+                        isAscending = sortState.isAscending
+                    ),
+                    filterState = filterState,
+                    sortOption = sortState.option,
+                    isSortAscending = sortState.isAscending,
+                    isLoading = false
+                )
+            }.collect { state ->
+                _uiState.value = state
             }
         }
     }
@@ -55,17 +61,9 @@ class HomeViewModel @Inject constructor(
     }
 
     fun selectSort(option: HomeSortOption) {
-        _uiState.update { currentState ->
-            val isAscending = if (option == currentState.sortOption) {
-                !currentState.isSortAscending
-            } else {
-                option.defaultAscending
-            }
-            currentState.copy(
-                sortOption = option,
-                isSortAscending = isAscending,
-                animeList = sortAnimeList(currentState.animeList, option, isAscending)
-            )
+        _sortState.update { current ->
+            val isAscending = if (option == current.option) !current.isAscending else option.defaultAscending
+            current.copy(option = option, isAscending = isAscending)
         }
     }
 }

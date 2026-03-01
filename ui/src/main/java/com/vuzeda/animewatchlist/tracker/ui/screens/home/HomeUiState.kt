@@ -16,6 +16,11 @@ enum class HomeSortOption(@param:StringRes val displayLabelRes: Int, val default
     USER_RATING(R.string.sort_user_rating, false)
 }
 
+data class HomeSortState(
+    val option: HomeSortOption = HomeSortOption.ALPHABETICAL,
+    val isAscending: Boolean = HomeSortOption.ALPHABETICAL.defaultAscending
+)
+
 data class HomeUiState(
     val animeList: List<Anime> = emptyList(),
     val filterState: HomeFilterState = HomeFilterState(),

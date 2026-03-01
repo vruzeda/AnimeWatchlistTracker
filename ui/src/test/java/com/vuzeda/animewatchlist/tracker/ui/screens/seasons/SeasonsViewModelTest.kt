@@ -102,12 +102,9 @@ class SeasonsViewModelTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
-            skipItems(1)
+            testDispatcher.scheduler.advanceUntilIdle()
 
-            val loading = awaitItem()
-            assertThat(loading.isLoading).isTrue()
-
-            val loaded = awaitItem()
+            val loaded = expectMostRecentItem()
             assertThat(loaded.isLoading).isFalse()
             assertThat(loaded.animeList).hasSize(2)
             assertThat(loaded.displayedAnimeList).hasSize(2)
@@ -121,17 +118,13 @@ class SeasonsViewModelTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
-            skipItems(3)
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
 
             viewModel.selectNextSeason()
+            testDispatcher.scheduler.advanceUntilIdle()
 
-            val cleared = awaitItem()
-            assertThat(cleared.animeList).isEmpty()
-
-            val loading = awaitItem()
-            assertThat(loading.isLoading).isTrue()
-
-            val loaded = awaitItem()
+            val loaded = expectMostRecentItem()
             assertThat(loaded.isLoading).isFalse()
             assertThat(loaded.animeList).hasSize(2)
         }
@@ -142,17 +135,13 @@ class SeasonsViewModelTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
-            skipItems(3)
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
 
             viewModel.selectPreviousSeason()
+            testDispatcher.scheduler.advanceUntilIdle()
 
-            val cleared = awaitItem()
-            assertThat(cleared.animeList).isEmpty()
-
-            val loading = awaitItem()
-            assertThat(loading.isLoading).isTrue()
-
-            val loaded = awaitItem()
+            val loaded = expectMostRecentItem()
             assertThat(loaded.isLoading).isFalse()
             assertThat(loaded.animeList).hasSize(2)
         }
@@ -167,14 +156,13 @@ class SeasonsViewModelTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
-            skipItems(3)
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
 
             viewModel.loadMore()
+            testDispatcher.scheduler.advanceUntilIdle()
 
-            val loadingMore = awaitItem()
-            assertThat(loadingMore.isLoadingMore).isTrue()
-
-            val loaded = awaitItem()
+            val loaded = expectMostRecentItem()
             assertThat(loaded.isLoadingMore).isFalse()
             assertThat(loaded.animeList).hasSize(3)
             assertThat(loaded.hasNextPage).isFalse()
@@ -191,7 +179,8 @@ class SeasonsViewModelTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
-            skipItems(3)
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
 
             viewModel.loadMore()
 
@@ -222,7 +211,8 @@ class SeasonsViewModelTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
-            skipItems(3)
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
 
             viewModel.onResultClick(samplePage.results[0])
 
@@ -236,7 +226,8 @@ class SeasonsViewModelTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
-            skipItems(3)
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
 
             viewModel.onResultClick(samplePage.results[0])
             awaitItem()
@@ -255,7 +246,8 @@ class SeasonsViewModelTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
-            skipItems(3)
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
 
             viewModel.onAddClick(samplePage.results[0])
 
@@ -285,15 +277,17 @@ class SeasonsViewModelTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
-            skipItems(3)
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
 
             viewModel.onAddClick(samplePage.results[0])
-            awaitItem()
-            awaitItem()
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
 
             viewModel.addToWatchlist(WatchStatus.WATCHING)
+            testDispatcher.scheduler.advanceUntilIdle()
 
-            val added = awaitItem()
+            val added = expectMostRecentItem()
             assertThat(added.selectedResultForAdd).isNull()
             assertThat(added.addedMalIds).contains(1)
             assertThat(added.snackbarMessage).isEqualTo("Frieren")
@@ -307,11 +301,12 @@ class SeasonsViewModelTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
-            skipItems(3)
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
 
             viewModel.onAddClick(samplePage.results[0])
-            awaitItem()
-            awaitItem()
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
 
             viewModel.dismissBottomSheet()
 
@@ -325,7 +320,8 @@ class SeasonsViewModelTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
-            skipItems(3)
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
 
             viewModel.selectSort(SeasonsSortOption.ALPHABETICAL)
 
@@ -342,7 +338,8 @@ class SeasonsViewModelTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
-            skipItems(3)
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
 
             viewModel.selectSort(SeasonsSortOption.SCORE)
 
@@ -359,7 +356,8 @@ class SeasonsViewModelTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
-            skipItems(3)
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
 
             viewModel.selectSort(SeasonsSortOption.ALPHABETICAL)
             val first = awaitItem()
@@ -378,16 +376,18 @@ class SeasonsViewModelTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
-            skipItems(3)
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
 
             viewModel.selectSort(SeasonsSortOption.SCORE)
             awaitItem()
 
             viewModel.selectNextSeason()
+            testDispatcher.scheduler.advanceUntilIdle()
 
-            val cleared = awaitItem()
-            assertThat(cleared.sortOption).isEqualTo(SeasonsSortOption.DEFAULT)
-            assertThat(cleared.isSortAscending).isTrue()
+            val loaded = expectMostRecentItem()
+            assertThat(loaded.sortOption).isEqualTo(SeasonsSortOption.DEFAULT)
+            assertThat(loaded.isSortAscending).isTrue()
         }
     }
 
