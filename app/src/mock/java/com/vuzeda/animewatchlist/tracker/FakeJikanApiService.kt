@@ -13,6 +13,7 @@ import com.vuzeda.animewatchlist.tracker.data.api.dto.EpisodesPaginationDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.GenreDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.ImageUrlDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.RelatedEntryDto
+import com.vuzeda.animewatchlist.tracker.data.api.dto.SearchPaginationDto
 import com.vuzeda.animewatchlist.tracker.data.api.service.JikanApiService
 
 class FakeJikanApiService : JikanApiService {
@@ -37,6 +38,24 @@ class FakeJikanApiService : JikanApiService {
             )
         )
     }
+
+    override suspend fun getSeasonAnime(
+        year: Int,
+        season: String,
+        page: Int,
+        filter: String
+    ): AnimeSearchResponseDto = AnimeSearchResponseDto(
+        pagination = SearchPaginationDto(hasNextPage = false, lastVisiblePage = 1),
+        data = fakeResults.take(4)
+    )
+
+    override suspend fun getSeasonNow(
+        page: Int,
+        filter: String
+    ): AnimeSearchResponseDto = AnimeSearchResponseDto(
+        pagination = SearchPaginationDto(hasNextPage = false, lastVisiblePage = 1),
+        data = fakeResults.take(4)
+    )
 
     override suspend fun getAnimeEpisodes(malId: Int, page: Int): AnimeEpisodesResponseDto {
         val anime = fakeResults.firstOrNull { it.malId == malId }

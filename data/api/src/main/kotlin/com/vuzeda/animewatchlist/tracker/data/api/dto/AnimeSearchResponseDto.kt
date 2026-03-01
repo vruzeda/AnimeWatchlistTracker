@@ -4,7 +4,14 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = false)
+data class SearchPaginationDto(
+    @param:Json(name = "has_next_page") val hasNextPage: Boolean = false,
+    @param:Json(name = "last_visible_page") val lastVisiblePage: Int = 1
+)
+
+@JsonClass(generateAdapter = false)
 data class AnimeSearchResponseDto(
+    @param:Json(name = "pagination") val pagination: SearchPaginationDto? = null,
     @param:Json(name = "data") val data: List<AnimeDataDto>
 )
 

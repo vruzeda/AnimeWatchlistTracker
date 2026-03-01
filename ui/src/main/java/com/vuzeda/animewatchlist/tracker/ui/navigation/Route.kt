@@ -11,6 +11,10 @@ sealed interface Route {
         override val route = "search"
     }
 
+    data object Seasons : Route {
+        override val route = "seasons"
+    }
+
     data class AnimeDetail(val animeId: Long = 0, val malId: Int = 0) : Route {
         override val route: String
             get() = if (malId > 0) "anime_detail/$animeId?malId=$malId" else "anime_detail/$animeId"

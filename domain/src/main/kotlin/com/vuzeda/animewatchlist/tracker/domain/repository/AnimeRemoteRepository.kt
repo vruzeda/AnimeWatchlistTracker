@@ -1,9 +1,11 @@
 package com.vuzeda.animewatchlist.tracker.domain.repository
 
 import com.vuzeda.animewatchlist.tracker.domain.model.AnimeFullDetails
+import com.vuzeda.animewatchlist.tracker.domain.model.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.domain.model.EpisodePage
 import com.vuzeda.animewatchlist.tracker.domain.model.SearchResult
 import com.vuzeda.animewatchlist.tracker.domain.model.SeasonData
+import com.vuzeda.animewatchlist.tracker.domain.model.SeasonalAnimePage
 
 interface AnimeRemoteRepository {
 
@@ -16,4 +18,6 @@ interface AnimeRemoteRepository {
     suspend fun fetchLastAiredEpisodeNumber(malId: Int): Result<Int?>
 
     suspend fun fetchWatchOrder(malId: Int): Result<List<SeasonData>>
+
+    suspend fun fetchSeasonAnime(year: Int, season: AnimeSeason, page: Int): Result<SeasonalAnimePage>
 }

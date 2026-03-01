@@ -2,6 +2,7 @@ package com.vuzeda.animewatchlist.tracker.ui.navigation
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
@@ -25,6 +26,7 @@ import com.vuzeda.animewatchlist.tracker.ui.screens.animedetail.AnimeDetailScree
 import com.vuzeda.animewatchlist.tracker.ui.screens.home.HomeScreenRoute
 import com.vuzeda.animewatchlist.tracker.ui.screens.search.SearchScreenRoute
 import com.vuzeda.animewatchlist.tracker.ui.screens.seasondetail.SeasonDetailScreenRoute
+import com.vuzeda.animewatchlist.tracker.ui.screens.seasons.SeasonsScreenRoute
 
 private data class BottomNavItem(
     val label: String,
@@ -34,6 +36,7 @@ private data class BottomNavItem(
 
 private val BottomNavItems = listOf(
     BottomNavItem(label = "Home", icon = Icons.Default.Home, route = Route.Home.route),
+    BottomNavItem(label = "Seasons", icon = Icons.Default.DateRange, route = Route.Seasons.route),
     BottomNavItem(label = "Search", icon = Icons.Default.Search, route = Route.Search.route)
 )
 
@@ -81,6 +84,14 @@ fun AppNavigation(modifier: Modifier = Modifier) {
                 HomeScreenRoute(
                     onAnimeClick = { animeId ->
                         navController.navigate(Route.AnimeDetail(animeId).route)
+                    }
+                )
+            }
+
+            composable(Route.Seasons.route) {
+                SeasonsScreenRoute(
+                    onNavigateToDetailByMalId = { malId ->
+                        navController.navigate(Route.AnimeDetail(malId = malId).route)
                     }
                 )
             }

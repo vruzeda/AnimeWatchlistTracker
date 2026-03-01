@@ -3,8 +3,10 @@ package com.vuzeda.animewatchlist.tracker.data.repository.impl
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeDataDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeSearchResponseDto
+import com.vuzeda.animewatchlist.tracker.data.api.dto.SearchPaginationDto
 import com.vuzeda.animewatchlist.tracker.data.api.service.ChiakiService
 import com.vuzeda.animewatchlist.tracker.data.api.service.JikanApiService
+import com.vuzeda.animewatchlist.tracker.domain.model.AnimeSeason
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -61,5 +63,34 @@ class AnimeRemoteRepositoryImplTest {
 
         assertThat(result).hasSize(1)
         assertThat(result[0].title).isEqualTo("Naruto Original")
+    }
+
+    @Test
+    fun `fetchSeasonAnime returns paginated results`() = runTest {
+        val response = AnimeSearchResponseDto(
+            pagination = SearchPaginationDto(hasNextPage = true, lastVisiblePage = 3),
+            data = listOf(
+                AnimeDataDto(malId = 1, title = "Frieren"),
+                AnimeDataDto(malId = 2, title = "Jujutsu Kaisen")
+            )
+        )
+        coEvery {
+            jikanApiService.getSeasonAnime(
+                year = 2026,
+                season = "winter",
+                page = 1
+            )
+        } returns response
+
+        val result = repository.fetchSeasonAnime(
+            year = 2026,
+            season = AnimeSeason.WINTER,
+            page = 1
+        ).getOrThrow()
+
+        assertThat(result.results).hasSize(2)
+        assertThat(result.hasNextPage).isTrue()
+        assertThat(result.currentPage).isEqualTo(1)
+        assertThat(result.results[0].title).isEqualTo("Frieren")
     }
 }

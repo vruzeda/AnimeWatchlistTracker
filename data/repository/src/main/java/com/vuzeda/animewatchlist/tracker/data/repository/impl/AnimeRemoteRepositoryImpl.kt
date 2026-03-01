@@ -6,10 +6,13 @@ import com.vuzeda.animewatchlist.tracker.data.repository.mapper.toAnimeFullDetai
 import com.vuzeda.animewatchlist.tracker.data.repository.mapper.toEpisodePage
 import com.vuzeda.animewatchlist.tracker.data.repository.mapper.toSearchResult
 import com.vuzeda.animewatchlist.tracker.data.repository.mapper.toSeasonDataList
+import com.vuzeda.animewatchlist.tracker.data.repository.mapper.toSeasonalAnimePage
 import com.vuzeda.animewatchlist.tracker.domain.model.AnimeFullDetails
+import com.vuzeda.animewatchlist.tracker.domain.model.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.domain.model.EpisodePage
 import com.vuzeda.animewatchlist.tracker.domain.model.SearchResult
 import com.vuzeda.animewatchlist.tracker.domain.model.SeasonData
+import com.vuzeda.animewatchlist.tracker.domain.model.SeasonalAnimePage
 import com.vuzeda.animewatchlist.tracker.domain.repository.AnimeRemoteRepository
 import javax.inject.Inject
 
@@ -50,5 +53,17 @@ class AnimeRemoteRepositoryImpl @Inject constructor(
 
     override suspend fun fetchWatchOrder(malId: Int): Result<List<SeasonData>> = runCatching {
         chiakiService.fetchWatchOrder(malId).toSeasonDataList()
+    }
+
+    override suspend fun fetchSeasonAnime(
+        year: Int,
+        season: AnimeSeason,
+        page: Int
+    ): Result<SeasonalAnimePage> = runCatching {
+        jikanApiService.getSeasonAnime(
+            year = year,
+            season = season.apiValue,
+            page = page
+        ).toSeasonalAnimePage(currentPage = page)
     }
 }

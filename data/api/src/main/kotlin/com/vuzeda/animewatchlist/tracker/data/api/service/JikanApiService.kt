@@ -28,6 +28,20 @@ interface JikanApiService {
         @Query("page") page: Int = 1
     ): AnimeEpisodesResponseDto
 
+    @GET("v4/seasons/{year}/{season}")
+    suspend fun getSeasonAnime(
+        @Path("year") year: Int,
+        @Path("season") season: String,
+        @Query("page") page: Int = 1,
+        @Query("filter") filter: String = "tv"
+    ): AnimeSearchResponseDto
+
+    @GET("v4/seasons/now")
+    suspend fun getSeasonNow(
+        @Query("page") page: Int = 1,
+        @Query("filter") filter: String = "tv"
+    ): AnimeSearchResponseDto
+
     companion object {
         const val BASE_URL = "https://api.jikan.moe/"
     }

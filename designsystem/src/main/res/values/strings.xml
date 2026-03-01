@@ -30,4 +30,8 @@
 
     <!-- RatingBar -->
     <string name="cd_star">Star %1$d of %2$d</string>
+
+    <!-- SeasonPickerRow -->
+    <string name="cd_previous_season">Previous season</string>
+    <string name="cd_next_season">Next season</string>
 </resources>
