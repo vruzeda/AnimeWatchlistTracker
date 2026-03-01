@@ -6,6 +6,8 @@ import com.vuzeda.animewatchlist.tracker.domain.model.SearchResult
 fun AnimeDataDto.toSearchResult(): SearchResult = SearchResult(
     malId = malId,
     title = title,
+    titleEnglish = titleEnglish,
+    titleJapanese = titleJapanese,
     imageUrl = images?.jpg?.largeImageUrl ?: images?.jpg?.imageUrl,
     synopsis = synopsis,
     episodeCount = episodes,

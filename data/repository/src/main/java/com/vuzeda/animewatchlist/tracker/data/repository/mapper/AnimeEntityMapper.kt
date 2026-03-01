@@ -7,6 +7,8 @@ import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 fun AnimeEntity.toDomainModel(): Anime = Anime(
     id = id,
     title = title,
+    titleEnglish = titleEnglish,
+    titleJapanese = titleJapanese,
     imageUrl = imageUrl,
     synopsis = synopsis,
     genres = if (genres.isBlank()) emptyList() else genres.split(",").map { it.trim() },
@@ -19,6 +21,8 @@ fun AnimeEntity.toDomainModel(): Anime = Anime(
 fun Anime.toEntity(): AnimeEntity = AnimeEntity(
     id = id,
     title = title,
+    titleEnglish = titleEnglish,
+    titleJapanese = titleJapanese,
     imageUrl = imageUrl,
     synopsis = synopsis,
     genres = genres.joinToString(","),

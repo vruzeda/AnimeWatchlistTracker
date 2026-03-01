@@ -17,6 +17,7 @@ fun List<ChiakiWatchOrderEntryDto>.toSeasonDataList(): List<SeasonData> =
 fun ChiakiWatchOrderEntryDto.toSeasonData(): SeasonData = SeasonData(
     malId = malId,
     title = title,
+    titleEnglish = titleEnglish,
     imageUrl = imageUrl,
     type = TYPE_CODE_TO_STRING[typeCode] ?: "TV",
     episodeCount = episodeCount,

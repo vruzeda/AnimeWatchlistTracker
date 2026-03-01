@@ -7,6 +7,8 @@ import com.vuzeda.animewatchlist.tracker.domain.model.SequelInfo
 fun AnimeFullDataDto.toAnimeFullDetails(): AnimeFullDetails = AnimeFullDetails(
     malId = malId,
     title = title,
+    titleEnglish = titleEnglish,
+    titleJapanese = titleJapanese,
     imageUrl = images?.jpg?.largeImageUrl ?: images?.jpg?.imageUrl,
     type = type ?: "Unknown",
     episodes = episodes,
