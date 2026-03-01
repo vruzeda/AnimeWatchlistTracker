@@ -7,6 +7,7 @@ sealed interface DetailUiState {
     data object NotFound : DetailUiState
     data class Success(
         val anime: Anime,
+        val isInWatchlist: Boolean = true,
         val isNotificationsEnabled: Boolean = anime.isNotificationsEnabled,
         val isStatusSheetVisible: Boolean = false
     ) : DetailUiState

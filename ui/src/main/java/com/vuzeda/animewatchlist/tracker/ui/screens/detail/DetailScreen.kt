@@ -91,7 +91,7 @@ fun DetailScreen(
                 }
             },
             actions = {
-                if (uiState is DetailUiState.Success) {
+                if (uiState is DetailUiState.Success && uiState.isInWatchlist) {
                     IconButton(onClick = onToggleNotifications) {
                         Icon(
                             imageVector = if (uiState.isNotificationsEnabled) {
@@ -194,11 +194,13 @@ private fun DetailContent(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                StatusChip(
-                    label = stringResource(anime.status.toDisplayLabelRes()),
-                    color = anime.status.toColor(),
-                    modifier = Modifier.clickable(onClick = onStatusChipClick)
-                )
+                if (state.isInWatchlist) {
+                    StatusChip(
+                        label = stringResource(anime.status.toDisplayLabelRes()),
+                        color = anime.status.toColor(),
+                        modifier = Modifier.clickable(onClick = onStatusChipClick)
+                    )
+                }
 
                 if (anime.genres.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(8.dp))
@@ -211,20 +213,22 @@ private fun DetailContent(
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        if (state.isInWatchlist) {
+            Spacer(modifier = Modifier.height(24.dp))
 
-        Text(
-            text = stringResource(R.string.detail_section_your_rating),
-            style = MaterialTheme.typography.titleLarge
-        )
+            Text(
+                text = stringResource(R.string.detail_section_your_rating),
+                style = MaterialTheme.typography.titleLarge
+            )
 
-        Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-        RatingBar(
-            rating = anime.userRating ?: 0,
-            isInteractive = true,
-            onRatingChanged = onRatingChanged
-        )
+            RatingBar(
+                rating = anime.userRating ?: 0,
+                isInteractive = true,
+                onRatingChanged = onRatingChanged
+            )
+        }
 
         val synopsis = anime.synopsis
         if (synopsis != null) {

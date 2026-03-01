@@ -4,7 +4,9 @@ import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
+import com.vuzeda.animewatchlist.tracker.domain.model.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
+import com.vuzeda.animewatchlist.tracker.domain.repository.AnimeRemoteRepository
 import com.vuzeda.animewatchlist.tracker.domain.usecase.DeleteAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveAnimeByIdUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ToggleAnimeNotificationsUseCase
@@ -33,6 +35,7 @@ class DetailViewModelTest {
     private val updateAnimeUseCase: UpdateAnimeUseCase = mockk()
     private val deleteAnimeUseCase: DeleteAnimeUseCase = mockk()
     private val toggleAnimeNotificationsUseCase: ToggleAnimeNotificationsUseCase = mockk(relaxed = true)
+    private val remoteRepository: AnimeRemoteRepository = mockk()
 
     private val sampleAnime = Anime(
         id = 1L,
@@ -55,11 +58,11 @@ class DetailViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun createViewModel(animeId: Long = 1L): DetailViewModel {
+    private fun createViewModel(animeId: Long = 1L, malId: Int = 0): DetailViewModel {
         val savedStateHandle = SavedStateHandle(
             mapOf(
                 Route.Detail.ARG_ANIME_ID to animeId,
-                Route.Detail.ARG_MAL_ID to 0
+                Route.Detail.ARG_MAL_ID to malId
             )
         )
         return DetailViewModel(
@@ -67,7 +70,8 @@ class DetailViewModelTest {
             observeAnimeByIdUseCase = observeAnimeByIdUseCase,
             updateAnimeUseCase = updateAnimeUseCase,
             deleteAnimeUseCase = deleteAnimeUseCase,
-            toggleAnimeNotificationsUseCase = toggleAnimeNotificationsUseCase
+            toggleAnimeNotificationsUseCase = toggleAnimeNotificationsUseCase,
+            remoteRepository = remoteRepository
         )
     }
 
@@ -317,10 +321,53 @@ class DetailViewModelTest {
     }
 
     @Test
-    fun `shows not found when animeId is zero`() = runTest {
-        val viewModel = createViewModel(animeId = 0L)
+    fun `shows not found when both animeId and malId are zero`() = runTest {
+        val viewModel = createViewModel(animeId = 0L, malId = 0)
 
         viewModel.uiState.test {
+            val notFound = awaitItem()
+            assertThat(notFound).isInstanceOf(DetailUiState.NotFound::class.java)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `loads from API when malId is provided`() = runTest {
+        coEvery { remoteRepository.fetchAnimeFullById(50) } returns Result.success(
+            AnimeFullDetails(
+                malId = 50,
+                title = "Spy x Family",
+                type = "TV",
+                episodes = 12,
+                synopsis = "A spy forms a pretend family.",
+                genres = listOf("Action", "Comedy"),
+                sequels = emptyList()
+            )
+        )
+
+        val viewModel = createViewModel(animeId = 0L, malId = 50)
+
+        viewModel.uiState.test {
+            val loading = awaitItem()
+            assertThat(loading).isInstanceOf(DetailUiState.Loading::class.java)
+
+            val success = awaitItem() as DetailUiState.Success
+            assertThat(success.anime.title).isEqualTo("Spy x Family")
+            assertThat(success.anime.synopsis).isEqualTo("A spy forms a pretend family.")
+            assertThat(success.isInWatchlist).isFalse()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `shows not found when API fetch fails`() = runTest {
+        coEvery { remoteRepository.fetchAnimeFullById(999) } returns Result.failure(Exception("Not found"))
+
+        val viewModel = createViewModel(animeId = 0L, malId = 999)
+
+        viewModel.uiState.test {
+            awaitItem()
+
             val notFound = awaitItem()
             assertThat(notFound).isInstanceOf(DetailUiState.NotFound::class.java)
             cancelAndIgnoreRemainingEvents()
