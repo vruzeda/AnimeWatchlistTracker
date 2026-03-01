@@ -15,7 +15,9 @@ class AnimeRemoteRepositoryImpl @Inject constructor(
 ) : AnimeRemoteRepository {
 
     override suspend fun searchAnime(query: String): Result<List<SearchResult>> = runCatching {
-        jikanApiService.searchAnime(query = query).data.map { it.toSearchResult() }
+        jikanApiService.searchAnime(query = query).data
+            .map { it.toSearchResult() }
+            .distinctBy { it.malId }
     }
 
     override suspend fun fetchAnimeFullById(malId: Int): Result<AnimeFullDetails> = runCatching {
