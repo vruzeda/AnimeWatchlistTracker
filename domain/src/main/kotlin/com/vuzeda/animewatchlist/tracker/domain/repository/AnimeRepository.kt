@@ -15,6 +15,10 @@ interface AnimeRepository {
 
     fun observeSeasonsForAnime(animeId: Long): Flow<List<Season>>
 
+    fun observeSeasonById(id: Long): Flow<Season?>
+
+    suspend fun findAnimeIdBySeasonMalId(malId: Int): Long?
+
     suspend fun addAnime(anime: Anime, seasons: List<Season>): Long
 
     suspend fun updateAnime(anime: Anime)

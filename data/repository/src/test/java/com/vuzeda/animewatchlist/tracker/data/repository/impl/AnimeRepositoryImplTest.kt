@@ -215,4 +215,46 @@ class AnimeRepositoryImplTest {
         assertThat(seasonSlot.captured[0].animeId).isEqualTo(5L)
         assertThat(seasonSlot.captured[0].malId).isEqualTo(200)
     }
+
+    @Test
+    fun `observeSeasonById emits mapped domain model`() = runTest {
+        every { seasonDao.observeById(1L) } returns flowOf(sampleSeasonEntity)
+
+        repository.observeSeasonById(1L).test {
+            val result = awaitItem()
+
+            assertThat(result).isNotNull()
+            assertThat(result?.malId).isEqualTo(16498)
+            assertThat(result?.title).isEqualTo("Attack on Titan")
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `observeSeasonById emits null when not found`() = runTest {
+        every { seasonDao.observeById(999L) } returns flowOf(null)
+
+        repository.observeSeasonById(999L).test {
+            assertThat(awaitItem()).isNull()
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `findAnimeIdBySeasonMalId returns animeId when found`() = runTest {
+        coEvery { seasonDao.findByMalId(16498) } returns sampleSeasonEntity
+
+        val result = repository.findAnimeIdBySeasonMalId(16498)
+
+        assertThat(result).isEqualTo(1L)
+    }
+
+    @Test
+    fun `findAnimeIdBySeasonMalId returns null when not found`() = runTest {
+        coEvery { seasonDao.findByMalId(99999) } returns null
+
+        val result = repository.findAnimeIdBySeasonMalId(99999)
+
+        assertThat(result).isNull()
+    }
 }

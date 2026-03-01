@@ -42,8 +42,13 @@ import com.vuzeda.animewatchlist.tracker.designsystem.component.AnimeCard
 import com.vuzeda.animewatchlist.tracker.designsystem.component.AnimeSearchBar
 import com.vuzeda.animewatchlist.tracker.designsystem.component.EmptyStateMessage
 import com.vuzeda.animewatchlist.tracker.designsystem.component.SortMenuButton
+import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusOption
+import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusSelectionSheet
 import com.vuzeda.animewatchlist.tracker.domain.model.SearchResult
+import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.ui.R
+import com.vuzeda.animewatchlist.tracker.ui.screens.home.toColor
+import com.vuzeda.animewatchlist.tracker.ui.screens.home.toDisplayLabelRes
 
 @Composable
 fun SearchScreenRoute(
@@ -65,6 +70,9 @@ fun SearchScreenRoute(
         onQueryChanged = viewModel::updateQuery,
         onSearch = viewModel::search,
         onResultClick = viewModel::onResultClick,
+        onAddClick = viewModel::onAddClick,
+        onAddStatusSelected = viewModel::addToWatchlist,
+        onDismissAddSheet = viewModel::dismissBottomSheet,
         onSortSelected = viewModel::selectSort,
         onSnackbarDismissed = viewModel::clearSnackbar
     )
@@ -77,6 +85,9 @@ fun SearchScreen(
     onQueryChanged: (String) -> Unit,
     onSearch: () -> Unit,
     onResultClick: (SearchResult) -> Unit,
+    onAddClick: (SearchResult) -> Unit,
+    onAddStatusSelected: (WatchStatus) -> Unit,
+    onDismissAddSheet: () -> Unit,
     onSortSelected: (SearchSortOption) -> Unit,
     onSnackbarDismissed: () -> Unit
 ) {
@@ -172,15 +183,54 @@ fun SearchScreen(
                             items = uiState.displayedResults,
                             key = { it.malId }
                         ) { result ->
+                            val isAdded = result.malId in uiState.addedMalIds
+                            val isResolving = uiState.resolvingMalId == result.malId
                             AnimeCard(
                                 title = result.title,
                                 imageUrl = result.imageUrl,
                                 onClick = { onResultClick(result) },
                                 score = result.score,
                                 episodeText = result.episodeCount?.let { stringResource(R.string.search_episode_count, it) },
-                                genresText = result.genres.takeIf { it.isNotEmpty() }?.joinToString(", ")
+                                genresText = result.genres.takeIf { it.isNotEmpty() }?.joinToString(", "),
+                                trailingContent = {
+                                    if (isResolving) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(24.dp),
+                                            strokeWidth = 2.dp
+                                        )
+                                    } else if (isAdded) {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = stringResource(R.string.cd_already_in_watchlist),
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                    } else {
+                                        IconButton(onClick = { onAddClick(result) }) {
+                                            Icon(
+                                                imageVector = Icons.Default.Add,
+                                                contentDescription = stringResource(R.string.cd_add_to_watchlist),
+                                                tint = MaterialTheme.colorScheme.primary
+                                            )
+                                        }
+                                    }
+                                }
                             )
                         }
+                    }
+
+                    if (uiState.selectedResultForAdd != null) {
+                        val statusOptions = WatchStatus.entries.map {
+                            StatusOption(stringResource(it.toDisplayLabelRes()), it.toColor())
+                        }
+                        StatusSelectionSheet(
+                            title = stringResource(R.string.search_add_sheet_title),
+                            subtitle = uiState.selectedResultForAdd.title,
+                            options = statusOptions,
+                            onOptionSelected = { index ->
+                                onAddStatusSelected(WatchStatus.entries[index])
+                            },
+                            onDismiss = onDismissAddSheet
+                        )
                     }
                 }
             }

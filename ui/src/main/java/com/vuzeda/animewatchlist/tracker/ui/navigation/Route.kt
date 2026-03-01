@@ -11,14 +11,24 @@ sealed interface Route {
         override val route = "search"
     }
 
-    data class Detail(val animeId: Long = 0, val malId: Int = 0) : Route {
+    data class AnimeDetail(val animeId: Long = 0, val malId: Int = 0) : Route {
         override val route: String
-            get() = if (malId > 0) "detail/$animeId?malId=$malId" else "detail/$animeId"
+            get() = if (malId > 0) "anime_detail/$animeId?malId=$malId" else "anime_detail/$animeId"
 
         companion object {
-            const val ROUTE_PATTERN = "detail/{animeId}?malId={malId}"
+            const val ROUTE_PATTERN = "anime_detail/{animeId}?malId={malId}"
             const val ARG_ANIME_ID = "animeId"
             const val ARG_MAL_ID = "malId"
+        }
+    }
+
+    data class SeasonDetail(val seasonId: Long) : Route {
+        override val route: String
+            get() = "season_detail/$seasonId"
+
+        companion object {
+            const val ROUTE_PATTERN = "season_detail/{seasonId}"
+            const val ARG_SEASON_ID = "seasonId"
         }
     }
 }

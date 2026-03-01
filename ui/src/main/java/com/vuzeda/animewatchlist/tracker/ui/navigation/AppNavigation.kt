@@ -21,9 +21,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.vuzeda.animewatchlist.tracker.ui.screens.detail.DetailScreenRoute
+import com.vuzeda.animewatchlist.tracker.ui.screens.animedetail.AnimeDetailScreenRoute
 import com.vuzeda.animewatchlist.tracker.ui.screens.home.HomeScreenRoute
 import com.vuzeda.animewatchlist.tracker.ui.screens.search.SearchScreenRoute
+import com.vuzeda.animewatchlist.tracker.ui.screens.seasondetail.SeasonDetailScreenRoute
 
 private data class BottomNavItem(
     val label: String,
@@ -79,7 +80,7 @@ fun AppNavigation(modifier: Modifier = Modifier) {
             composable(Route.Home.route) {
                 HomeScreenRoute(
                     onAnimeClick = { animeId ->
-                        navController.navigate(Route.Detail(animeId).route)
+                        navController.navigate(Route.AnimeDetail(animeId).route)
                     }
                 )
             }
@@ -87,24 +88,40 @@ fun AppNavigation(modifier: Modifier = Modifier) {
             composable(Route.Search.route) {
                 SearchScreenRoute(
                     onNavigateToDetailByMalId = { malId ->
-                        navController.navigate(Route.Detail(malId = malId).route)
+                        navController.navigate(Route.AnimeDetail(malId = malId).route)
                     }
                 )
             }
 
             composable(
-                route = Route.Detail.ROUTE_PATTERN,
+                route = Route.AnimeDetail.ROUTE_PATTERN,
                 arguments = listOf(
-                    navArgument(Route.Detail.ARG_ANIME_ID) {
+                    navArgument(Route.AnimeDetail.ARG_ANIME_ID) {
                         type = NavType.LongType
                     },
-                    navArgument(Route.Detail.ARG_MAL_ID) {
+                    navArgument(Route.AnimeDetail.ARG_MAL_ID) {
                         type = NavType.IntType
                         defaultValue = 0
                     }
                 )
             ) {
-                DetailScreenRoute(
+                AnimeDetailScreenRoute(
+                    onNavigateBack = { navController.popBackStack() },
+                    onSeasonClick = { seasonId ->
+                        navController.navigate(Route.SeasonDetail(seasonId).route)
+                    }
+                )
+            }
+
+            composable(
+                route = Route.SeasonDetail.ROUTE_PATTERN,
+                arguments = listOf(
+                    navArgument(Route.SeasonDetail.ARG_SEASON_ID) {
+                        type = NavType.LongType
+                    }
+                )
+            ) {
+                SeasonDetailScreenRoute(
                     onNavigateBack = { navController.popBackStack() }
                 )
             }

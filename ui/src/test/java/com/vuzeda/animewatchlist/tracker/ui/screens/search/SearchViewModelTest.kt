@@ -2,9 +2,16 @@ package com.vuzeda.animewatchlist.tracker.ui.screens.search
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
+import com.vuzeda.animewatchlist.tracker.domain.model.ResolvedSeries
 import com.vuzeda.animewatchlist.tracker.domain.model.SearchResult
+import com.vuzeda.animewatchlist.tracker.domain.model.SeasonData
+import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
+import com.vuzeda.animewatchlist.tracker.domain.usecase.AddAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.FindAnimeBySeasonMalIdUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.ResolveAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.SearchAnimeUseCase
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -22,6 +29,9 @@ class SearchViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
     private val searchAnimeUseCase: SearchAnimeUseCase = mockk()
+    private val resolveAnimeUseCase: ResolveAnimeUseCase = mockk()
+    private val addAnimeUseCase: AddAnimeUseCase = mockk()
+    private val findAnimeBySeasonMalIdUseCase: FindAnimeBySeasonMalIdUseCase = mockk()
 
     private lateinit var viewModel: SearchViewModel
 
@@ -34,7 +44,13 @@ class SearchViewModelTest {
     @BeforeEach
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        viewModel = SearchViewModel(searchAnimeUseCase)
+        coEvery { findAnimeBySeasonMalIdUseCase(any()) } returns null
+        viewModel = SearchViewModel(
+            searchAnimeUseCase = searchAnimeUseCase,
+            resolveAnimeUseCase = resolveAnimeUseCase,
+            addAnimeUseCase = addAnimeUseCase,
+            findAnimeBySeasonMalIdUseCase = findAnimeBySeasonMalIdUseCase
+        )
     }
 
     @AfterEach
@@ -137,29 +153,77 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun `onAddClick sets selectedResultForAdd`() = runTest {
+    fun `onAddClick resolves and sets selectedResultForAdd`() = runTest {
+        coEvery { resolveAnimeUseCase(21) } returns Result.success(
+            ResolvedSeries(
+                title = "One Punch Man",
+                seasons = listOf(SeasonData(malId = 21, title = "Season 1", type = "TV"))
+            )
+        )
+
         viewModel.uiState.test {
             awaitItem()
 
             viewModel.onAddClick(sampleResult)
 
-            val updated = awaitItem()
-            assertThat(updated.selectedResultForAdd).isEqualTo(sampleResult)
+            val resolving = awaitItem()
+            assertThat(resolving.resolvingMalId).isEqualTo(21)
+
+            val resolved = awaitItem()
+            assertThat(resolved.resolvingMalId).isNull()
+            assertThat(resolved.selectedResultForAdd).isEqualTo(sampleResult)
         }
     }
 
     @Test
     fun `dismissBottomSheet clears selected result`() = runTest {
+        coEvery { resolveAnimeUseCase(21) } returns Result.success(
+            ResolvedSeries(
+                title = "One Punch Man",
+                seasons = listOf(SeasonData(malId = 21, title = "Season 1", type = "TV"))
+            )
+        )
+
         viewModel.uiState.test {
             awaitItem()
 
             viewModel.onAddClick(sampleResult)
+            awaitItem()
             awaitItem()
 
             viewModel.dismissBottomSheet()
 
             val dismissed = awaitItem()
             assertThat(dismissed.selectedResultForAdd).isNull()
+        }
+    }
+
+    @Test
+    fun `addToWatchlist calls use case and updates addedMalIds`() = runTest {
+        coEvery { resolveAnimeUseCase(21) } returns Result.success(
+            ResolvedSeries(
+                title = "One Punch Man",
+                seasons = listOf(SeasonData(malId = 21, title = "Season 1", type = "TV"))
+            )
+        )
+        coEvery { addAnimeUseCase(any(), any(), any()) } returns 10L
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            viewModel.onAddClick(sampleResult)
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.addToWatchlist(WatchStatus.PLAN_TO_WATCH)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val updated = expectMostRecentItem()
+            assertThat(updated.selectedResultForAdd).isNull()
+            assertThat(updated.addedMalIds).contains(21)
+            assertThat(updated.snackbarMessage).isEqualTo("One Punch Man")
+
+            coVerify { addAnimeUseCase(any(), any(), eq(WatchStatus.PLAN_TO_WATCH)) }
         }
     }
 

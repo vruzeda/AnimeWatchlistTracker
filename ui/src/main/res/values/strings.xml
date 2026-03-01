@@ -47,23 +47,38 @@
     <string name="cd_add_to_watchlist">Add to watchlist</string>
     <string name="search_add_sheet_title">Add to watchlist</string>
 
-    <!-- DetailScreen -->
-    <string name="detail_title">Anime Detail</string>
+    <!-- Common -->
     <string name="cd_back">Back</string>
+
+    <!-- AnimeDetailScreen -->
+    <string name="anime_detail_title">Anime Detail</string>
     <string name="cd_disable_notifications">Disable notifications</string>
     <string name="cd_enable_notifications">Enable notifications</string>
     <string name="cd_delete">Delete</string>
-    <string name="detail_not_found">Anime not found</string>
-    <string name="detail_change_status_title">Change status</string>
-    <string name="detail_mal_score">MAL Score: ★ %1$s</string>
-    <string name="detail_section_progress">Progress</string>
-    <string name="detail_section_your_rating">Your Rating</string>
-    <string name="detail_episode_count">%1$d episodes</string>
-    <string name="detail_section_synopsis">Synopsis</string>
-    <string name="detail_section_related">Related</string>
-    <string name="detail_section_episodes">Episodes</string>
-    <string name="detail_relation_prequel">Prequel</string>
-    <string name="detail_relation_sequel">Sequel</string>
-    <string name="detail_load_more_episodes">Load more episodes</string>
-    <string name="detail_add_sheet_title">Add to watchlist</string>
+    <string name="anime_detail_not_found">Anime not found</string>
+    <string name="anime_detail_change_status_title">Change status</string>
+    <string name="anime_detail_section_your_rating">Your Rating</string>
+    <string name="anime_detail_section_synopsis">Synopsis</string>
+    <string name="anime_detail_section_seasons">Seasons</string>
+    <string name="anime_detail_add_to_watchlist">Add to Watchlist</string>
+    <string name="anime_detail_add_sheet_title">Add to watchlist</string>
+    <string name="anime_detail_resolving">Resolving anime series…</string>
+    <string name="anime_detail_added_to_watchlist">%1$s added to watchlist</string>
+    <string name="anime_detail_season_score">★ %1$s</string>
+    <string name="anime_detail_season_episodes">%1$d / %2$d ep</string>
+    <string name="anime_detail_season_episodes_no_total">%1$d ep watched</string>
+
+    <!-- SeasonDetailScreen -->
+    <string name="season_detail_title">Season Detail</string>
+    <string name="season_detail_not_found">Season not found</string>
+    <string name="season_detail_mal_score">MAL Score: ★ %1$s</string>
+    <string name="season_detail_section_progress">Progress</string>
+    <string name="season_detail_section_episodes">Episodes</string>
+    <string name="season_detail_episode_count">%1$d episodes</string>
+    <string name="season_detail_load_more_episodes">Load more episodes</string>
+    <string name="season_detail_airing_status">Status: %1$s</string>
+
+    <!-- Search adding -->
+    <string name="search_resolving">Resolving…</string>
+    <string name="search_add_failed">Failed to add to watchlist</string>
 </resources>

@@ -27,5 +27,7 @@ data class SearchUiState(
     val isSortAscending: Boolean = SearchSortOption.DEFAULT.defaultAscending,
     val selectedFilter: SearchFilter = SearchFilter.ALL,
     val snackbarMessage: String? = null,
-    val pendingNavigationMalId: Int? = null
+    val pendingNavigationMalId: Int? = null,
+    val addedMalIds: Set<Int> = emptySet(),
+    val resolvingMalId: Int? = null
 )

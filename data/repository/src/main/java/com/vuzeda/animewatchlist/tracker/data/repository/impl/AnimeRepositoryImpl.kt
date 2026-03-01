@@ -29,6 +29,12 @@ class AnimeRepositoryImpl @Inject constructor(
     override fun observeSeasonsForAnime(animeId: Long): Flow<List<Season>> =
         seasonDao.observeByAnimeId(animeId).map { entities -> entities.map { it.toDomainModel() } }
 
+    override fun observeSeasonById(id: Long): Flow<Season?> =
+        seasonDao.observeById(id).map { it?.toDomainModel() }
+
+    override suspend fun findAnimeIdBySeasonMalId(malId: Int): Long? =
+        seasonDao.findByMalId(malId)?.animeId
+
     override suspend fun addAnime(anime: Anime, seasons: List<Season>): Long {
         val animeId = animeDao.insert(anime.toEntity())
         val seasonEntities = seasons.map { it.copy(animeId = animeId).toEntity() }

@@ -14,6 +14,12 @@ interface SeasonDao {
     @Query("SELECT * FROM season WHERE animeId = :animeId ORDER BY orderIndex ASC")
     fun observeByAnimeId(animeId: Long): Flow<List<SeasonEntity>>
 
+    @Query("SELECT * FROM season WHERE id = :id")
+    fun observeById(id: Long): Flow<SeasonEntity?>
+
+    @Query("SELECT * FROM season WHERE malId = :malId LIMIT 1")
+    suspend fun findByMalId(malId: Int): SeasonEntity?
+
     @Query("SELECT * FROM season WHERE animeId = :animeId ORDER BY orderIndex ASC")
     suspend fun getByAnimeId(animeId: Long): List<SeasonEntity>
 

@@ -2,7 +2,13 @@ package com.vuzeda.animewatchlist.tracker.ui.screens.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.SearchResult
+import com.vuzeda.animewatchlist.tracker.domain.model.Season
+import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
+import com.vuzeda.animewatchlist.tracker.domain.usecase.AddAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.FindAnimeBySeasonMalIdUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.ResolveAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.SearchAnimeUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,11 +20,17 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
-    private val searchAnimeUseCase: SearchAnimeUseCase
+    private val searchAnimeUseCase: SearchAnimeUseCase,
+    private val resolveAnimeUseCase: ResolveAnimeUseCase,
+    private val addAnimeUseCase: AddAnimeUseCase,
+    private val findAnimeBySeasonMalIdUseCase: FindAnimeBySeasonMalIdUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SearchUiState())
     val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
+
+    private var pendingResolvedAnime: Anime? = null
+    private var pendingResolvedSeasons: List<Season> = emptyList()
 
     fun updateQuery(query: String) {
         _uiState.update { it.copy(query = query) }
@@ -41,6 +53,7 @@ class SearchViewModel @Inject constructor(
                             hasSearched = true
                         )
                     }
+                    checkAddedResults(results)
                 }
                 .onFailure { error ->
                     _uiState.update {
@@ -75,10 +88,73 @@ class SearchViewModel @Inject constructor(
     }
 
     fun onAddClick(result: SearchResult) {
-        _uiState.update { it.copy(selectedResultForAdd = result) }
+        viewModelScope.launch {
+            _uiState.update { it.copy(resolvingMalId = result.malId) }
+
+            resolveAnimeUseCase(result.malId)
+                .onSuccess { resolved ->
+                    pendingResolvedAnime = Anime(
+                        title = resolved.title,
+                        imageUrl = resolved.imageUrl,
+                        synopsis = resolved.synopsis,
+                        genres = resolved.genres
+                    )
+                    pendingResolvedSeasons = resolved.seasons.mapIndexed { index, seasonData ->
+                        Season(
+                            malId = seasonData.malId,
+                            title = seasonData.title,
+                            imageUrl = seasonData.imageUrl,
+                            type = seasonData.type,
+                            episodeCount = seasonData.episodeCount,
+                            score = seasonData.score,
+                            airingStatus = seasonData.airingStatus,
+                            orderIndex = index
+                        )
+                    }
+                    _uiState.update {
+                        it.copy(
+                            resolvingMalId = null,
+                            selectedResultForAdd = result
+                        )
+                    }
+                }
+                .onFailure {
+                    _uiState.update {
+                        it.copy(
+                            resolvingMalId = null,
+                            snackbarMessage = it.snackbarMessage
+                        )
+                    }
+                }
+        }
+    }
+
+    fun addToWatchlist(status: WatchStatus) {
+        val anime = pendingResolvedAnime ?: return
+        val seasons = pendingResolvedSeasons
+        val result = _uiState.value.selectedResultForAdd
+
+        viewModelScope.launch {
+            addAnimeUseCase(anime = anime, seasons = seasons, status = status)
+            pendingResolvedAnime = null
+            pendingResolvedSeasons = emptyList()
+
+            val addedMalIds = _uiState.value.addedMalIds.toMutableSet()
+            seasons.forEach { addedMalIds.add(it.malId) }
+
+            _uiState.update {
+                it.copy(
+                    selectedResultForAdd = null,
+                    addedMalIds = addedMalIds,
+                    snackbarMessage = result?.title
+                )
+            }
+        }
     }
 
     fun dismissBottomSheet() {
+        pendingResolvedAnime = null
+        pendingResolvedSeasons = emptyList()
         _uiState.update { it.copy(selectedResultForAdd = null) }
     }
 
@@ -88,6 +164,19 @@ class SearchViewModel @Inject constructor(
 
     fun onNavigated() {
         _uiState.update { it.copy(pendingNavigationMalId = null) }
+    }
+
+    private fun checkAddedResults(results: List<SearchResult>) {
+        viewModelScope.launch {
+            val addedMalIds = mutableSetOf<Int>()
+            results.forEach { result ->
+                val animeId = findAnimeBySeasonMalIdUseCase(result.malId)
+                if (animeId != null) {
+                    addedMalIds.add(result.malId)
+                }
+            }
+            _uiState.update { it.copy(addedMalIds = it.addedMalIds + addedMalIds) }
+        }
     }
 }
 
