@@ -12,6 +12,7 @@ import com.vuzeda.animewatchlist.tracker.domain.usecase.AddSeasonsToAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FindAnimeBySeasonMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.GetSeasonsForAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ResolveAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.SearchAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.UpdateAnimeUseCase
@@ -35,7 +36,8 @@ class SearchViewModel @Inject constructor(
     private val updateSeasonUseCase: UpdateSeasonUseCase,
     private val getSeasonsForAnimeUseCase: GetSeasonsForAnimeUseCase,
     private val addSeasonsToAnimeUseCase: AddSeasonsToAnimeUseCase,
-    private val findAnimeBySeasonMalIdUseCase: FindAnimeBySeasonMalIdUseCase
+    private val findAnimeBySeasonMalIdUseCase: FindAnimeBySeasonMalIdUseCase,
+    private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase
 ) : ViewModel() {
 
     private val _rawResults = MutableStateFlow<List<SearchResult>>(emptyList())
@@ -47,14 +49,15 @@ class SearchViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            combine(_rawResults, _sortState) { results, sortState ->
-                sortResults(results, sortState.option, sortState.isAscending) to sortState
-            }.collect { (displayedResults, sortState) ->
+            combine(_rawResults, _sortState, observeTitleLanguageUseCase()) { results, sortState, titleLanguage ->
+                Triple(sortResults(results, sortState.option, sortState.isAscending), sortState, titleLanguage)
+            }.collect { (displayedResults, sortState, titleLanguage) ->
                 _uiState.update {
                     it.copy(
                         displayedResults = displayedResults,
                         sortOption = sortState.option,
-                        isSortAscending = sortState.isAscending
+                        isSortAscending = sortState.isAscending,
+                        titleLanguage = titleLanguage
                     )
                 }
             }
@@ -138,6 +141,8 @@ class SearchViewModel @Inject constructor(
         viewModelScope.launch {
             val anime = Anime(
                 title = details.title,
+                titleEnglish = details.titleEnglish,
+                titleJapanese = details.titleJapanese,
                 imageUrl = details.imageUrl,
                 synopsis = details.synopsis,
                 genres = details.genres
@@ -145,6 +150,8 @@ class SearchViewModel @Inject constructor(
             val season = Season(
                 malId = details.malId,
                 title = details.title,
+                titleEnglish = details.titleEnglish,
+                titleJapanese = details.titleJapanese,
                 imageUrl = details.imageUrl,
                 type = details.type,
                 episodeCount = details.episodes,
@@ -201,6 +208,8 @@ class SearchViewModel @Inject constructor(
                         Season(
                             malId = seasonData.malId,
                             title = seasonData.title,
+                            titleEnglish = seasonData.titleEnglish,
+                            titleJapanese = seasonData.titleJapanese,
                             imageUrl = seasonData.imageUrl,
                             type = seasonData.type,
                             episodeCount = seasonData.episodeCount,
@@ -218,6 +227,8 @@ class SearchViewModel @Inject constructor(
                     Anime(
                         id = animeId,
                         title = resolved.title,
+                        titleEnglish = resolved.titleEnglish,
+                        titleJapanese = resolved.titleJapanese,
                         imageUrl = resolved.imageUrl,
                         synopsis = resolved.synopsis,
                         genres = resolved.genres,

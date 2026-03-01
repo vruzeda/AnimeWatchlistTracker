@@ -7,9 +7,11 @@ import com.vuzeda.animewatchlist.tracker.domain.model.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.domain.model.EpisodeInfo
 import com.vuzeda.animewatchlist.tracker.domain.model.EpisodePage
 import com.vuzeda.animewatchlist.tracker.domain.model.Season
+import com.vuzeda.animewatchlist.tracker.domain.model.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchEpisodesUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveSeasonByIdUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.UpdateSeasonProgressUseCase
 import com.vuzeda.animewatchlist.tracker.ui.navigation.Route
 import io.mockk.coEvery
@@ -19,6 +21,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -35,6 +38,7 @@ class SeasonDetailViewModelTest {
     private val fetchSeasonDetailUseCase: FetchSeasonDetailUseCase = mockk()
     private val fetchEpisodesUseCase: FetchEpisodesUseCase = mockk()
     private val updateSeasonProgressUseCase: UpdateSeasonProgressUseCase = mockk(relaxed = true)
+    private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
 
     private val sampleSeason = Season(
         id = 1L,
@@ -60,6 +64,7 @@ class SeasonDetailViewModelTest {
         Dispatchers.setMain(testDispatcher)
         seasonFlow = MutableStateFlow(sampleSeason)
         every { observeSeasonByIdUseCase(1L) } returns seasonFlow
+        every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
         coEvery { fetchEpisodesUseCase(malId = 16498, page = 1) } returns Result.success(
             EpisodePage(episodes = sampleEpisodes, hasNextPage = true, nextPage = 2)
         )
@@ -82,7 +87,8 @@ class SeasonDetailViewModelTest {
             observeSeasonByIdUseCase = observeSeasonByIdUseCase,
             fetchSeasonDetailUseCase = fetchSeasonDetailUseCase,
             fetchEpisodesUseCase = fetchEpisodesUseCase,
-            updateSeasonProgressUseCase = updateSeasonProgressUseCase
+            updateSeasonProgressUseCase = updateSeasonProgressUseCase,
+            observeTitleLanguageUseCase = observeTitleLanguageUseCase
         )
     }
 

@@ -17,6 +17,8 @@ class ResolveAnimeUseCase @Inject constructor(
 
         ResolvedSeries(
             title = rootDetails?.title ?: rootSeason.title,
+            titleEnglish = rootDetails?.titleEnglish ?: rootSeason.titleEnglish,
+            titleJapanese = rootDetails?.titleJapanese ?: rootSeason.titleJapanese,
             imageUrl = rootDetails?.imageUrl ?: rootSeason.imageUrl,
             synopsis = rootDetails?.synopsis,
             genres = rootDetails?.genres ?: emptyList(),

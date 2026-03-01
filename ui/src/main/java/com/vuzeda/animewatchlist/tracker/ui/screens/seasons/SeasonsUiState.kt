@@ -3,6 +3,7 @@ package com.vuzeda.animewatchlist.tracker.ui.screens.seasons
 import androidx.annotation.StringRes
 import com.vuzeda.animewatchlist.tracker.domain.model.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.domain.model.SearchResult
+import com.vuzeda.animewatchlist.tracker.domain.model.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.ui.R
 
 enum class SeasonsSortOption(@param:StringRes val displayLabelRes: Int, val defaultAscending: Boolean) {
@@ -30,6 +31,7 @@ data class SeasonsUiState(
     val hasNextPage: Boolean = false,
     val currentPage: Int = 1,
     val errorMessage: String? = null,
+    val titleLanguage: TitleLanguage = TitleLanguage.DEFAULT,
     val selectedResultForAdd: SearchResult? = null,
     val snackbarMessage: String? = null,
     val pendingNavigationMalId: Int? = null,

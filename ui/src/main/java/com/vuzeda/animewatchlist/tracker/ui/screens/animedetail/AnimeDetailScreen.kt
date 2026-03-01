@@ -54,6 +54,8 @@ import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusOption
 import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusSelectionSheet
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.Season
+import com.vuzeda.animewatchlist.tracker.domain.model.TitleLanguage
+import com.vuzeda.animewatchlist.tracker.domain.model.resolveDisplayTitle
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.ui.R
 import com.vuzeda.animewatchlist.tracker.ui.screens.home.toColor
@@ -179,13 +181,20 @@ fun AnimeDetailScreen(
                         onSeasonClick = onSeasonClick
                     )
 
+                    val animeDisplayTitle = resolveDisplayTitle(
+                        title = uiState.anime.title,
+                        titleEnglish = uiState.anime.titleEnglish,
+                        titleJapanese = uiState.anime.titleJapanese,
+                        language = uiState.titleLanguage
+                    )
+
                     if (uiState.isStatusSheetVisible) {
                         val statusOptions = WatchStatus.entries.map {
                             StatusOption(stringResource(it.toDisplayLabelRes()), it.toColor())
                         }
                         StatusSelectionSheet(
                             title = stringResource(R.string.anime_detail_change_status_title),
-                            subtitle = uiState.anime.title,
+                            subtitle = animeDisplayTitle,
                             options = statusOptions,
                             onOptionSelected = { index ->
                                 onStatusSelected(WatchStatus.entries[index])
@@ -201,7 +210,7 @@ fun AnimeDetailScreen(
                         }
                         StatusSelectionSheet(
                             title = stringResource(R.string.anime_detail_add_sheet_title),
-                            subtitle = uiState.anime.title,
+                            subtitle = animeDisplayTitle,
                             options = statusOptions,
                             onOptionSelected = { index ->
                                 onAddStatusSelected(WatchStatus.entries[index])
@@ -233,6 +242,7 @@ private fun AnimeDetailContent(
         item(key = "header") {
             AnimeHeaderSection(
                 anime = anime,
+                titleLanguage = state.titleLanguage,
                 isInWatchlist = state.isInWatchlist,
                 onStatusChipClick = onStatusChipClick,
                 onAddToWatchlistClick = onAddToWatchlistClick
@@ -294,6 +304,7 @@ private fun AnimeDetailContent(
             ) { season ->
                 SeasonCardItem(
                     season = season,
+                    titleLanguage = state.titleLanguage,
                     isInWatchlist = state.isInWatchlist,
                     onClick = { onSeasonClick(season.id, season.malId) }
                 )
@@ -312,14 +323,21 @@ private fun AnimeDetailContent(
 @Composable
 private fun AnimeHeaderSection(
     anime: Anime,
+    titleLanguage: TitleLanguage,
     isInWatchlist: Boolean,
     onStatusChipClick: () -> Unit,
     onAddToWatchlistClick: () -> Unit
 ) {
+    val displayTitle = resolveDisplayTitle(
+        title = anime.title,
+        titleEnglish = anime.titleEnglish,
+        titleJapanese = anime.titleJapanese,
+        language = titleLanguage
+    )
     Row(modifier = Modifier.fillMaxWidth()) {
         AsyncImage(
             model = anime.imageUrl,
-            contentDescription = anime.title,
+            contentDescription = displayTitle,
             modifier = Modifier
                 .width(120.dp)
                 .height(170.dp)
@@ -334,7 +352,7 @@ private fun AnimeHeaderSection(
 
         Column {
             Text(
-                text = anime.title,
+                text = displayTitle,
                 style = MaterialTheme.typography.headlineMedium
             )
 
@@ -384,9 +402,16 @@ private fun SeasonLoadingIndicator() {
 @Composable
 private fun SeasonCardItem(
     season: Season,
+    titleLanguage: TitleLanguage,
     isInWatchlist: Boolean,
     onClick: () -> Unit
 ) {
+    val displayTitle = resolveDisplayTitle(
+        title = season.title,
+        titleEnglish = season.titleEnglish,
+        titleJapanese = season.titleJapanese,
+        language = titleLanguage
+    )
     val totalEpisodes = season.episodeCount
     val episodeText = if (isInWatchlist && totalEpisodes != null) {
         stringResource(R.string.anime_detail_season_episodes, season.currentEpisode, totalEpisodes)
@@ -403,7 +428,7 @@ private fun SeasonCardItem(
     }
 
     AnimeCard(
-        title = season.title,
+        title = displayTitle,
         imageUrl = season.imageUrl,
         onClick = onClick,
         score = season.score,

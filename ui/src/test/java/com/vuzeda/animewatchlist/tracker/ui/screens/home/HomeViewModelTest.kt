@@ -3,8 +3,10 @@ package com.vuzeda.animewatchlist.tracker.ui.screens.home
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
+import com.vuzeda.animewatchlist.tracker.domain.model.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveAnimeListUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveTitleLanguageUseCase
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -24,6 +26,7 @@ class HomeViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
     private val observeAnimeListUseCase: ObserveAnimeListUseCase = mockk()
+    private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
 
     private val sampleAnimeList = listOf(
         Anime(id = 1L, title = "Attack on Titan", status = WatchStatus.WATCHING, userRating = 8, addedAt = 1000L, isNotificationsEnabled = true),
@@ -34,6 +37,7 @@ class HomeViewModelTest {
     @BeforeEach
     fun setup() {
         Dispatchers.setMain(testDispatcher)
+        every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
     }
 
     @AfterEach
@@ -43,7 +47,7 @@ class HomeViewModelTest {
 
     private fun createViewModel(): HomeViewModel {
         every { observeAnimeListUseCase() } returns flowOf(sampleAnimeList)
-        return HomeViewModel(observeAnimeListUseCase)
+        return HomeViewModel(observeAnimeListUseCase, observeTitleLanguageUseCase)
     }
 
     @Test
@@ -248,7 +252,7 @@ class HomeViewModelTest {
         val watchlistFlow = MutableStateFlow(sampleAnimeList)
         every { observeAnimeListUseCase() } returns watchlistFlow
 
-        val viewModel = HomeViewModel(observeAnimeListUseCase)
+        val viewModel = HomeViewModel(observeAnimeListUseCase, observeTitleLanguageUseCase)
 
         viewModel.uiState.test {
             skipItems(2)

@@ -41,6 +41,8 @@ import com.vuzeda.animewatchlist.tracker.designsystem.component.EpisodeListItem
 import com.vuzeda.animewatchlist.tracker.designsystem.component.EpisodeStepper
 import com.vuzeda.animewatchlist.tracker.domain.model.EpisodeInfo
 import com.vuzeda.animewatchlist.tracker.domain.model.Season
+import com.vuzeda.animewatchlist.tracker.domain.model.TitleLanguage
+import com.vuzeda.animewatchlist.tracker.domain.model.resolveDisplayTitle
 import com.vuzeda.animewatchlist.tracker.ui.R
 
 @Composable
@@ -118,7 +120,7 @@ private fun SeasonDetailContent(
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
-        SeasonHeaderSection(season = season)
+        SeasonHeaderSection(season = season, titleLanguage = state.titleLanguage)
 
         if (state.isInWatchlist) {
             Spacer(modifier = Modifier.height(24.dp))
@@ -181,11 +183,17 @@ private fun SeasonDetailContent(
 }
 
 @Composable
-private fun SeasonHeaderSection(season: Season) {
+private fun SeasonHeaderSection(season: Season, titleLanguage: TitleLanguage) {
+    val displayTitle = resolveDisplayTitle(
+        title = season.title,
+        titleEnglish = season.titleEnglish,
+        titleJapanese = season.titleJapanese,
+        language = titleLanguage
+    )
     Row(modifier = Modifier.fillMaxWidth()) {
         AsyncImage(
             model = season.imageUrl,
-            contentDescription = season.title,
+            contentDescription = displayTitle,
             modifier = Modifier
                 .width(120.dp)
                 .height(170.dp)
@@ -200,7 +208,7 @@ private fun SeasonHeaderSection(season: Season) {
 
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
-                text = season.title,
+                text = displayTitle,
                 style = MaterialTheme.typography.headlineMedium
             )
 

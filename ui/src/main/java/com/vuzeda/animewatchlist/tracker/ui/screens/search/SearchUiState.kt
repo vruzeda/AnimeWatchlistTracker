@@ -2,6 +2,7 @@ package com.vuzeda.animewatchlist.tracker.ui.screens.search
 
 import androidx.annotation.StringRes
 import com.vuzeda.animewatchlist.tracker.domain.model.SearchResult
+import com.vuzeda.animewatchlist.tracker.domain.model.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.ui.R
 
@@ -31,6 +32,7 @@ data class SearchUiState(
     val sortOption: SearchSortOption = SearchSortOption.DEFAULT,
     val isSortAscending: Boolean = SearchSortOption.DEFAULT.defaultAscending,
     val selectedFilter: SearchFilter = SearchFilter.ALL,
+    val titleLanguage: TitleLanguage = TitleLanguage.DEFAULT,
     val snackbarMessage: String? = null,
     val pendingNavigationMalId: Int? = null,
     val addedMalIds: Set<Int> = emptySet(),

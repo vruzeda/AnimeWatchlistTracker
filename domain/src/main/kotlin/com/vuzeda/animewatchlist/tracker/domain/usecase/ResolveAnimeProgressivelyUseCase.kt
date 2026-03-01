@@ -18,6 +18,8 @@ class ResolveAnimeProgressivelyUseCase @Inject constructor(
         emit(
             ProgressiveResolveResult(
                 title = rootSeason.title,
+                titleEnglish = rootSeason.titleEnglish,
+                titleJapanese = rootSeason.titleJapanese,
                 imageUrl = rootSeason.imageUrl,
                 synopsis = null,
                 genres = emptyList(),
@@ -32,6 +34,8 @@ class ResolveAnimeProgressivelyUseCase @Inject constructor(
             emit(
                 ProgressiveResolveResult(
                     title = rootDetails.title,
+                    titleEnglish = rootDetails.titleEnglish,
+                    titleJapanese = rootDetails.titleJapanese,
                     imageUrl = rootDetails.imageUrl ?: rootSeason.imageUrl,
                     synopsis = rootDetails.synopsis,
                     genres = rootDetails.genres,

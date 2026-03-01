@@ -11,12 +11,14 @@ import com.vuzeda.animewatchlist.tracker.domain.usecase.DeleteAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FindAnimeBySeasonMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveAnimeByIdUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveSeasonsForAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ResolveAnimeProgressivelyUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ToggleAnimeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.UpdateAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.ui.navigation.Route
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import com.vuzeda.animewatchlist.tracker.domain.model.TitleLanguage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.StateFlow
@@ -36,7 +38,8 @@ class AnimeDetailViewModel @Inject constructor(
     private val toggleAnimeNotificationsUseCase: ToggleAnimeNotificationsUseCase,
     private val resolveAnimeProgressivelyUseCase: ResolveAnimeProgressivelyUseCase,
     private val addAnimeUseCase: AddAnimeUseCase,
-    private val findAnimeBySeasonMalIdUseCase: FindAnimeBySeasonMalIdUseCase
+    private val findAnimeBySeasonMalIdUseCase: FindAnimeBySeasonMalIdUseCase,
+    private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase
 ) : ViewModel() {
 
     private val animeId: Long = checkNotNull(savedStateHandle[Route.AnimeDetail.ARG_ANIME_ID])
@@ -51,12 +54,26 @@ class AnimeDetailViewModel @Inject constructor(
     private var resolvedSeasons: List<Season> = emptyList()
 
     init {
+        observeTitleLanguage()
         if (animeId > 0) {
             observeAnime(animeId)
         } else if (malId > 0) {
             resolveFromApi()
         } else {
             _uiState.value = AnimeDetailUiState.NotFound
+        }
+    }
+
+    private fun observeTitleLanguage() {
+        viewModelScope.launch {
+            observeTitleLanguageUseCase().collect { titleLanguage ->
+                _uiState.update { state ->
+                    when (state) {
+                        is AnimeDetailUiState.Success -> state.copy(titleLanguage = titleLanguage)
+                        else -> state
+                    }
+                }
+            }
         }
     }
 
@@ -105,6 +122,8 @@ class AnimeDetailViewModel @Inject constructor(
                 .collect { result ->
                     val anime = Anime(
                         title = result.title,
+                        titleEnglish = result.titleEnglish,
+                        titleJapanese = result.titleJapanese,
                         imageUrl = result.imageUrl,
                         synopsis = result.synopsis,
                         genres = result.genres
@@ -113,6 +132,8 @@ class AnimeDetailViewModel @Inject constructor(
                         Season(
                             malId = seasonData.malId,
                             title = seasonData.title,
+                            titleEnglish = seasonData.titleEnglish,
+                            titleJapanese = seasonData.titleJapanese,
                             imageUrl = seasonData.imageUrl,
                             type = seasonData.type,
                             episodeCount = seasonData.episodeCount,

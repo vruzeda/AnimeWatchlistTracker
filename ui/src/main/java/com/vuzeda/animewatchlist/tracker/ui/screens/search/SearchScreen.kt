@@ -45,6 +45,7 @@ import com.vuzeda.animewatchlist.tracker.designsystem.component.SortMenuButton
 import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusOption
 import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusSelectionSheet
 import com.vuzeda.animewatchlist.tracker.domain.model.SearchResult
+import com.vuzeda.animewatchlist.tracker.domain.model.resolveDisplayTitle
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.ui.R
 import com.vuzeda.animewatchlist.tracker.ui.screens.home.toColor
@@ -185,8 +186,14 @@ fun SearchScreen(
                         ) { result ->
                             val isAdded = result.malId in uiState.addedMalIds
                             val isResolving = uiState.resolvingMalId == result.malId
-                            AnimeCard(
+                            val displayTitle = resolveDisplayTitle(
                                 title = result.title,
+                                titleEnglish = result.titleEnglish,
+                                titleJapanese = result.titleJapanese,
+                                language = uiState.titleLanguage
+                            )
+                            AnimeCard(
+                                title = displayTitle,
                                 imageUrl = result.imageUrl,
                                 onClick = { onResultClick(result) },
                                 score = result.score,
@@ -222,9 +229,15 @@ fun SearchScreen(
                         val statusOptions = WatchStatus.entries.map {
                             StatusOption(stringResource(it.toDisplayLabelRes()), it.toColor())
                         }
+                        val sheetSubtitle = resolveDisplayTitle(
+                            title = uiState.selectedResultForAdd.title,
+                            titleEnglish = uiState.selectedResultForAdd.titleEnglish,
+                            titleJapanese = uiState.selectedResultForAdd.titleJapanese,
+                            language = uiState.titleLanguage
+                        )
                         StatusSelectionSheet(
                             title = stringResource(R.string.search_add_sheet_title),
-                            subtitle = uiState.selectedResultForAdd.title,
+                            subtitle = sheetSubtitle,
                             options = statusOptions,
                             onOptionSelected = { index ->
                                 onAddStatusSelected(WatchStatus.entries[index])

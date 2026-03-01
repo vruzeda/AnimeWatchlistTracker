@@ -7,6 +7,7 @@ import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchEpisodesUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveSeasonByIdUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.UpdateSeasonProgressUseCase
 import com.vuzeda.animewatchlist.tracker.ui.navigation.Route
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,7 +24,8 @@ class SeasonDetailViewModel @Inject constructor(
     private val observeSeasonByIdUseCase: ObserveSeasonByIdUseCase,
     private val fetchSeasonDetailUseCase: FetchSeasonDetailUseCase,
     private val fetchEpisodesUseCase: FetchEpisodesUseCase,
-    private val updateSeasonProgressUseCase: UpdateSeasonProgressUseCase
+    private val updateSeasonProgressUseCase: UpdateSeasonProgressUseCase,
+    private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase
 ) : ViewModel() {
 
     private val seasonId: Long = checkNotNull(savedStateHandle[Route.SeasonDetail.ARG_SEASON_ID])
@@ -33,12 +35,26 @@ class SeasonDetailViewModel @Inject constructor(
     val uiState: StateFlow<SeasonDetailUiState> = _uiState.asStateFlow()
 
     init {
+        observeTitleLanguage()
         if (seasonId > 0) {
             observeSeason()
         } else if (malId > 0) {
             loadFromApi()
         } else {
             _uiState.value = SeasonDetailUiState.NotFound
+        }
+    }
+
+    private fun observeTitleLanguage() {
+        viewModelScope.launch {
+            observeTitleLanguageUseCase().collect { titleLanguage ->
+                _uiState.update { state ->
+                    when (state) {
+                        is SeasonDetailUiState.Success -> state.copy(titleLanguage = titleLanguage)
+                        else -> state
+                    }
+                }
+            }
         }
     }
 
@@ -72,6 +88,8 @@ class SeasonDetailViewModel @Inject constructor(
                     val season = Season(
                         malId = details.malId,
                         title = details.title,
+                        titleEnglish = details.titleEnglish,
+                        titleJapanese = details.titleJapanese,
                         imageUrl = details.imageUrl,
                         type = details.type,
                         episodeCount = details.episodes,

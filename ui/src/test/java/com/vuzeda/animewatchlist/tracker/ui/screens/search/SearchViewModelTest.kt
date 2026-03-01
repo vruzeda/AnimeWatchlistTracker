@@ -11,17 +11,21 @@ import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.usecase.AddAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.AddSeasonsToAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchSeasonDetailUseCase
+import com.vuzeda.animewatchlist.tracker.domain.model.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FindAnimeBySeasonMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.GetSeasonsForAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ResolveAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.SearchAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.UpdateAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.UpdateSeasonUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -44,6 +48,7 @@ class SearchViewModelTest {
     private val getSeasonsForAnimeUseCase: GetSeasonsForAnimeUseCase = mockk()
     private val addSeasonsToAnimeUseCase: AddSeasonsToAnimeUseCase = mockk(relaxed = true)
     private val findAnimeBySeasonMalIdUseCase: FindAnimeBySeasonMalIdUseCase = mockk()
+    private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
 
     private lateinit var viewModel: SearchViewModel
 
@@ -67,6 +72,7 @@ class SearchViewModelTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         coEvery { findAnimeBySeasonMalIdUseCase(any()) } returns null
+        every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
         coEvery { resolveAnimeUseCase(any()) } returns Result.success(
             ResolvedSeries(
                 title = "One Punch Man",
@@ -85,7 +91,8 @@ class SearchViewModelTest {
             updateSeasonUseCase = updateSeasonUseCase,
             getSeasonsForAnimeUseCase = getSeasonsForAnimeUseCase,
             addSeasonsToAnimeUseCase = addSeasonsToAnimeUseCase,
-            findAnimeBySeasonMalIdUseCase = findAnimeBySeasonMalIdUseCase
+            findAnimeBySeasonMalIdUseCase = findAnimeBySeasonMalIdUseCase,
+            observeTitleLanguageUseCase = observeTitleLanguageUseCase
         )
     }
 

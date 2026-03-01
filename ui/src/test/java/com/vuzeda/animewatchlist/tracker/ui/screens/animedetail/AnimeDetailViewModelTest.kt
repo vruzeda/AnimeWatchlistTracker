@@ -11,8 +11,10 @@ import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.usecase.AddAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.DeleteAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FindAnimeBySeasonMalIdUseCase
+import com.vuzeda.animewatchlist.tracker.domain.model.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveAnimeByIdUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveSeasonsForAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ResolveAnimeProgressivelyUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ToggleAnimeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.UpdateAnimeUseCase
@@ -23,6 +25,7 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -45,6 +48,7 @@ class AnimeDetailViewModelTest {
     private val resolveAnimeProgressivelyUseCase: ResolveAnimeProgressivelyUseCase = mockk()
     private val addAnimeUseCase: AddAnimeUseCase = mockk()
     private val findAnimeBySeasonMalIdUseCase: FindAnimeBySeasonMalIdUseCase = mockk()
+    private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
 
     private val sampleAnime = Anime(
         id = 1L,
@@ -68,6 +72,7 @@ class AnimeDetailViewModelTest {
         seasonsFlow = MutableStateFlow(sampleSeasons)
         every { observeAnimeByIdUseCase(1L) } returns animeFlow
         every { observeSeasonsForAnimeUseCase(1L) } returns seasonsFlow
+        every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
     }
 
     @AfterEach
@@ -91,7 +96,8 @@ class AnimeDetailViewModelTest {
             toggleAnimeNotificationsUseCase = toggleAnimeNotificationsUseCase,
             resolveAnimeProgressivelyUseCase = resolveAnimeProgressivelyUseCase,
             addAnimeUseCase = addAnimeUseCase,
-            findAnimeBySeasonMalIdUseCase = findAnimeBySeasonMalIdUseCase
+            findAnimeBySeasonMalIdUseCase = findAnimeBySeasonMalIdUseCase,
+            observeTitleLanguageUseCase = observeTitleLanguageUseCase
         )
     }
 

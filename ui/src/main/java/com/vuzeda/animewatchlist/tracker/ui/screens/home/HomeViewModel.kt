@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveAnimeListUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveTitleLanguageUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,7 +17,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val observeAnimeListUseCase: ObserveAnimeListUseCase
+    private val observeAnimeListUseCase: ObserveAnimeListUseCase,
+    private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase
 ) : ViewModel() {
 
     private val _filterState = MutableStateFlow(HomeFilterState())
@@ -29,8 +31,9 @@ class HomeViewModel @Inject constructor(
             combine(
                 observeAnimeListUseCase(),
                 _filterState,
-                _sortState
-            ) { animeList, filterState, sortState ->
+                _sortState,
+                observeTitleLanguageUseCase()
+            ) { animeList, filterState, sortState, titleLanguage ->
                 HomeUiState(
                     animeList = sortAnimeList(
                         list = applyFilters(animeList, filterState),
@@ -40,6 +43,7 @@ class HomeViewModel @Inject constructor(
                     filterState = filterState,
                     sortOption = sortState.option,
                     isSortAscending = sortState.isAscending,
+                    titleLanguage = titleLanguage,
                     isLoading = false
                 )
             }.collect { state ->

@@ -2,11 +2,16 @@ package com.vuzeda.animewatchlist.tracker.ui.screens.settings
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
+import com.vuzeda.animewatchlist.tracker.domain.model.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.domain.usecase.DeleteAllDataUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveTitleLanguageUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.SetTitleLanguageUseCase
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -20,10 +25,13 @@ class SettingsViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
     private val deleteAllDataUseCase: DeleteAllDataUseCase = mockk(relaxUnitFun = true)
+    private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
+    private val setTitleLanguageUseCase: SetTitleLanguageUseCase = mockk(relaxUnitFun = true)
 
     @BeforeEach
     fun setup() {
         Dispatchers.setMain(testDispatcher)
+        every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
     }
 
     @AfterEach
@@ -33,7 +41,7 @@ class SettingsViewModelTest {
 
     @Test
     fun `initial state has dialog hidden and data not deleted`() = runTest {
-        val viewModel = SettingsViewModel(deleteAllDataUseCase)
+        val viewModel = SettingsViewModel(deleteAllDataUseCase, observeTitleLanguageUseCase, setTitleLanguageUseCase)
 
         viewModel.uiState.test {
             val initial = awaitItem()
@@ -44,7 +52,7 @@ class SettingsViewModelTest {
 
     @Test
     fun `requestDeleteAllData shows confirmation dialog`() = runTest {
-        val viewModel = SettingsViewModel(deleteAllDataUseCase)
+        val viewModel = SettingsViewModel(deleteAllDataUseCase, observeTitleLanguageUseCase, setTitleLanguageUseCase)
 
         viewModel.uiState.test {
             awaitItem()
@@ -58,7 +66,7 @@ class SettingsViewModelTest {
 
     @Test
     fun `dismissDeleteConfirmation hides dialog`() = runTest {
-        val viewModel = SettingsViewModel(deleteAllDataUseCase)
+        val viewModel = SettingsViewModel(deleteAllDataUseCase, observeTitleLanguageUseCase, setTitleLanguageUseCase)
 
         viewModel.uiState.test {
             awaitItem()
@@ -75,7 +83,7 @@ class SettingsViewModelTest {
 
     @Test
     fun `confirmDeleteAllData calls use case and sets data deleted flag`() = runTest {
-        val viewModel = SettingsViewModel(deleteAllDataUseCase)
+        val viewModel = SettingsViewModel(deleteAllDataUseCase, observeTitleLanguageUseCase, setTitleLanguageUseCase)
 
         viewModel.uiState.test {
             awaitItem()
@@ -97,7 +105,7 @@ class SettingsViewModelTest {
 
     @Test
     fun `clearDataDeletedFlag resets the flag`() = runTest {
-        val viewModel = SettingsViewModel(deleteAllDataUseCase)
+        val viewModel = SettingsViewModel(deleteAllDataUseCase, observeTitleLanguageUseCase, setTitleLanguageUseCase)
 
         viewModel.uiState.test {
             awaitItem()

@@ -104,6 +104,10 @@
 
     <!-- SettingsScreen -->
     <string name="settings_title">Settings</string>
+    <string name="settings_title_language">Title Language</string>
+    <string name="settings_title_language_default">Default (Romaji)</string>
+    <string name="settings_title_language_english">English</string>
+    <string name="settings_title_language_japanese">Japanese</string>
     <string name="settings_delete_all_data">Delete all data</string>
     <string name="settings_delete_dialog_title">Delete all data?</string>
     <string name="settings_delete_dialog_message">This will permanently remove all anime and seasons from your watchlist. This action cannot be undone.</string>

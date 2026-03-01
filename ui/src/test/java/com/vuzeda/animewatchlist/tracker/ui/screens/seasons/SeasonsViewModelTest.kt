@@ -13,16 +13,20 @@ import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.usecase.AddAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.AddSeasonsToAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchSeasonDetailUseCase
+import com.vuzeda.animewatchlist.tracker.domain.model.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FindAnimeBySeasonMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.GetSeasonAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.GetSeasonsForAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ResolveAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.UpdateAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.UpdateSeasonUseCase
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -45,6 +49,7 @@ class SeasonsViewModelTest {
     private val getSeasonsForAnimeUseCase: GetSeasonsForAnimeUseCase = mockk()
     private val addSeasonsToAnimeUseCase: AddSeasonsToAnimeUseCase = mockk(relaxed = true)
     private val findAnimeBySeasonMalIdUseCase: FindAnimeBySeasonMalIdUseCase = mockk()
+    private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
 
     private val samplePage = SeasonalAnimePage(
         results = listOf(
@@ -77,6 +82,7 @@ class SeasonsViewModelTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         coEvery { findAnimeBySeasonMalIdUseCase(any()) } returns null
+        every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
         coEvery { getSeasonAnimeUseCase(any(), any(), any()) } returns Result.success(samplePage)
     }
 
@@ -94,7 +100,8 @@ class SeasonsViewModelTest {
         updateSeasonUseCase = updateSeasonUseCase,
         getSeasonsForAnimeUseCase = getSeasonsForAnimeUseCase,
         addSeasonsToAnimeUseCase = addSeasonsToAnimeUseCase,
-        findAnimeBySeasonMalIdUseCase = findAnimeBySeasonMalIdUseCase
+        findAnimeBySeasonMalIdUseCase = findAnimeBySeasonMalIdUseCase,
+        observeTitleLanguageUseCase = observeTitleLanguageUseCase
     )
 
     @Test

@@ -29,6 +29,7 @@ import com.vuzeda.animewatchlist.tracker.designsystem.component.NestedFilterMenu
 import com.vuzeda.animewatchlist.tracker.designsystem.component.SortMenuButton
 import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusChip
 import com.vuzeda.animewatchlist.tracker.designsystem.theme.StatusCompleted
+import com.vuzeda.animewatchlist.tracker.domain.model.resolveDisplayTitle
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.ui.R
 import com.vuzeda.animewatchlist.tracker.designsystem.theme.StatusDropped
@@ -143,8 +144,14 @@ fun HomeScreen(
                         items = uiState.animeList,
                         key = { it.id }
                     ) { anime ->
-                        AnimeCard(
+                        val displayTitle = resolveDisplayTitle(
                             title = anime.title,
+                            titleEnglish = anime.titleEnglish,
+                            titleJapanese = anime.titleJapanese,
+                            language = uiState.titleLanguage
+                        )
+                        AnimeCard(
+                            title = displayTitle,
                             imageUrl = anime.imageUrl,
                             onClick = { onAnimeClick(anime.id) },
                             genresText = anime.genres.takeIf { it.isNotEmpty() }?.joinToString(", "),
