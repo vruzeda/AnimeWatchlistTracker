@@ -1,7 +1,15 @@
 package com.vuzeda.animewatchlist.tracker.ui.screens.seasons
 
+import androidx.annotation.StringRes
 import com.vuzeda.animewatchlist.tracker.domain.model.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.domain.model.SearchResult
+import com.vuzeda.animewatchlist.tracker.ui.R
+
+enum class SeasonsSortOption(@param:StringRes val displayLabelRes: Int, val defaultAscending: Boolean) {
+    DEFAULT(R.string.seasons_sort_default, true),
+    ALPHABETICAL(R.string.sort_alphabetical, true),
+    SCORE(R.string.sort_score, false)
+}
 
 data class SeasonsUiState(
     val selectedYear: Int = 0,
@@ -9,6 +17,9 @@ data class SeasonsUiState(
     val currentYear: Int = 0,
     val currentSeason: AnimeSeason = AnimeSeason.WINTER,
     val animeList: List<SearchResult> = emptyList(),
+    val displayedAnimeList: List<SearchResult> = emptyList(),
+    val sortOption: SeasonsSortOption = SeasonsSortOption.DEFAULT,
+    val isSortAscending: Boolean = SeasonsSortOption.DEFAULT.defaultAscending,
     val isLoading: Boolean = false,
     val isLoadingMore: Boolean = false,
     val hasNextPage: Boolean = false,

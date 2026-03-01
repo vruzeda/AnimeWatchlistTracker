@@ -110,7 +110,8 @@ class SeasonsViewModelTest {
             val loaded = awaitItem()
             assertThat(loaded.isLoading).isFalse()
             assertThat(loaded.animeList).hasSize(2)
-            assertThat(loaded.animeList[0].title).isEqualTo("Frieren")
+            assertThat(loaded.displayedAnimeList).hasSize(2)
+            assertThat(loaded.displayedAnimeList[0].title).isEqualTo("Frieren")
             assertThat(loaded.hasNextPage).isTrue()
         }
     }
@@ -316,6 +317,77 @@ class SeasonsViewModelTest {
 
             val dismissed = awaitItem()
             assertThat(dismissed.selectedResultForAdd).isNull()
+        }
+    }
+
+    @Test
+    fun `selectSort by alphabetical sorts displayedAnimeList`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            skipItems(3)
+
+            viewModel.selectSort(SeasonsSortOption.ALPHABETICAL)
+
+            val sorted = awaitItem()
+            assertThat(sorted.sortOption).isEqualTo(SeasonsSortOption.ALPHABETICAL)
+            assertThat(sorted.isSortAscending).isTrue()
+            assertThat(sorted.displayedAnimeList[0].title).isEqualTo("Frieren")
+            assertThat(sorted.displayedAnimeList[1].title).isEqualTo("Jujutsu Kaisen")
+        }
+    }
+
+    @Test
+    fun `selectSort by score sorts displayedAnimeList descending`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            skipItems(3)
+
+            viewModel.selectSort(SeasonsSortOption.SCORE)
+
+            val sorted = awaitItem()
+            assertThat(sorted.sortOption).isEqualTo(SeasonsSortOption.SCORE)
+            assertThat(sorted.isSortAscending).isFalse()
+            assertThat(sorted.displayedAnimeList[0].title).isEqualTo("Frieren")
+            assertThat(sorted.displayedAnimeList[1].title).isEqualTo("Jujutsu Kaisen")
+        }
+    }
+
+    @Test
+    fun `selectSort toggles ascending when same option selected twice`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            skipItems(3)
+
+            viewModel.selectSort(SeasonsSortOption.ALPHABETICAL)
+            val first = awaitItem()
+            assertThat(first.isSortAscending).isTrue()
+
+            viewModel.selectSort(SeasonsSortOption.ALPHABETICAL)
+            val toggled = awaitItem()
+            assertThat(toggled.isSortAscending).isFalse()
+            assertThat(toggled.displayedAnimeList[0].title).isEqualTo("Jujutsu Kaisen")
+            assertThat(toggled.displayedAnimeList[1].title).isEqualTo("Frieren")
+        }
+    }
+
+    @Test
+    fun `selectNextSeason resets sort to default`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            skipItems(3)
+
+            viewModel.selectSort(SeasonsSortOption.SCORE)
+            awaitItem()
+
+            viewModel.selectNextSeason()
+
+            val cleared = awaitItem()
+            assertThat(cleared.sortOption).isEqualTo(SeasonsSortOption.DEFAULT)
+            assertThat(cleared.isSortAscending).isTrue()
         }
     }
 

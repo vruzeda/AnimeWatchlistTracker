@@ -61,6 +61,22 @@ class SeasonsViewModel @Inject constructor(
         loadSeason(year = currentYear, season = currentSeason)
     }
 
+    fun selectSort(option: SeasonsSortOption) {
+        _uiState.update { currentState ->
+            val isAscending = if (option == currentState.sortOption) {
+                !currentState.isSortAscending
+            } else {
+                option.defaultAscending
+            }
+            val displayed = sortSeasonResults(currentState.animeList, option, isAscending)
+            currentState.copy(
+                sortOption = option,
+                isSortAscending = isAscending,
+                displayedAnimeList = displayed
+            )
+        }
+    }
+
     fun selectNextSeason() {
         val state = _uiState.value
         val (nextSeason, yearDelta) = state.selectedSeason.next()
@@ -70,6 +86,9 @@ class SeasonsViewModel @Inject constructor(
                 selectedYear = nextYear,
                 selectedSeason = nextSeason,
                 animeList = emptyList(),
+                displayedAnimeList = emptyList(),
+                sortOption = SeasonsSortOption.DEFAULT,
+                isSortAscending = SeasonsSortOption.DEFAULT.defaultAscending,
                 hasNextPage = false,
                 currentPage = 1,
                 errorMessage = null
@@ -87,6 +106,9 @@ class SeasonsViewModel @Inject constructor(
                 selectedYear = prevYear,
                 selectedSeason = prevSeason,
                 animeList = emptyList(),
+                displayedAnimeList = emptyList(),
+                sortOption = SeasonsSortOption.DEFAULT,
+                isSortAscending = SeasonsSortOption.DEFAULT.defaultAscending,
                 hasNextPage = false,
                 currentPage = 1,
                 errorMessage = null
@@ -109,8 +131,10 @@ class SeasonsViewModel @Inject constructor(
             )
                 .onSuccess { page ->
                     _uiState.update {
+                        val newList = it.animeList + page.results
                         it.copy(
-                            animeList = it.animeList + page.results,
+                            animeList = newList,
+                            displayedAnimeList = sortSeasonResults(newList, it.sortOption, it.isSortAscending),
                             hasNextPage = page.hasNextPage,
                             currentPage = page.currentPage,
                             isLoadingMore = false
@@ -212,6 +236,7 @@ class SeasonsViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             animeList = page.results,
+                            displayedAnimeList = sortSeasonResults(page.results, it.sortOption, it.isSortAscending),
                             hasNextPage = page.hasNextPage,
                             currentPage = page.currentPage,
                             isLoading = false
@@ -310,4 +335,18 @@ class SeasonsViewModel @Inject constructor(
             else -> AnimeSeason.FALL
         }
     }
+}
+
+fun sortSeasonResults(
+    results: List<SearchResult>,
+    sortOption: SeasonsSortOption,
+    isAscending: Boolean = sortOption.defaultAscending
+): List<SearchResult> {
+    val sorted = when (sortOption) {
+        SeasonsSortOption.DEFAULT -> results
+        SeasonsSortOption.ALPHABETICAL -> results.sortedBy { it.title.lowercase() }
+        SeasonsSortOption.SCORE -> results.sortedByDescending { it.score ?: 0.0 }
+    }
+    val shouldReverse = isAscending != sortOption.defaultAscending
+    return if (shouldReverse && sortOption != SeasonsSortOption.DEFAULT) sorted.reversed() else sorted
 }

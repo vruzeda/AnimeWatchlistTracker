@@ -38,6 +38,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vuzeda.animewatchlist.tracker.designsystem.component.AnimeCard
 import com.vuzeda.animewatchlist.tracker.designsystem.component.EmptyStateMessage
 import com.vuzeda.animewatchlist.tracker.designsystem.component.SeasonPickerRow
+import com.vuzeda.animewatchlist.tracker.designsystem.component.SortMenuButton
 import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusOption
 import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusSelectionSheet
 import com.vuzeda.animewatchlist.tracker.domain.model.AnimeSeason
@@ -66,6 +67,7 @@ fun SeasonsScreenRoute(
         uiState = uiState,
         onPreviousSeason = viewModel::selectPreviousSeason,
         onNextSeason = viewModel::selectNextSeason,
+        onSortSelected = viewModel::selectSort,
         onResultClick = viewModel::onResultClick,
         onAddClick = viewModel::onAddClick,
         onAddStatusSelected = viewModel::addToWatchlist,
@@ -81,6 +83,7 @@ fun SeasonsScreen(
     uiState: SeasonsUiState,
     onPreviousSeason: () -> Unit,
     onNextSeason: () -> Unit,
+    onSortSelected: (SeasonsSortOption) -> Unit,
     onResultClick: (SearchResult) -> Unit,
     onAddClick: (SearchResult) -> Unit,
     onAddStatusSelected: (WatchStatus) -> Unit,
@@ -100,6 +103,7 @@ fun SeasonsScreen(
 
     val seasonLabel = seasonDisplayLabel(uiState.selectedSeason)
     val pickerLabel = stringResource(R.string.seasons_picker_label, seasonLabel, uiState.selectedYear)
+    val sortOptions = SeasonsSortOption.entries.map { stringResource(it.displayLabelRes) }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -107,7 +111,17 @@ fun SeasonsScreen(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.seasons_title)) },
-                windowInsets = WindowInsets(0, 0, 0, 0)
+                windowInsets = WindowInsets(0, 0, 0, 0),
+                actions = {
+                    if (uiState.animeList.isNotEmpty()) {
+                        SortMenuButton(
+                            options = sortOptions,
+                            selectedIndex = uiState.sortOption.ordinal,
+                            isAscending = uiState.isSortAscending,
+                            onOptionSelected = { index -> onSortSelected(SeasonsSortOption.entries[index]) }
+                        )
+                    }
+                }
             )
         }
     ) { scaffoldPadding ->
@@ -153,7 +167,7 @@ fun SeasonsScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(
-                            items = uiState.animeList,
+                            items = uiState.displayedAnimeList,
                             key = { it.malId }
                         ) { result ->
                             val isAdded = result.malId in uiState.addedMalIds

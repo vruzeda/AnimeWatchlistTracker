@@ -83,6 +83,7 @@
 
     <!-- SeasonsScreen -->
     <string name="seasons_title">Seasons</string>
+    <string name="seasons_sort_default">Default</string>
     <string name="seasons_label_winter">Winter</string>
     <string name="seasons_label_spring">Spring</string>
     <string name="seasons_label_summer">Summer</string>
