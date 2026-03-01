@@ -3,16 +3,20 @@ package com.vuzeda.animewatchlist.tracker.data.repository.mapper
 import com.vuzeda.animewatchlist.tracker.data.api.dto.ChiakiWatchOrderEntryDto
 import com.vuzeda.animewatchlist.tracker.domain.model.SeasonData
 
-private val ALLOWED_TYPE_CODES = setOf(1, 3)
-
 private val TYPE_CODE_TO_STRING = mapOf(
     1 to "TV",
-    3 to "Movie"
+    2 to "OVA",
+    3 to "Movie",
+    4 to "Special",
+    5 to "ONA",
+    6 to "Music",
+    7 to "CM",
+    8 to "PV",
+    9 to "TV Special",
 )
 
 fun List<ChiakiWatchOrderEntryDto>.toSeasonDataList(): List<SeasonData> =
-    filter { it.typeCode in ALLOWED_TYPE_CODES }
-        .map { it.toSeasonData() }
+    map { it.toSeasonData() }
 
 fun ChiakiWatchOrderEntryDto.toSeasonData(): SeasonData = SeasonData(
     malId = malId,
