@@ -90,7 +90,6 @@ class SeasonsViewModel @Inject constructor(
         val (nextSeason, yearDelta) = state.selectedSeason.next()
         val nextYear = state.selectedYear + yearDelta
         _rawAnimeList.value = emptyList()
-        _sortState.value = SeasonsSortState()
         _uiState.update {
             it.copy(
                 selectedYear = nextYear,
@@ -109,7 +108,6 @@ class SeasonsViewModel @Inject constructor(
         val (prevSeason, yearDelta) = state.selectedSeason.previous()
         val prevYear = state.selectedYear + yearDelta
         _rawAnimeList.value = emptyList()
-        _sortState.value = SeasonsSortState()
         _uiState.update {
             it.copy(
                 selectedYear = prevYear,

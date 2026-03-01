@@ -372,7 +372,7 @@ class SeasonsViewModelTest {
     }
 
     @Test
-    fun `selectNextSeason resets sort to default`() = runTest {
+    fun `selectNextSeason preserves sort option`() = runTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
@@ -386,8 +386,8 @@ class SeasonsViewModelTest {
             testDispatcher.scheduler.advanceUntilIdle()
 
             val loaded = expectMostRecentItem()
-            assertThat(loaded.sortOption).isEqualTo(SeasonsSortOption.DEFAULT)
-            assertThat(loaded.isSortAscending).isTrue()
+            assertThat(loaded.sortOption).isEqualTo(SeasonsSortOption.SCORE)
+            assertThat(loaded.isSortAscending).isFalse()
         }
     }
 
