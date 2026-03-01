@@ -7,21 +7,23 @@ import org.junit.jupiter.api.Test
 class ChiakiDtoMapperTest {
 
     @Test
-    fun `filters to only TV and Movie types`() {
+    fun `includes all entry types without filtering`() {
         val entries = listOf(
             dto(malId = 1, typeCode = 1, title = "TV Show"),
             dto(malId = 2, typeCode = 2, title = "OVA"),
             dto(malId = 3, typeCode = 3, title = "Movie"),
             dto(malId = 4, typeCode = 4, title = "Special"),
             dto(malId = 5, typeCode = 5, title = "ONA"),
-            dto(malId = 6, typeCode = 6, title = "Music")
+            dto(malId = 6, typeCode = 6, title = "Music"),
+            dto(malId = 7, typeCode = 7, title = "CM"),
+            dto(malId = 8, typeCode = 8, title = "PV"),
+            dto(malId = 9, typeCode = 9, title = "TV Special")
         )
 
         val result = entries.toSeasonDataList()
 
-        assertThat(result).hasSize(2)
-        assertThat(result[0].malId).isEqualTo(1)
-        assertThat(result[1].malId).isEqualTo(3)
+        assertThat(result).hasSize(9)
+        assertThat(result.map { it.malId }).containsExactly(1, 2, 3, 4, 5, 6, 7, 8, 9).inOrder()
     }
 
     @Test
@@ -82,15 +84,66 @@ class ChiakiDtoMapperTest {
     }
 
     @Test
-    fun `returns empty list when no entries match allowed types`() {
-        val entries = listOf(
-            dto(malId = 1, typeCode = 2, title = "OVA"),
-            dto(malId = 2, typeCode = 4, title = "Special")
-        )
-
-        val result = entries.toSeasonDataList()
+    fun `returns empty list when input is empty`() {
+        val result = emptyList<ChiakiWatchOrderEntryDto>().toSeasonDataList()
 
         assertThat(result).isEmpty()
+    }
+
+    @Test
+    fun `maps type code 2 to OVA`() {
+        val result = listOf(dto(malId = 1, typeCode = 2, title = "Test")).toSeasonDataList()
+
+        assertThat(result[0].type).isEqualTo("OVA")
+    }
+
+    @Test
+    fun `maps type code 4 to Special`() {
+        val result = listOf(dto(malId = 1, typeCode = 4, title = "Test")).toSeasonDataList()
+
+        assertThat(result[0].type).isEqualTo("Special")
+    }
+
+    @Test
+    fun `maps type code 5 to ONA`() {
+        val result = listOf(dto(malId = 1, typeCode = 5, title = "Test")).toSeasonDataList()
+
+        assertThat(result[0].type).isEqualTo("ONA")
+    }
+
+    @Test
+    fun `maps type code 6 to Music`() {
+        val result = listOf(dto(malId = 1, typeCode = 6, title = "Test")).toSeasonDataList()
+
+        assertThat(result[0].type).isEqualTo("Music")
+    }
+
+    @Test
+    fun `maps type code 7 to CM`() {
+        val result = listOf(dto(malId = 1, typeCode = 7, title = "Test")).toSeasonDataList()
+
+        assertThat(result[0].type).isEqualTo("CM")
+    }
+
+    @Test
+    fun `maps type code 8 to PV`() {
+        val result = listOf(dto(malId = 1, typeCode = 8, title = "Test")).toSeasonDataList()
+
+        assertThat(result[0].type).isEqualTo("PV")
+    }
+
+    @Test
+    fun `maps type code 9 to TV Special`() {
+        val result = listOf(dto(malId = 1, typeCode = 9, title = "Test")).toSeasonDataList()
+
+        assertThat(result[0].type).isEqualTo("TV Special")
+    }
+
+    @Test
+    fun `falls back to TV for unknown type codes`() {
+        val result = listOf(dto(malId = 1, typeCode = 99, title = "Test")).toSeasonDataList()
+
+        assertThat(result[0].type).isEqualTo("TV")
     }
 
     @Test
