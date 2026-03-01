@@ -62,7 +62,7 @@ import com.vuzeda.animewatchlist.tracker.ui.screens.home.toDisplayLabelRes
 @Composable
 fun AnimeDetailScreenRoute(
     onNavigateBack: () -> Unit,
-    onSeasonClick: (Long) -> Unit,
+    onSeasonClick: (seasonId: Long, malId: Int) -> Unit,
     viewModel: AnimeDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -88,7 +88,7 @@ fun AnimeDetailScreenRoute(
 fun AnimeDetailScreen(
     uiState: AnimeDetailUiState,
     onNavigateBack: () -> Unit,
-    onSeasonClick: (Long) -> Unit,
+    onSeasonClick: (seasonId: Long, malId: Int) -> Unit,
     onStatusChipClick: () -> Unit,
     onStatusSelected: (WatchStatus) -> Unit,
     onDismissStatusSheet: () -> Unit,
@@ -222,7 +222,7 @@ private fun AnimeDetailContent(
     onStatusChipClick: () -> Unit,
     onRatingChanged: (Int) -> Unit,
     onAddToWatchlistClick: () -> Unit,
-    onSeasonClick: (Long) -> Unit
+    onSeasonClick: (seasonId: Long, malId: Int) -> Unit
 ) {
     val anime = state.anime
     LazyColumn(
@@ -295,11 +295,7 @@ private fun AnimeDetailContent(
                 SeasonCardItem(
                     season = season,
                     isInWatchlist = state.isInWatchlist,
-                    onClick = {
-                        if (state.isInWatchlist && season.id > 0) {
-                            onSeasonClick(season.id)
-                        }
-                    }
+                    onClick = { onSeasonClick(season.id, season.malId) }
                 )
                 Spacer(modifier = Modifier.height(8.dp))
             }

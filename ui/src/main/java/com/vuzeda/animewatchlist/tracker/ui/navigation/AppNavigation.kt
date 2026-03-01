@@ -107,8 +107,12 @@ fun AppNavigation(modifier: Modifier = Modifier) {
             ) {
                 AnimeDetailScreenRoute(
                     onNavigateBack = { navController.popBackStack() },
-                    onSeasonClick = { seasonId ->
-                        navController.navigate(Route.SeasonDetail(seasonId).route)
+                    onSeasonClick = { seasonId, malId ->
+                        if (seasonId > 0) {
+                            navController.navigate(Route.SeasonDetail(seasonId = seasonId).route)
+                        } else {
+                            navController.navigate(Route.SeasonDetail(malId = malId).route)
+                        }
                     }
                 )
             }
@@ -118,6 +122,10 @@ fun AppNavigation(modifier: Modifier = Modifier) {
                 arguments = listOf(
                     navArgument(Route.SeasonDetail.ARG_SEASON_ID) {
                         type = NavType.LongType
+                    },
+                    navArgument(Route.SeasonDetail.ARG_MAL_ID) {
+                        type = NavType.IntType
+                        defaultValue = 0
                     }
                 )
             ) {

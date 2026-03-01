@@ -22,13 +22,14 @@ sealed interface Route {
         }
     }
 
-    data class SeasonDetail(val seasonId: Long) : Route {
+    data class SeasonDetail(val seasonId: Long = 0, val malId: Int = 0) : Route {
         override val route: String
-            get() = "season_detail/$seasonId"
+            get() = if (malId > 0) "season_detail/$seasonId?malId=$malId" else "season_detail/$seasonId"
 
         companion object {
-            const val ROUTE_PATTERN = "season_detail/{seasonId}"
+            const val ROUTE_PATTERN = "season_detail/{seasonId}?malId={malId}"
             const val ARG_SEASON_ID = "seasonId"
+            const val ARG_MAL_ID = "malId"
         }
     }
 }

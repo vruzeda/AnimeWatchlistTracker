@@ -3,7 +3,9 @@ package com.vuzeda.animewatchlist.tracker.ui.screens.seasondetail
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchEpisodesUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveSeasonByIdUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.UpdateSeasonProgressUseCase
 import com.vuzeda.animewatchlist.tracker.ui.navigation.Route
@@ -19,17 +21,25 @@ import javax.inject.Inject
 class SeasonDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val observeSeasonByIdUseCase: ObserveSeasonByIdUseCase,
+    private val fetchSeasonDetailUseCase: FetchSeasonDetailUseCase,
     private val fetchEpisodesUseCase: FetchEpisodesUseCase,
     private val updateSeasonProgressUseCase: UpdateSeasonProgressUseCase
 ) : ViewModel() {
 
     private val seasonId: Long = checkNotNull(savedStateHandle[Route.SeasonDetail.ARG_SEASON_ID])
+    private val malId: Int = savedStateHandle[Route.SeasonDetail.ARG_MAL_ID] ?: 0
 
     private val _uiState = MutableStateFlow<SeasonDetailUiState>(SeasonDetailUiState.Loading)
     val uiState: StateFlow<SeasonDetailUiState> = _uiState.asStateFlow()
 
     init {
-        observeSeason()
+        if (seasonId > 0) {
+            observeSeason()
+        } else if (malId > 0) {
+            loadFromApi()
+        } else {
+            _uiState.value = SeasonDetailUiState.NotFound
+        }
     }
 
     private fun observeSeason() {
@@ -52,6 +62,32 @@ class SeasonDetailViewModel @Inject constructor(
                     _uiState.value = SeasonDetailUiState.NotFound
                 }
             }
+        }
+    }
+
+    private fun loadFromApi() {
+        viewModelScope.launch {
+            fetchSeasonDetailUseCase(malId)
+                .onSuccess { details ->
+                    val season = Season(
+                        malId = details.malId,
+                        title = details.title,
+                        imageUrl = details.imageUrl,
+                        type = details.type,
+                        episodeCount = details.episodes,
+                        score = details.score,
+                        airingStatus = details.airingStatus
+                    )
+                    loadEpisodes(details.malId, page = 1)
+                    _uiState.value = SeasonDetailUiState.Success(
+                        season = season,
+                        isInWatchlist = false,
+                        isLoadingEpisodes = true
+                    )
+                }
+                .onFailure {
+                    _uiState.value = SeasonDetailUiState.NotFound
+                }
         }
     }
 

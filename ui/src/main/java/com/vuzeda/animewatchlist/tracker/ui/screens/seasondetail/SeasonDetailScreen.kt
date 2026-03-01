@@ -120,20 +120,22 @@ private fun SeasonDetailContent(
     ) {
         SeasonHeaderSection(season = season)
 
-        Spacer(modifier = Modifier.height(24.dp))
+        if (state.isInWatchlist) {
+            Spacer(modifier = Modifier.height(24.dp))
 
-        Text(
-            text = stringResource(R.string.season_detail_section_progress),
-            style = MaterialTheme.typography.titleLarge
-        )
+            Text(
+                text = stringResource(R.string.season_detail_section_progress),
+                style = MaterialTheme.typography.titleLarge
+            )
 
-        Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-        EpisodeStepper(
-            currentEpisode = season.currentEpisode,
-            totalEpisodes = season.episodeCount,
-            onEpisodeChanged = onEpisodeProgressChanged
-        )
+            EpisodeStepper(
+                currentEpisode = season.currentEpisode,
+                totalEpisodes = season.episodeCount,
+                onEpisodeChanged = onEpisodeProgressChanged
+            )
+        }
 
         if (state.episodes.isNotEmpty() || state.isLoadingEpisodes) {
             Spacer(modifier = Modifier.height(24.dp))

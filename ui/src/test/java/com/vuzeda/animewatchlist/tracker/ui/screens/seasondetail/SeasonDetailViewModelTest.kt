@@ -3,10 +3,12 @@ package com.vuzeda.animewatchlist.tracker.ui.screens.seasondetail
 import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
+import com.vuzeda.animewatchlist.tracker.domain.model.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.domain.model.EpisodeInfo
 import com.vuzeda.animewatchlist.tracker.domain.model.EpisodePage
 import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchEpisodesUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveSeasonByIdUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.UpdateSeasonProgressUseCase
 import com.vuzeda.animewatchlist.tracker.ui.navigation.Route
@@ -30,6 +32,7 @@ class SeasonDetailViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
     private val observeSeasonByIdUseCase: ObserveSeasonByIdUseCase = mockk()
+    private val fetchSeasonDetailUseCase: FetchSeasonDetailUseCase = mockk()
     private val fetchEpisodesUseCase: FetchEpisodesUseCase = mockk()
     private val updateSeasonProgressUseCase: UpdateSeasonProgressUseCase = mockk(relaxed = true)
 
@@ -67,13 +70,17 @@ class SeasonDetailViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun createViewModel(seasonId: Long = 1L): SeasonDetailViewModel {
+    private fun createViewModel(seasonId: Long = 1L, malId: Int = 0): SeasonDetailViewModel {
         val savedStateHandle = SavedStateHandle(
-            mapOf(Route.SeasonDetail.ARG_SEASON_ID to seasonId)
+            mapOf(
+                Route.SeasonDetail.ARG_SEASON_ID to seasonId,
+                Route.SeasonDetail.ARG_MAL_ID to malId
+            )
         )
         return SeasonDetailViewModel(
             savedStateHandle = savedStateHandle,
             observeSeasonByIdUseCase = observeSeasonByIdUseCase,
+            fetchSeasonDetailUseCase = fetchSeasonDetailUseCase,
             fetchEpisodesUseCase = fetchEpisodesUseCase,
             updateSeasonProgressUseCase = updateSeasonProgressUseCase
         )
@@ -203,6 +210,67 @@ class SeasonDetailViewModelTest {
 
             val updated = awaitItem() as SeasonDetailUiState.Success
             assertThat(updated.season.currentEpisode).isEqualTo(20)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `loads season from API when malId is provided`() = runTest {
+        val apiDetails = AnimeFullDetails(
+            malId = 50265,
+            title = "Spy x Family",
+            imageUrl = "https://example.com/spy.jpg",
+            type = "TV",
+            episodes = 12,
+            score = 8.53,
+            airingStatus = "Finished Airing",
+            sequels = emptyList(),
+            prequels = emptyList()
+        )
+        coEvery { fetchSeasonDetailUseCase(50265) } returns Result.success(apiDetails)
+        coEvery { fetchEpisodesUseCase(malId = 50265, page = 1) } returns Result.success(
+            EpisodePage(episodes = sampleEpisodes, hasNextPage = false, nextPage = 2)
+        )
+
+        val viewModel = createViewModel(seasonId = 0L, malId = 50265)
+
+        viewModel.uiState.test {
+            val loading = awaitItem()
+            assertThat(loading).isInstanceOf(SeasonDetailUiState.Loading::class.java)
+
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val success = expectMostRecentItem() as SeasonDetailUiState.Success
+            assertThat(success.season.title).isEqualTo("Spy x Family")
+            assertThat(success.season.malId).isEqualTo(50265)
+            assertThat(success.isInWatchlist).isFalse()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `shows not found when API fetch fails for malId`() = runTest {
+        coEvery { fetchSeasonDetailUseCase(999) } returns Result.failure(Exception("Not found"))
+
+        val viewModel = createViewModel(seasonId = 0L, malId = 999)
+
+        viewModel.uiState.test {
+            awaitItem()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val notFound = expectMostRecentItem()
+            assertThat(notFound).isInstanceOf(SeasonDetailUiState.NotFound::class.java)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `shows not found when both seasonId and malId are zero`() = runTest {
+        val viewModel = createViewModel(seasonId = 0L, malId = 0)
+
+        viewModel.uiState.test {
+            val notFound = awaitItem()
+            assertThat(notFound).isInstanceOf(SeasonDetailUiState.NotFound::class.java)
             cancelAndIgnoreRemainingEvents()
         }
     }
