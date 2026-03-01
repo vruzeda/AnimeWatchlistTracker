@@ -16,7 +16,14 @@ data class AnimeDataDto(
     @param:Json(name = "synopsis") val synopsis: String? = null,
     @param:Json(name = "episodes") val episodes: Int? = null,
     @param:Json(name = "score") val score: Double? = null,
-    @param:Json(name = "genres") val genres: List<GenreDto>? = null
+    @param:Json(name = "genres") val genres: List<GenreDto>? = null,
+    @param:Json(name = "status") val status: String? = null,
+    @param:Json(name = "aired") val aired: AiredDto? = null
+)
+
+@JsonClass(generateAdapter = false)
+data class AiredDto(
+    @param:Json(name = "from") val from: String? = null
 )
 
 @JsonClass(generateAdapter = false)

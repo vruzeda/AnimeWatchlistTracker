@@ -1,11 +1,13 @@
 package com.vuzeda.animewatchlist.tracker
 
 import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeDataDto
+import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeEpisodesResponseDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeFullDataDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeFullResponseDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeImagesDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeSearchResponseDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeSingleResponseDto
+import com.vuzeda.animewatchlist.tracker.data.api.dto.EpisodesPaginationDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.GenreDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.ImageUrlDto
 import com.vuzeda.animewatchlist.tracker.data.api.service.JikanApiService
@@ -28,6 +30,12 @@ class FakeJikanApiService : JikanApiService {
                 episodes = fakeResults.first { it.malId == malId }.episodes,
                 relations = emptyList()
             )
+        )
+
+    override suspend fun getAnimeEpisodes(malId: Int, page: Int): AnimeEpisodesResponseDto =
+        AnimeEpisodesResponseDto(
+            pagination = EpisodesPaginationDto(lastVisiblePage = 1, hasNextPage = false),
+            data = emptyList()
         )
 
     private val fakeResults = listOf(

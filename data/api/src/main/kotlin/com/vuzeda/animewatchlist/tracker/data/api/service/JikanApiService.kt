@@ -1,5 +1,6 @@
 package com.vuzeda.animewatchlist.tracker.data.api.service
 
+import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeEpisodesResponseDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeFullResponseDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeSearchResponseDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeSingleResponseDto
@@ -20,6 +21,12 @@ interface JikanApiService {
 
     @GET("v4/anime/{id}/full")
     suspend fun getAnimeFullById(@Path("id") malId: Int): AnimeFullResponseDto
+
+    @GET("v4/anime/{id}/episodes")
+    suspend fun getAnimeEpisodes(
+        @Path("id") malId: Int,
+        @Query("page") page: Int = 1
+    ): AnimeEpisodesResponseDto
 
     companion object {
         const val BASE_URL = "https://api.jikan.moe/"
