@@ -10,6 +10,9 @@
 
     <!-- SortMenuButton -->
     <string name="cd_sort">Sort</string>
+
+    <!-- FilterMenuButton -->
+    <string name="cd_filter">Filter</string>
     <string name="cd_ascending">Ascending</string>
     <string name="cd_descending">Descending</string>
 

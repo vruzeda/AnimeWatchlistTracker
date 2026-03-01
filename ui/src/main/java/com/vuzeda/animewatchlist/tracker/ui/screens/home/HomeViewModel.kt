@@ -28,8 +28,8 @@ class HomeViewModel @Inject constructor(
         observeWatchlist(status = null)
     }
 
-    fun selectTab(status: WatchStatus?) {
-        _uiState.update { it.copy(selectedTab = status, isLoading = true) }
+    fun selectFilter(status: WatchStatus?) {
+        _uiState.update { it.copy(selectedFilter = status, isLoading = true) }
         observeWatchlist(status)
     }
 

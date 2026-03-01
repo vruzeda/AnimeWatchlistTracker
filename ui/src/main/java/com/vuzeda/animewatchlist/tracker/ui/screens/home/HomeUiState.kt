@@ -13,7 +13,7 @@ enum class HomeSortOption(@param:StringRes val displayLabelRes: Int, val default
 
 data class HomeUiState(
     val animeList: List<Anime> = emptyList(),
-    val selectedTab: WatchStatus? = null,
+    val selectedFilter: WatchStatus? = null,
     val sortOption: HomeSortOption = HomeSortOption.ALPHABETICAL,
     val isSortAscending: Boolean = HomeSortOption.ALPHABETICAL.defaultAscending,
     val isLoading: Boolean = true

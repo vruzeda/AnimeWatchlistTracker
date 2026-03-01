@@ -57,13 +57,13 @@ class HomeViewModelTest {
             assertThat(loaded.animeList[0].title).isEqualTo("Attack on Titan")
             assertThat(loaded.animeList[1].title).isEqualTo("Bleach")
             assertThat(loaded.animeList[2].title).isEqualTo("One Punch Man")
-            assertThat(loaded.selectedTab).isNull()
+            assertThat(loaded.selectedFilter).isNull()
             assertThat(loaded.sortOption).isEqualTo(HomeSortOption.ALPHABETICAL)
         }
     }
 
     @Test
-    fun `selectTab filters by status`() = runTest {
+    fun `selectFilter filters by status`() = runTest {
         every { observeAnimeListUseCase(null) } returns flowOf(sampleAnimeList)
         every { observeAnimeListUseCase(WatchStatus.WATCHING) } returns flowOf(
             listOf(sampleAnimeList[0])
@@ -74,10 +74,10 @@ class HomeViewModelTest {
         viewModel.uiState.test {
             skipItems(2)
 
-            viewModel.selectTab(WatchStatus.WATCHING)
+            viewModel.selectFilter(WatchStatus.WATCHING)
 
             val tabChanged = awaitItem()
-            assertThat(tabChanged.selectedTab).isEqualTo(WatchStatus.WATCHING)
+            assertThat(tabChanged.selectedFilter).isEqualTo(WatchStatus.WATCHING)
             assertThat(tabChanged.isLoading).isTrue()
 
             val filtered = awaitItem()
@@ -88,7 +88,7 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun `selectTab with null shows all anime`() = runTest {
+    fun `selectFilter with null shows all anime`() = runTest {
         every { observeAnimeListUseCase(null) } returns flowOf(sampleAnimeList)
         every { observeAnimeListUseCase(WatchStatus.WATCHING) } returns flowOf(
             listOf(sampleAnimeList[0])
@@ -99,13 +99,13 @@ class HomeViewModelTest {
         viewModel.uiState.test {
             skipItems(2)
 
-            viewModel.selectTab(WatchStatus.WATCHING)
+            viewModel.selectFilter(WatchStatus.WATCHING)
             skipItems(2)
 
-            viewModel.selectTab(null)
+            viewModel.selectFilter(null)
 
             val tabChanged = awaitItem()
-            assertThat(tabChanged.selectedTab).isNull()
+            assertThat(tabChanged.selectedFilter).isNull()
 
             val allAnime = awaitItem()
             assertThat(allAnime.animeList).hasSize(3)
