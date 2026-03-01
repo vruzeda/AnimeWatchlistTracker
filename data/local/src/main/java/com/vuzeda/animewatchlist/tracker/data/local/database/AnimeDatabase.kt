@@ -9,7 +9,7 @@ import com.vuzeda.animewatchlist.tracker.data.local.entity.SeasonEntity
 
 @Database(
     entities = [AnimeEntity::class, SeasonEntity::class],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class AnimeDatabase : RoomDatabase() {

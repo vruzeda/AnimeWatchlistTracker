@@ -22,6 +22,8 @@ data class SeasonEntity(
     val animeId: Long,
     val malId: Int,
     val title: String,
+    val titleEnglish: String? = null,
+    val titleJapanese: String? = null,
     val imageUrl: String? = null,
     val type: String = "TV",
     val episodeCount: Int? = null,
