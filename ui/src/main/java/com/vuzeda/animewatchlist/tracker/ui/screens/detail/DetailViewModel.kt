@@ -5,8 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
-import com.vuzeda.animewatchlist.tracker.domain.repository.AnimeRemoteRepository
 import com.vuzeda.animewatchlist.tracker.domain.usecase.DeleteAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveAnimeByIdUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ToggleAnimeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.UpdateAnimeUseCase
@@ -26,7 +26,7 @@ class DetailViewModel @Inject constructor(
     private val updateAnimeUseCase: UpdateAnimeUseCase,
     private val deleteAnimeUseCase: DeleteAnimeUseCase,
     private val toggleAnimeNotificationsUseCase: ToggleAnimeNotificationsUseCase,
-    private val remoteRepository: AnimeRemoteRepository
+    private val fetchSeasonDetailUseCase: FetchSeasonDetailUseCase
 ) : ViewModel() {
 
     private val animeId: Long = checkNotNull(savedStateHandle[Route.Detail.ARG_ANIME_ID])
@@ -68,7 +68,7 @@ class DetailViewModel @Inject constructor(
 
     private fun fetchFromApi() {
         viewModelScope.launch {
-            remoteRepository.fetchAnimeFullById(malId)
+            fetchSeasonDetailUseCase(malId)
                 .onSuccess { details ->
                     val anime = Anime(
                         title = details.title,

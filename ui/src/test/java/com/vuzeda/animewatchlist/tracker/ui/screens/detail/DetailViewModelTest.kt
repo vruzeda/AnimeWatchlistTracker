@@ -6,8 +6,8 @@ import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
-import com.vuzeda.animewatchlist.tracker.domain.repository.AnimeRemoteRepository
 import com.vuzeda.animewatchlist.tracker.domain.usecase.DeleteAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveAnimeByIdUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ToggleAnimeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.UpdateAnimeUseCase
@@ -35,7 +35,7 @@ class DetailViewModelTest {
     private val updateAnimeUseCase: UpdateAnimeUseCase = mockk()
     private val deleteAnimeUseCase: DeleteAnimeUseCase = mockk()
     private val toggleAnimeNotificationsUseCase: ToggleAnimeNotificationsUseCase = mockk(relaxed = true)
-    private val remoteRepository: AnimeRemoteRepository = mockk()
+    private val fetchSeasonDetailUseCase: FetchSeasonDetailUseCase = mockk()
 
     private val sampleAnime = Anime(
         id = 1L,
@@ -71,7 +71,7 @@ class DetailViewModelTest {
             updateAnimeUseCase = updateAnimeUseCase,
             deleteAnimeUseCase = deleteAnimeUseCase,
             toggleAnimeNotificationsUseCase = toggleAnimeNotificationsUseCase,
-            remoteRepository = remoteRepository
+            fetchSeasonDetailUseCase = fetchSeasonDetailUseCase
         )
     }
 
@@ -333,7 +333,7 @@ class DetailViewModelTest {
 
     @Test
     fun `loads from API when malId is provided`() = runTest {
-        coEvery { remoteRepository.fetchAnimeFullById(50) } returns Result.success(
+        coEvery { fetchSeasonDetailUseCase(50) } returns Result.success(
             AnimeFullDetails(
                 malId = 50,
                 title = "Spy x Family",
@@ -361,7 +361,7 @@ class DetailViewModelTest {
 
     @Test
     fun `shows not found when API fetch fails`() = runTest {
-        coEvery { remoteRepository.fetchAnimeFullById(999) } returns Result.failure(Exception("Not found"))
+        coEvery { fetchSeasonDetailUseCase(999) } returns Result.failure(Exception("Not found"))
 
         val viewModel = createViewModel(animeId = 0L, malId = 999)
 
