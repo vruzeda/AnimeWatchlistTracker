@@ -1,14 +1,14 @@
 package com.vuzeda.animewatchlist.tracker.domain.usecase
 
 import com.vuzeda.animewatchlist.tracker.domain.model.Season
-import com.vuzeda.animewatchlist.tracker.domain.repository.AnimeRepository
+import com.vuzeda.animewatchlist.tracker.domain.repository.SeasonRepository
 import javax.inject.Inject
 
 /** Updates episode progress for a specific season. */
 class UpdateSeasonProgressUseCase @Inject constructor(
-    private val animeRepository: AnimeRepository
+    private val seasonRepository: SeasonRepository
 ) {
 
     suspend operator fun invoke(season: Season, currentEpisode: Int) =
-        animeRepository.updateSeason(season.copy(currentEpisode = currentEpisode))
+        seasonRepository.updateSeason(season.copy(currentEpisode = currentEpisode))
 }

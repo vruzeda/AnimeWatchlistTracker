@@ -4,11 +4,13 @@ import com.vuzeda.animewatchlist.tracker.domain.model.AnimeUpdate
 import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import com.vuzeda.animewatchlist.tracker.domain.repository.AnimeRemoteRepository
 import com.vuzeda.animewatchlist.tracker.domain.repository.AnimeRepository
+import com.vuzeda.animewatchlist.tracker.domain.repository.SeasonRepository
 import javax.inject.Inject
 
 /** Checks all notification-enabled anime for new episodes and new seasons. */
 class CheckAnimeUpdatesUseCase @Inject constructor(
     private val animeRepository: AnimeRepository,
+    private val seasonRepository: SeasonRepository,
     private val remoteRepository: AnimeRemoteRepository
 ) {
 
@@ -17,7 +19,7 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
         val updates = mutableListOf<AnimeUpdate>()
 
         for (anime in notifiedAnime) {
-            val seasons = animeRepository.getSeasonsForAnime(anime.id)
+            val seasons = seasonRepository.getSeasonsForAnime(anime.id)
             if (seasons.isEmpty()) continue
 
             for (season in seasons) {
@@ -41,7 +43,7 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
             .getOrNull() ?: return null
         val previousCount = season.lastCheckedAiredEpisodeCount
 
-        animeRepository.updateSeasonNotificationData(
+        seasonRepository.updateSeasonNotificationData(
             seasonId = season.id,
             lastCheckedAiredEpisodeCount = lastAiredEpisode
         )

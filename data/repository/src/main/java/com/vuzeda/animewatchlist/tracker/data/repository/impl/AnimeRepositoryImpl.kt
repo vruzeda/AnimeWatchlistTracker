@@ -32,18 +32,6 @@ class AnimeRepositoryImpl @Inject constructor(
         animeDao.observeByNotificationEnabled(enabled)
             .map { entities -> entities.map { it.toDomainModel() } }
 
-    override fun observeSeasonsForAnime(animeId: Long): Flow<List<Season>> =
-        seasonDao.observeByAnimeId(animeId).map { entities -> entities.map { it.toDomainModel() } }
-
-    override fun observeSeasonById(id: Long): Flow<Season?> =
-        seasonDao.observeById(id).map { it?.toDomainModel() }
-
-    override suspend fun findAnimeIdBySeasonMalId(malId: Int): Long? =
-        seasonDao.findByMalId(malId)?.animeId
-
-    override suspend fun findAnimeIdsBySeasonMalIds(malIds: List<Int>): Map<Int, Long> =
-        seasonDao.findAnimeIdsByMalIds(malIds).associate { it.malId to it.animeId }
-
     override suspend fun addAnime(anime: Anime, seasons: List<Season>): Long =
         transactionRunner.runInTransaction {
             val animeId = animeDao.insert(anime.toEntity())
@@ -56,10 +44,6 @@ class AnimeRepositoryImpl @Inject constructor(
         animeDao.update(anime.toEntity())
     }
 
-    override suspend fun updateSeason(season: Season) {
-        seasonDao.update(season.toEntity())
-    }
-
     override suspend fun deleteAnime(id: Long) {
         animeDao.deleteById(id)
     }
@@ -70,26 +54,6 @@ class AnimeRepositoryImpl @Inject constructor(
 
     override suspend fun getNotificationEnabledAnime(): List<Anime> =
         animeDao.getNotificationEnabledAnime().map { it.toDomainModel() }
-
-    override suspend fun getSeasonsForAnime(animeId: Long): List<Season> =
-        seasonDao.getByAnimeId(animeId).map { it.toDomainModel() }
-
-    override suspend fun updateSeasonNotificationData(
-        seasonId: Long,
-        lastCheckedAiredEpisodeCount: Int?
-    ) {
-        seasonDao.updateNotificationData(
-            seasonId = seasonId,
-            count = lastCheckedAiredEpisodeCount
-        )
-    }
-
-    override suspend fun addSeasonsToAnime(animeId: Long, seasons: List<Season>) {
-        transactionRunner.runInTransaction {
-            val seasonEntities = seasons.map { it.copy(animeId = animeId).toEntity() }
-            seasonDao.insertAll(seasonEntities)
-        }
-    }
 
     override suspend fun deleteAllData() {
         transactionRunner.runInTransaction {

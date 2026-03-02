@@ -2,7 +2,7 @@ package com.vuzeda.animewatchlist.tracker.domain.usecase
 
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.domain.model.Season
-import com.vuzeda.animewatchlist.tracker.domain.repository.AnimeRepository
+import com.vuzeda.animewatchlist.tracker.domain.repository.SeasonRepository
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
 
 class GetSeasonsForAnimeUseCaseTest {
 
-    private val repository = mockk<AnimeRepository>()
+    private val repository = mockk<SeasonRepository>()
     private val useCase = GetSeasonsForAnimeUseCase(repository)
 
     @Test

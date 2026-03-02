@@ -15,34 +15,15 @@ interface AnimeRepository {
 
     fun observeByNotificationEnabled(enabled: Boolean): Flow<List<Anime>>
 
-    fun observeSeasonsForAnime(animeId: Long): Flow<List<Season>>
-
-    fun observeSeasonById(id: Long): Flow<Season?>
-
-    suspend fun findAnimeIdBySeasonMalId(malId: Int): Long?
-
-    suspend fun findAnimeIdsBySeasonMalIds(malIds: List<Int>): Map<Int, Long>
-
     suspend fun addAnime(anime: Anime, seasons: List<Season>): Long
 
     suspend fun updateAnime(anime: Anime)
-
-    suspend fun updateSeason(season: Season)
 
     suspend fun deleteAnime(id: Long)
 
     suspend fun toggleNotifications(id: Long, enabled: Boolean)
 
     suspend fun getNotificationEnabledAnime(): List<Anime>
-
-    suspend fun getSeasonsForAnime(animeId: Long): List<Season>
-
-    suspend fun updateSeasonNotificationData(
-        seasonId: Long,
-        lastCheckedAiredEpisodeCount: Int?
-    )
-
-    suspend fun addSeasonsToAnime(animeId: Long, seasons: List<Season>)
 
     suspend fun deleteAllData()
 }

@@ -5,11 +5,13 @@ import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.repository.AnimeRemoteRepository
 import com.vuzeda.animewatchlist.tracker.domain.repository.AnimeRepository
+import com.vuzeda.animewatchlist.tracker.domain.repository.SeasonRepository
 import javax.inject.Inject
 
 /** Resolves the full watch order for an anime and adds any missing seasons. */
 class ResolveRemainingSeasonsUseCase @Inject constructor(
     private val animeRepository: AnimeRepository,
+    private val seasonRepository: SeasonRepository,
     private val remoteRepository: AnimeRemoteRepository
 ) {
 
@@ -24,7 +26,7 @@ class ResolveRemainingSeasonsUseCase @Inject constructor(
         val rootSeason = watchOrder.firstOrNull() ?: return emptySet()
         val rootDetails = remoteRepository.fetchAnimeFullById(rootSeason.malId).getOrNull()
 
-        val existingSeasons = animeRepository.getSeasonsForAnime(animeId)
+        val existingSeasons = seasonRepository.getSeasonsForAnime(animeId)
         val existingMalIds = existingSeasons.map { it.malId }.toSet()
 
         val resolvedSeasonEntries = watchOrder.mapIndexed { index, seasonData ->
@@ -37,7 +39,7 @@ class ResolveRemainingSeasonsUseCase @Inject constructor(
             ?.second ?: 0
 
         if (initialEntry != null && initialEntry.orderIndex != correctOrderIndex) {
-            animeRepository.updateSeason(initialEntry.copy(orderIndex = correctOrderIndex))
+            seasonRepository.updateSeason(initialEntry.copy(orderIndex = correctOrderIndex))
         }
 
         val remainingSeasons = resolvedSeasonEntries
@@ -58,7 +60,7 @@ class ResolveRemainingSeasonsUseCase @Inject constructor(
             }
 
         if (remainingSeasons.isNotEmpty()) {
-            animeRepository.addSeasonsToAnime(animeId, remainingSeasons)
+            seasonRepository.addSeasonsToAnime(animeId, remainingSeasons)
         }
 
         animeRepository.updateAnime(
