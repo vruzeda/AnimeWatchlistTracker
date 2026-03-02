@@ -26,7 +26,6 @@ object DatabaseModule {
             AnimeDatabase::class.java,
             "anime_watchlist.db"
         )
-            .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
 
     @Provides
