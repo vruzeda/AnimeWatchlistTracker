@@ -4,7 +4,6 @@ import com.vuzeda.animewatchlist.tracker.domain.model.AnimeUpdate
 import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import com.vuzeda.animewatchlist.tracker.domain.repository.AnimeRemoteRepository
 import com.vuzeda.animewatchlist.tracker.domain.repository.AnimeRepository
-import kotlinx.coroutines.delay
 import javax.inject.Inject
 
 /** Checks all notification-enabled anime for new episodes and new seasons. */
@@ -29,7 +28,6 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
                         latestAiredEpisode = update
                     )
                 }
-                delay(RATE_LIMIT_DELAY_MS)
             }
 
             checkNewSeasons(anime, seasons)?.let { updates += it }
@@ -62,7 +60,6 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
         val lastSeason = existingSeasons.maxByOrNull { it.orderIndex } ?: return null
         val details = remoteRepository.fetchAnimeFullById(lastSeason.malId).getOrNull()
             ?: return null
-        delay(RATE_LIMIT_DELAY_MS)
 
         val knownMalIds = existingSeasons.map { it.malId }.toSet()
 
@@ -70,7 +67,6 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
             if (sequel.malId in knownMalIds) continue
 
             val sequelDetails = remoteRepository.fetchAnimeFullById(sequel.malId).getOrNull()
-            delay(RATE_LIMIT_DELAY_MS)
 
             if (sequelDetails != null && sequelDetails.type in ALLOWED_TYPES) {
                 val isConfirmed = sequelDetails.airingStatus == STATUS_CURRENTLY_AIRING ||
@@ -89,7 +85,6 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
     }
 
     companion object {
-        const val RATE_LIMIT_DELAY_MS = 1100L
         const val STATUS_CURRENTLY_AIRING = "Currently Airing"
         const val STATUS_FINISHED_AIRING = "Finished Airing"
         val ALLOWED_TYPES = setOf("TV", "Movie")

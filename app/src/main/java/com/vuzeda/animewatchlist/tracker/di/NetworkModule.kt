@@ -2,6 +2,7 @@ package com.vuzeda.animewatchlist.tracker.di
 
 import com.squareup.moshi.Moshi
 import com.vuzeda.animewatchlist.tracker.BuildConfig
+import com.vuzeda.animewatchlist.tracker.data.api.interceptor.RateLimitInterceptor
 import com.vuzeda.animewatchlist.tracker.data.api.service.JikanApiService
 import dagger.Module
 import dagger.Provides
@@ -24,6 +25,7 @@ object NetworkModule {
         OkHttpClient.Builder()
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
+            .addInterceptor(RateLimitInterceptor())
             .addInterceptor(
                 HttpLoggingInterceptor().apply {
                     level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
