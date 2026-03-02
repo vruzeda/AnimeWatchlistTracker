@@ -4,23 +4,16 @@ import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.domain.model.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.domain.model.AnimeSeason
-import com.vuzeda.animewatchlist.tracker.domain.model.ResolvedSeries
 import com.vuzeda.animewatchlist.tracker.domain.model.SearchResult
-import com.vuzeda.animewatchlist.tracker.domain.model.Season
-import com.vuzeda.animewatchlist.tracker.domain.model.SeasonData
 import com.vuzeda.animewatchlist.tracker.domain.model.SeasonalAnimePage
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
-import com.vuzeda.animewatchlist.tracker.domain.usecase.AddAnimeUseCase
-import com.vuzeda.animewatchlist.tracker.domain.usecase.AddSeasonsToAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.AddAnimeFromDetailsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.BatchFindAnimeByMalIdsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.domain.model.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.domain.usecase.GetSeasonAnimeUseCase
-import com.vuzeda.animewatchlist.tracker.domain.usecase.GetSeasonsForAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveTitleLanguageUseCase
-import com.vuzeda.animewatchlist.tracker.domain.usecase.ResolveAnimeUseCase
-import com.vuzeda.animewatchlist.tracker.domain.usecase.UpdateAnimeUseCase
-import com.vuzeda.animewatchlist.tracker.domain.usecase.UpdateSeasonUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.ResolveRemainingSeasonsUseCase
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -42,12 +35,8 @@ class SeasonsViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private val getSeasonAnimeUseCase: GetSeasonAnimeUseCase = mockk()
     private val fetchSeasonDetailUseCase: FetchSeasonDetailUseCase = mockk()
-    private val resolveAnimeUseCase: ResolveAnimeUseCase = mockk()
-    private val addAnimeUseCase: AddAnimeUseCase = mockk()
-    private val updateAnimeUseCase: UpdateAnimeUseCase = mockk(relaxed = true)
-    private val updateSeasonUseCase: UpdateSeasonUseCase = mockk(relaxed = true)
-    private val getSeasonsForAnimeUseCase: GetSeasonsForAnimeUseCase = mockk()
-    private val addSeasonsToAnimeUseCase: AddSeasonsToAnimeUseCase = mockk(relaxed = true)
+    private val addAnimeFromDetailsUseCase: AddAnimeFromDetailsUseCase = mockk()
+    private val resolveRemainingSeasonsUseCase: ResolveRemainingSeasonsUseCase = mockk()
     private val batchFindAnimeByMalIdsUseCase: BatchFindAnimeByMalIdsUseCase = mockk()
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
 
@@ -82,6 +71,7 @@ class SeasonsViewModelTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         coEvery { batchFindAnimeByMalIdsUseCase(any()) } returns emptySet()
+        coEvery { resolveRemainingSeasonsUseCase(any(), any(), any()) } returns emptySet()
         every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
         coEvery { getSeasonAnimeUseCase(any(), any(), any()) } returns Result.success(samplePage)
     }
@@ -94,12 +84,8 @@ class SeasonsViewModelTest {
     private fun createViewModel() = SeasonsViewModel(
         getSeasonAnimeUseCase = getSeasonAnimeUseCase,
         fetchSeasonDetailUseCase = fetchSeasonDetailUseCase,
-        resolveAnimeUseCase = resolveAnimeUseCase,
-        addAnimeUseCase = addAnimeUseCase,
-        updateAnimeUseCase = updateAnimeUseCase,
-        updateSeasonUseCase = updateSeasonUseCase,
-        getSeasonsForAnimeUseCase = getSeasonsForAnimeUseCase,
-        addSeasonsToAnimeUseCase = addSeasonsToAnimeUseCase,
+        addAnimeFromDetailsUseCase = addAnimeFromDetailsUseCase,
+        resolveRemainingSeasonsUseCase = resolveRemainingSeasonsUseCase,
         batchFindAnimeByMalIdsUseCase = batchFindAnimeByMalIdsUseCase,
         observeTitleLanguageUseCase = observeTitleLanguageUseCase
     )
@@ -270,16 +256,7 @@ class SeasonsViewModelTest {
     @Test
     fun `addToWatchlist adds anime and shows snackbar`() = runTest {
         coEvery { fetchSeasonDetailUseCase(1) } returns Result.success(sampleDetails)
-        coEvery { addAnimeUseCase(any(), any(), any()) } returns 10L
-        coEvery { resolveAnimeUseCase(any()) } returns Result.success(
-            ResolvedSeries(
-                title = "Frieren",
-                seasons = listOf(SeasonData(malId = 1, title = "Season 1", type = "TV"))
-            )
-        )
-        coEvery { getSeasonsForAnimeUseCase(any()) } returns listOf(
-            Season(id = 1L, animeId = 10L, malId = 1, title = "Season 1", orderIndex = 0)
-        )
+        coEvery { addAnimeFromDetailsUseCase(any(), any()) } returns 10L
 
         val viewModel = createViewModel()
 

@@ -2,23 +2,16 @@ package com.vuzeda.animewatchlist.tracker.ui.screens.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.domain.model.SearchResult
-import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
-import com.vuzeda.animewatchlist.tracker.domain.usecase.AddAnimeUseCase
-import com.vuzeda.animewatchlist.tracker.domain.usecase.AddSeasonsToAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.AddAnimeFromDetailsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.BatchFindAnimeByMalIdsUseCase
-import com.vuzeda.animewatchlist.tracker.domain.usecase.DeleteAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchSeasonDetailUseCase
-import com.vuzeda.animewatchlist.tracker.domain.usecase.FindAnimeBySeasonMalIdUseCase
-import com.vuzeda.animewatchlist.tracker.domain.usecase.GetSeasonsForAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveTitleLanguageUseCase
-import com.vuzeda.animewatchlist.tracker.domain.usecase.ResolveAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.RemoveAnimeByMalIdUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.ResolveRemainingSeasonsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.SearchAnimeUseCase
-import com.vuzeda.animewatchlist.tracker.domain.usecase.UpdateAnimeUseCase
-import com.vuzeda.animewatchlist.tracker.domain.usecase.UpdateSeasonUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -32,14 +25,9 @@ import javax.inject.Inject
 class SearchViewModel @Inject constructor(
     private val searchAnimeUseCase: SearchAnimeUseCase,
     private val fetchSeasonDetailUseCase: FetchSeasonDetailUseCase,
-    private val resolveAnimeUseCase: ResolveAnimeUseCase,
-    private val addAnimeUseCase: AddAnimeUseCase,
-    private val updateAnimeUseCase: UpdateAnimeUseCase,
-    private val updateSeasonUseCase: UpdateSeasonUseCase,
-    private val getSeasonsForAnimeUseCase: GetSeasonsForAnimeUseCase,
-    private val addSeasonsToAnimeUseCase: AddSeasonsToAnimeUseCase,
-    private val deleteAnimeUseCase: DeleteAnimeUseCase,
-    private val findAnimeBySeasonMalIdUseCase: FindAnimeBySeasonMalIdUseCase,
+    private val addAnimeFromDetailsUseCase: AddAnimeFromDetailsUseCase,
+    private val resolveRemainingSeasonsUseCase: ResolveRemainingSeasonsUseCase,
+    private val removeAnimeByMalIdUseCase: RemoveAnimeByMalIdUseCase,
     private val batchFindAnimeByMalIdsUseCase: BatchFindAnimeByMalIdsUseCase,
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase
 ) : ViewModel() {
@@ -143,32 +131,7 @@ class SearchViewModel @Inject constructor(
         val result = _uiState.value.selectedResultForAdd
 
         viewModelScope.launch {
-            val anime = Anime(
-                title = details.title,
-                titleEnglish = details.titleEnglish,
-                titleJapanese = details.titleJapanese,
-                imageUrl = details.imageUrl,
-                synopsis = details.synopsis,
-                genres = details.genres
-            )
-            val season = Season(
-                malId = details.malId,
-                title = details.title,
-                titleEnglish = details.titleEnglish,
-                titleJapanese = details.titleJapanese,
-                imageUrl = details.imageUrl,
-                type = details.type,
-                episodeCount = details.episodes,
-                score = details.score,
-                airingStatus = details.airingStatus,
-                orderIndex = 0
-            )
-
-            val animeId = addAnimeUseCase(
-                anime = anime,
-                seasons = listOf(season),
-                status = status
-            )
+            val animeId = addAnimeFromDetailsUseCase(details, status)
 
             pendingDetails = null
             _uiState.update {
@@ -179,71 +142,13 @@ class SearchViewModel @Inject constructor(
                 )
             }
 
-            resolveRemainingSeasonsInBackground(animeId, details, status)
+            val allResolvedMalIds = resolveRemainingSeasonsUseCase(
+                animeId = animeId,
+                initialMalId = details.malId,
+                status = status
+            )
+            _uiState.update { it.copy(addedMalIds = it.addedMalIds + allResolvedMalIds) }
         }
-    }
-
-    private suspend fun resolveRemainingSeasonsInBackground(
-        animeId: Long,
-        initialDetails: AnimeFullDetails,
-        status: WatchStatus
-    ) {
-        resolveAnimeUseCase(initialDetails.malId)
-            .onSuccess { resolved ->
-                val existingSeasons = getSeasonsForAnimeUseCase(animeId)
-                val existingMalIds = existingSeasons.map { it.malId }.toSet()
-
-                val resolvedSeasonEntries = resolved.seasons.mapIndexed { index, seasonData ->
-                    seasonData to index
-                }
-
-                val initialEntry = existingSeasons.firstOrNull { it.malId == initialDetails.malId }
-                val correctOrderIndex = resolvedSeasonEntries
-                    .firstOrNull { it.first.malId == initialDetails.malId }
-                    ?.second ?: 0
-
-                if (initialEntry != null && initialEntry.orderIndex != correctOrderIndex) {
-                    updateSeasonUseCase(initialEntry.copy(orderIndex = correctOrderIndex))
-                }
-
-                val remainingSeasons = resolvedSeasonEntries
-                    .filter { it.first.malId !in existingMalIds }
-                    .map { (seasonData, index) ->
-                        Season(
-                            malId = seasonData.malId,
-                            title = seasonData.title,
-                            titleEnglish = seasonData.titleEnglish,
-                            titleJapanese = seasonData.titleJapanese,
-                            imageUrl = seasonData.imageUrl,
-                            type = seasonData.type,
-                            episodeCount = seasonData.episodeCount,
-                            score = seasonData.score,
-                            airingStatus = seasonData.airingStatus,
-                            orderIndex = index
-                        )
-                    }
-
-                if (remainingSeasons.isNotEmpty()) {
-                    addSeasonsToAnimeUseCase(animeId, remainingSeasons)
-                }
-
-                updateAnimeUseCase(
-                    Anime(
-                        id = animeId,
-                        title = resolved.title,
-                        titleEnglish = resolved.titleEnglish,
-                        titleJapanese = resolved.titleJapanese,
-                        imageUrl = resolved.imageUrl,
-                        synopsis = resolved.synopsis,
-                        genres = resolved.genres,
-                        status = status,
-                        addedAt = System.currentTimeMillis()
-                    )
-                )
-
-                val allResolvedMalIds = resolved.seasons.map { it.malId }.toSet()
-                _uiState.update { it.copy(addedMalIds = it.addedMalIds + allResolvedMalIds) }
-            }
     }
 
     fun dismissBottomSheet() {
@@ -263,16 +168,12 @@ class SearchViewModel @Inject constructor(
         val result = _uiState.value.selectedResultForDelete ?: return
 
         viewModelScope.launch {
-            val animeId = findAnimeBySeasonMalIdUseCase(result.malId) ?: return@launch
-            val seasons = getSeasonsForAnimeUseCase(animeId)
-            val allMalIds = seasons.map { it.malId }.toSet()
-
-            deleteAnimeUseCase(animeId)
+            val removedMalIds = removeAnimeByMalIdUseCase(result.malId)
 
             _uiState.update {
                 it.copy(
                     selectedResultForDelete = null,
-                    addedMalIds = it.addedMalIds - allMalIds
+                    addedMalIds = it.addedMalIds - removedMalIds
                 )
             }
         }
