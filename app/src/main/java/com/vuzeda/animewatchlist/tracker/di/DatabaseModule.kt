@@ -5,6 +5,8 @@ import androidx.room.Room
 import com.vuzeda.animewatchlist.tracker.data.local.dao.AnimeDao
 import com.vuzeda.animewatchlist.tracker.data.local.dao.SeasonDao
 import com.vuzeda.animewatchlist.tracker.data.local.database.AnimeDatabase
+import com.vuzeda.animewatchlist.tracker.data.local.database.RoomTransactionRunner
+import com.vuzeda.animewatchlist.tracker.domain.repository.TransactionRunner
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -34,4 +36,9 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideSeasonDao(database: AnimeDatabase): SeasonDao = database.seasonDao()
+
+    @Provides
+    @Singleton
+    fun provideTransactionRunner(database: AnimeDatabase): TransactionRunner =
+        RoomTransactionRunner(database)
 }

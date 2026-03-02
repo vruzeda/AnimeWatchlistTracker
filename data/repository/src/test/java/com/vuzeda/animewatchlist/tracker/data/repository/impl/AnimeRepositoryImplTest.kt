@@ -9,6 +9,7 @@ import com.vuzeda.animewatchlist.tracker.data.local.entity.SeasonEntity
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
+import com.vuzeda.animewatchlist.tracker.domain.repository.TransactionRunner
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -22,7 +23,10 @@ class AnimeRepositoryImplTest {
 
     private val animeDao: AnimeDao = mockk()
     private val seasonDao: SeasonDao = mockk()
-    private val repository = AnimeRepositoryImpl(animeDao, seasonDao)
+    private val transactionRunner = object : TransactionRunner {
+        override suspend fun <T> runInTransaction(block: suspend () -> T): T = block()
+    }
+    private val repository = AnimeRepositoryImpl(animeDao, seasonDao, transactionRunner)
 
     private val sampleEntity = AnimeEntity(
         id = 1L,

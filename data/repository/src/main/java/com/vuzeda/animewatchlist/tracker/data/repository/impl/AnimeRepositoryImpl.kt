@@ -8,13 +8,15 @@ import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.repository.AnimeRepository
+import com.vuzeda.animewatchlist.tracker.domain.repository.TransactionRunner
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class AnimeRepositoryImpl @Inject constructor(
     private val animeDao: AnimeDao,
-    private val seasonDao: SeasonDao
+    private val seasonDao: SeasonDao,
+    private val transactionRunner: TransactionRunner
 ) : AnimeRepository {
 
     override fun observeAll(): Flow<List<Anime>> =
@@ -39,12 +41,13 @@ class AnimeRepositoryImpl @Inject constructor(
     override suspend fun findAnimeIdBySeasonMalId(malId: Int): Long? =
         seasonDao.findByMalId(malId)?.animeId
 
-    override suspend fun addAnime(anime: Anime, seasons: List<Season>): Long {
-        val animeId = animeDao.insert(anime.toEntity())
-        val seasonEntities = seasons.map { it.copy(animeId = animeId).toEntity() }
-        seasonDao.insertAll(seasonEntities)
-        return animeId
-    }
+    override suspend fun addAnime(anime: Anime, seasons: List<Season>): Long =
+        transactionRunner.runInTransaction {
+            val animeId = animeDao.insert(anime.toEntity())
+            val seasonEntities = seasons.map { it.copy(animeId = animeId).toEntity() }
+            seasonDao.insertAll(seasonEntities)
+            animeId
+        }
 
     override suspend fun updateAnime(anime: Anime) {
         animeDao.update(anime.toEntity())
@@ -79,11 +82,15 @@ class AnimeRepositoryImpl @Inject constructor(
     }
 
     override suspend fun addSeasonsToAnime(animeId: Long, seasons: List<Season>) {
-        val seasonEntities = seasons.map { it.copy(animeId = animeId).toEntity() }
-        seasonDao.insertAll(seasonEntities)
+        transactionRunner.runInTransaction {
+            val seasonEntities = seasons.map { it.copy(animeId = animeId).toEntity() }
+            seasonDao.insertAll(seasonEntities)
+        }
     }
 
     override suspend fun deleteAllData() {
-        animeDao.deleteAll()
+        transactionRunner.runInTransaction {
+            animeDao.deleteAll()
+        }
     }
 }
