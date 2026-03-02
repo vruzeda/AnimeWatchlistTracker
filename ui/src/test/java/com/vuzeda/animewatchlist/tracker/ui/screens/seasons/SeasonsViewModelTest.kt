@@ -14,7 +14,6 @@ import com.vuzeda.animewatchlist.tracker.domain.usecase.GetSeasonAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveWatchlistMalIdsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.RemoveAnimeByMalIdUseCase
-import com.vuzeda.animewatchlist.tracker.domain.usecase.ResolveRemainingSeasonsUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -39,7 +38,6 @@ class SeasonsViewModelTest {
     private val getSeasonAnimeUseCase: GetSeasonAnimeUseCase = mockk()
     private val fetchSeasonDetailUseCase: FetchSeasonDetailUseCase = mockk()
     private val addAnimeFromDetailsUseCase: AddAnimeFromDetailsUseCase = mockk()
-    private val resolveRemainingSeasonsUseCase: ResolveRemainingSeasonsUseCase = mockk()
     private val removeAnimeByMalIdUseCase: RemoveAnimeByMalIdUseCase = mockk()
     private val watchlistMalIdsFlow = MutableStateFlow<Set<Int>>(emptySet())
     private val observeWatchlistMalIdsUseCase: ObserveWatchlistMalIdsUseCase = mockk()
@@ -76,7 +74,6 @@ class SeasonsViewModelTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         watchlistMalIdsFlow.value = emptySet()
-        coEvery { resolveRemainingSeasonsUseCase(any(), any(), any()) } returns emptySet()
         every { observeWatchlistMalIdsUseCase() } returns watchlistMalIdsFlow
         every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
         coEvery { getSeasonAnimeUseCase(any(), any(), any()) } returns Result.success(samplePage)
@@ -91,7 +88,6 @@ class SeasonsViewModelTest {
         getSeasonAnimeUseCase = getSeasonAnimeUseCase,
         fetchSeasonDetailUseCase = fetchSeasonDetailUseCase,
         addAnimeFromDetailsUseCase = addAnimeFromDetailsUseCase,
-        resolveRemainingSeasonsUseCase = resolveRemainingSeasonsUseCase,
         removeAnimeByMalIdUseCase = removeAnimeByMalIdUseCase,
         observeWatchlistMalIdsUseCase = observeWatchlistMalIdsUseCase,
         observeTitleLanguageUseCase = observeTitleLanguageUseCase

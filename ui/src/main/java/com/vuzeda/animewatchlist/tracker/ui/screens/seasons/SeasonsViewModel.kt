@@ -12,7 +12,6 @@ import com.vuzeda.animewatchlist.tracker.domain.usecase.GetSeasonAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveWatchlistMalIdsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.RemoveAnimeByMalIdUseCase
-import com.vuzeda.animewatchlist.tracker.domain.usecase.ResolveRemainingSeasonsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,7 +27,6 @@ class SeasonsViewModel @Inject constructor(
     private val getSeasonAnimeUseCase: GetSeasonAnimeUseCase,
     private val fetchSeasonDetailUseCase: FetchSeasonDetailUseCase,
     private val addAnimeFromDetailsUseCase: AddAnimeFromDetailsUseCase,
-    private val resolveRemainingSeasonsUseCase: ResolveRemainingSeasonsUseCase,
     private val removeAnimeByMalIdUseCase: RemoveAnimeByMalIdUseCase,
     private val observeWatchlistMalIdsUseCase: ObserveWatchlistMalIdsUseCase,
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase
@@ -191,7 +189,7 @@ class SeasonsViewModel @Inject constructor(
         val result = _uiState.value.selectedResultForAdd
 
         viewModelScope.launch {
-            val animeId = addAnimeFromDetailsUseCase(details, status)
+            addAnimeFromDetailsUseCase(details, status)
 
             pendingDetails = null
             _uiState.update {
@@ -200,12 +198,6 @@ class SeasonsViewModel @Inject constructor(
                     snackbarMessage = result?.title
                 )
             }
-
-            resolveRemainingSeasonsUseCase(
-                animeId = animeId,
-                initialMalId = details.malId,
-                status = status
-            )
         }
     }
 
