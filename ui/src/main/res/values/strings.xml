@@ -52,6 +52,12 @@
     <string name="cd_add_to_watchlist">Add to watchlist</string>
     <string name="search_add_sheet_title">Add to watchlist</string>
 
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_seasons">Seasons</string>
+    <string name="nav_search">Search</string>
+    <string name="nav_settings">Settings</string>
+
     <!-- Common -->
     <string name="cd_back">Back</string>
     <string name="delete_anime_dialog_title">Remove from watchlist?</string>

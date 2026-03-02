@@ -1,5 +1,6 @@
 package com.vuzeda.animewatchlist.tracker.ui.navigation
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
@@ -15,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -23,6 +25,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.vuzeda.animewatchlist.tracker.ui.R
 import com.vuzeda.animewatchlist.tracker.ui.screens.animedetail.AnimeDetailScreenRoute
 import com.vuzeda.animewatchlist.tracker.ui.screens.home.HomeScreenRoute
 import com.vuzeda.animewatchlist.tracker.ui.screens.search.SearchScreenRoute
@@ -31,16 +34,16 @@ import com.vuzeda.animewatchlist.tracker.ui.screens.seasons.SeasonsScreenRoute
 import com.vuzeda.animewatchlist.tracker.ui.screens.settings.SettingsScreenRoute
 
 private data class BottomNavItem(
-    val label: String,
+    @StringRes val labelRes: Int,
     val icon: ImageVector,
     val route: String
 )
 
 private val BottomNavItems = listOf(
-    BottomNavItem(label = "Home", icon = Icons.Default.Home, route = Route.Home.route),
-    BottomNavItem(label = "Seasons", icon = Icons.Default.DateRange, route = Route.Seasons.route),
-    BottomNavItem(label = "Search", icon = Icons.Default.Search, route = Route.Search.route),
-    BottomNavItem(label = "Settings", icon = Icons.Default.Settings, route = Route.Settings.route)
+    BottomNavItem(labelRes = R.string.nav_home, icon = Icons.Default.Home, route = Route.Home.route),
+    BottomNavItem(labelRes = R.string.nav_seasons, icon = Icons.Default.DateRange, route = Route.Seasons.route),
+    BottomNavItem(labelRes = R.string.nav_search, icon = Icons.Default.Search, route = Route.Search.route),
+    BottomNavItem(labelRes = R.string.nav_settings, icon = Icons.Default.Settings, route = Route.Settings.route)
 )
 
 @Composable
@@ -59,9 +62,9 @@ fun AppNavigation(modifier: Modifier = Modifier) {
             if (isBottomBarVisible) {
                 NavigationBar {
                     BottomNavItems.forEach { item ->
-                        NavigationBarItem(
-                            icon = { Icon(imageVector = item.icon, contentDescription = item.label) },
-                            label = { Text(item.label) },
+                    NavigationBarItem(
+                            icon = { Icon(imageVector = item.icon, contentDescription = stringResource(item.labelRes)) },
+                            label = { Text(stringResource(item.labelRes)) },
                             selected = currentDestination.hierarchy.any { it.route == item.route },
                             onClick = {
                                 navController.navigate(item.route) {
