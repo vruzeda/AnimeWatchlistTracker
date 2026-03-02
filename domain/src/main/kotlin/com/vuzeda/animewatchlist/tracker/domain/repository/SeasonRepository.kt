@@ -17,8 +17,6 @@ interface SeasonRepository {
 
     suspend fun findSeasonIdByMalId(malId: Int): Long?
 
-    suspend fun findAnimeIdsBySeasonMalIds(malIds: List<Int>): Map<Int, Long>
-
     suspend fun getSeasonsForAnime(animeId: Long): List<Season>
 
     suspend fun addSeasonsToAnime(animeId: Long, seasons: List<Season>)

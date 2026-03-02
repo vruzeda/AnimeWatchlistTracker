@@ -35,12 +35,6 @@ interface AnimeDao {
     @Query("SELECT * FROM anime WHERE id = :id")
     suspend fun getById(id: Long): AnimeEntity?
 
-    @Query("SELECT * FROM anime WHERE notificationType != 'NONE' ORDER BY title ASC")
-    fun observeByNotificationEnabled(): Flow<List<AnimeEntity>>
-
-    @Query("SELECT * FROM anime WHERE notificationType = 'NONE' ORDER BY title ASC")
-    fun observeByNotificationDisabled(): Flow<List<AnimeEntity>>
-
     @Query("SELECT * FROM anime WHERE notificationType != 'NONE'")
     suspend fun getNotificationEnabledAnime(): List<AnimeEntity>
 

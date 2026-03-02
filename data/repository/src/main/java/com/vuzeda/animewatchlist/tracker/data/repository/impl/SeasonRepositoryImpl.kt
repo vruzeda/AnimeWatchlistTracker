@@ -33,9 +33,6 @@ class SeasonRepositoryImpl @Inject constructor(
     override suspend fun findSeasonIdByMalId(malId: Int): Long? =
         seasonDao.findByMalId(malId)?.id
 
-    override suspend fun findAnimeIdsBySeasonMalIds(malIds: List<Int>): Map<Int, Long> =
-        seasonDao.findAnimeIdsByMalIds(malIds).associate { it.malId to it.animeId }
-
     override suspend fun getSeasonsForAnime(animeId: Long): List<Season> =
         seasonDao.getByAnimeId(animeId).map { it.toDomainModel() }
 

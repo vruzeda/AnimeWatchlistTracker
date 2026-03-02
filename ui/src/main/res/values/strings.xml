@@ -9,8 +9,6 @@
 
     <!-- Home sort options -->
     <string name="sort_alphabetical">Alphabetical</string>
-    <string name="sort_mal_score">MAL Score</string>
-    <string name="sort_progress">Progress</string>
     <string name="sort_recently_added">Recently Added</string>
     <string name="sort_user_rating">Your Rating</string>
 
@@ -20,8 +18,6 @@
 
     <!-- Search filter tabs -->
     <string name="filter_all">All</string>
-    <string name="filter_not_added">Not Added</string>
-    <string name="filter_already_added">Already Added</string>
 
     <!-- HomeScreen filters -->
     <string name="filter_group_status">By Status</string>
@@ -47,7 +43,6 @@
     <string name="search_no_filter_match_subtitle">Try a different filter</string>
     <string name="search_episode_count">%1$d episodes</string>
     <string name="search_added_to_watchlist">%1$s added to watchlist</string>
-    <string name="search_failed">Search failed</string>
     <string name="cd_already_in_watchlist">Already in watchlist</string>
     <string name="cd_add_to_watchlist">Add to watchlist</string>
     <string name="search_add_sheet_title">Add to watchlist</string>
@@ -64,7 +59,6 @@
     <string name="delete_anime_dialog_message">This will remove the anime and all its seasons from your watchlist. This action cannot be undone.</string>
     <string name="delete_anime_dialog_confirm">Remove</string>
     <string name="delete_anime_dialog_dismiss">Cancel</string>
-    <string name="anime_removed_from_watchlist">%1$s removed from watchlist</string>
 
     <!-- AnimeDetailScreen -->
     <string name="anime_detail_title">Anime Detail</string>
@@ -79,7 +73,6 @@
     <string name="anime_detail_add_to_watchlist">Add to Watchlist</string>
     <string name="anime_detail_add_sheet_title">Add to watchlist</string>
     <string name="anime_detail_added_to_watchlist">%1$s added to watchlist</string>
-    <string name="anime_detail_season_score">★ %1$s</string>
     <string name="anime_detail_season_episodes">%1$d / %2$d ep</string>
     <string name="anime_detail_season_episodes_no_total">%1$d ep watched</string>
     <string name="anime_detail_add_scope_title">How many seasons?</string>
@@ -111,10 +104,6 @@
     <string name="cd_season_disable_notifications">Disable episode notifications</string>
     <string name="season_detail_episode_notifications_enabled">Episode notifications enabled</string>
     <string name="season_detail_episode_notifications_disabled">Episode notifications disabled</string>
-
-    <!-- Search adding -->
-    <string name="search_resolving">Resolving…</string>
-    <string name="search_add_failed">Failed to add to watchlist</string>
 
     <!-- SeasonsScreen -->
     <string name="seasons_title">Seasons</string>

@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.vuzeda.animewatchlist.tracker.designsystem.theme.AnimeWatchlistTrackerTheme
 import com.vuzeda.animewatchlist.tracker.designsystem.theme.StatusCompleted
@@ -27,6 +28,8 @@ import com.vuzeda.animewatchlist.tracker.designsystem.theme.StatusDropped
 import com.vuzeda.animewatchlist.tracker.designsystem.theme.StatusOnHold
 import com.vuzeda.animewatchlist.tracker.designsystem.theme.StatusPlanToWatch
 import com.vuzeda.animewatchlist.tracker.designsystem.theme.StatusWatching
+
+data class StatusOption(val label: String, val color: Color)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

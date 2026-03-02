@@ -14,8 +14,6 @@ interface AnimeRepository {
 
     fun observeById(id: Long): Flow<Anime?>
 
-    fun observeByNotificationEnabled(enabled: Boolean): Flow<List<Anime>>
-
     suspend fun getAnimeById(id: Long): Anime?
 
     suspend fun addAnime(anime: Anime, seasons: List<Season>): Long

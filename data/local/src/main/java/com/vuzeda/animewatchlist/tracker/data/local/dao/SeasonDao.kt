@@ -23,9 +23,6 @@ interface SeasonDao {
     @Query("SELECT * FROM season WHERE malId = :malId LIMIT 1")
     suspend fun findByMalId(malId: Int): SeasonEntity?
 
-    @Query("SELECT malId, animeId FROM season WHERE malId IN (:malIds)")
-    suspend fun findAnimeIdsByMalIds(malIds: List<Int>): List<SeasonMalIdProjection>
-
     @Query("SELECT * FROM season WHERE animeId = :animeId ORDER BY orderIndex ASC")
     suspend fun getByAnimeId(animeId: Long): List<SeasonEntity>
 
@@ -47,8 +44,3 @@ interface SeasonDao {
     @Query("SELECT malId FROM season")
     fun observeAllMalIds(): Flow<List<Int>>
 }
-
-data class SeasonMalIdProjection(
-    val malId: Int,
-    val animeId: Long
-)

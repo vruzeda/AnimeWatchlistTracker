@@ -29,13 +29,6 @@ class AnimeRepositoryImpl @Inject constructor(
     override fun observeById(id: Long): Flow<Anime?> =
         animeDao.observeById(id).map { it?.toDomainModel() }
 
-    override fun observeByNotificationEnabled(enabled: Boolean): Flow<List<Anime>> =
-        if (enabled) {
-            animeDao.observeByNotificationEnabled()
-        } else {
-            animeDao.observeByNotificationDisabled()
-        }.map { entities -> entities.map { it.toDomainModel() } }
-
     override suspend fun getAnimeById(id: Long): Anime? =
         animeDao.getById(id)?.toDomainModel()
 
