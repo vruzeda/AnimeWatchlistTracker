@@ -2,9 +2,12 @@ package com.vuzeda.animewatchlist.tracker.ui.screens.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.vuzeda.animewatchlist.tracker.domain.model.HomeViewMode
 import com.vuzeda.animewatchlist.tracker.domain.model.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.domain.usecase.DeleteAllDataUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveHomeViewModeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveTitleLanguageUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.SetHomeViewModeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.SetTitleLanguageUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,7 +21,9 @@ import javax.inject.Inject
 class SettingsViewModel @Inject constructor(
     private val deleteAllDataUseCase: DeleteAllDataUseCase,
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase,
-    private val setTitleLanguageUseCase: SetTitleLanguageUseCase
+    private val setTitleLanguageUseCase: SetTitleLanguageUseCase,
+    private val observeHomeViewModeUseCase: ObserveHomeViewModeUseCase,
+    private val setHomeViewModeUseCase: SetHomeViewModeUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -30,11 +35,22 @@ class SettingsViewModel @Inject constructor(
                 _uiState.update { it.copy(titleLanguage = titleLanguage) }
             }
         }
+        viewModelScope.launch {
+            observeHomeViewModeUseCase().collect { viewMode ->
+                _uiState.update { it.copy(homeViewMode = viewMode) }
+            }
+        }
     }
 
     fun setTitleLanguage(language: TitleLanguage) {
         viewModelScope.launch {
             setTitleLanguageUseCase(language)
+        }
+    }
+
+    fun setHomeViewMode(mode: HomeViewMode) {
+        viewModelScope.launch {
+            setHomeViewModeUseCase(mode)
         }
     }
 

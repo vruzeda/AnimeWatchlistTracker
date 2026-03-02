@@ -29,6 +29,7 @@ import com.vuzeda.animewatchlist.tracker.designsystem.component.NestedFilterMenu
 import com.vuzeda.animewatchlist.tracker.designsystem.component.SortMenuButton
 import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusChip
 import com.vuzeda.animewatchlist.tracker.designsystem.theme.StatusCompleted
+import com.vuzeda.animewatchlist.tracker.domain.model.HomeViewMode
 import com.vuzeda.animewatchlist.tracker.domain.model.resolveDisplayTitle
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.ui.R
@@ -46,6 +47,7 @@ private val notificationValues = listOf(null, true, false)
 @Composable
 fun HomeScreenRoute(
     onAnimeClick: (Long) -> Unit,
+    onSeasonClick: (Long) -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -55,7 +57,8 @@ fun HomeScreenRoute(
         onNotificationFilterSelected = viewModel::selectNotificationFilter,
         onResetFilters = viewModel::resetFilters,
         onSortSelected = viewModel::selectSort,
-        onAnimeClick = onAnimeClick
+        onAnimeClick = onAnimeClick,
+        onSeasonClick = onSeasonClick
     )
 }
 
@@ -67,7 +70,8 @@ fun HomeScreen(
     onNotificationFilterSelected: (Boolean?) -> Unit,
     onResetFilters: () -> Unit,
     onSortSelected: (HomeSortOption) -> Unit,
-    onAnimeClick: (Long) -> Unit
+    onAnimeClick: (Long) -> Unit,
+    onSeasonClick: (Long) -> Unit
 ) {
     val sortOptions = HomeSortOption.entries.map { stringResource(it.displayLabelRes) }
 
@@ -119,6 +123,12 @@ fun HomeScreen(
             }
         )
 
+        val isListEmpty = if (uiState.homeViewMode == HomeViewMode.ANIME) {
+            uiState.animeList.isEmpty()
+        } else {
+            uiState.seasonItems.isEmpty()
+        }
+
         when {
             uiState.isLoading -> {
                 Box(
@@ -128,14 +138,14 @@ fun HomeScreen(
                     CircularProgressIndicator()
                 }
             }
-            uiState.animeList.isEmpty() -> {
+            isListEmpty -> {
                 EmptyStateMessage(
                     modifier = Modifier.fillMaxSize(),
                     title = stringResource(R.string.home_empty_title),
                     subtitle = stringResource(R.string.home_empty_subtitle)
                 )
             }
-            else -> {
+            uiState.homeViewMode == HomeViewMode.ANIME -> {
                 LazyColumn(
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -159,6 +169,47 @@ fun HomeScreen(
                                 StatusChip(
                                     label = stringResource(anime.status.toDisplayLabelRes()),
                                     color = anime.status.toColor()
+                                )
+                            }
+                        )
+                    }
+                }
+            }
+            else -> {
+                LazyColumn(
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(
+                        items = uiState.seasonItems,
+                        key = { it.season.id }
+                    ) { item ->
+                        val displayTitle = resolveDisplayTitle(
+                            title = item.season.title,
+                            titleEnglish = item.season.titleEnglish,
+                            titleJapanese = item.season.titleJapanese,
+                            language = uiState.titleLanguage
+                        )
+                        val episodeText = item.season.episodeCount?.let { total ->
+                            stringResource(
+                                R.string.home_episode_with_total,
+                                item.season.currentEpisode,
+                                total
+                            )
+                        } ?: stringResource(
+                            R.string.home_episode_without_total,
+                            item.season.currentEpisode
+                        )
+                        AnimeCard(
+                            title = displayTitle,
+                            imageUrl = item.season.imageUrl,
+                            onClick = { onSeasonClick(item.season.id) },
+                            episodeText = episodeText,
+                            score = item.season.score,
+                            trailingContent = {
+                                StatusChip(
+                                    label = stringResource(item.animeStatus.toDisplayLabelRes()),
+                                    color = item.animeStatus.toColor()
                                 )
                             }
                         )

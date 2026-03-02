@@ -2,9 +2,12 @@ package com.vuzeda.animewatchlist.tracker.ui.screens.settings
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
+import com.vuzeda.animewatchlist.tracker.domain.model.HomeViewMode
 import com.vuzeda.animewatchlist.tracker.domain.model.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.domain.usecase.DeleteAllDataUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveHomeViewModeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveTitleLanguageUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.SetHomeViewModeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.SetTitleLanguageUseCase
 import io.mockk.coVerify
 import io.mockk.every
@@ -27,11 +30,14 @@ class SettingsViewModelTest {
     private val deleteAllDataUseCase: DeleteAllDataUseCase = mockk(relaxUnitFun = true)
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
     private val setTitleLanguageUseCase: SetTitleLanguageUseCase = mockk(relaxUnitFun = true)
+    private val observeHomeViewModeUseCase: ObserveHomeViewModeUseCase = mockk()
+    private val setHomeViewModeUseCase: SetHomeViewModeUseCase = mockk(relaxUnitFun = true)
 
     @BeforeEach
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
+        every { observeHomeViewModeUseCase() } returns flowOf(HomeViewMode.ANIME)
     }
 
     @AfterEach
@@ -39,9 +45,17 @@ class SettingsViewModelTest {
         Dispatchers.resetMain()
     }
 
+    private fun createViewModel() = SettingsViewModel(
+        deleteAllDataUseCase,
+        observeTitleLanguageUseCase,
+        setTitleLanguageUseCase,
+        observeHomeViewModeUseCase,
+        setHomeViewModeUseCase
+    )
+
     @Test
     fun `initial state has dialog hidden and data not deleted`() = runTest {
-        val viewModel = SettingsViewModel(deleteAllDataUseCase, observeTitleLanguageUseCase, setTitleLanguageUseCase)
+        val viewModel = createViewModel()
 
         viewModel.uiState.test {
             val initial = awaitItem()
@@ -52,7 +66,7 @@ class SettingsViewModelTest {
 
     @Test
     fun `requestDeleteAllData shows confirmation dialog`() = runTest {
-        val viewModel = SettingsViewModel(deleteAllDataUseCase, observeTitleLanguageUseCase, setTitleLanguageUseCase)
+        val viewModel = createViewModel()
 
         viewModel.uiState.test {
             awaitItem()
@@ -66,7 +80,7 @@ class SettingsViewModelTest {
 
     @Test
     fun `dismissDeleteConfirmation hides dialog`() = runTest {
-        val viewModel = SettingsViewModel(deleteAllDataUseCase, observeTitleLanguageUseCase, setTitleLanguageUseCase)
+        val viewModel = createViewModel()
 
         viewModel.uiState.test {
             awaitItem()
@@ -83,7 +97,7 @@ class SettingsViewModelTest {
 
     @Test
     fun `confirmDeleteAllData calls use case and sets data deleted flag`() = runTest {
-        val viewModel = SettingsViewModel(deleteAllDataUseCase, observeTitleLanguageUseCase, setTitleLanguageUseCase)
+        val viewModel = createViewModel()
 
         viewModel.uiState.test {
             awaitItem()
@@ -105,7 +119,7 @@ class SettingsViewModelTest {
 
     @Test
     fun `clearDataDeletedFlag resets the flag`() = runTest {
-        val viewModel = SettingsViewModel(deleteAllDataUseCase, observeTitleLanguageUseCase, setTitleLanguageUseCase)
+        val viewModel = createViewModel()
 
         viewModel.uiState.test {
             awaitItem()
@@ -121,6 +135,34 @@ class SettingsViewModelTest {
 
             val cleared = awaitItem()
             assertThat(cleared.isDataDeleted).isFalse()
+        }
+    }
+
+    @Test
+    fun `setHomeViewMode delegates to use case`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            viewModel.setHomeViewMode(HomeViewMode.SEASON)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            coVerify(exactly = 1) { setHomeViewModeUseCase(HomeViewMode.SEASON) }
+        }
+    }
+
+    @Test
+    fun `observes home view mode from use case`() = runTest {
+        every { observeHomeViewModeUseCase() } returns flowOf(HomeViewMode.SEASON)
+
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            val initial = awaitItem()
+
+            val updated = awaitItem()
+            assertThat(updated.homeViewMode).isEqualTo(HomeViewMode.SEASON)
         }
     }
 }

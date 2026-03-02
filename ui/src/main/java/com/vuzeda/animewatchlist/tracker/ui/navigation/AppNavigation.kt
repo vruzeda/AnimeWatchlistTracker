@@ -90,6 +90,9 @@ fun AppNavigation(modifier: Modifier = Modifier) {
                 HomeScreenRoute(
                     onAnimeClick = { animeId ->
                         navController.navigate(Route.AnimeDetail(animeId = animeId))
+                    },
+                    onSeasonClick = { seasonId ->
+                        navController.navigate(Route.SeasonDetail(seasonId = seasonId))
                     }
                 )
             }

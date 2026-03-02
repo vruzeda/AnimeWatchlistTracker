@@ -135,6 +135,9 @@
     <!-- SettingsScreen -->
     <string name="settings_title">Settings</string>
     <string name="settings_title_language">Title Language</string>
+    <string name="settings_home_view_mode">Home View Mode</string>
+    <string name="settings_home_view_mode_anime">By Anime</string>
+    <string name="settings_home_view_mode_season">By Season</string>
     <string name="settings_title_language_default">Default (Romaji)</string>
     <string name="settings_title_language_english">English</string>
     <string name="settings_title_language_japanese">Japanese</string>

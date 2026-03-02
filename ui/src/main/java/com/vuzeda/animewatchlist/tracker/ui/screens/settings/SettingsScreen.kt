@@ -32,6 +32,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.annotation.StringRes
 import com.vuzeda.animewatchlist.tracker.designsystem.component.ConfirmationDialog
+import com.vuzeda.animewatchlist.tracker.domain.model.HomeViewMode
 import com.vuzeda.animewatchlist.tracker.domain.model.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.ui.R
 
@@ -44,6 +45,14 @@ private enum class TitleLanguageOption(
     JAPANESE(TitleLanguage.JAPANESE, R.string.settings_title_language_japanese)
 }
 
+private enum class HomeViewModeOption(
+    val mode: HomeViewMode,
+    @param:StringRes val labelRes: Int
+) {
+    ANIME(HomeViewMode.ANIME, R.string.settings_home_view_mode_anime),
+    SEASON(HomeViewMode.SEASON, R.string.settings_home_view_mode_season)
+}
+
 @Composable
 fun SettingsScreenRoute(
     viewModel: SettingsViewModel = hiltViewModel()
@@ -52,6 +61,7 @@ fun SettingsScreenRoute(
     SettingsScreen(
         uiState = uiState,
         onTitleLanguageSelected = viewModel::setTitleLanguage,
+        onHomeViewModeSelected = viewModel::setHomeViewMode,
         onDeleteAllClick = viewModel::requestDeleteAllData,
         onConfirmDelete = viewModel::confirmDeleteAllData,
         onDismissDelete = viewModel::dismissDeleteConfirmation,
@@ -64,6 +74,7 @@ fun SettingsScreenRoute(
 fun SettingsScreen(
     uiState: SettingsUiState,
     onTitleLanguageSelected: (TitleLanguage) -> Unit,
+    onHomeViewModeSelected: (HomeViewMode) -> Unit,
     onDeleteAllClick: () -> Unit,
     onConfirmDelete: () -> Unit,
     onDismissDelete: () -> Unit,
@@ -108,6 +119,35 @@ fun SettingsScreen(
                     RadioButton(
                         selected = uiState.titleLanguage == option.language,
                         onClick = { onTitleLanguageSelected(option.language) }
+                    )
+                    Text(
+                        text = stringResource(option.labelRes),
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = stringResource(R.string.settings_home_view_mode),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+
+            HomeViewModeOption.entries.forEach { option ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        selected = uiState.homeViewMode == option.mode,
+                        onClick = { onHomeViewModeSelected(option.mode) }
                     )
                     Text(
                         text = stringResource(option.labelRes),

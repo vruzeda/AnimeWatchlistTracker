@@ -26,8 +26,21 @@ class UserPreferencesDataStore(
         }
     }
 
+    fun observeHomeViewMode(): Flow<String> =
+        context.dataStore.data.map { preferences ->
+            preferences[HOME_VIEW_MODE_KEY] ?: DEFAULT_HOME_VIEW_MODE
+        }
+
+    suspend fun setHomeViewMode(mode: String) {
+        context.dataStore.edit { preferences ->
+            preferences[HOME_VIEW_MODE_KEY] = mode
+        }
+    }
+
     companion object {
         private val TITLE_LANGUAGE_KEY = stringPreferencesKey("title_language")
         const val DEFAULT_TITLE_LANGUAGE = "DEFAULT"
+        private val HOME_VIEW_MODE_KEY = stringPreferencesKey("home_view_mode")
+        const val DEFAULT_HOME_VIEW_MODE = "ANIME"
     }
 }

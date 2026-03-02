@@ -3,10 +3,14 @@ package com.vuzeda.animewatchlist.tracker.ui.screens.home
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
+import com.vuzeda.animewatchlist.tracker.domain.model.HomeViewMode
 import com.vuzeda.animewatchlist.tracker.domain.model.NotificationType
+import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import com.vuzeda.animewatchlist.tracker.domain.model.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
+import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveAllSeasonsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveAnimeListUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveHomeViewModeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveTitleLanguageUseCase
 import io.mockk.every
 import io.mockk.mockk
@@ -28,6 +32,8 @@ class HomeViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private val observeAnimeListUseCase: ObserveAnimeListUseCase = mockk()
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
+    private val observeHomeViewModeUseCase: ObserveHomeViewModeUseCase = mockk()
+    private val observeAllSeasonsUseCase: ObserveAllSeasonsUseCase = mockk()
 
     private val sampleAnimeList = listOf(
         Anime(id = 1L, title = "Attack on Titan", status = WatchStatus.WATCHING, userRating = 8, addedAt = 1000L, notificationType = NotificationType.BOTH),
@@ -35,10 +41,19 @@ class HomeViewModelTest {
         Anime(id = 3L, title = "Bleach", status = WatchStatus.WATCHING, userRating = 7, addedAt = 2000L, notificationType = NotificationType.NEW_EPISODES)
     )
 
+    private val sampleSeasonList = listOf(
+        Season(id = 10L, animeId = 1L, malId = 100, title = "Attack on Titan S1", score = 9.0, episodeCount = 25, currentEpisode = 25),
+        Season(id = 11L, animeId = 1L, malId = 101, title = "Attack on Titan S2", score = 8.5, episodeCount = 12, currentEpisode = 6),
+        Season(id = 20L, animeId = 2L, malId = 200, title = "One Punch Man S1", score = 8.8, episodeCount = 12, currentEpisode = 12),
+        Season(id = 30L, animeId = 3L, malId = 300, title = "Bleach S1", score = 7.5, episodeCount = 50, currentEpisode = 10)
+    )
+
     @BeforeEach
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
+        every { observeHomeViewModeUseCase() } returns flowOf(HomeViewMode.ANIME)
+        every { observeAllSeasonsUseCase() } returns flowOf(emptyList())
     }
 
     @AfterEach
@@ -48,7 +63,12 @@ class HomeViewModelTest {
 
     private fun createViewModel(): HomeViewModel {
         every { observeAnimeListUseCase() } returns flowOf(sampleAnimeList)
-        return HomeViewModel(observeAnimeListUseCase, observeTitleLanguageUseCase)
+        return HomeViewModel(
+            observeAnimeListUseCase,
+            observeTitleLanguageUseCase,
+            observeHomeViewModeUseCase,
+            observeAllSeasonsUseCase
+        )
     }
 
     @Test
@@ -253,7 +273,12 @@ class HomeViewModelTest {
         val watchlistFlow = MutableStateFlow(sampleAnimeList)
         every { observeAnimeListUseCase() } returns watchlistFlow
 
-        val viewModel = HomeViewModel(observeAnimeListUseCase, observeTitleLanguageUseCase)
+        val viewModel = HomeViewModel(
+            observeAnimeListUseCase,
+            observeTitleLanguageUseCase,
+            observeHomeViewModeUseCase,
+            observeAllSeasonsUseCase
+        )
 
         viewModel.uiState.test {
             skipItems(2)
@@ -271,6 +296,84 @@ class HomeViewModelTest {
             assertThat(updated.sortOption).isEqualTo(HomeSortOption.USER_RATING)
             assertThat(updated.animeList[0].userRating).isEqualTo(10)
             assertThat(updated.animeList[1].userRating).isEqualTo(9)
+        }
+    }
+
+    @Test
+    fun `season mode shows season items sorted alphabetically`() = runTest {
+        every { observeAnimeListUseCase() } returns flowOf(sampleAnimeList)
+        every { observeAllSeasonsUseCase() } returns flowOf(sampleSeasonList)
+        every { observeHomeViewModeUseCase() } returns flowOf(HomeViewMode.SEASON)
+
+        val viewModel = HomeViewModel(
+            observeAnimeListUseCase,
+            observeTitleLanguageUseCase,
+            observeHomeViewModeUseCase,
+            observeAllSeasonsUseCase
+        )
+
+        viewModel.uiState.test {
+            val loading = awaitItem()
+            assertThat(loading.isLoading).isTrue()
+
+            val loaded = awaitItem()
+            assertThat(loaded.homeViewMode).isEqualTo(HomeViewMode.SEASON)
+            assertThat(loaded.seasonItems).hasSize(4)
+            assertThat(loaded.seasonItems[0].season.title).isEqualTo("Attack on Titan S1")
+            assertThat(loaded.seasonItems[1].season.title).isEqualTo("Attack on Titan S2")
+            assertThat(loaded.seasonItems[2].season.title).isEqualTo("Bleach S1")
+            assertThat(loaded.seasonItems[3].season.title).isEqualTo("One Punch Man S1")
+        }
+    }
+
+    @Test
+    fun `season mode filters by parent anime status`() = runTest {
+        every { observeAnimeListUseCase() } returns flowOf(sampleAnimeList)
+        every { observeAllSeasonsUseCase() } returns flowOf(sampleSeasonList)
+        every { observeHomeViewModeUseCase() } returns flowOf(HomeViewMode.SEASON)
+
+        val viewModel = HomeViewModel(
+            observeAnimeListUseCase,
+            observeTitleLanguageUseCase,
+            observeHomeViewModeUseCase,
+            observeAllSeasonsUseCase
+        )
+
+        viewModel.uiState.test {
+            skipItems(2)
+
+            viewModel.selectStatusFilter(WatchStatus.COMPLETED)
+
+            val filtered = awaitItem()
+            assertThat(filtered.seasonItems).hasSize(1)
+            assertThat(filtered.seasonItems[0].season.title).isEqualTo("One Punch Man S1")
+            assertThat(filtered.seasonItems[0].animeStatus).isEqualTo(WatchStatus.COMPLETED)
+        }
+    }
+
+    @Test
+    fun `season mode sorts by score when USER_RATING selected`() = runTest {
+        every { observeAnimeListUseCase() } returns flowOf(sampleAnimeList)
+        every { observeAllSeasonsUseCase() } returns flowOf(sampleSeasonList)
+        every { observeHomeViewModeUseCase() } returns flowOf(HomeViewMode.SEASON)
+
+        val viewModel = HomeViewModel(
+            observeAnimeListUseCase,
+            observeTitleLanguageUseCase,
+            observeHomeViewModeUseCase,
+            observeAllSeasonsUseCase
+        )
+
+        viewModel.uiState.test {
+            skipItems(2)
+
+            viewModel.selectSort(HomeSortOption.USER_RATING)
+
+            val sorted = awaitItem()
+            assertThat(sorted.seasonItems[0].season.score).isEqualTo(9.0)
+            assertThat(sorted.seasonItems[1].season.score).isEqualTo(8.8)
+            assertThat(sorted.seasonItems[2].season.score).isEqualTo(8.5)
+            assertThat(sorted.seasonItems[3].season.score).isEqualTo(7.5)
         }
     }
 }

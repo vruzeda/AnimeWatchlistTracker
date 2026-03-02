@@ -3,8 +3,13 @@ package com.vuzeda.animewatchlist.tracker.ui.screens.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
+import com.vuzeda.animewatchlist.tracker.domain.model.HomeViewMode
+import com.vuzeda.animewatchlist.tracker.domain.model.NotificationType
+import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
+import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveAllSeasonsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveAnimeListUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveHomeViewModeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveTitleLanguageUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,7 +23,9 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val observeAnimeListUseCase: ObserveAnimeListUseCase,
-    private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase
+    private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase,
+    private val observeHomeViewModeUseCase: ObserveHomeViewModeUseCase,
+    private val observeAllSeasonsUseCase: ObserveAllSeasonsUseCase
 ) : ViewModel() {
 
     private val _filterState = MutableStateFlow(HomeFilterState())
@@ -30,16 +37,45 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             combine(
                 observeAnimeListUseCase(),
+                observeAllSeasonsUseCase(),
                 _filterState,
                 _sortState,
-                observeTitleLanguageUseCase()
-            ) { animeList, filterState, sortState, titleLanguage ->
+                observeTitleLanguageUseCase(),
+                observeHomeViewModeUseCase()
+            ) { values ->
+                val animeList = values[0] as List<*>
+                val seasonList = values[1] as List<*>
+                val filterState = values[2] as HomeFilterState
+                val sortState = values[3] as HomeSortState
+                val titleLanguage = values[4] as com.vuzeda.animewatchlist.tracker.domain.model.TitleLanguage
+                val viewMode = values[5] as HomeViewMode
+
+                @Suppress("UNCHECKED_CAST")
+                val typedAnimeList = animeList as List<Anime>
+                @Suppress("UNCHECKED_CAST")
+                val typedSeasonList = seasonList as List<Season>
+
+                val filteredAnime = sortAnimeList(
+                    list = applyFilters(typedAnimeList, filterState),
+                    option = sortState.option,
+                    isAscending = sortState.isAscending
+                )
+
+                val seasonItems = if (viewMode == HomeViewMode.SEASON) {
+                    buildSeasonItems(
+                        animeList = typedAnimeList,
+                        seasonList = typedSeasonList,
+                        filterState = filterState,
+                        sortState = sortState
+                    )
+                } else {
+                    emptyList()
+                }
+
                 HomeUiState(
-                    animeList = sortAnimeList(
-                        list = applyFilters(animeList, filterState),
-                        option = sortState.option,
-                        isAscending = sortState.isAscending
-                    ),
+                    homeViewMode = viewMode,
+                    animeList = filteredAnime,
+                    seasonItems = seasonItems,
                     filterState = filterState,
                     sortOption = sortState.option,
                     isSortAscending = sortState.isAscending,
@@ -70,6 +106,58 @@ class HomeViewModel @Inject constructor(
             current.copy(option = option, isAscending = isAscending)
         }
     }
+}
+
+fun buildSeasonItems(
+    animeList: List<Anime>,
+    seasonList: List<Season>,
+    filterState: HomeFilterState,
+    sortState: HomeSortState
+): List<HomeSeasonItem> {
+    val animeMap = animeList.associateBy { it.id }
+
+    val enriched = seasonList.mapNotNull { season ->
+        val anime = animeMap[season.animeId] ?: return@mapNotNull null
+        HomeSeasonItem(
+            season = season,
+            animeStatus = anime.status,
+            animeNotificationType = anime.notificationType,
+            animeAddedAt = anime.addedAt
+        )
+    }
+
+    val filtered = applySeasonFilters(enriched, filterState)
+    return sortSeasonItems(filtered, sortState.option, sortState.isAscending)
+}
+
+fun applySeasonFilters(
+    items: List<HomeSeasonItem>,
+    filterState: HomeFilterState
+): List<HomeSeasonItem> {
+    var filtered = items
+    filterState.statusFilter?.let { status ->
+        filtered = filtered.filter { it.animeStatus == status }
+    }
+    filterState.notificationFilter?.let { enabled ->
+        filtered = filtered.filter {
+            (it.animeNotificationType != NotificationType.NONE) == enabled
+        }
+    }
+    return filtered
+}
+
+fun sortSeasonItems(
+    items: List<HomeSeasonItem>,
+    option: HomeSortOption,
+    isAscending: Boolean = option.defaultAscending
+): List<HomeSeasonItem> {
+    val sorted = when (option) {
+        HomeSortOption.ALPHABETICAL -> items.sortedBy { it.season.title.lowercase() }
+        HomeSortOption.RECENTLY_ADDED -> items.sortedByDescending { it.animeAddedAt }
+        HomeSortOption.USER_RATING -> items.sortedByDescending { it.season.score ?: 0.0 }
+    }
+    val shouldReverse = isAscending != option.defaultAscending
+    return if (shouldReverse) sorted.reversed() else sorted
 }
 
 fun applyFilters(list: List<Anime>, filterState: HomeFilterState): List<Anime> {

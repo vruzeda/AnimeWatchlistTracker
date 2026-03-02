@@ -11,6 +11,9 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface SeasonDao {
 
+    @Query("SELECT * FROM season ORDER BY animeId, orderIndex ASC")
+    fun observeAll(): Flow<List<SeasonEntity>>
+
     @Query("SELECT * FROM season WHERE animeId = :animeId ORDER BY orderIndex ASC")
     fun observeByAnimeId(animeId: Long): Flow<List<SeasonEntity>>
 
