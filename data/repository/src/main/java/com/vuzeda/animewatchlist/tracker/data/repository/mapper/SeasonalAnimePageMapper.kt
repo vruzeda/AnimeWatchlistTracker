@@ -5,7 +5,7 @@ import com.vuzeda.animewatchlist.tracker.domain.model.SeasonalAnimePage
 
 fun AnimeSearchResponseDto.toSeasonalAnimePage(currentPage: Int): SeasonalAnimePage =
     SeasonalAnimePage(
-        results = data.map { it.toSearchResult() },
+        results = data.map { it.toSearchResult() }.distinctBy { it.malId },
         hasNextPage = pagination?.hasNextPage ?: false,
         currentPage = currentPage
     )
