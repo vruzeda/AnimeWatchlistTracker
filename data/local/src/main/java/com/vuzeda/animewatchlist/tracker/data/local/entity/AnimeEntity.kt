@@ -14,6 +14,6 @@ data class AnimeEntity(
     val genres: String = "",
     val status: String,
     val userRating: Int? = null,
-    val isNotificationsEnabled: Int = 0,
+    val isNotificationsEnabled: Boolean = false,
     val addedAt: Long = 0
 )

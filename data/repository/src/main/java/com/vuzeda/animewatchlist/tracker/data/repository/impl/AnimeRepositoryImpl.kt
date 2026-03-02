@@ -29,7 +29,7 @@ class AnimeRepositoryImpl @Inject constructor(
         animeDao.observeById(id).map { it?.toDomainModel() }
 
     override fun observeByNotificationEnabled(enabled: Boolean): Flow<List<Anime>> =
-        animeDao.observeByNotificationEnabled(if (enabled) 1 else 0)
+        animeDao.observeByNotificationEnabled(enabled)
             .map { entities -> entities.map { it.toDomainModel() } }
 
     override fun observeSeasonsForAnime(animeId: Long): Flow<List<Season>> =
@@ -65,7 +65,7 @@ class AnimeRepositoryImpl @Inject constructor(
     }
 
     override suspend fun toggleNotifications(id: Long, enabled: Boolean) {
-        animeDao.updateNotificationsEnabled(id = id, enabled = if (enabled) 1 else 0)
+        animeDao.updateNotificationsEnabled(id = id, enabled = enabled)
     }
 
     override suspend fun getNotificationEnabledAnime(): List<Anime> =

@@ -18,7 +18,7 @@ class AnimeEntityMapperTest {
             genres = "Action,Drama",
             status = "WATCHING",
             userRating = 9,
-            isNotificationsEnabled = 1,
+        isNotificationsEnabled = true,
             addedAt = 1000L
         )
 
@@ -119,7 +119,7 @@ class AnimeEntityMapperTest {
         assertThat(entity.genres).isEqualTo("Action,Drama")
         assertThat(entity.status).isEqualTo("WATCHING")
         assertThat(entity.userRating).isEqualTo(9)
-        assertThat(entity.isNotificationsEnabled).isEqualTo(1)
+        assertThat(entity.isNotificationsEnabled).isTrue()
         assertThat(entity.addedAt).isEqualTo(1000L)
     }
 

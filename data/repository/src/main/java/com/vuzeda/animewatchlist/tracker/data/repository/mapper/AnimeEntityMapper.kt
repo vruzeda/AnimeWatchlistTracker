@@ -14,7 +14,7 @@ fun AnimeEntity.toDomainModel(): Anime = Anime(
     genres = if (genres.isBlank()) emptyList() else genres.split(",").map { it.trim() },
     status = WatchStatus.entries.firstOrNull { it.name == status } ?: WatchStatus.PLAN_TO_WATCH,
     userRating = userRating,
-    isNotificationsEnabled = isNotificationsEnabled == 1,
+    isNotificationsEnabled = isNotificationsEnabled,
     addedAt = addedAt
 )
 
@@ -28,6 +28,6 @@ fun Anime.toEntity(): AnimeEntity = AnimeEntity(
     genres = genres.joinToString(","),
     status = status.name,
     userRating = userRating,
-    isNotificationsEnabled = if (isNotificationsEnabled) 1 else 0,
+    isNotificationsEnabled = isNotificationsEnabled,
     addedAt = addedAt
 )

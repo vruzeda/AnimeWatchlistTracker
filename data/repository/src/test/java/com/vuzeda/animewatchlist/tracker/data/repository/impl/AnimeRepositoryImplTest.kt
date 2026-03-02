@@ -36,7 +36,7 @@ class AnimeRepositoryImplTest {
         genres = "Action,Drama",
         status = "WATCHING",
         userRating = 9,
-        isNotificationsEnabled = 0,
+        isNotificationsEnabled = false,
         addedAt = 1000L
     )
 
@@ -166,17 +166,17 @@ class AnimeRepositoryImplTest {
     }
 
     @Test
-    fun `toggleNotifications delegates to dao with correct int value`() = runTest {
-        coEvery { animeDao.updateNotificationsEnabled(id = 1L, enabled = 1) } returns Unit
+    fun `toggleNotifications delegates to dao with correct boolean value`() = runTest {
+        coEvery { animeDao.updateNotificationsEnabled(id = 1L, enabled = true) } returns Unit
 
         repository.toggleNotifications(id = 1L, enabled = true)
 
-        coVerify { animeDao.updateNotificationsEnabled(id = 1L, enabled = 1) }
+        coVerify { animeDao.updateNotificationsEnabled(id = 1L, enabled = true) }
     }
 
     @Test
     fun `getNotificationEnabledAnime returns mapped domain models`() = runTest {
-        val notifiedEntity = sampleEntity.copy(isNotificationsEnabled = 1)
+        val notifiedEntity = sampleEntity.copy(isNotificationsEnabled = true)
         coEvery { animeDao.getNotificationEnabledAnime() } returns listOf(notifiedEntity)
 
         val result = repository.getNotificationEnabledAnime()
@@ -264,8 +264,8 @@ class AnimeRepositoryImplTest {
 
     @Test
     fun `observeByNotificationEnabled emits mapped domain models for enabled`() = runTest {
-        val notifiedEntity = sampleEntity.copy(isNotificationsEnabled = 1)
-        every { animeDao.observeByNotificationEnabled(1) } returns flowOf(listOf(notifiedEntity))
+        val notifiedEntity = sampleEntity.copy(isNotificationsEnabled = true)
+        every { animeDao.observeByNotificationEnabled(true) } returns flowOf(listOf(notifiedEntity))
 
         repository.observeByNotificationEnabled(true).test {
             val result = awaitItem()
@@ -278,7 +278,7 @@ class AnimeRepositoryImplTest {
 
     @Test
     fun `observeByNotificationEnabled emits mapped domain models for disabled`() = runTest {
-        every { animeDao.observeByNotificationEnabled(0) } returns flowOf(listOf(sampleEntity))
+        every { animeDao.observeByNotificationEnabled(false) } returns flowOf(listOf(sampleEntity))
 
         repository.observeByNotificationEnabled(false).test {
             val result = awaitItem()
