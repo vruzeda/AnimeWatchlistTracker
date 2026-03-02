@@ -19,7 +19,12 @@ sealed interface SeasonDetailUiState {
         val isDeleted: Boolean = false,
         val isAddSheetVisible: Boolean = false,
         val isEpisodeNotificationsEnabled: Boolean = season.isEpisodeNotificationsEnabled,
-        val snackbarMessage: String? = null,
+        val snackbarEvent: SeasonDetailSnackbarEvent? = null,
         val pendingNavigationMalId: Int? = null
     ) : SeasonDetailUiState
+}
+
+sealed interface SeasonDetailSnackbarEvent {
+    data class AddedToWatchlist(val title: String) : SeasonDetailSnackbarEvent
+    data class EpisodeNotificationsToggled(val enabled: Boolean) : SeasonDetailSnackbarEvent
 }

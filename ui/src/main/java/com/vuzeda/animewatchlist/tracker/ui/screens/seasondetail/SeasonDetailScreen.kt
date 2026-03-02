@@ -116,9 +116,9 @@ fun SeasonDetailScreen(
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
-    if (uiState is SeasonDetailUiState.Success && uiState.snackbarMessage != null) {
-        val message = stringResource(R.string.season_detail_added_to_watchlist, uiState.snackbarMessage)
-        LaunchedEffect(uiState.snackbarMessage) {
+    if (uiState is SeasonDetailUiState.Success && uiState.snackbarEvent != null) {
+        val message = resolveSnackbarMessage(uiState.snackbarEvent)
+        LaunchedEffect(uiState.snackbarEvent) {
             snackbarHostState.showSnackbar(message)
             onSnackbarDismissed()
         }
@@ -396,4 +396,16 @@ private fun SeasonHeaderSection(
             }
         }
     }
+}
+
+@Composable
+private fun resolveSnackbarMessage(event: SeasonDetailSnackbarEvent): String = when (event) {
+    is SeasonDetailSnackbarEvent.AddedToWatchlist -> stringResource(
+        R.string.season_detail_added_to_watchlist,
+        event.title
+    )
+    is SeasonDetailSnackbarEvent.EpisodeNotificationsToggled -> stringResource(
+        if (event.enabled) R.string.season_detail_episode_notifications_enabled
+        else R.string.season_detail_episode_notifications_disabled
+    )
 }

@@ -124,9 +124,10 @@ fun AnimeDetailScreen(
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
-    if (uiState is AnimeDetailUiState.Success && uiState.snackbarMessage != null) {
-        LaunchedEffect(uiState.snackbarMessage) {
-            snackbarHostState.showSnackbar(uiState.snackbarMessage)
+    if (uiState is AnimeDetailUiState.Success && uiState.snackbarEvent != null) {
+        val message = resolveSnackbarMessage(uiState.snackbarEvent)
+        LaunchedEffect(uiState.snackbarEvent) {
+            snackbarHostState.showSnackbar(message)
             onSnackbarDismissed()
         }
     }
@@ -437,6 +438,20 @@ private fun AnimeHeaderSection(
     }
 }
 
+
+@Composable
+private fun resolveSnackbarMessage(event: AnimeDetailSnackbarEvent): String = when (event) {
+    is AnimeDetailSnackbarEvent.AddedToWatchlist ->
+        stringResource(R.string.anime_detail_added_to_watchlist, event.title)
+    is AnimeDetailSnackbarEvent.NotificationsEnabled -> when (event.type) {
+        NotificationType.NEW_EPISODES -> stringResource(R.string.anime_detail_notifications_enabled_episodes)
+        NotificationType.NEW_SEASONS -> stringResource(R.string.anime_detail_notifications_enabled_seasons)
+        NotificationType.BOTH -> stringResource(R.string.anime_detail_notifications_enabled_both)
+        NotificationType.NONE -> stringResource(R.string.anime_detail_notifications_disabled)
+    }
+    is AnimeDetailSnackbarEvent.NotificationsDisabled ->
+        stringResource(R.string.anime_detail_notifications_disabled)
+}
 
 @Composable
 private fun SeasonCardItem(

@@ -226,7 +226,7 @@ class SeasonDetailViewModel @Inject constructor(
             _uiState.update { state ->
                 if (state is SeasonDetailUiState.Success) state.copy(
                     isAddSheetVisible = false,
-                    snackbarMessage = details.title
+                    snackbarEvent = SeasonDetailSnackbarEvent.AddedToWatchlist(details.title)
                 )
                 else state
             }
@@ -250,7 +250,8 @@ class SeasonDetailViewModel @Inject constructor(
             )
             _uiState.update { current ->
                 if (current is SeasonDetailUiState.Success) current.copy(
-                    isEpisodeNotificationsEnabled = newEnabled
+                    isEpisodeNotificationsEnabled = newEnabled,
+                    snackbarEvent = SeasonDetailSnackbarEvent.EpisodeNotificationsToggled(newEnabled)
                 )
                 else current
             }
@@ -278,7 +279,7 @@ class SeasonDetailViewModel @Inject constructor(
 
     fun clearSnackbar() {
         _uiState.update { state ->
-            if (state is SeasonDetailUiState.Success) state.copy(snackbarMessage = null)
+            if (state is SeasonDetailUiState.Success) state.copy(snackbarEvent = null)
             else state
         }
     }

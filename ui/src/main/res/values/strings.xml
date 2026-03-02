@@ -89,6 +89,10 @@
     <string name="anime_detail_notification_new_episodes">New aired episodes</string>
     <string name="anime_detail_notification_new_seasons">New aired seasons</string>
     <string name="anime_detail_notification_both">Both</string>
+    <string name="anime_detail_notifications_enabled_episodes">Notifications enabled: new episodes</string>
+    <string name="anime_detail_notifications_enabled_seasons">Notifications enabled: new seasons</string>
+    <string name="anime_detail_notifications_enabled_both">Notifications enabled: episodes and seasons</string>
+    <string name="anime_detail_notifications_disabled">Notifications disabled</string>
 
     <!-- SeasonDetailScreen -->
     <string name="season_detail_title">Season Detail</string>
@@ -105,6 +109,8 @@
     <string name="season_detail_view_full_series">View Full Series</string>
     <string name="cd_season_enable_notifications">Enable episode notifications</string>
     <string name="cd_season_disable_notifications">Disable episode notifications</string>
+    <string name="season_detail_episode_notifications_enabled">Episode notifications enabled</string>
+    <string name="season_detail_episode_notifications_disabled">Episode notifications disabled</string>
 
     <!-- Search adding -->
     <string name="search_resolving">Resolving…</string>

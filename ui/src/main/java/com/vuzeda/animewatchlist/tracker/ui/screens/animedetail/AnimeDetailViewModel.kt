@@ -207,6 +207,7 @@ class AnimeDetailViewModel @Inject constructor(
         val status = state.pendingAddStatus ?: return
         val anime = resolvedAnime ?: return
         val seasons = if (allSeasons) resolvedSeasons else resolvedSeasons.take(1)
+        val title = anime.title
 
         _uiState.update {
             if (it is AnimeDetailUiState.Success) it.copy(
@@ -223,6 +224,11 @@ class AnimeDetailViewModel @Inject constructor(
             )
             resolvedAnime = null
             resolvedSeasons = emptyList()
+            _uiState.update {
+                if (it is AnimeDetailUiState.Success) it.copy(
+                    snackbarEvent = AnimeDetailSnackbarEvent.AddedToWatchlist(title)
+                ) else it
+            }
             observeAnime(newId)
         }
     }
@@ -282,6 +288,11 @@ class AnimeDetailViewModel @Inject constructor(
                     id = state.anime.id,
                     notificationType = NotificationType.NONE
                 )
+                _uiState.update {
+                    if (it is AnimeDetailUiState.Success) it.copy(
+                        snackbarEvent = AnimeDetailSnackbarEvent.NotificationsDisabled
+                    ) else it
+                }
             }
         } else {
             _uiState.update {
@@ -312,12 +323,17 @@ class AnimeDetailViewModel @Inject constructor(
                 id = state.anime.id,
                 notificationType = notificationType
             )
+            _uiState.update {
+                if (it is AnimeDetailUiState.Success) it.copy(
+                    snackbarEvent = AnimeDetailSnackbarEvent.NotificationsEnabled(notificationType)
+                ) else it
+            }
         }
     }
 
     fun clearSnackbar() {
         _uiState.update { state ->
-            if (state is AnimeDetailUiState.Success) state.copy(snackbarMessage = null)
+            if (state is AnimeDetailUiState.Success) state.copy(snackbarEvent = null)
             else state
         }
     }

@@ -22,8 +22,14 @@ sealed interface AnimeDetailUiState {
         val isNotificationTypeSheetVisible: Boolean = false,
         val isDeleteConfirmationVisible: Boolean = false,
         val isDeleted: Boolean = false,
-        val snackbarMessage: String? = null
+        val snackbarEvent: AnimeDetailSnackbarEvent? = null
     ) : AnimeDetailUiState {
         val isNotificationsEnabled: Boolean get() = notificationType != NotificationType.NONE
     }
+}
+
+sealed interface AnimeDetailSnackbarEvent {
+    data class AddedToWatchlist(val title: String) : AnimeDetailSnackbarEvent
+    data class NotificationsEnabled(val type: NotificationType) : AnimeDetailSnackbarEvent
+    data object NotificationsDisabled : AnimeDetailSnackbarEvent
 }
