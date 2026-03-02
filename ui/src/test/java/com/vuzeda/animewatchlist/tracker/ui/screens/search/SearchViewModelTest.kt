@@ -10,6 +10,7 @@ import com.vuzeda.animewatchlist.tracker.domain.model.SeasonData
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.usecase.AddAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.AddSeasonsToAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.BatchFindAnimeByMalIdsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.DeleteAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.domain.model.TitleLanguage
@@ -50,6 +51,7 @@ class SearchViewModelTest {
     private val addSeasonsToAnimeUseCase: AddSeasonsToAnimeUseCase = mockk(relaxed = true)
     private val deleteAnimeUseCase: DeleteAnimeUseCase = mockk(relaxed = true)
     private val findAnimeBySeasonMalIdUseCase: FindAnimeBySeasonMalIdUseCase = mockk()
+    private val batchFindAnimeByMalIdsUseCase: BatchFindAnimeByMalIdsUseCase = mockk()
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
 
     private lateinit var viewModel: SearchViewModel
@@ -74,6 +76,7 @@ class SearchViewModelTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         coEvery { findAnimeBySeasonMalIdUseCase(any()) } returns null
+        coEvery { batchFindAnimeByMalIdsUseCase(any()) } returns emptySet()
         every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
         coEvery { resolveAnimeUseCase(any()) } returns Result.success(
             ResolvedSeries(
@@ -95,6 +98,7 @@ class SearchViewModelTest {
             addSeasonsToAnimeUseCase = addSeasonsToAnimeUseCase,
             deleteAnimeUseCase = deleteAnimeUseCase,
             findAnimeBySeasonMalIdUseCase = findAnimeBySeasonMalIdUseCase,
+            batchFindAnimeByMalIdsUseCase = batchFindAnimeByMalIdsUseCase,
             observeTitleLanguageUseCase = observeTitleLanguageUseCase
         )
     }

@@ -21,6 +21,8 @@ interface AnimeRepository {
 
     suspend fun findAnimeIdBySeasonMalId(malId: Int): Long?
 
+    suspend fun findAnimeIdsBySeasonMalIds(malIds: List<Int>): Map<Int, Long>
+
     suspend fun addAnime(anime: Anime, seasons: List<Season>): Long
 
     suspend fun updateAnime(anime: Anime)

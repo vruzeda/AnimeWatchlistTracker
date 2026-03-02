@@ -41,6 +41,9 @@ class AnimeRepositoryImpl @Inject constructor(
     override suspend fun findAnimeIdBySeasonMalId(malId: Int): Long? =
         seasonDao.findByMalId(malId)?.animeId
 
+    override suspend fun findAnimeIdsBySeasonMalIds(malIds: List<Int>): Map<Int, Long> =
+        seasonDao.findAnimeIdsByMalIds(malIds).associate { it.malId to it.animeId }
+
     override suspend fun addAnime(anime: Anime, seasons: List<Season>): Long =
         transactionRunner.runInTransaction {
             val animeId = animeDao.insert(anime.toEntity())

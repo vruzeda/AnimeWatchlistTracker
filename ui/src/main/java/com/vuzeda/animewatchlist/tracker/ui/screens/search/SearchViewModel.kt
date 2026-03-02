@@ -9,6 +9,7 @@ import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.usecase.AddAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.AddSeasonsToAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.BatchFindAnimeByMalIdsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.DeleteAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FindAnimeBySeasonMalIdUseCase
@@ -39,6 +40,7 @@ class SearchViewModel @Inject constructor(
     private val addSeasonsToAnimeUseCase: AddSeasonsToAnimeUseCase,
     private val deleteAnimeUseCase: DeleteAnimeUseCase,
     private val findAnimeBySeasonMalIdUseCase: FindAnimeBySeasonMalIdUseCase,
+    private val batchFindAnimeByMalIdsUseCase: BatchFindAnimeByMalIdsUseCase,
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase
 ) : ViewModel() {
 
@@ -286,13 +288,8 @@ class SearchViewModel @Inject constructor(
 
     private fun checkAddedResults(results: List<SearchResult>) {
         viewModelScope.launch {
-            val addedMalIds = mutableSetOf<Int>()
-            results.forEach { result ->
-                val animeId = findAnimeBySeasonMalIdUseCase(result.malId)
-                if (animeId != null) {
-                    addedMalIds.add(result.malId)
-                }
-            }
+            val malIds = results.map { it.malId }
+            val addedMalIds = batchFindAnimeByMalIdsUseCase(malIds)
             _uiState.update { it.copy(addedMalIds = it.addedMalIds + addedMalIds) }
         }
     }

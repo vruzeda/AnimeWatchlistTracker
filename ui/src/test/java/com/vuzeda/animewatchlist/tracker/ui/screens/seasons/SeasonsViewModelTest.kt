@@ -12,9 +12,9 @@ import com.vuzeda.animewatchlist.tracker.domain.model.SeasonalAnimePage
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.usecase.AddAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.AddSeasonsToAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.BatchFindAnimeByMalIdsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.domain.model.TitleLanguage
-import com.vuzeda.animewatchlist.tracker.domain.usecase.FindAnimeBySeasonMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.GetSeasonAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.GetSeasonsForAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveTitleLanguageUseCase
@@ -48,7 +48,7 @@ class SeasonsViewModelTest {
     private val updateSeasonUseCase: UpdateSeasonUseCase = mockk(relaxed = true)
     private val getSeasonsForAnimeUseCase: GetSeasonsForAnimeUseCase = mockk()
     private val addSeasonsToAnimeUseCase: AddSeasonsToAnimeUseCase = mockk(relaxed = true)
-    private val findAnimeBySeasonMalIdUseCase: FindAnimeBySeasonMalIdUseCase = mockk()
+    private val batchFindAnimeByMalIdsUseCase: BatchFindAnimeByMalIdsUseCase = mockk()
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
 
     private val samplePage = SeasonalAnimePage(
@@ -81,7 +81,7 @@ class SeasonsViewModelTest {
     @BeforeEach
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        coEvery { findAnimeBySeasonMalIdUseCase(any()) } returns null
+        coEvery { batchFindAnimeByMalIdsUseCase(any()) } returns emptySet()
         every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
         coEvery { getSeasonAnimeUseCase(any(), any(), any()) } returns Result.success(samplePage)
     }
@@ -100,7 +100,7 @@ class SeasonsViewModelTest {
         updateSeasonUseCase = updateSeasonUseCase,
         getSeasonsForAnimeUseCase = getSeasonsForAnimeUseCase,
         addSeasonsToAnimeUseCase = addSeasonsToAnimeUseCase,
-        findAnimeBySeasonMalIdUseCase = findAnimeBySeasonMalIdUseCase,
+        batchFindAnimeByMalIdsUseCase = batchFindAnimeByMalIdsUseCase,
         observeTitleLanguageUseCase = observeTitleLanguageUseCase
     )
 
