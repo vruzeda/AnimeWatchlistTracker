@@ -21,6 +21,13 @@ enum class SearchFilter(@param:StringRes val displayLabelRes: Int) {
     ALL(R.string.filter_all)
 }
 
+data class SearchDisplayData(
+    val displayedResults: List<SearchResult>,
+    val sortState: SearchSortState,
+    val titleLanguage: TitleLanguage,
+    val addedMalIds: Set<Int>
+)
+
 data class SearchUiState(
     val query: String = "",
     val results: List<SearchResult> = emptyList(),

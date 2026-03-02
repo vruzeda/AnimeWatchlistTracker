@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vuzeda.animewatchlist.tracker.designsystem.component.AnimeCard
+import com.vuzeda.animewatchlist.tracker.designsystem.component.ConfirmationDialog
 import com.vuzeda.animewatchlist.tracker.designsystem.component.EmptyStateMessage
 import com.vuzeda.animewatchlist.tracker.designsystem.component.SeasonPickerRow
 import com.vuzeda.animewatchlist.tracker.designsystem.component.SortMenuButton
@@ -71,8 +72,11 @@ fun SeasonsScreenRoute(
         onSortSelected = viewModel::selectSort,
         onResultClick = viewModel::onResultClick,
         onAddClick = viewModel::onAddClick,
+        onRemoveClick = viewModel::onRemoveClick,
         onAddStatusSelected = viewModel::addToWatchlist,
         onDismissAddSheet = viewModel::dismissBottomSheet,
+        onConfirmRemove = viewModel::confirmRemoveFromWatchlist,
+        onDismissRemoveConfirmation = viewModel::dismissDeleteConfirmation,
         onLoadMore = viewModel::loadMore,
         onSnackbarDismissed = viewModel::clearSnackbar
     )
@@ -87,8 +91,11 @@ fun SeasonsScreen(
     onSortSelected: (SeasonsSortOption) -> Unit,
     onResultClick: (SearchResult) -> Unit,
     onAddClick: (SearchResult) -> Unit,
+    onRemoveClick: (SearchResult) -> Unit,
     onAddStatusSelected: (WatchStatus) -> Unit,
     onDismissAddSheet: () -> Unit,
+    onConfirmRemove: () -> Unit,
+    onDismissRemoveConfirmation: () -> Unit,
     onLoadMore: () -> Unit,
     onSnackbarDismissed: () -> Unit
 ) {
@@ -195,11 +202,13 @@ fun SeasonsScreen(
                                             strokeWidth = 2.dp
                                         )
                                     } else if (isAdded) {
-                                        Icon(
-                                            imageVector = Icons.Default.Check,
-                                            contentDescription = stringResource(R.string.cd_already_in_watchlist),
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
+                                        IconButton(onClick = { onRemoveClick(result) }) {
+                                            Icon(
+                                                imageVector = Icons.Default.Check,
+                                                contentDescription = stringResource(R.string.cd_already_in_watchlist),
+                                                tint = MaterialTheme.colorScheme.primary
+                                            )
+                                        }
                                     } else {
                                         IconButton(onClick = { onAddClick(result) }) {
                                             Icon(
@@ -231,6 +240,17 @@ fun SeasonsScreen(
                                 }
                             }
                         }
+                    }
+
+                    if (uiState.selectedResultForDelete != null) {
+                        ConfirmationDialog(
+                            title = stringResource(R.string.delete_anime_dialog_title),
+                            message = stringResource(R.string.delete_anime_dialog_message),
+                            confirmText = stringResource(R.string.delete_anime_dialog_confirm),
+                            dismissText = stringResource(R.string.delete_anime_dialog_dismiss),
+                            onConfirm = onConfirmRemove,
+                            onDismiss = onDismissRemoveConfirmation
+                        )
                     }
 
                     if (uiState.selectedResultForAdd != null) {

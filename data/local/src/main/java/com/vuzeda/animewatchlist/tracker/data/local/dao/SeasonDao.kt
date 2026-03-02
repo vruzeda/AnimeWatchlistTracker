@@ -40,6 +40,9 @@ interface SeasonDao {
 
     @Query("SELECT * FROM season WHERE isEpisodeNotificationsEnabled = 1")
     suspend fun getSeasonsWithEpisodeNotifications(): List<SeasonEntity>
+
+    @Query("SELECT malId FROM season")
+    fun observeAllMalIds(): Flow<List<Int>>
 }
 
 data class SeasonMalIdProjection(

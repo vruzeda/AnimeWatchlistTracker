@@ -17,6 +17,13 @@ data class SeasonsSortState(
     val isAscending: Boolean = SeasonsSortOption.DEFAULT.defaultAscending
 )
 
+data class SeasonsDisplayData(
+    val displayedAnimeList: List<SearchResult>,
+    val sortState: SeasonsSortState,
+    val titleLanguage: TitleLanguage,
+    val addedMalIds: Set<Int>
+)
+
 data class SeasonsUiState(
     val selectedYear: Int = 0,
     val selectedSeason: AnimeSeason = AnimeSeason.WINTER,
@@ -33,6 +40,7 @@ data class SeasonsUiState(
     val errorMessage: String? = null,
     val titleLanguage: TitleLanguage = TitleLanguage.DEFAULT,
     val selectedResultForAdd: SearchResult? = null,
+    val selectedResultForDelete: SearchResult? = null,
     val snackbarMessage: String? = null,
     val pendingNavigationMalId: Int? = null,
     val addedMalIds: Set<Int> = emptySet(),

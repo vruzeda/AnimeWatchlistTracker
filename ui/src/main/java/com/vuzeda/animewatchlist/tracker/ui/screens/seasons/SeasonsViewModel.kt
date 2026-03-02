@@ -7,10 +7,11 @@ import com.vuzeda.animewatchlist.tracker.domain.model.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.domain.model.SearchResult
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.usecase.AddAnimeFromDetailsUseCase
-import com.vuzeda.animewatchlist.tracker.domain.usecase.BatchFindAnimeByMalIdsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.GetSeasonAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveTitleLanguageUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveWatchlistMalIdsUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.RemoveAnimeByMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ResolveRemainingSeasonsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,7 +29,8 @@ class SeasonsViewModel @Inject constructor(
     private val fetchSeasonDetailUseCase: FetchSeasonDetailUseCase,
     private val addAnimeFromDetailsUseCase: AddAnimeFromDetailsUseCase,
     private val resolveRemainingSeasonsUseCase: ResolveRemainingSeasonsUseCase,
-    private val batchFindAnimeByMalIdsUseCase: BatchFindAnimeByMalIdsUseCase,
+    private val removeAnimeByMalIdUseCase: RemoveAnimeByMalIdUseCase,
+    private val observeWatchlistMalIdsUseCase: ObserveWatchlistMalIdsUseCase,
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase
 ) : ViewModel() {
 
@@ -54,15 +56,26 @@ class SeasonsViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            combine(_rawAnimeList, _sortState, observeTitleLanguageUseCase()) { animeList, sortState, titleLanguage ->
-                Triple(sortSeasonResults(animeList, sortState.option, sortState.isAscending), sortState, titleLanguage)
-            }.collect { (displayedAnimeList, sortState, titleLanguage) ->
+            combine(
+                _rawAnimeList,
+                _sortState,
+                observeTitleLanguageUseCase(),
+                observeWatchlistMalIdsUseCase()
+            ) { animeList, sortState, titleLanguage, watchlistMalIds ->
+                SeasonsDisplayData(
+                    displayedAnimeList = sortSeasonResults(animeList, sortState.option, sortState.isAscending),
+                    sortState = sortState,
+                    titleLanguage = titleLanguage,
+                    addedMalIds = watchlistMalIds
+                )
+            }.collect { data ->
                 _uiState.update {
                     it.copy(
-                        displayedAnimeList = displayedAnimeList,
-                        sortOption = sortState.option,
-                        isSortAscending = sortState.isAscending,
-                        titleLanguage = titleLanguage
+                        displayedAnimeList = data.displayedAnimeList,
+                        sortOption = data.sortState.option,
+                        isSortAscending = data.sortState.isAscending,
+                        titleLanguage = data.titleLanguage,
+                        addedMalIds = data.addedMalIds
                     )
                 }
             }
@@ -136,7 +149,6 @@ class SeasonsViewModel @Inject constructor(
                             isLoadingMore = false
                         )
                     }
-                    checkAddedResults(page.results)
                 }
                 .onFailure {
                     _uiState.update { it.copy(isLoadingMore = false) }
@@ -185,23 +197,38 @@ class SeasonsViewModel @Inject constructor(
             _uiState.update {
                 it.copy(
                     selectedResultForAdd = null,
-                    addedMalIds = it.addedMalIds + details.malId,
                     snackbarMessage = result?.title
                 )
             }
 
-            val allResolvedMalIds = resolveRemainingSeasonsUseCase(
+            resolveRemainingSeasonsUseCase(
                 animeId = animeId,
                 initialMalId = details.malId,
                 status = status
             )
-            _uiState.update { it.copy(addedMalIds = it.addedMalIds + allResolvedMalIds) }
         }
     }
 
     fun dismissBottomSheet() {
         pendingDetails = null
         _uiState.update { it.copy(selectedResultForAdd = null) }
+    }
+
+    fun onRemoveClick(result: SearchResult) {
+        _uiState.update { it.copy(selectedResultForDelete = result) }
+    }
+
+    fun dismissDeleteConfirmation() {
+        _uiState.update { it.copy(selectedResultForDelete = null) }
+    }
+
+    fun confirmRemoveFromWatchlist() {
+        val result = _uiState.value.selectedResultForDelete ?: return
+
+        viewModelScope.launch {
+            removeAnimeByMalIdUseCase(result.malId)
+            _uiState.update { it.copy(selectedResultForDelete = null) }
+        }
     }
 
     fun clearSnackbar() {
@@ -222,7 +249,6 @@ class SeasonsViewModel @Inject constructor(
                             isLoading = false
                         )
                     }
-                    checkAddedResults(page.results)
                 }
                 .onFailure { error ->
                     _uiState.update {
@@ -232,14 +258,6 @@ class SeasonsViewModel @Inject constructor(
                         )
                     }
                 }
-        }
-    }
-
-    private fun checkAddedResults(results: List<SearchResult>) {
-        viewModelScope.launch {
-            val malIds = results.map { it.malId }
-            val addedMalIds = batchFindAnimeByMalIdsUseCase(malIds)
-            _uiState.update { it.copy(addedMalIds = it.addedMalIds + addedMalIds) }
         }
     }
 

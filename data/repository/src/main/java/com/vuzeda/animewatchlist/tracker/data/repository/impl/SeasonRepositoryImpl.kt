@@ -15,6 +15,9 @@ class SeasonRepositoryImpl @Inject constructor(
     private val transactionRunner: TransactionRunner
 ) : SeasonRepository {
 
+    override fun observeAllSeasonMalIds(): Flow<Set<Int>> =
+        seasonDao.observeAllMalIds().map { it.toSet() }
+
     override fun observeSeasonsForAnime(animeId: Long): Flow<List<Season>> =
         seasonDao.observeByAnimeId(animeId).map { entities -> entities.map { it.toDomainModel() } }
 

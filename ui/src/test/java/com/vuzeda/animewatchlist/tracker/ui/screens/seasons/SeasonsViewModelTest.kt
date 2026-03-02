@@ -8,17 +8,20 @@ import com.vuzeda.animewatchlist.tracker.domain.model.SearchResult
 import com.vuzeda.animewatchlist.tracker.domain.model.SeasonalAnimePage
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.usecase.AddAnimeFromDetailsUseCase
-import com.vuzeda.animewatchlist.tracker.domain.usecase.BatchFindAnimeByMalIdsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.domain.model.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.domain.usecase.GetSeasonAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveTitleLanguageUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveWatchlistMalIdsUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.RemoveAnimeByMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ResolveRemainingSeasonsUseCase
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -37,7 +40,9 @@ class SeasonsViewModelTest {
     private val fetchSeasonDetailUseCase: FetchSeasonDetailUseCase = mockk()
     private val addAnimeFromDetailsUseCase: AddAnimeFromDetailsUseCase = mockk()
     private val resolveRemainingSeasonsUseCase: ResolveRemainingSeasonsUseCase = mockk()
-    private val batchFindAnimeByMalIdsUseCase: BatchFindAnimeByMalIdsUseCase = mockk()
+    private val removeAnimeByMalIdUseCase: RemoveAnimeByMalIdUseCase = mockk()
+    private val watchlistMalIdsFlow = MutableStateFlow<Set<Int>>(emptySet())
+    private val observeWatchlistMalIdsUseCase: ObserveWatchlistMalIdsUseCase = mockk()
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
 
     private val samplePage = SeasonalAnimePage(
@@ -70,8 +75,9 @@ class SeasonsViewModelTest {
     @BeforeEach
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        coEvery { batchFindAnimeByMalIdsUseCase(any()) } returns emptySet()
+        watchlistMalIdsFlow.value = emptySet()
         coEvery { resolveRemainingSeasonsUseCase(any(), any(), any()) } returns emptySet()
+        every { observeWatchlistMalIdsUseCase() } returns watchlistMalIdsFlow
         every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
         coEvery { getSeasonAnimeUseCase(any(), any(), any()) } returns Result.success(samplePage)
     }
@@ -86,7 +92,8 @@ class SeasonsViewModelTest {
         fetchSeasonDetailUseCase = fetchSeasonDetailUseCase,
         addAnimeFromDetailsUseCase = addAnimeFromDetailsUseCase,
         resolveRemainingSeasonsUseCase = resolveRemainingSeasonsUseCase,
-        batchFindAnimeByMalIdsUseCase = batchFindAnimeByMalIdsUseCase,
+        removeAnimeByMalIdUseCase = removeAnimeByMalIdUseCase,
+        observeWatchlistMalIdsUseCase = observeWatchlistMalIdsUseCase,
         observeTitleLanguageUseCase = observeTitleLanguageUseCase
     )
 
@@ -273,8 +280,62 @@ class SeasonsViewModelTest {
 
             val added = expectMostRecentItem()
             assertThat(added.selectedResultForAdd).isNull()
-            assertThat(added.addedMalIds).contains(1)
             assertThat(added.snackbarMessage).isEqualTo("Frieren")
+        }
+    }
+
+    @Test
+    fun `addedMalIds updates reactively from watchlist flow`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            val initial = expectMostRecentItem()
+            assertThat(initial.addedMalIds).isEmpty()
+
+            watchlistMalIdsFlow.value = setOf(1, 2)
+
+            val updated = awaitItem()
+            assertThat(updated.addedMalIds).containsExactly(1, 2)
+        }
+    }
+
+    @Test
+    fun `onRemoveClick sets selectedResultForDelete`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.onRemoveClick(samplePage.results[0])
+
+            val updated = awaitItem()
+            assertThat(updated.selectedResultForDelete).isEqualTo(samplePage.results[0])
+        }
+    }
+
+    @Test
+    fun `confirmRemoveFromWatchlist removes anime`() = runTest {
+        coEvery { removeAnimeByMalIdUseCase(1) } returns setOf(1)
+        watchlistMalIdsFlow.value = setOf(1)
+
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.onRemoveClick(samplePage.results[0])
+            awaitItem()
+
+            viewModel.confirmRemoveFromWatchlist()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val afterRemove = expectMostRecentItem()
+            assertThat(afterRemove.selectedResultForDelete).isNull()
+
+            coVerify { removeAnimeByMalIdUseCase(1) }
         }
     }
 

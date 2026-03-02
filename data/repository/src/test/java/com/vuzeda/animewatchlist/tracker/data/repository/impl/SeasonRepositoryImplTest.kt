@@ -134,4 +134,15 @@ class SeasonRepositoryImplTest {
 
         coVerify { seasonDao.updateNotificationData(seasonId = 1L, count = 25) }
     }
+
+    @Test
+    fun `observeAllSeasonMalIds emits set of malIds`() = runTest {
+        every { seasonDao.observeAllMalIds() } returns flowOf(listOf(100, 200, 300))
+
+        repository.observeAllSeasonMalIds().test {
+            val result = awaitItem()
+            assertThat(result).containsExactly(100, 200, 300)
+            awaitComplete()
+        }
+    }
 }

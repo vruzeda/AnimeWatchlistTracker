@@ -6,9 +6,9 @@ import com.vuzeda.animewatchlist.tracker.domain.model.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.domain.model.SearchResult
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.usecase.AddAnimeFromDetailsUseCase
-import com.vuzeda.animewatchlist.tracker.domain.usecase.BatchFindAnimeByMalIdsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveTitleLanguageUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveWatchlistMalIdsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.RemoveAnimeByMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.SearchAnimeUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,7 +26,7 @@ class SearchViewModel @Inject constructor(
     private val fetchSeasonDetailUseCase: FetchSeasonDetailUseCase,
     private val addAnimeFromDetailsUseCase: AddAnimeFromDetailsUseCase,
     private val removeAnimeByMalIdUseCase: RemoveAnimeByMalIdUseCase,
-    private val batchFindAnimeByMalIdsUseCase: BatchFindAnimeByMalIdsUseCase,
+    private val observeWatchlistMalIdsUseCase: ObserveWatchlistMalIdsUseCase,
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase
 ) : ViewModel() {
 
@@ -39,15 +39,26 @@ class SearchViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            combine(_rawResults, _sortState, observeTitleLanguageUseCase()) { results, sortState, titleLanguage ->
-                Triple(sortResults(results, sortState.option, sortState.isAscending), sortState, titleLanguage)
-            }.collect { (displayedResults, sortState, titleLanguage) ->
+            combine(
+                _rawResults,
+                _sortState,
+                observeTitleLanguageUseCase(),
+                observeWatchlistMalIdsUseCase()
+            ) { results, sortState, titleLanguage, watchlistMalIds ->
+                SearchDisplayData(
+                    displayedResults = sortResults(results, sortState.option, sortState.isAscending),
+                    sortState = sortState,
+                    titleLanguage = titleLanguage,
+                    addedMalIds = watchlistMalIds
+                )
+            }.collect { data ->
                 _uiState.update {
                     it.copy(
-                        displayedResults = displayedResults,
-                        sortOption = sortState.option,
-                        isSortAscending = sortState.isAscending,
-                        titleLanguage = titleLanguage
+                        displayedResults = data.displayedResults,
+                        sortOption = data.sortState.option,
+                        isSortAscending = data.sortState.isAscending,
+                        titleLanguage = data.titleLanguage,
+                        addedMalIds = data.addedMalIds
                     )
                 }
             }
@@ -74,7 +85,6 @@ class SearchViewModel @Inject constructor(
                             hasSearched = true
                         )
                     }
-                    checkAddedResults(results)
                 }
                 .onFailure { error ->
                     _uiState.update {
@@ -135,7 +145,6 @@ class SearchViewModel @Inject constructor(
             _uiState.update {
                 it.copy(
                     selectedResultForAdd = null,
-                    addedMalIds = it.addedMalIds + details.malId,
                     snackbarMessage = result?.title
                 )
             }
@@ -159,14 +168,8 @@ class SearchViewModel @Inject constructor(
         val result = _uiState.value.selectedResultForDelete ?: return
 
         viewModelScope.launch {
-            val removedMalIds = removeAnimeByMalIdUseCase(result.malId)
-
-            _uiState.update {
-                it.copy(
-                    selectedResultForDelete = null,
-                    addedMalIds = it.addedMalIds - removedMalIds
-                )
-            }
+            removeAnimeByMalIdUseCase(result.malId)
+            _uiState.update { it.copy(selectedResultForDelete = null) }
         }
     }
 
@@ -178,13 +181,6 @@ class SearchViewModel @Inject constructor(
         _uiState.update { it.copy(pendingNavigationMalId = null) }
     }
 
-    private fun checkAddedResults(results: List<SearchResult>) {
-        viewModelScope.launch {
-            val malIds = results.map { it.malId }
-            val addedMalIds = batchFindAnimeByMalIdsUseCase(malIds)
-            _uiState.update { it.copy(addedMalIds = it.addedMalIds + addedMalIds) }
-        }
-    }
 }
 
 fun sortResults(

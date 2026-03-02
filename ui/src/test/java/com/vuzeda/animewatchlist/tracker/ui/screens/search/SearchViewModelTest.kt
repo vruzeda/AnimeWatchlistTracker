@@ -6,10 +6,10 @@ import com.vuzeda.animewatchlist.tracker.domain.model.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.domain.model.SearchResult
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.usecase.AddAnimeFromDetailsUseCase
-import com.vuzeda.animewatchlist.tracker.domain.usecase.BatchFindAnimeByMalIdsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.domain.model.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveTitleLanguageUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveWatchlistMalIdsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.RemoveAnimeByMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.SearchAnimeUseCase
 import io.mockk.coEvery
@@ -18,6 +18,7 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -36,7 +37,8 @@ class SearchViewModelTest {
     private val fetchSeasonDetailUseCase: FetchSeasonDetailUseCase = mockk()
     private val addAnimeFromDetailsUseCase: AddAnimeFromDetailsUseCase = mockk()
     private val removeAnimeByMalIdUseCase: RemoveAnimeByMalIdUseCase = mockk()
-    private val batchFindAnimeByMalIdsUseCase: BatchFindAnimeByMalIdsUseCase = mockk()
+    private val watchlistMalIdsFlow = MutableStateFlow<Set<Int>>(emptySet())
+    private val observeWatchlistMalIdsUseCase: ObserveWatchlistMalIdsUseCase = mockk()
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
 
     private lateinit var viewModel: SearchViewModel
@@ -60,14 +62,15 @@ class SearchViewModelTest {
     @BeforeEach
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        coEvery { batchFindAnimeByMalIdsUseCase(any()) } returns emptySet()
+        watchlistMalIdsFlow.value = emptySet()
+        every { observeWatchlistMalIdsUseCase() } returns watchlistMalIdsFlow
         every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
         viewModel = SearchViewModel(
             searchAnimeUseCase = searchAnimeUseCase,
             fetchSeasonDetailUseCase = fetchSeasonDetailUseCase,
             addAnimeFromDetailsUseCase = addAnimeFromDetailsUseCase,
             removeAnimeByMalIdUseCase = removeAnimeByMalIdUseCase,
-            batchFindAnimeByMalIdsUseCase = batchFindAnimeByMalIdsUseCase,
+            observeWatchlistMalIdsUseCase = observeWatchlistMalIdsUseCase,
             observeTitleLanguageUseCase = observeTitleLanguageUseCase
         )
     }
@@ -206,7 +209,7 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun `addToWatchlist adds anime and updates addedMalIds`() = runTest {
+    fun `addToWatchlist adds anime and shows snackbar`() = runTest {
         coEvery { fetchSeasonDetailUseCase(21) } returns Result.success(sampleDetails)
         coEvery { addAnimeFromDetailsUseCase(any(), any()) } returns 10L
 
@@ -222,10 +225,22 @@ class SearchViewModelTest {
 
             val updated = expectMostRecentItem()
             assertThat(updated.selectedResultForAdd).isNull()
-            assertThat(updated.addedMalIds).contains(21)
             assertThat(updated.snackbarMessage).isEqualTo("One Punch Man")
 
             coVerify { addAnimeFromDetailsUseCase(sampleDetails, WatchStatus.PLAN_TO_WATCH) }
+        }
+    }
+
+    @Test
+    fun `addedMalIds updates reactively from watchlist flow`() = runTest {
+        viewModel.uiState.test {
+            val initial = awaitItem()
+            assertThat(initial.addedMalIds).isEmpty()
+
+            watchlistMalIdsFlow.value = setOf(21)
+
+            val updated = awaitItem()
+            assertThat(updated.addedMalIds).containsExactly(21)
         }
     }
 
@@ -355,29 +370,13 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun `confirmRemoveFromWatchlist deletes anime and removes malIds from addedMalIds`() = runTest {
-        coEvery { searchAnimeUseCase("one punch") } returns Result.success(listOf(sampleResult))
-        coEvery { fetchSeasonDetailUseCase(21) } returns Result.success(sampleDetails)
-        coEvery { addAnimeFromDetailsUseCase(any(), any()) } returns 10L
+    fun `confirmRemoveFromWatchlist deletes anime`() = runTest {
         coEvery { removeAnimeByMalIdUseCase(21) } returns setOf(21, 22)
+        watchlistMalIdsFlow.value = setOf(21)
 
         viewModel.uiState.test {
-            awaitItem()
-
-            viewModel.updateQuery("one punch")
-            awaitItem()
-            viewModel.search()
             testDispatcher.scheduler.advanceUntilIdle()
             expectMostRecentItem()
-
-            viewModel.onAddClick(sampleResult)
-            testDispatcher.scheduler.advanceUntilIdle()
-            expectMostRecentItem()
-
-            viewModel.addToWatchlist(WatchStatus.WATCHING)
-            testDispatcher.scheduler.advanceUntilIdle()
-            val afterAdd = expectMostRecentItem()
-            assertThat(afterAdd.addedMalIds).contains(21)
 
             viewModel.onRemoveClick(sampleResult)
             val withDialog = awaitItem()
@@ -388,10 +387,8 @@ class SearchViewModelTest {
 
             val afterRemove = expectMostRecentItem()
             assertThat(afterRemove.selectedResultForDelete).isNull()
-            assertThat(afterRemove.addedMalIds).containsNoneOf(21, 22)
 
             coVerify { removeAnimeByMalIdUseCase(21) }
-            cancelAndIgnoreRemainingEvents()
         }
     }
 }

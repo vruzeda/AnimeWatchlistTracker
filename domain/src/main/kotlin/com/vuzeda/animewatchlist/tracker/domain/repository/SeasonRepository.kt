@@ -5,6 +5,8 @@ import kotlinx.coroutines.flow.Flow
 
 interface SeasonRepository {
 
+    fun observeAllSeasonMalIds(): Flow<Set<Int>>
+
     fun observeSeasonsForAnime(animeId: Long): Flow<List<Season>>
 
     fun observeSeasonById(id: Long): Flow<Season?>
