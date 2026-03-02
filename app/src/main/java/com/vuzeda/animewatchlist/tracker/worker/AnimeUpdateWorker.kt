@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.vuzeda.animewatchlist.tracker.domain.model.DataError
 import com.vuzeda.animewatchlist.tracker.domain.usecase.CheckAnimeUpdatesUseCase
 import com.vuzeda.animewatchlist.tracker.notification.NotificationHelper
 import dagger.assisted.Assisted
@@ -24,8 +25,11 @@ class AnimeUpdateWorker @AssistedInject constructor(
                 notificationHelper.showUpdateNotification(update)
             }
             Result.success()
-        } catch (_: Exception) {
-            Result.retry()
+        } catch (e: Exception) {
+            when (e) {
+                is DataError.Network, is DataError.RateLimited -> Result.retry()
+                else -> Result.failure()
+            }
         }
     }
 

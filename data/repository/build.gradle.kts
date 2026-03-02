@@ -23,6 +23,7 @@ dependencies {
 
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.javax.inject)
+    implementation(libs.retrofit)
 
     testImplementation(libs.junit5.api)
     testRuntimeOnly(libs.junit5.engine)
