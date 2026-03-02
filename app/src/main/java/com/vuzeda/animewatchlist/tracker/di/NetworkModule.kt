@@ -1,7 +1,6 @@
 package com.vuzeda.animewatchlist.tracker.di
 
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.vuzeda.animewatchlist.tracker.data.api.service.JikanApiService
 import dagger.Module
 import dagger.Provides
@@ -35,7 +34,6 @@ object NetworkModule {
     @Singleton
     fun provideMoshi(): Moshi =
         Moshi.Builder()
-            .add(KotlinJsonAdapterFactory())
             .build()
 
     @Provides
