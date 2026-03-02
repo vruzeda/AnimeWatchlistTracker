@@ -297,8 +297,7 @@ private fun AnimeDetailContent(
             }
         }
 
-        val isResolving = state.isResolvingPrequels || state.isResolvingSequels
-        if (state.seasons.isNotEmpty() || isResolving) {
+        if (state.seasons.isNotEmpty()) {
             item(key = "seasons_header") {
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
@@ -306,12 +305,6 @@ private fun AnimeDetailContent(
                     style = MaterialTheme.typography.titleLarge
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-            }
-
-            if (state.isResolvingPrequels) {
-                item(key = "resolving_prequels") {
-                    SeasonLoadingIndicator()
-                }
             }
 
             items(
@@ -325,12 +318,6 @@ private fun AnimeDetailContent(
                     onClick = { onSeasonClick(season.id, season.malId) }
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-            }
-
-            if (state.isResolvingSequels) {
-                item(key = "resolving_sequels") {
-                    SeasonLoadingIndicator()
-                }
             }
         }
     }
@@ -398,22 +385,6 @@ private fun AnimeHeaderSection(
     }
 }
 
-@Composable
-private fun SeasonLoadingIndicator() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        CircularProgressIndicator(
-            modifier = Modifier
-                .width(24.dp)
-                .height(24.dp),
-            strokeWidth = 2.dp
-        )
-    }
-}
 
 @Composable
 private fun SeasonCardItem(

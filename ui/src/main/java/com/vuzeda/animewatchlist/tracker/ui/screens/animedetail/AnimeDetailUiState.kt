@@ -13,8 +13,6 @@ sealed interface AnimeDetailUiState {
         val isInWatchlist: Boolean = true,
         val isNotificationsEnabled: Boolean = anime.isNotificationsEnabled,
         val titleLanguage: TitleLanguage = TitleLanguage.DEFAULT,
-        val isResolvingPrequels: Boolean = false,
-        val isResolvingSequels: Boolean = false,
         val isStatusSheetVisible: Boolean = false,
         val isAddSheetVisible: Boolean = false,
         val isDeleteConfirmationVisible: Boolean = false,
