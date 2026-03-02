@@ -15,7 +15,6 @@ import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveTitleLanguageUseC
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ResolveAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ToggleAnimeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.UpdateAnimeUseCase
-import com.vuzeda.animewatchlist.tracker.ui.navigation.Route
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import com.vuzeda.animewatchlist.tracker.domain.model.TitleLanguage
@@ -41,8 +40,8 @@ class AnimeDetailViewModel @Inject constructor(
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase
 ) : ViewModel() {
 
-    private val animeId: Long = checkNotNull(savedStateHandle[Route.AnimeDetail.ARG_ANIME_ID])
-    private val malId: Int = savedStateHandle[Route.AnimeDetail.ARG_MAL_ID] ?: 0
+    private val animeId: Long = checkNotNull(savedStateHandle["animeId"])
+    private val malId: Int = savedStateHandle["malId"] ?: 0
 
     private val _uiState = MutableStateFlow<AnimeDetailUiState>(AnimeDetailUiState.Loading)
     val uiState: StateFlow<AnimeDetailUiState> = _uiState.asStateFlow()

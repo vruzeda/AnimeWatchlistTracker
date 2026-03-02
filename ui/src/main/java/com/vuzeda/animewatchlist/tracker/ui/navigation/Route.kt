@@ -1,43 +1,25 @@
 package com.vuzeda.animewatchlist.tracker.ui.navigation
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 sealed interface Route {
-    val route: String
 
-    data object Home : Route {
-        override val route = "home"
-    }
+    @Serializable
+    data object Home : Route
 
-    data object Search : Route {
-        override val route = "search"
-    }
+    @Serializable
+    data object Search : Route
 
-    data object Seasons : Route {
-        override val route = "seasons"
-    }
+    @Serializable
+    data object Seasons : Route
 
-    data object Settings : Route {
-        override val route = "settings"
-    }
+    @Serializable
+    data object Settings : Route
 
-    data class AnimeDetail(val animeId: Long = 0, val malId: Int = 0) : Route {
-        override val route: String
-            get() = if (malId > 0) "anime_detail/$animeId?malId=$malId" else "anime_detail/$animeId"
+    @Serializable
+    data class AnimeDetail(val animeId: Long = 0, val malId: Int = 0) : Route
 
-        companion object {
-            const val ROUTE_PATTERN = "anime_detail/{animeId}?malId={malId}"
-            const val ARG_ANIME_ID = "animeId"
-            const val ARG_MAL_ID = "malId"
-        }
-    }
-
-    data class SeasonDetail(val seasonId: Long = 0, val malId: Int = 0) : Route {
-        override val route: String
-            get() = if (malId > 0) "season_detail/$seasonId?malId=$malId" else "season_detail/$seasonId"
-
-        companion object {
-            const val ROUTE_PATTERN = "season_detail/{seasonId}?malId={malId}"
-            const val ARG_SEASON_ID = "seasonId"
-            const val ARG_MAL_ID = "malId"
-        }
-    }
+    @Serializable
+    data class SeasonDetail(val seasonId: Long = 0, val malId: Int = 0) : Route
 }

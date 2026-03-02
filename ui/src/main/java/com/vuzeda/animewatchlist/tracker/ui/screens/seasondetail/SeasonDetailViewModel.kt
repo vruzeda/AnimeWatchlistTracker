@@ -10,7 +10,6 @@ import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveSeasonByIdUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.UpdateSeasonProgressUseCase
-import com.vuzeda.animewatchlist.tracker.ui.navigation.Route
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,8 +29,8 @@ class SeasonDetailViewModel @Inject constructor(
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase
 ) : ViewModel() {
 
-    private val seasonId: Long = checkNotNull(savedStateHandle[Route.SeasonDetail.ARG_SEASON_ID])
-    private val malId: Int = savedStateHandle[Route.SeasonDetail.ARG_MAL_ID] ?: 0
+    private val seasonId: Long = checkNotNull(savedStateHandle["seasonId"])
+    private val malId: Int = savedStateHandle["malId"] ?: 0
 
     private val _uiState = MutableStateFlow<SeasonDetailUiState>(SeasonDetailUiState.Loading)
     val uiState: StateFlow<SeasonDetailUiState> = _uiState.asStateFlow()

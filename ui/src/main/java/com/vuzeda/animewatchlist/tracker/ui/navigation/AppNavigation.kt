@@ -17,14 +17,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import com.vuzeda.animewatchlist.tracker.ui.R
 import com.vuzeda.animewatchlist.tracker.ui.screens.animedetail.AnimeDetailScreenRoute
 import com.vuzeda.animewatchlist.tracker.ui.screens.home.HomeScreenRoute
@@ -32,18 +30,20 @@ import com.vuzeda.animewatchlist.tracker.ui.screens.search.SearchScreenRoute
 import com.vuzeda.animewatchlist.tracker.ui.screens.seasondetail.SeasonDetailScreenRoute
 import com.vuzeda.animewatchlist.tracker.ui.screens.seasons.SeasonsScreenRoute
 import com.vuzeda.animewatchlist.tracker.ui.screens.settings.SettingsScreenRoute
+import kotlin.reflect.KClass
 
 private data class BottomNavItem(
     @StringRes val labelRes: Int,
     val icon: ImageVector,
-    val route: String
+    val route: Route,
+    val routeClass: KClass<out Route>
 )
 
 private val BottomNavItems = listOf(
-    BottomNavItem(labelRes = R.string.nav_home, icon = Icons.Default.Home, route = Route.Home.route),
-    BottomNavItem(labelRes = R.string.nav_seasons, icon = Icons.Default.DateRange, route = Route.Seasons.route),
-    BottomNavItem(labelRes = R.string.nav_search, icon = Icons.Default.Search, route = Route.Search.route),
-    BottomNavItem(labelRes = R.string.nav_settings, icon = Icons.Default.Settings, route = Route.Settings.route)
+    BottomNavItem(labelRes = R.string.nav_home, icon = Icons.Default.Home, route = Route.Home, routeClass = Route.Home::class),
+    BottomNavItem(labelRes = R.string.nav_seasons, icon = Icons.Default.DateRange, route = Route.Seasons, routeClass = Route.Seasons::class),
+    BottomNavItem(labelRes = R.string.nav_search, icon = Icons.Default.Search, route = Route.Search, routeClass = Route.Search::class),
+    BottomNavItem(labelRes = R.string.nav_settings, icon = Icons.Default.Settings, route = Route.Settings, routeClass = Route.Settings::class)
 )
 
 @Composable
@@ -52,9 +52,9 @@ fun AppNavigation(modifier: Modifier = Modifier) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    val isBottomBarVisible = currentDestination?.hierarchy?.any { dest ->
-        BottomNavItems.any { it.route == dest.route }
-    } == true
+    val isBottomBarVisible = BottomNavItems.any { item ->
+        currentDestination?.hasRoute(item.routeClass) == true
+    }
 
     Scaffold(
         modifier = modifier,
@@ -62,10 +62,10 @@ fun AppNavigation(modifier: Modifier = Modifier) {
             if (isBottomBarVisible) {
                 NavigationBar {
                     BottomNavItems.forEach { item ->
-                    NavigationBarItem(
+                        NavigationBarItem(
                             icon = { Icon(imageVector = item.icon, contentDescription = stringResource(item.labelRes)) },
                             label = { Text(stringResource(item.labelRes)) },
-                            selected = currentDestination.hierarchy.any { it.route == item.route },
+                            selected = currentDestination?.hasRoute(item.routeClass) == true,
                             onClick = {
                                 navController.navigate(item.route) {
                                     popUpTo(navController.graph.findStartDestination().id) {
@@ -83,73 +83,51 @@ fun AppNavigation(modifier: Modifier = Modifier) {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Route.Home.route,
+            startDestination = Route.Home,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(Route.Home.route) {
+            composable<Route.Home> {
                 HomeScreenRoute(
                     onAnimeClick = { animeId ->
-                        navController.navigate(Route.AnimeDetail(animeId).route)
+                        navController.navigate(Route.AnimeDetail(animeId = animeId))
                     }
                 )
             }
 
-            composable(Route.Seasons.route) {
+            composable<Route.Seasons> {
                 SeasonsScreenRoute(
                     onNavigateToDetailByMalId = { malId ->
-                        navController.navigate(Route.AnimeDetail(malId = malId).route)
+                        navController.navigate(Route.AnimeDetail(malId = malId))
                     }
                 )
             }
 
-            composable(Route.Settings.route) {
+            composable<Route.Settings> {
                 SettingsScreenRoute()
             }
 
-            composable(Route.Search.route) {
+            composable<Route.Search> {
                 SearchScreenRoute(
                     onNavigateToDetailByMalId = { malId ->
-                        navController.navigate(Route.AnimeDetail(malId = malId).route)
+                        navController.navigate(Route.AnimeDetail(malId = malId))
                     }
                 )
             }
 
-            composable(
-                route = Route.AnimeDetail.ROUTE_PATTERN,
-                arguments = listOf(
-                    navArgument(Route.AnimeDetail.ARG_ANIME_ID) {
-                        type = NavType.LongType
-                    },
-                    navArgument(Route.AnimeDetail.ARG_MAL_ID) {
-                        type = NavType.IntType
-                        defaultValue = 0
-                    }
-                )
-            ) {
+            composable<Route.AnimeDetail> {
                 AnimeDetailScreenRoute(
                     onNavigateBack = { navController.popBackStack() },
                     onSeasonClick = { seasonId, malId ->
                         if (seasonId > 0) {
-                            navController.navigate(Route.SeasonDetail(seasonId = seasonId).route)
+                            navController.navigate(Route.SeasonDetail(seasonId = seasonId))
                         } else {
-                            navController.navigate(Route.SeasonDetail(malId = malId).route)
+                            navController.navigate(Route.SeasonDetail(malId = malId))
                         }
                     }
                 )
             }
 
-            composable(
-                route = Route.SeasonDetail.ROUTE_PATTERN,
-                arguments = listOf(
-                    navArgument(Route.SeasonDetail.ARG_SEASON_ID) {
-                        type = NavType.LongType
-                    },
-                    navArgument(Route.SeasonDetail.ARG_MAL_ID) {
-                        type = NavType.IntType
-                        defaultValue = 0
-                    }
-                )
-            ) {
+            composable<Route.SeasonDetail> {
                 SeasonDetailScreenRoute(
                     onNavigateBack = { navController.popBackStack() }
                 )

@@ -14,7 +14,6 @@ import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveSeasonByIdUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.UpdateSeasonProgressUseCase
-import com.vuzeda.animewatchlist.tracker.ui.navigation.Route
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -80,8 +79,8 @@ class SeasonDetailViewModelTest {
     private fun createViewModel(seasonId: Long = 1L, malId: Int = 0): SeasonDetailViewModel {
         val savedStateHandle = SavedStateHandle(
             mapOf(
-                Route.SeasonDetail.ARG_SEASON_ID to seasonId,
-                Route.SeasonDetail.ARG_MAL_ID to malId
+                "seasonId" to seasonId,
+                "malId" to malId
             )
         )
         return SeasonDetailViewModel(

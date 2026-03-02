@@ -18,7 +18,6 @@ import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveTitleLanguageUseC
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ResolveAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ToggleAnimeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.UpdateAnimeUseCase
-import com.vuzeda.animewatchlist.tracker.ui.navigation.Route
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -82,8 +81,8 @@ class AnimeDetailViewModelTest {
     private fun createViewModel(animeId: Long = 1L, malId: Int = 0): AnimeDetailViewModel {
         val savedStateHandle = SavedStateHandle(
             mapOf(
-                Route.AnimeDetail.ARG_ANIME_ID to animeId,
-                Route.AnimeDetail.ARG_MAL_ID to malId
+                "animeId" to animeId,
+                "malId" to malId
             )
         )
         return AnimeDetailViewModel(
