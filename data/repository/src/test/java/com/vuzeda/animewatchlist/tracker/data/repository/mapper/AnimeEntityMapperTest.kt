@@ -3,6 +3,7 @@ package com.vuzeda.animewatchlist.tracker.data.repository.mapper
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.data.local.entity.AnimeEntity
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
+import com.vuzeda.animewatchlist.tracker.domain.model.NotificationType
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import org.junit.jupiter.api.Test
 
@@ -18,7 +19,7 @@ class AnimeEntityMapperTest {
             genres = "Action,Drama",
             status = "WATCHING",
             userRating = 9,
-        isNotificationsEnabled = true,
+            notificationType = "BOTH",
             addedAt = 1000L
         )
 
@@ -31,6 +32,7 @@ class AnimeEntityMapperTest {
         assertThat(anime.genres).containsExactly("Action", "Drama")
         assertThat(anime.status).isEqualTo(WatchStatus.WATCHING)
         assertThat(anime.userRating).isEqualTo(9)
+        assertThat(anime.notificationType).isEqualTo(NotificationType.BOTH)
         assertThat(anime.isNotificationsEnabled).isTrue()
         assertThat(anime.addedAt).isEqualTo(1000L)
     }
@@ -106,7 +108,7 @@ class AnimeEntityMapperTest {
             genres = listOf("Action", "Drama"),
             status = WatchStatus.WATCHING,
             userRating = 9,
-            isNotificationsEnabled = true,
+            notificationType = NotificationType.BOTH,
             addedAt = 1000L
         )
 
@@ -119,7 +121,7 @@ class AnimeEntityMapperTest {
         assertThat(entity.genres).isEqualTo("Action,Drama")
         assertThat(entity.status).isEqualTo("WATCHING")
         assertThat(entity.userRating).isEqualTo(9)
-        assertThat(entity.isNotificationsEnabled).isTrue()
+        assertThat(entity.notificationType).isEqualTo("BOTH")
         assertThat(entity.addedAt).isEqualTo(1000L)
     }
 
@@ -146,7 +148,7 @@ class AnimeEntityMapperTest {
             genres = listOf("Action", "Drama", "Fantasy"),
             status = WatchStatus.WATCHING,
             userRating = 10,
-            isNotificationsEnabled = true,
+            notificationType = NotificationType.BOTH,
             addedAt = 1000L
         )
 

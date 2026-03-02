@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.vuzeda.animewatchlist.tracker.data.local.dao.AnimeDao
 import com.vuzeda.animewatchlist.tracker.data.local.dao.SeasonDao
 import com.vuzeda.animewatchlist.tracker.data.local.database.AnimeDatabase
+import com.vuzeda.animewatchlist.tracker.data.local.database.MIGRATION_6_7
 import com.vuzeda.animewatchlist.tracker.data.local.database.RoomTransactionRunner
 import com.vuzeda.animewatchlist.tracker.domain.repository.TransactionRunner
 import dagger.Module
@@ -26,6 +27,7 @@ object DatabaseModule {
             AnimeDatabase::class.java,
             "anime_watchlist.db"
         )
+            .addMigrations(MIGRATION_6_7)
             .build()
 
     @Provides

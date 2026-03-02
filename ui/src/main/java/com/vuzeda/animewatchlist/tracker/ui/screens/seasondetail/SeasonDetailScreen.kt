@@ -16,17 +16,24 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.NotificationsNone
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,21 +49,35 @@ import com.vuzeda.animewatchlist.tracker.designsystem.component.ConfirmationDial
 import com.vuzeda.animewatchlist.tracker.designsystem.component.EmptyStateMessage
 import com.vuzeda.animewatchlist.tracker.designsystem.component.EpisodeListItem
 import com.vuzeda.animewatchlist.tracker.designsystem.component.EpisodeStepper
+import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusOption
+import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusSelectionSheet
 import com.vuzeda.animewatchlist.tracker.domain.model.EpisodeInfo
 import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import com.vuzeda.animewatchlist.tracker.domain.model.TitleLanguage
+import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.model.resolveDisplayTitle
 import com.vuzeda.animewatchlist.tracker.ui.R
+import com.vuzeda.animewatchlist.tracker.ui.screens.home.toColor
+import com.vuzeda.animewatchlist.tracker.ui.screens.home.toDisplayLabelRes
 
 @Composable
 fun SeasonDetailScreenRoute(
     onNavigateBack: () -> Unit,
+    onNavigateToAnimeDetail: (Int) -> Unit,
     viewModel: SeasonDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     if (uiState is SeasonDetailUiState.Success && (uiState as SeasonDetailUiState.Success).isDeleted) {
         LaunchedEffect(Unit) { onNavigateBack() }
+    }
+
+    LaunchedEffect((uiState as? SeasonDetailUiState.Success)?.pendingNavigationMalId) {
+        val malId = (uiState as? SeasonDetailUiState.Success)?.pendingNavigationMalId
+        if (malId != null) {
+            viewModel.onNavigated()
+            onNavigateToAnimeDetail(malId)
+        }
     }
 
     SeasonDetailScreen(
@@ -66,7 +87,13 @@ fun SeasonDetailScreenRoute(
         onLoadMoreEpisodes = viewModel::loadMoreEpisodes,
         onDeleteClick = viewModel::showDeleteConfirmation,
         onConfirmDelete = viewModel::confirmDelete,
-        onDismissDeleteConfirmation = viewModel::dismissDeleteConfirmation
+        onDismissDeleteConfirmation = viewModel::dismissDeleteConfirmation,
+        onAddToWatchlistClick = viewModel::showAddSheet,
+        onAddStatusSelected = viewModel::addToWatchlist,
+        onDismissAddSheet = viewModel::dismissAddSheet,
+        onToggleEpisodeNotifications = viewModel::toggleEpisodeNotifications,
+        onViewFullSeriesClick = viewModel::navigateToAnimeDetail,
+        onSnackbarDismissed = viewModel::clearSnackbar
     )
 }
 
@@ -79,63 +106,125 @@ fun SeasonDetailScreen(
     onLoadMoreEpisodes: () -> Unit,
     onDeleteClick: () -> Unit,
     onConfirmDelete: () -> Unit,
-    onDismissDeleteConfirmation: () -> Unit
+    onDismissDeleteConfirmation: () -> Unit,
+    onAddToWatchlistClick: () -> Unit,
+    onAddStatusSelected: (WatchStatus) -> Unit,
+    onDismissAddSheet: () -> Unit,
+    onToggleEpisodeNotifications: () -> Unit,
+    onViewFullSeriesClick: () -> Unit,
+    onSnackbarDismissed: () -> Unit
 ) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        TopAppBar(
-            title = { Text(stringResource(R.string.season_detail_title)) },
-            windowInsets = WindowInsets(0, 0, 0, 0),
-            navigationIcon = {
-                IconButton(onClick = onNavigateBack) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.cd_back)
-                    )
-                }
-            },
-            actions = {
-                if (uiState is SeasonDetailUiState.Success && uiState.isInWatchlist) {
-                    IconButton(onClick = onDeleteClick) {
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    if (uiState is SeasonDetailUiState.Success && uiState.snackbarMessage != null) {
+        val message = stringResource(R.string.season_detail_added_to_watchlist, uiState.snackbarMessage)
+        LaunchedEffect(uiState.snackbarMessage) {
+            snackbarHostState.showSnackbar(message)
+            onSnackbarDismissed()
+        }
+    }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.season_detail_title)) },
+                windowInsets = WindowInsets(0, 0, 0, 0),
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
                         Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = stringResource(R.string.cd_delete)
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.cd_back)
                         )
                     }
+                },
+                actions = {
+                    if (uiState is SeasonDetailUiState.Success && uiState.isInWatchlist) {
+                        IconButton(onClick = onToggleEpisodeNotifications) {
+                            Icon(
+                                imageVector = if (uiState.isEpisodeNotificationsEnabled) {
+                                    Icons.Default.Notifications
+                                } else {
+                                    Icons.Default.NotificationsNone
+                                },
+                                contentDescription = stringResource(
+                                    if (uiState.isEpisodeNotificationsEnabled) R.string.cd_season_disable_notifications
+                                    else R.string.cd_season_enable_notifications
+                                )
+                            )
+                        }
+                        IconButton(onClick = onDeleteClick) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = stringResource(R.string.cd_delete)
+                            )
+                        }
+                    }
                 }
-            }
-        )
-
-        when (uiState) {
-            is SeasonDetailUiState.Loading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
+            )
+        }
+    ) { scaffoldPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(scaffoldPadding)
+        ) {
+            when (uiState) {
+                is SeasonDetailUiState.Loading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
                 }
-            }
-            is SeasonDetailUiState.NotFound -> {
-                EmptyStateMessage(
-                    modifier = Modifier.fillMaxSize(),
-                    title = stringResource(R.string.season_detail_not_found)
-                )
-            }
-            is SeasonDetailUiState.Success -> {
-                SeasonDetailContent(
-                    state = uiState,
-                    onEpisodeProgressChanged = onEpisodeProgressChanged,
-                    onLoadMoreEpisodes = onLoadMoreEpisodes
-                )
-
-                if (uiState.isDeleteConfirmationVisible) {
-                    ConfirmationDialog(
-                        title = stringResource(R.string.delete_anime_dialog_title),
-                        message = stringResource(R.string.delete_anime_dialog_message),
-                        confirmText = stringResource(R.string.delete_anime_dialog_confirm),
-                        dismissText = stringResource(R.string.delete_anime_dialog_dismiss),
-                        onConfirm = onConfirmDelete,
-                        onDismiss = onDismissDeleteConfirmation
+                is SeasonDetailUiState.NotFound -> {
+                    EmptyStateMessage(
+                        modifier = Modifier.fillMaxSize(),
+                        title = stringResource(R.string.season_detail_not_found)
                     )
+                }
+                is SeasonDetailUiState.Success -> {
+                    SeasonDetailContent(
+                        state = uiState,
+                        onEpisodeProgressChanged = onEpisodeProgressChanged,
+                        onLoadMoreEpisodes = onLoadMoreEpisodes,
+                        onAddToWatchlistClick = onAddToWatchlistClick,
+                        onViewFullSeriesClick = onViewFullSeriesClick
+                    )
+
+                    if (uiState.isAddSheetVisible) {
+                        val statusOptions = WatchStatus.entries.map {
+                            StatusOption(stringResource(it.toDisplayLabelRes()), it.toColor())
+                        }
+                        val displayTitle = resolveDisplayTitle(
+                            title = uiState.season.title,
+                            titleEnglish = uiState.season.titleEnglish,
+                            titleJapanese = uiState.season.titleJapanese,
+                            language = uiState.titleLanguage
+                        )
+                        StatusSelectionSheet(
+                            title = stringResource(R.string.season_detail_add_sheet_title),
+                            subtitle = displayTitle,
+                            options = statusOptions,
+                            onOptionSelected = { index ->
+                                onAddStatusSelected(WatchStatus.entries[index])
+                            },
+                            onDismiss = onDismissAddSheet
+                        )
+                    }
+
+                    if (uiState.isDeleteConfirmationVisible) {
+                        ConfirmationDialog(
+                            title = stringResource(R.string.delete_anime_dialog_title),
+                            message = stringResource(R.string.delete_anime_dialog_message),
+                            confirmText = stringResource(R.string.delete_anime_dialog_confirm),
+                            dismissText = stringResource(R.string.delete_anime_dialog_dismiss),
+                            onConfirm = onConfirmDelete,
+                            onDismiss = onDismissDeleteConfirmation
+                        )
+                    }
                 }
             }
         }
@@ -146,7 +235,9 @@ fun SeasonDetailScreen(
 private fun SeasonDetailContent(
     state: SeasonDetailUiState.Success,
     onEpisodeProgressChanged: (Int) -> Unit,
-    onLoadMoreEpisodes: () -> Unit
+    onLoadMoreEpisodes: () -> Unit,
+    onAddToWatchlistClick: () -> Unit,
+    onViewFullSeriesClick: () -> Unit
 ) {
     val season = state.season
     Column(
@@ -155,7 +246,21 @@ private fun SeasonDetailContent(
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
-        SeasonHeaderSection(season = season, titleLanguage = state.titleLanguage)
+        SeasonHeaderSection(
+            season = season,
+            titleLanguage = state.titleLanguage,
+            isInWatchlist = state.isInWatchlist,
+            onAddToWatchlistClick = onAddToWatchlistClick
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        OutlinedButton(
+            onClick = onViewFullSeriesClick,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(stringResource(R.string.season_detail_view_full_series))
+        }
 
         if (state.isInWatchlist) {
             Spacer(modifier = Modifier.height(24.dp))
@@ -218,7 +323,12 @@ private fun SeasonDetailContent(
 }
 
 @Composable
-private fun SeasonHeaderSection(season: Season, titleLanguage: TitleLanguage) {
+private fun SeasonHeaderSection(
+    season: Season,
+    titleLanguage: TitleLanguage,
+    isInWatchlist: Boolean,
+    onAddToWatchlistClick: () -> Unit
+) {
     val displayTitle = resolveDisplayTitle(
         title = season.title,
         titleEnglish = season.titleEnglish,
@@ -276,6 +386,13 @@ private fun SeasonHeaderSection(season: Season, titleLanguage: TitleLanguage) {
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            }
+
+            if (!isInWatchlist) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Button(onClick = onAddToWatchlistClick) {
+                    Text(stringResource(R.string.season_detail_add_to_watchlist))
+                }
             }
         }
     }

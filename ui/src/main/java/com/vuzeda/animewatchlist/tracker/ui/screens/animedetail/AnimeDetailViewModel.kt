@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
+import com.vuzeda.animewatchlist.tracker.domain.model.NotificationType
 import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.usecase.AddAnimeUseCase
@@ -91,7 +92,7 @@ class AnimeDetailViewModel @Inject constructor(
                                 anime = anime,
                                 seasons = seasons,
                                 isInWatchlist = true,
-                                isNotificationsEnabled = anime.isNotificationsEnabled
+                                notificationType = anime.notificationType
                             )
                             else -> AnimeDetailUiState.Success(
                                 anime = anime,
@@ -181,9 +182,38 @@ class AnimeDetailViewModel @Inject constructor(
         }
     }
 
-    fun addToWatchlist(status: WatchStatus) {
+    fun showAddScopeSheet(status: WatchStatus) {
+        _uiState.update { state ->
+            if (state is AnimeDetailUiState.Success) state.copy(
+                isAddSheetVisible = false,
+                isAddScopeSheetVisible = true,
+                pendingAddStatus = status
+            ) else state
+        }
+    }
+
+    fun dismissAddScopeSheet() {
+        _uiState.update { state ->
+            if (state is AnimeDetailUiState.Success) state.copy(
+                isAddScopeSheetVisible = false,
+                pendingAddStatus = null
+            ) else state
+        }
+    }
+
+    fun confirmAddScope(allSeasons: Boolean) {
+        val state = _uiState.value
+        if (state !is AnimeDetailUiState.Success) return
+        val status = state.pendingAddStatus ?: return
         val anime = resolvedAnime ?: return
-        val seasons = resolvedSeasons
+        val seasons = if (allSeasons) resolvedSeasons else resolvedSeasons.take(1)
+
+        _uiState.update {
+            if (it is AnimeDetailUiState.Success) it.copy(
+                isAddScopeSheetVisible = false,
+                pendingAddStatus = null
+            ) else it
+        }
 
         viewModelScope.launch {
             val newId = addAnimeUseCase(
@@ -242,13 +272,46 @@ class AnimeDetailViewModel @Inject constructor(
         }
     }
 
-    fun toggleNotifications() {
+    fun onNotificationIconClick() {
         val state = _uiState.value
         if (state !is AnimeDetailUiState.Success) return
 
-        val newEnabled = !state.anime.isNotificationsEnabled
+        if (state.isNotificationsEnabled) {
+            viewModelScope.launch {
+                toggleAnimeNotificationsUseCase(
+                    id = state.anime.id,
+                    notificationType = NotificationType.NONE
+                )
+            }
+        } else {
+            _uiState.update {
+                if (it is AnimeDetailUiState.Success) it.copy(isNotificationTypeSheetVisible = true)
+                else it
+            }
+        }
+    }
+
+    fun dismissNotificationTypeSheet() {
+        _uiState.update { state ->
+            if (state is AnimeDetailUiState.Success) state.copy(isNotificationTypeSheetVisible = false)
+            else state
+        }
+    }
+
+    fun selectNotificationType(notificationType: NotificationType) {
+        val state = _uiState.value
+        if (state !is AnimeDetailUiState.Success) return
+
+        _uiState.update {
+            if (it is AnimeDetailUiState.Success) it.copy(isNotificationTypeSheetVisible = false)
+            else it
+        }
+
         viewModelScope.launch {
-            toggleAnimeNotificationsUseCase(id = state.anime.id, enabled = newEnabled)
+            toggleAnimeNotificationsUseCase(
+                id = state.anime.id,
+                notificationType = notificationType
+            )
         }
     }
 

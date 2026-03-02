@@ -34,6 +34,12 @@ interface SeasonDao {
 
     @Query("UPDATE season SET lastCheckedAiredEpisodeCount = :count WHERE id = :seasonId")
     suspend fun updateNotificationData(seasonId: Long, count: Int?)
+
+    @Query("UPDATE season SET isEpisodeNotificationsEnabled = :enabled WHERE id = :seasonId")
+    suspend fun updateEpisodeNotificationsEnabled(seasonId: Long, enabled: Boolean)
+
+    @Query("SELECT * FROM season WHERE isEpisodeNotificationsEnabled = 1")
+    suspend fun getSeasonsWithEpisodeNotifications(): List<SeasonEntity>
 }
 
 data class SeasonMalIdProjection(

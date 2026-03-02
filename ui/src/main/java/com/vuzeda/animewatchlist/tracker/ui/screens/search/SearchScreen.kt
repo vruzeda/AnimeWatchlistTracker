@@ -54,7 +54,7 @@ import com.vuzeda.animewatchlist.tracker.ui.screens.home.toDisplayLabelRes
 
 @Composable
 fun SearchScreenRoute(
-    onNavigateToDetailByMalId: (Int) -> Unit,
+    onNavigateToSeasonDetailByMalId: (Int) -> Unit,
     viewModel: SearchViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -63,7 +63,7 @@ fun SearchScreenRoute(
         val malId = uiState.pendingNavigationMalId
         if (malId != null) {
             viewModel.onNavigated()
-            onNavigateToDetailByMalId(malId)
+            onNavigateToSeasonDetailByMalId(malId)
         }
     }
 

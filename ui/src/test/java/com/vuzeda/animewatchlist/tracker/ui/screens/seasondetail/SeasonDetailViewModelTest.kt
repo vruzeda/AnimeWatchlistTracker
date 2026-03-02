@@ -8,11 +8,15 @@ import com.vuzeda.animewatchlist.tracker.domain.model.EpisodeInfo
 import com.vuzeda.animewatchlist.tracker.domain.model.EpisodePage
 import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import com.vuzeda.animewatchlist.tracker.domain.model.TitleLanguage
+import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
+import com.vuzeda.animewatchlist.tracker.domain.usecase.AddAnimeFromDetailsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.DeleteAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchEpisodesUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchSeasonDetailUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.FindSeasonIdByMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveSeasonByIdUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveTitleLanguageUseCase
+import com.vuzeda.animewatchlist.tracker.domain.usecase.ToggleSeasonEpisodeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.UpdateSeasonProgressUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -39,6 +43,9 @@ class SeasonDetailViewModelTest {
     private val fetchEpisodesUseCase: FetchEpisodesUseCase = mockk()
     private val updateSeasonProgressUseCase: UpdateSeasonProgressUseCase = mockk(relaxed = true)
     private val deleteAnimeUseCase: DeleteAnimeUseCase = mockk(relaxed = true)
+    private val addAnimeFromDetailsUseCase: AddAnimeFromDetailsUseCase = mockk(relaxed = true)
+    private val findSeasonIdByMalIdUseCase: FindSeasonIdByMalIdUseCase = mockk()
+    private val toggleSeasonEpisodeNotificationsUseCase: ToggleSeasonEpisodeNotificationsUseCase = mockk(relaxed = true)
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
 
     private val sampleSeason = Season(
@@ -66,6 +73,7 @@ class SeasonDetailViewModelTest {
         seasonFlow = MutableStateFlow(sampleSeason)
         every { observeSeasonByIdUseCase(1L) } returns seasonFlow
         every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
+        coEvery { findSeasonIdByMalIdUseCase(any()) } returns null
         coEvery { fetchEpisodesUseCase(malId = 16498, page = 1) } returns Result.success(
             EpisodePage(episodes = sampleEpisodes, hasNextPage = true, nextPage = 2)
         )
@@ -90,6 +98,9 @@ class SeasonDetailViewModelTest {
             fetchEpisodesUseCase = fetchEpisodesUseCase,
             updateSeasonProgressUseCase = updateSeasonProgressUseCase,
             deleteAnimeUseCase = deleteAnimeUseCase,
+            addAnimeFromDetailsUseCase = addAnimeFromDetailsUseCase,
+            findSeasonIdByMalIdUseCase = findSeasonIdByMalIdUseCase,
+            toggleSeasonEpisodeNotificationsUseCase = toggleSeasonEpisodeNotificationsUseCase,
             observeTitleLanguageUseCase = observeTitleLanguageUseCase
         )
     }
@@ -316,6 +327,113 @@ class SeasonDetailViewModelTest {
             val deleted = expectMostRecentItem() as SeasonDetailUiState.Success
             assertThat(deleted.isDeleted).isTrue()
             coVerify { deleteAnimeUseCase(1L) }
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `showAddSheet and dismissAddSheet toggle visibility`() = runTest {
+        val apiDetails = AnimeFullDetails(
+            malId = 50265,
+            title = "Spy x Family",
+            type = "TV",
+            episodes = 12,
+            score = 8.53,
+            sequels = emptyList(),
+            prequels = emptyList()
+        )
+        coEvery { fetchSeasonDetailUseCase(50265) } returns Result.success(apiDetails)
+        coEvery { fetchEpisodesUseCase(malId = 50265, page = 1) } returns Result.success(
+            EpisodePage(episodes = emptyList(), hasNextPage = false, nextPage = 2)
+        )
+
+        val viewModel = createViewModel(seasonId = 0L, malId = 50265)
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            val initial = expectMostRecentItem() as SeasonDetailUiState.Success
+            assertThat(initial.isInWatchlist).isFalse()
+
+            viewModel.showAddSheet()
+            val shown = awaitItem() as SeasonDetailUiState.Success
+            assertThat(shown.isAddSheetVisible).isTrue()
+
+            viewModel.dismissAddSheet()
+            val hidden = awaitItem() as SeasonDetailUiState.Success
+            assertThat(hidden.isAddSheetVisible).isFalse()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `addToWatchlist adds season and transitions to watchlist mode`() = runTest {
+        val apiDetails = AnimeFullDetails(
+            malId = 50265,
+            title = "Spy x Family",
+            type = "TV",
+            episodes = 12,
+            score = 8.53,
+            sequels = emptyList(),
+            prequels = emptyList()
+        )
+        coEvery { fetchSeasonDetailUseCase(50265) } returns Result.success(apiDetails)
+        coEvery { fetchEpisodesUseCase(malId = 50265, page = 1) } returns Result.success(
+            EpisodePage(episodes = emptyList(), hasNextPage = false, nextPage = 2)
+        )
+        coEvery { addAnimeFromDetailsUseCase(any(), any()) } returns 10L
+        coEvery { findSeasonIdByMalIdUseCase(50265) } returns null
+
+        val addedSeasonFlow = MutableStateFlow<Season?>(sampleSeason.copy(id = 5L, animeId = 10L, malId = 50265, title = "Spy x Family"))
+        every { observeSeasonByIdUseCase(5L) } returns addedSeasonFlow
+
+        val viewModel = createViewModel(seasonId = 0L, malId = 50265)
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            val resolved = expectMostRecentItem() as SeasonDetailUiState.Success
+            assertThat(resolved.isInWatchlist).isFalse()
+
+            viewModel.addToWatchlist(WatchStatus.PLAN_TO_WATCH)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            coVerify { addAnimeFromDetailsUseCase(apiDetails, WatchStatus.PLAN_TO_WATCH) }
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `toggleEpisodeNotifications delegates to use case`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.toggleEpisodeNotifications()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            coVerify {
+                toggleSeasonEpisodeNotificationsUseCase(
+                    seasonId = 1L,
+                    enabled = true
+                )
+            }
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `navigateToAnimeDetail sets pendingNavigationMalId`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.navigateToAnimeDetail()
+
+            val updated = awaitItem() as SeasonDetailUiState.Success
+            assertThat(updated.pendingNavigationMalId).isEqualTo(16498)
             cancelAndIgnoreRemainingEvents()
         }
     }

@@ -1,6 +1,7 @@
 package com.vuzeda.animewatchlist.tracker.domain.repository
 
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
+import com.vuzeda.animewatchlist.tracker.domain.model.NotificationType
 import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import kotlinx.coroutines.flow.Flow
@@ -15,13 +16,15 @@ interface AnimeRepository {
 
     fun observeByNotificationEnabled(enabled: Boolean): Flow<List<Anime>>
 
+    suspend fun getAnimeById(id: Long): Anime?
+
     suspend fun addAnime(anime: Anime, seasons: List<Season>): Long
 
     suspend fun updateAnime(anime: Anime)
 
     suspend fun deleteAnime(id: Long)
 
-    suspend fun toggleNotifications(id: Long, enabled: Boolean)
+    suspend fun updateNotificationType(id: Long, notificationType: NotificationType)
 
     suspend fun getNotificationEnabledAnime(): List<Anime>
 

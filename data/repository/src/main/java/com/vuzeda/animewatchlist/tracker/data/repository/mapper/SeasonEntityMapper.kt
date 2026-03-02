@@ -17,7 +17,8 @@ fun SeasonEntity.toDomainModel(): Season = Season(
     score = score,
     orderIndex = orderIndex,
     airingStatus = airingStatus,
-    lastCheckedAiredEpisodeCount = lastCheckedAiredEpisodeCount
+    lastCheckedAiredEpisodeCount = lastCheckedAiredEpisodeCount,
+    isEpisodeNotificationsEnabled = isEpisodeNotificationsEnabled
 )
 
 fun Season.toEntity(): SeasonEntity = SeasonEntity(
@@ -34,5 +35,6 @@ fun Season.toEntity(): SeasonEntity = SeasonEntity(
     score = score,
     orderIndex = orderIndex,
     airingStatus = airingStatus,
-    lastCheckedAiredEpisodeCount = lastCheckedAiredEpisodeCount
+    lastCheckedAiredEpisodeCount = lastCheckedAiredEpisodeCount,
+    isEpisodeNotificationsEnabled = isEpisodeNotificationsEnabled
 )

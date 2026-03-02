@@ -21,7 +21,8 @@ class SeasonEntityMapperTest {
             score = 8.5,
             orderIndex = 0,
             airingStatus = "Finished Airing",
-            lastCheckedAiredEpisodeCount = 25
+            lastCheckedAiredEpisodeCount = 25,
+            isEpisodeNotificationsEnabled = true
         )
 
         val season = entity.toDomainModel()
@@ -38,6 +39,7 @@ class SeasonEntityMapperTest {
         assertThat(season.orderIndex).isEqualTo(0)
         assertThat(season.airingStatus).isEqualTo("Finished Airing")
         assertThat(season.lastCheckedAiredEpisodeCount).isEqualTo(25)
+        assertThat(season.isEpisodeNotificationsEnabled).isTrue()
     }
 
     @Test
@@ -54,7 +56,8 @@ class SeasonEntityMapperTest {
             score = 8.5,
             orderIndex = 0,
             airingStatus = "Finished Airing",
-            lastCheckedAiredEpisodeCount = 25
+            lastCheckedAiredEpisodeCount = 25,
+            isEpisodeNotificationsEnabled = true
         )
 
         val entity = season.toEntity()
@@ -71,6 +74,7 @@ class SeasonEntityMapperTest {
         assertThat(entity.orderIndex).isEqualTo(0)
         assertThat(entity.airingStatus).isEqualTo("Finished Airing")
         assertThat(entity.lastCheckedAiredEpisodeCount).isEqualTo(25)
+        assertThat(entity.isEpisodeNotificationsEnabled).isTrue()
     }
 
     @Test
@@ -110,7 +114,8 @@ class SeasonEntityMapperTest {
             score = 8.5,
             orderIndex = 0,
             airingStatus = "Finished Airing",
-            lastCheckedAiredEpisodeCount = 25
+            lastCheckedAiredEpisodeCount = 25,
+            isEpisodeNotificationsEnabled = true
         )
 
         val roundTripped = original.toEntity().toDomainModel()

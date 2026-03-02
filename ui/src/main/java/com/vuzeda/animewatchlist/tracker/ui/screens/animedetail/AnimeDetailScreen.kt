@@ -49,11 +49,13 @@ import coil.compose.AsyncImage
 import com.vuzeda.animewatchlist.tracker.designsystem.component.AnimeCard
 import com.vuzeda.animewatchlist.tracker.designsystem.component.ConfirmationDialog
 import com.vuzeda.animewatchlist.tracker.designsystem.component.EmptyStateMessage
+import com.vuzeda.animewatchlist.tracker.designsystem.component.OptionSelectionSheet
 import com.vuzeda.animewatchlist.tracker.designsystem.component.RatingBar
 import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusChip
 import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusOption
 import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusSelectionSheet
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
+import com.vuzeda.animewatchlist.tracker.domain.model.NotificationType
 import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import com.vuzeda.animewatchlist.tracker.domain.model.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.domain.model.resolveDisplayTitle
@@ -85,10 +87,14 @@ fun AnimeDetailScreenRoute(
         onDeleteClick = viewModel::showDeleteConfirmation,
         onConfirmDelete = viewModel::confirmDelete,
         onDismissDeleteConfirmation = viewModel::dismissDeleteConfirmation,
-        onToggleNotifications = viewModel::toggleNotifications,
+        onNotificationIconClick = viewModel::onNotificationIconClick,
+        onSelectNotificationType = viewModel::selectNotificationType,
+        onDismissNotificationTypeSheet = viewModel::dismissNotificationTypeSheet,
         onAddToWatchlistClick = viewModel::showAddSheet,
-        onAddStatusSelected = viewModel::addToWatchlist,
+        onAddStatusSelected = viewModel::showAddScopeSheet,
         onDismissAddSheet = viewModel::dismissAddSheet,
+        onConfirmAddScope = viewModel::confirmAddScope,
+        onDismissAddScopeSheet = viewModel::dismissAddScopeSheet,
         onSnackbarDismissed = viewModel::clearSnackbar
     )
 }
@@ -106,10 +112,14 @@ fun AnimeDetailScreen(
     onDeleteClick: () -> Unit,
     onConfirmDelete: () -> Unit,
     onDismissDeleteConfirmation: () -> Unit,
-    onToggleNotifications: () -> Unit,
+    onNotificationIconClick: () -> Unit,
+    onSelectNotificationType: (NotificationType) -> Unit,
+    onDismissNotificationTypeSheet: () -> Unit,
     onAddToWatchlistClick: () -> Unit,
     onAddStatusSelected: (WatchStatus) -> Unit,
     onDismissAddSheet: () -> Unit,
+    onConfirmAddScope: (Boolean) -> Unit,
+    onDismissAddScopeSheet: () -> Unit,
     onSnackbarDismissed: () -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
@@ -138,7 +148,7 @@ fun AnimeDetailScreen(
                 },
                 actions = {
                     if (uiState is AnimeDetailUiState.Success && uiState.isInWatchlist) {
-                        IconButton(onClick = onToggleNotifications) {
+                        IconButton(onClick = onNotificationIconClick) {
                             Icon(
                                 imageVector = if (uiState.isNotificationsEnabled) {
                                     Icons.Default.Notifications
@@ -224,9 +234,46 @@ fun AnimeDetailScreen(
                             options = statusOptions,
                             onOptionSelected = { index ->
                                 onAddStatusSelected(WatchStatus.entries[index])
-                                onDismissAddSheet()
                             },
                             onDismiss = onDismissAddSheet
+                        )
+                    }
+
+                    if (uiState.isAddScopeSheetVisible) {
+                        val addScopeOptions = listOf(
+                            stringResource(R.string.anime_detail_add_scope_all),
+                            stringResource(R.string.anime_detail_add_scope_first_only)
+                        )
+                        OptionSelectionSheet(
+                            title = stringResource(R.string.anime_detail_add_scope_title),
+                            subtitle = animeDisplayTitle,
+                            options = addScopeOptions,
+                            onOptionSelected = { index ->
+                                onConfirmAddScope(index == 0)
+                            },
+                            onDismiss = onDismissAddScopeSheet
+                        )
+                    }
+
+                    if (uiState.isNotificationTypeSheetVisible) {
+                        val notificationOptions = listOf(
+                            stringResource(R.string.anime_detail_notification_new_episodes),
+                            stringResource(R.string.anime_detail_notification_new_seasons),
+                            stringResource(R.string.anime_detail_notification_both)
+                        )
+                        val notificationTypes = listOf(
+                            NotificationType.NEW_EPISODES,
+                            NotificationType.NEW_SEASONS,
+                            NotificationType.BOTH
+                        )
+                        OptionSelectionSheet(
+                            title = stringResource(R.string.anime_detail_notification_sheet_title),
+                            subtitle = animeDisplayTitle,
+                            options = notificationOptions,
+                            onOptionSelected = { index ->
+                                onSelectNotificationType(notificationTypes[index])
+                            },
+                            onDismiss = onDismissNotificationTypeSheet
                         )
                     }
 

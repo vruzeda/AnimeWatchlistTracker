@@ -1,5 +1,6 @@
 package com.vuzeda.animewatchlist.tracker.domain.usecase
 
+import com.vuzeda.animewatchlist.tracker.domain.model.NotificationType
 import com.vuzeda.animewatchlist.tracker.domain.repository.AnimeRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -13,20 +14,20 @@ class ToggleAnimeNotificationsUseCaseTest {
     private val useCase = ToggleAnimeNotificationsUseCase(repository)
 
     @Test
-    fun `enables notifications for given anime id`() = runTest {
-        coEvery { repository.toggleNotifications(id = 1L, enabled = true) } returns Unit
+    fun `sets notification type for given anime id`() = runTest {
+        coEvery { repository.updateNotificationType(id = 1L, notificationType = NotificationType.BOTH) } returns Unit
 
-        useCase(id = 1L, enabled = true)
+        useCase(id = 1L, notificationType = NotificationType.BOTH)
 
-        coVerify { repository.toggleNotifications(id = 1L, enabled = true) }
+        coVerify { repository.updateNotificationType(id = 1L, notificationType = NotificationType.BOTH) }
     }
 
     @Test
-    fun `disables notifications for given anime id`() = runTest {
-        coEvery { repository.toggleNotifications(id = 5L, enabled = false) } returns Unit
+    fun `disables notifications by setting NONE`() = runTest {
+        coEvery { repository.updateNotificationType(id = 5L, notificationType = NotificationType.NONE) } returns Unit
 
-        useCase(id = 5L, enabled = false)
+        useCase(id = 5L, notificationType = NotificationType.NONE)
 
-        coVerify { repository.toggleNotifications(id = 5L, enabled = false) }
+        coVerify { repository.updateNotificationType(id = 5L, notificationType = NotificationType.NONE) }
     }
 }

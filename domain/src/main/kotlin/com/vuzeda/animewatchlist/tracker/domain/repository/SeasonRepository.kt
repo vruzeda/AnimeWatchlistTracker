@@ -11,6 +11,8 @@ interface SeasonRepository {
 
     suspend fun findAnimeIdBySeasonMalId(malId: Int): Long?
 
+    suspend fun findSeasonIdByMalId(malId: Int): Long?
+
     suspend fun findAnimeIdsBySeasonMalIds(malIds: List<Int>): Map<Int, Long>
 
     suspend fun getSeasonsForAnime(animeId: Long): List<Season>
@@ -23,4 +25,8 @@ interface SeasonRepository {
         seasonId: Long,
         lastCheckedAiredEpisodeCount: Int?
     )
+
+    suspend fun toggleSeasonEpisodeNotifications(seasonId: Long, enabled: Boolean)
+
+    suspend fun getSeasonsWithEpisodeNotifications(): List<Season>
 }

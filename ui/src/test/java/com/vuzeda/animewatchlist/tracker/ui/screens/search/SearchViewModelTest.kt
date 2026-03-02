@@ -11,7 +11,6 @@ import com.vuzeda.animewatchlist.tracker.domain.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.domain.model.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.RemoveAnimeByMalIdUseCase
-import com.vuzeda.animewatchlist.tracker.domain.usecase.ResolveRemainingSeasonsUseCase
 import com.vuzeda.animewatchlist.tracker.domain.usecase.SearchAnimeUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -36,7 +35,6 @@ class SearchViewModelTest {
     private val searchAnimeUseCase: SearchAnimeUseCase = mockk()
     private val fetchSeasonDetailUseCase: FetchSeasonDetailUseCase = mockk()
     private val addAnimeFromDetailsUseCase: AddAnimeFromDetailsUseCase = mockk()
-    private val resolveRemainingSeasonsUseCase: ResolveRemainingSeasonsUseCase = mockk()
     private val removeAnimeByMalIdUseCase: RemoveAnimeByMalIdUseCase = mockk()
     private val batchFindAnimeByMalIdsUseCase: BatchFindAnimeByMalIdsUseCase = mockk()
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
@@ -63,13 +61,11 @@ class SearchViewModelTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         coEvery { batchFindAnimeByMalIdsUseCase(any()) } returns emptySet()
-        coEvery { resolveRemainingSeasonsUseCase(any(), any(), any()) } returns emptySet()
         every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
         viewModel = SearchViewModel(
             searchAnimeUseCase = searchAnimeUseCase,
             fetchSeasonDetailUseCase = fetchSeasonDetailUseCase,
             addAnimeFromDetailsUseCase = addAnimeFromDetailsUseCase,
-            resolveRemainingSeasonsUseCase = resolveRemainingSeasonsUseCase,
             removeAnimeByMalIdUseCase = removeAnimeByMalIdUseCase,
             batchFindAnimeByMalIdsUseCase = batchFindAnimeByMalIdsUseCase,
             observeTitleLanguageUseCase = observeTitleLanguageUseCase
@@ -230,29 +226,6 @@ class SearchViewModelTest {
             assertThat(updated.snackbarMessage).isEqualTo("One Punch Man")
 
             coVerify { addAnimeFromDetailsUseCase(sampleDetails, WatchStatus.PLAN_TO_WATCH) }
-        }
-    }
-
-    @Test
-    fun `addToWatchlist triggers background resolution of remaining seasons`() = runTest {
-        coEvery { fetchSeasonDetailUseCase(21) } returns Result.success(sampleDetails)
-        coEvery { addAnimeFromDetailsUseCase(any(), any()) } returns 10L
-        coEvery { resolveRemainingSeasonsUseCase(10L, 21, any()) } returns setOf(21, 22)
-
-        viewModel.uiState.test {
-            awaitItem()
-
-            viewModel.onAddClick(sampleResult)
-            testDispatcher.scheduler.advanceUntilIdle()
-            expectMostRecentItem()
-
-            viewModel.addToWatchlist(WatchStatus.PLAN_TO_WATCH)
-            testDispatcher.scheduler.advanceUntilIdle()
-
-            val updated = expectMostRecentItem()
-            assertThat(updated.addedMalIds).containsAtLeast(21, 22)
-
-            coVerify { resolveRemainingSeasonsUseCase(10L, 21, WatchStatus.PLAN_TO_WATCH) }
         }
     }
 

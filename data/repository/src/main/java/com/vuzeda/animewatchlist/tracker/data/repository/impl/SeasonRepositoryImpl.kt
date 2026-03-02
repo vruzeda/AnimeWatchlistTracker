@@ -24,6 +24,9 @@ class SeasonRepositoryImpl @Inject constructor(
     override suspend fun findAnimeIdBySeasonMalId(malId: Int): Long? =
         seasonDao.findByMalId(malId)?.animeId
 
+    override suspend fun findSeasonIdByMalId(malId: Int): Long? =
+        seasonDao.findByMalId(malId)?.id
+
     override suspend fun findAnimeIdsBySeasonMalIds(malIds: List<Int>): Map<Int, Long> =
         seasonDao.findAnimeIdsByMalIds(malIds).associate { it.malId to it.animeId }
 
@@ -50,4 +53,11 @@ class SeasonRepositoryImpl @Inject constructor(
             count = lastCheckedAiredEpisodeCount
         )
     }
+
+    override suspend fun toggleSeasonEpisodeNotifications(seasonId: Long, enabled: Boolean) {
+        seasonDao.updateEpisodeNotificationsEnabled(seasonId = seasonId, enabled = enabled)
+    }
+
+    override suspend fun getSeasonsWithEpisodeNotifications(): List<Season> =
+        seasonDao.getSeasonsWithEpisodeNotifications().map { it.toDomainModel() }
 }

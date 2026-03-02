@@ -1,13 +1,14 @@
 package com.vuzeda.animewatchlist.tracker.domain.usecase
 
 import com.vuzeda.animewatchlist.tracker.domain.model.AnimeUpdate
+import com.vuzeda.animewatchlist.tracker.domain.model.NotificationType
 import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import com.vuzeda.animewatchlist.tracker.domain.repository.AnimeRemoteRepository
 import com.vuzeda.animewatchlist.tracker.domain.repository.AnimeRepository
 import com.vuzeda.animewatchlist.tracker.domain.repository.SeasonRepository
 import javax.inject.Inject
 
-/** Checks all notification-enabled anime for new episodes and new seasons. */
+/** Checks all notification-enabled anime and seasons for new episodes and new seasons. */
 class CheckAnimeUpdatesUseCase @Inject constructor(
     private val animeRepository: AnimeRepository,
     private val seasonRepository: SeasonRepository,
@@ -15,24 +16,52 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
 ) {
 
     suspend operator fun invoke(): List<AnimeUpdate> {
-        val notifiedAnime = animeRepository.getNotificationEnabledAnime()
         val updates = mutableListOf<AnimeUpdate>()
+        val checkedSeasonIds = mutableSetOf<Long>()
 
+        val notifiedAnime = animeRepository.getNotificationEnabledAnime()
         for (anime in notifiedAnime) {
             val seasons = seasonRepository.getSeasonsForAnime(anime.id)
             if (seasons.isEmpty()) continue
 
-            for (season in seasons) {
-                checkNewEpisodes(season)?.let { update ->
-                    updates += AnimeUpdate.NewEpisodes(
-                        anime = anime,
-                        season = season,
-                        latestAiredEpisode = update
-                    )
+            val shouldCheckEpisodes = anime.notificationType == NotificationType.NEW_EPISODES ||
+                anime.notificationType == NotificationType.BOTH
+            val shouldCheckSeasons = anime.notificationType == NotificationType.NEW_SEASONS ||
+                anime.notificationType == NotificationType.BOTH
+
+            if (shouldCheckEpisodes) {
+                for (season in seasons) {
+                    checkedSeasonIds += season.id
+                    checkNewEpisodes(season)?.let { latestEpisode ->
+                        updates += AnimeUpdate.NewEpisodes(
+                            anime = anime,
+                            season = season,
+                            latestAiredEpisode = latestEpisode
+                        )
+                    }
                 }
             }
 
-            checkNewSeasons(anime, seasons)?.let { updates += it }
+            if (shouldCheckSeasons) {
+                checkNewSeasons(anime, seasons)?.let { updates += it }
+            }
+        }
+
+        val animeCache = notifiedAnime.associateBy { it.id }.toMutableMap()
+        val perSeasonNotified = seasonRepository.getSeasonsWithEpisodeNotifications()
+        for (season in perSeasonNotified) {
+            if (season.id in checkedSeasonIds) continue
+            var anime = animeCache[season.animeId]
+            if (anime == null) {
+                anime = animeRepository.getAnimeById(season.animeId) ?: continue
+                animeCache[season.animeId] = anime
+            }
+            val latestEpisode = checkNewEpisodes(season) ?: continue
+            updates += AnimeUpdate.NewEpisodes(
+                anime = anime,
+                season = season,
+                latestAiredEpisode = latestEpisode
+            )
         }
 
         return updates

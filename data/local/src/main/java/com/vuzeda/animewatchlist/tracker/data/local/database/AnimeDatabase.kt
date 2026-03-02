@@ -10,7 +10,7 @@ import com.vuzeda.animewatchlist.tracker.data.local.entity.SeasonEntity
 
 @Database(
     entities = [AnimeEntity::class, SeasonEntity::class],
-    version = 6,
+    version = 7,
     exportSchema = true
 )
 @TypeConverters(Converters::class)

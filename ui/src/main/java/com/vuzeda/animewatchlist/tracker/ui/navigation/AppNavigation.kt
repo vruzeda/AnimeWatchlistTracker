@@ -108,8 +108,8 @@ fun AppNavigation(modifier: Modifier = Modifier) {
 
             composable<Route.Search> {
                 SearchScreenRoute(
-                    onNavigateToDetailByMalId = { malId ->
-                        navController.navigate(Route.AnimeDetail(malId = malId))
+                    onNavigateToSeasonDetailByMalId = { malId ->
+                        navController.navigate(Route.SeasonDetail(malId = malId))
                     }
                 )
             }
@@ -129,7 +129,10 @@ fun AppNavigation(modifier: Modifier = Modifier) {
 
             composable<Route.SeasonDetail> {
                 SeasonDetailScreenRoute(
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToAnimeDetail = { malId ->
+                        navController.navigate(Route.AnimeDetail(malId = malId))
+                    }
                 )
             }
         }

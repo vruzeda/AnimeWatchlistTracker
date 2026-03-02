@@ -4,6 +4,7 @@ import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.domain.model.AnimeUpdate
+import com.vuzeda.animewatchlist.tracker.domain.model.NotificationType
 import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import com.vuzeda.animewatchlist.tracker.domain.model.SequelInfo
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
@@ -27,7 +28,7 @@ class CheckAnimeUpdatesUseCaseTest {
         id = 1,
         title = "Test Anime",
         status = WatchStatus.WATCHING,
-        isNotificationsEnabled = true
+        notificationType = NotificationType.BOTH
     )
 
     private val sampleSeason = Season(

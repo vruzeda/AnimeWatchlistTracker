@@ -4,6 +4,7 @@ import com.vuzeda.animewatchlist.tracker.data.local.dao.AnimeDao
 import com.vuzeda.animewatchlist.tracker.data.repository.mapper.toDomainModel
 import com.vuzeda.animewatchlist.tracker.data.repository.mapper.toEntity
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
+import com.vuzeda.animewatchlist.tracker.domain.model.NotificationType
 import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.repository.AnimeRepository
@@ -29,8 +30,14 @@ class AnimeRepositoryImpl @Inject constructor(
         animeDao.observeById(id).map { it?.toDomainModel() }
 
     override fun observeByNotificationEnabled(enabled: Boolean): Flow<List<Anime>> =
-        animeDao.observeByNotificationEnabled(enabled)
-            .map { entities -> entities.map { it.toDomainModel() } }
+        if (enabled) {
+            animeDao.observeByNotificationEnabled()
+        } else {
+            animeDao.observeByNotificationDisabled()
+        }.map { entities -> entities.map { it.toDomainModel() } }
+
+    override suspend fun getAnimeById(id: Long): Anime? =
+        animeDao.getById(id)?.toDomainModel()
 
     override suspend fun addAnime(anime: Anime, seasons: List<Season>): Long =
         transactionRunner.runInTransaction {
@@ -47,8 +54,8 @@ class AnimeRepositoryImpl @Inject constructor(
         animeDao.deleteById(id)
     }
 
-    override suspend fun toggleNotifications(id: Long, enabled: Boolean) {
-        animeDao.updateNotificationsEnabled(id = id, enabled = enabled)
+    override suspend fun updateNotificationType(id: Long, notificationType: NotificationType) {
+        animeDao.updateNotificationType(id = id, notificationType = notificationType.name)
     }
 
     override suspend fun getNotificationEnabledAnime(): List<Anime> =

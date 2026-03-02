@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
+import com.vuzeda.animewatchlist.tracker.domain.model.NotificationType
 import com.vuzeda.animewatchlist.tracker.domain.model.ResolvedSeries
 import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import com.vuzeda.animewatchlist.tracker.domain.model.SeasonData
@@ -290,17 +291,66 @@ class AnimeDetailViewModelTest {
     }
 
     @Test
-    fun `toggleNotifications delegates to use case`() = runTest {
+    fun `onNotificationIconClick when disabled shows notification type sheet`() = runTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
             testDispatcher.scheduler.advanceUntilIdle()
             expectMostRecentItem()
 
-            viewModel.toggleNotifications()
+            viewModel.onNotificationIconClick()
+
+            val shown = awaitItem() as AnimeDetailUiState.Success
+            assertThat(shown.isNotificationTypeSheetVisible).isTrue()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `selectNotificationType sets type via use case`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.onNotificationIconClick()
+            awaitItem()
+
+            viewModel.selectNotificationType(NotificationType.NEW_EPISODES)
             testDispatcher.scheduler.advanceUntilIdle()
 
-            coVerify { toggleAnimeNotificationsUseCase(id = 1L, enabled = true) }
+            val dismissed = expectMostRecentItem() as AnimeDetailUiState.Success
+            assertThat(dismissed.isNotificationTypeSheetVisible).isFalse()
+
+            coVerify {
+                toggleAnimeNotificationsUseCase(
+                    id = 1L,
+                    notificationType = NotificationType.NEW_EPISODES
+                )
+            }
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `onNotificationIconClick when enabled disables notifications`() = runTest {
+        animeFlow.value = sampleAnime.copy(notificationType = NotificationType.BOTH)
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.onNotificationIconClick()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            coVerify {
+                toggleAnimeNotificationsUseCase(
+                    id = 1L,
+                    notificationType = NotificationType.NONE
+                )
+            }
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -325,13 +375,64 @@ class AnimeDetailViewModelTest {
     }
 
     @Test
-    fun `addToWatchlist flow transitions to watchlist mode`() = runTest {
+    fun `add scope flow transitions to watchlist mode with all seasons`() = runTest {
         coEvery { findAnimeBySeasonMalIdUseCase(50) } returns null
         coEvery { resolveAnimeUseCase(50) } returns Result.success(
             ResolvedSeries(
                 title = "Spy x Family",
                 seasons = listOf(
-                    SeasonData(malId = 50, title = "Season 1", type = "TV")
+                    SeasonData(malId = 50, title = "Season 1", type = "TV"),
+                    SeasonData(malId = 51, title = "Season 2", type = "TV")
+                )
+            )
+        )
+        coEvery { addAnimeUseCase(any(), any(), any()) } returns 10L
+
+        val addedAnimeFlow = MutableStateFlow<Anime?>(
+            Anime(id = 10L, title = "Spy x Family", status = WatchStatus.PLAN_TO_WATCH)
+        )
+        val addedSeasonsFlow = MutableStateFlow(
+            listOf(
+                Season(id = 5L, animeId = 10L, malId = 50, title = "Season 1"),
+                Season(id = 6L, animeId = 10L, malId = 51, title = "Season 2")
+            )
+        )
+        every { observeAnimeByIdUseCase(10L) } returns addedAnimeFlow
+        every { observeSeasonsForAnimeUseCase(10L) } returns addedSeasonsFlow
+
+        val viewModel = createViewModel(animeId = 0L, malId = 50)
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            val resolved = expectMostRecentItem() as AnimeDetailUiState.Success
+            assertThat(resolved.isInWatchlist).isFalse()
+
+            viewModel.showAddScopeSheet(WatchStatus.PLAN_TO_WATCH)
+            val scopeSheet = awaitItem() as AnimeDetailUiState.Success
+            assertThat(scopeSheet.isAddScopeSheetVisible).isTrue()
+            assertThat(scopeSheet.pendingAddStatus).isEqualTo(WatchStatus.PLAN_TO_WATCH)
+
+            viewModel.confirmAddScope(allSeasons = true)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val watchlisted = expectMostRecentItem() as AnimeDetailUiState.Success
+            assertThat(watchlisted.isInWatchlist).isTrue()
+            assertThat(watchlisted.anime.id).isEqualTo(10L)
+
+            coVerify { addAnimeUseCase(any(), match { it.size == 2 }, WatchStatus.PLAN_TO_WATCH) }
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `add scope flow with first only passes single season`() = runTest {
+        coEvery { findAnimeBySeasonMalIdUseCase(50) } returns null
+        coEvery { resolveAnimeUseCase(50) } returns Result.success(
+            ResolvedSeries(
+                title = "Spy x Family",
+                seasons = listOf(
+                    SeasonData(malId = 50, title = "Season 1", type = "TV"),
+                    SeasonData(malId = 51, title = "Season 2", type = "TV")
                 )
             )
         )
@@ -350,15 +451,15 @@ class AnimeDetailViewModelTest {
 
         viewModel.uiState.test {
             testDispatcher.scheduler.advanceUntilIdle()
-            val resolved = expectMostRecentItem() as AnimeDetailUiState.Success
-            assertThat(resolved.isInWatchlist).isFalse()
+            expectMostRecentItem()
 
-            viewModel.addToWatchlist(WatchStatus.PLAN_TO_WATCH)
+            viewModel.showAddScopeSheet(WatchStatus.WATCHING)
+            awaitItem()
+
+            viewModel.confirmAddScope(allSeasons = false)
             testDispatcher.scheduler.advanceUntilIdle()
 
-            val watchlisted = expectMostRecentItem() as AnimeDetailUiState.Success
-            assertThat(watchlisted.isInWatchlist).isTrue()
-            assertThat(watchlisted.anime.id).isEqualTo(10L)
+            coVerify { addAnimeUseCase(any(), match { it.size == 1 }, WatchStatus.WATCHING) }
             cancelAndIgnoreRemainingEvents()
         }
     }

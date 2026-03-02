@@ -32,12 +32,18 @@ interface AnimeDao {
     @Query("DELETE FROM anime")
     suspend fun deleteAll()
 
-    @Query("SELECT * FROM anime WHERE isNotificationsEnabled = :enabled ORDER BY title ASC")
-    fun observeByNotificationEnabled(enabled: Boolean): Flow<List<AnimeEntity>>
+    @Query("SELECT * FROM anime WHERE id = :id")
+    suspend fun getById(id: Long): AnimeEntity?
 
-    @Query("SELECT * FROM anime WHERE isNotificationsEnabled = 1")
+    @Query("SELECT * FROM anime WHERE notificationType != 'NONE' ORDER BY title ASC")
+    fun observeByNotificationEnabled(): Flow<List<AnimeEntity>>
+
+    @Query("SELECT * FROM anime WHERE notificationType = 'NONE' ORDER BY title ASC")
+    fun observeByNotificationDisabled(): Flow<List<AnimeEntity>>
+
+    @Query("SELECT * FROM anime WHERE notificationType != 'NONE'")
     suspend fun getNotificationEnabledAnime(): List<AnimeEntity>
 
-    @Query("UPDATE anime SET isNotificationsEnabled = :enabled WHERE id = :id")
-    suspend fun updateNotificationsEnabled(id: Long, enabled: Boolean)
+    @Query("UPDATE anime SET notificationType = :notificationType WHERE id = :id")
+    suspend fun updateNotificationType(id: Long, notificationType: String)
 }

@@ -5,6 +5,7 @@ import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.data.local.dao.AnimeDao
 import com.vuzeda.animewatchlist.tracker.data.local.entity.AnimeEntity
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
+import com.vuzeda.animewatchlist.tracker.domain.model.NotificationType
 import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.repository.SeasonRepository
@@ -34,7 +35,7 @@ class AnimeRepositoryImplTest {
         genres = "Action,Drama",
         status = "WATCHING",
         userRating = 9,
-        isNotificationsEnabled = false,
+        notificationType = "NONE",
         addedAt = 1000L
     )
 
@@ -125,17 +126,17 @@ class AnimeRepositoryImplTest {
     }
 
     @Test
-    fun `toggleNotifications delegates to dao with correct boolean value`() = runTest {
-        coEvery { animeDao.updateNotificationsEnabled(id = 1L, enabled = true) } returns Unit
+    fun `updateNotificationType delegates to dao`() = runTest {
+        coEvery { animeDao.updateNotificationType(id = 1L, notificationType = "BOTH") } returns Unit
 
-        repository.toggleNotifications(id = 1L, enabled = true)
+        repository.updateNotificationType(id = 1L, notificationType = NotificationType.BOTH)
 
-        coVerify { animeDao.updateNotificationsEnabled(id = 1L, enabled = true) }
+        coVerify { animeDao.updateNotificationType(id = 1L, notificationType = "BOTH") }
     }
 
     @Test
     fun `getNotificationEnabledAnime returns mapped domain models`() = runTest {
-        val notifiedEntity = sampleEntity.copy(isNotificationsEnabled = true)
+        val notifiedEntity = sampleEntity.copy(notificationType = "BOTH")
         coEvery { animeDao.getNotificationEnabledAnime() } returns listOf(notifiedEntity)
 
         val result = repository.getNotificationEnabledAnime()
@@ -146,8 +147,8 @@ class AnimeRepositoryImplTest {
 
     @Test
     fun `observeByNotificationEnabled emits mapped domain models for enabled`() = runTest {
-        val notifiedEntity = sampleEntity.copy(isNotificationsEnabled = true)
-        every { animeDao.observeByNotificationEnabled(true) } returns flowOf(listOf(notifiedEntity))
+        val notifiedEntity = sampleEntity.copy(notificationType = "BOTH")
+        every { animeDao.observeByNotificationEnabled() } returns flowOf(listOf(notifiedEntity))
 
         repository.observeByNotificationEnabled(true).test {
             val result = awaitItem()
@@ -160,7 +161,7 @@ class AnimeRepositoryImplTest {
 
     @Test
     fun `observeByNotificationEnabled emits mapped domain models for disabled`() = runTest {
-        every { animeDao.observeByNotificationEnabled(false) } returns flowOf(listOf(sampleEntity))
+        every { animeDao.observeByNotificationDisabled() } returns flowOf(listOf(sampleEntity))
 
         repository.observeByNotificationEnabled(false).test {
             val result = awaitItem()

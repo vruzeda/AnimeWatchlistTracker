@@ -10,6 +10,8 @@ data class Anime(
     val genres: List<String> = emptyList(),
     val status: WatchStatus = WatchStatus.PLAN_TO_WATCH,
     val userRating: Int? = null,
-    val isNotificationsEnabled: Boolean = false,
+    val notificationType: NotificationType = NotificationType.NONE,
     val addedAt: Long = 0
-)
+) {
+    val isNotificationsEnabled: Boolean get() = notificationType != NotificationType.NONE
+}

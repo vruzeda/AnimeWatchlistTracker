@@ -3,6 +3,7 @@ package com.vuzeda.animewatchlist.tracker.domain.usecase
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
+import com.vuzeda.animewatchlist.tracker.domain.model.NotificationType
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.repository.AnimeRepository
 import io.mockk.every
@@ -20,7 +21,7 @@ class ObserveAnimeByNotificationUseCaseTest {
     @Test
     fun `delegates to repository with enabled true`() = runTest {
         val anime = listOf(
-            Anime(id = 1L, title = "Test", status = WatchStatus.WATCHING, isNotificationsEnabled = true)
+            Anime(id = 1L, title = "Test", status = WatchStatus.WATCHING, notificationType = NotificationType.BOTH)
         )
         every { repository.observeByNotificationEnabled(true) } returns flowOf(anime)
 
@@ -38,7 +39,7 @@ class ObserveAnimeByNotificationUseCaseTest {
     @Test
     fun `delegates to repository with enabled false`() = runTest {
         val anime = listOf(
-            Anime(id = 2L, title = "Test 2", status = WatchStatus.WATCHING, isNotificationsEnabled = false)
+            Anime(id = 2L, title = "Test 2", status = WatchStatus.WATCHING, notificationType = NotificationType.NONE)
         )
         every { repository.observeByNotificationEnabled(false) } returns flowOf(anime)
 

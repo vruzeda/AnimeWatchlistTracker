@@ -3,6 +3,7 @@ package com.vuzeda.animewatchlist.tracker.ui.screens.home
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
+import com.vuzeda.animewatchlist.tracker.domain.model.NotificationType
 import com.vuzeda.animewatchlist.tracker.domain.model.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.usecase.ObserveAnimeListUseCase
@@ -29,9 +30,9 @@ class HomeViewModelTest {
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
 
     private val sampleAnimeList = listOf(
-        Anime(id = 1L, title = "Attack on Titan", status = WatchStatus.WATCHING, userRating = 8, addedAt = 1000L, isNotificationsEnabled = true),
-        Anime(id = 2L, title = "One Punch Man", status = WatchStatus.COMPLETED, userRating = 9, addedAt = 3000L, isNotificationsEnabled = false),
-        Anime(id = 3L, title = "Bleach", status = WatchStatus.WATCHING, userRating = 7, addedAt = 2000L, isNotificationsEnabled = true)
+        Anime(id = 1L, title = "Attack on Titan", status = WatchStatus.WATCHING, userRating = 8, addedAt = 1000L, notificationType = NotificationType.BOTH),
+        Anime(id = 2L, title = "One Punch Man", status = WatchStatus.COMPLETED, userRating = 9, addedAt = 3000L, notificationType = NotificationType.NONE),
+        Anime(id = 3L, title = "Bleach", status = WatchStatus.WATCHING, userRating = 7, addedAt = 2000L, notificationType = NotificationType.NEW_EPISODES)
     )
 
     @BeforeEach

@@ -31,5 +31,6 @@ data class SeasonEntity(
     val score: Double? = null,
     val orderIndex: Int = 0,
     val airingStatus: String? = null,
-    val lastCheckedAiredEpisodeCount: Int? = null
+    val lastCheckedAiredEpisodeCount: Int? = null,
+    val isEpisodeNotificationsEnabled: Boolean = false
 )

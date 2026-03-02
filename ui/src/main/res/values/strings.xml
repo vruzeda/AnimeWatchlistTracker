@@ -82,6 +82,13 @@
     <string name="anime_detail_season_score">★ %1$s</string>
     <string name="anime_detail_season_episodes">%1$d / %2$d ep</string>
     <string name="anime_detail_season_episodes_no_total">%1$d ep watched</string>
+    <string name="anime_detail_add_scope_title">How many seasons?</string>
+    <string name="anime_detail_add_scope_all">All seasons</string>
+    <string name="anime_detail_add_scope_first_only">First season only</string>
+    <string name="anime_detail_notification_sheet_title">Notification type</string>
+    <string name="anime_detail_notification_new_episodes">New aired episodes</string>
+    <string name="anime_detail_notification_new_seasons">New aired seasons</string>
+    <string name="anime_detail_notification_both">Both</string>
 
     <!-- SeasonDetailScreen -->
     <string name="season_detail_title">Season Detail</string>
@@ -92,6 +99,12 @@
     <string name="season_detail_episode_count">%1$d episodes</string>
     <string name="season_detail_load_more_episodes">Load more episodes</string>
     <string name="season_detail_airing_status">Status: %1$s</string>
+    <string name="season_detail_add_to_watchlist">Add to Watchlist</string>
+    <string name="season_detail_add_sheet_title">Add to watchlist</string>
+    <string name="season_detail_added_to_watchlist">%1$s added to watchlist</string>
+    <string name="season_detail_view_full_series">View Full Series</string>
+    <string name="cd_season_enable_notifications">Enable episode notifications</string>
+    <string name="cd_season_disable_notifications">Disable episode notifications</string>
 
     <!-- Search adding -->
     <string name="search_resolving">Resolving…</string>
