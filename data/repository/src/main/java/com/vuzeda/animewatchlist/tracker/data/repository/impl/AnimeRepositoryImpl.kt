@@ -1,13 +1,13 @@
 package com.vuzeda.animewatchlist.tracker.data.repository.impl
 
 import com.vuzeda.animewatchlist.tracker.data.local.dao.AnimeDao
-import com.vuzeda.animewatchlist.tracker.data.local.dao.SeasonDao
 import com.vuzeda.animewatchlist.tracker.data.repository.mapper.toDomainModel
 import com.vuzeda.animewatchlist.tracker.data.repository.mapper.toEntity
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.repository.AnimeRepository
+import com.vuzeda.animewatchlist.tracker.domain.repository.SeasonRepository
 import com.vuzeda.animewatchlist.tracker.domain.repository.TransactionRunner
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -15,7 +15,7 @@ import javax.inject.Inject
 
 class AnimeRepositoryImpl @Inject constructor(
     private val animeDao: AnimeDao,
-    private val seasonDao: SeasonDao,
+    private val seasonRepository: SeasonRepository,
     private val transactionRunner: TransactionRunner
 ) : AnimeRepository {
 
@@ -35,8 +35,7 @@ class AnimeRepositoryImpl @Inject constructor(
     override suspend fun addAnime(anime: Anime, seasons: List<Season>): Long =
         transactionRunner.runInTransaction {
             val animeId = animeDao.insert(anime.toEntity())
-            val seasonEntities = seasons.map { it.copy(animeId = animeId).toEntity() }
-            seasonDao.insertAll(seasonEntities)
+            seasonRepository.addSeasonsToAnime(animeId, seasons)
             animeId
         }
 

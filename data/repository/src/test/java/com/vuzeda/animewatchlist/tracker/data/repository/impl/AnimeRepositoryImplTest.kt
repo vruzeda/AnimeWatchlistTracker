@@ -3,18 +3,16 @@ package com.vuzeda.animewatchlist.tracker.data.repository.impl
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.data.local.dao.AnimeDao
-import com.vuzeda.animewatchlist.tracker.data.local.dao.SeasonDao
 import com.vuzeda.animewatchlist.tracker.data.local.entity.AnimeEntity
-import com.vuzeda.animewatchlist.tracker.data.local.entity.SeasonEntity
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
+import com.vuzeda.animewatchlist.tracker.domain.repository.SeasonRepository
 import com.vuzeda.animewatchlist.tracker.domain.repository.TransactionRunner
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.slot
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
@@ -22,11 +20,11 @@ import org.junit.jupiter.api.Test
 class AnimeRepositoryImplTest {
 
     private val animeDao: AnimeDao = mockk()
-    private val seasonDao: SeasonDao = mockk()
+    private val seasonRepository: SeasonRepository = mockk(relaxed = true)
     private val transactionRunner = object : TransactionRunner {
         override suspend fun <T> runInTransaction(block: suspend () -> T): T = block()
     }
-    private val repository = AnimeRepositoryImpl(animeDao, seasonDao, transactionRunner)
+    private val repository = AnimeRepositoryImpl(animeDao, seasonRepository, transactionRunner)
 
     private val sampleEntity = AnimeEntity(
         id = 1L,
@@ -90,9 +88,8 @@ class AnimeRepositoryImplTest {
     }
 
     @Test
-    fun `addAnime inserts anime and seasons and returns id`() = runTest {
+    fun `addAnime inserts anime and delegates seasons to seasonRepository`() = runTest {
         coEvery { animeDao.insert(any()) } returns 5L
-        coEvery { seasonDao.insertAll(any()) } returns Unit
 
         val anime = Anime(
             title = "Attack on Titan",
@@ -106,10 +103,7 @@ class AnimeRepositoryImplTest {
         val result = repository.addAnime(anime, seasons)
 
         assertThat(result).isEqualTo(5L)
-
-        val seasonSlot = slot<List<SeasonEntity>>()
-        coVerify { seasonDao.insertAll(capture(seasonSlot)) }
-        assertThat(seasonSlot.captured[0].animeId).isEqualTo(5L)
+        coVerify { seasonRepository.addSeasonsToAnime(5L, seasons) }
     }
 
     @Test
