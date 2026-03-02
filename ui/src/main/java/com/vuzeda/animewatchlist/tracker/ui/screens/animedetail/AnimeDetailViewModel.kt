@@ -230,13 +230,16 @@ class AnimeDetailViewModel @Inject constructor(
         }
     }
 
-    fun confirmDelete(onDeleted: () -> Unit) {
+    fun confirmDelete() {
         val state = _uiState.value
         if (state !is AnimeDetailUiState.Success) return
 
         viewModelScope.launch {
             deleteAnimeUseCase(state.anime.id)
-            onDeleted()
+            _uiState.update { current ->
+                if (current is AnimeDetailUiState.Success) current.copy(isDeleted = true)
+                else current
+            }
         }
     }
 

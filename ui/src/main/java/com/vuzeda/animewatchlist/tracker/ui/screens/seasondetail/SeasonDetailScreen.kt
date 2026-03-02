@@ -25,6 +25,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,13 +54,18 @@ fun SeasonDetailScreenRoute(
     viewModel: SeasonDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    if (uiState is SeasonDetailUiState.Success && (uiState as SeasonDetailUiState.Success).isDeleted) {
+        LaunchedEffect(Unit) { onNavigateBack() }
+    }
+
     SeasonDetailScreen(
         uiState = uiState,
         onNavigateBack = onNavigateBack,
         onEpisodeProgressChanged = viewModel::updateEpisodeProgress,
         onLoadMoreEpisodes = viewModel::loadMoreEpisodes,
         onDeleteClick = viewModel::showDeleteConfirmation,
-        onConfirmDelete = { viewModel.confirmDelete(onNavigateBack) },
+        onConfirmDelete = viewModel::confirmDelete,
         onDismissDeleteConfirmation = viewModel::dismissDeleteConfirmation
     )
 }

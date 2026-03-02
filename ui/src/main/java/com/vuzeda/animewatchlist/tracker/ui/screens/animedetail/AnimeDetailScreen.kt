@@ -69,6 +69,11 @@ fun AnimeDetailScreenRoute(
     viewModel: AnimeDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    if (uiState is AnimeDetailUiState.Success && (uiState as AnimeDetailUiState.Success).isDeleted) {
+        LaunchedEffect(Unit) { onNavigateBack() }
+    }
+
     AnimeDetailScreen(
         uiState = uiState,
         onNavigateBack = onNavigateBack,
@@ -78,7 +83,7 @@ fun AnimeDetailScreenRoute(
         onDismissStatusSheet = viewModel::dismissStatusSheet,
         onRatingChanged = viewModel::updateUserRating,
         onDeleteClick = viewModel::showDeleteConfirmation,
-        onConfirmDelete = { viewModel.confirmDelete(onNavigateBack) },
+        onConfirmDelete = viewModel::confirmDelete,
         onDismissDeleteConfirmation = viewModel::dismissDeleteConfirmation,
         onToggleNotifications = viewModel::toggleNotifications,
         onAddToWatchlistClick = viewModel::showAddSheet,

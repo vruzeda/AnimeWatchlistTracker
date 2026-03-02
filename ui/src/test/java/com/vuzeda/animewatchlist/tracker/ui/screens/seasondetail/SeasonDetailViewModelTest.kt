@@ -304,18 +304,18 @@ class SeasonDetailViewModelTest {
     }
 
     @Test
-    fun `confirmDelete calls delete use case with animeId and invokes callback`() = runTest {
+    fun `confirmDelete calls delete use case and sets isDeleted`() = runTest {
         val viewModel = createViewModel()
-        var callbackInvoked = false
 
         viewModel.uiState.test {
             testDispatcher.scheduler.advanceUntilIdle()
             expectMostRecentItem()
 
-            viewModel.confirmDelete { callbackInvoked = true }
+            viewModel.confirmDelete()
             testDispatcher.scheduler.advanceUntilIdle()
 
-            assertThat(callbackInvoked).isTrue()
+            val deleted = expectMostRecentItem() as SeasonDetailUiState.Success
+            assertThat(deleted.isDeleted).isTrue()
             coVerify { deleteAnimeUseCase(1L) }
             cancelAndIgnoreRemainingEvents()
         }
