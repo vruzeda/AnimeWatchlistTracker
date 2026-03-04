@@ -14,6 +14,8 @@ import com.vuzeda.animewatchlist.tracker.data.api.dto.ImageUrlDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.RelatedEntryDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.SearchPaginationDto
 import com.vuzeda.animewatchlist.tracker.data.api.service.JikanApiService
+import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.seconds
 
 class FakeJikanApiService : JikanApiService {
 
@@ -44,6 +46,7 @@ class FakeJikanApiService : JikanApiService {
     )
 
     override suspend fun getAnimeEpisodes(malId: Int, page: Int): AnimeEpisodesResponseDto {
+        delay(1.seconds)
         val anime = fakeResults.firstOrNull { it.malId == malId }
         val totalEpisodes = anime?.episodes ?: 0
         val pageSize = 5

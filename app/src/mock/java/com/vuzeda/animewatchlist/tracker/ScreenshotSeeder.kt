@@ -35,7 +35,8 @@ class ScreenshotSeeder @Inject constructor(
             genres = "Action,Drama,Fantasy",
             addedAt = now - 86400000 * 30
         ) to listOf(
-            SeasonEntity(animeId = 0, malId = 16498, title = "Attack on Titan", episodeCount = 25, currentEpisode = 18, score = 8.54, orderIndex = 0)
+            SeasonEntity(animeId = 0, malId = 16498, title = "Attack on Titan", imageUrl = "https://cdn.myanimelist.net/images/anime/10/47347.jpg", episodeCount = 25, currentEpisode = 18, score = 8.54, orderIndex = 0),
+            SeasonEntity(animeId = 0, malId = 25777, title = "Attack on Titan Season 2", imageUrl = "https://cdn.myanimelist.net/images/anime/4/84177.jpg", episodeCount = 12, currentEpisode = 8, score = 8.48, orderIndex = 1),
         ),
         AnimeEntity(
             title = "One Punch Man",
