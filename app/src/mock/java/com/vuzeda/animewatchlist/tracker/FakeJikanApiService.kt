@@ -7,7 +7,6 @@ import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeFullResponseDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeImagesDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeRelationDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeSearchResponseDto
-import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeSingleResponseDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.EpisodeDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.EpisodesPaginationDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.GenreDto
@@ -20,11 +19,6 @@ class FakeJikanApiService : JikanApiService {
 
     override suspend fun searchAnime(query: String, limit: Int): AnimeSearchResponseDto =
         AnimeSearchResponseDto(data = fakeResults)
-
-    override suspend fun getAnimeById(malId: Int): AnimeSingleResponseDto {
-        val anime = fakeResults.first { it.malId == malId }
-        return AnimeSingleResponseDto(data = anime)
-    }
 
     override suspend fun getAnimeFullById(malId: Int): AnimeFullResponseDto {
         val anime = fakeResults.first { it.malId == malId }
@@ -42,14 +36,6 @@ class FakeJikanApiService : JikanApiService {
     override suspend fun getSeasonAnime(
         year: Int,
         season: String,
-        page: Int,
-        filter: String
-    ): AnimeSearchResponseDto = AnimeSearchResponseDto(
-        pagination = SearchPaginationDto(hasNextPage = false, lastVisiblePage = 1),
-        data = fakeResults.take(4)
-    )
-
-    override suspend fun getSeasonNow(
         page: Int,
         filter: String
     ): AnimeSearchResponseDto = AnimeSearchResponseDto(
