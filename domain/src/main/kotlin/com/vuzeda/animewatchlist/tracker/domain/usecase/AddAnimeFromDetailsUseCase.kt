@@ -54,7 +54,7 @@ class AddAnimeFromDetailsUseCase @Inject constructor(
         if (details.prequels.isEmpty()) return details
         if (watchOrder == null) return details
 
-        val firstMalId = watchOrder.firstOrNull { it.isMainSeries }?.malId ?: return details
+        val firstMalId = watchOrder.firstOrNull { it.isMainSeries }?.malId ?: watchOrder.firstOrNull()?.malId ?: return details
         if (firstMalId == details.malId) return details
 
         return remoteRepository.fetchAnimeFullById(firstMalId).getOrNull() ?: details

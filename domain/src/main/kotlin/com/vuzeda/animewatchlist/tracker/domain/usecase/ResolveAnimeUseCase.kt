@@ -10,7 +10,7 @@ class ResolveAnimeUseCase @Inject constructor(
 
     suspend operator fun invoke(malId: Int): Result<ResolvedSeries> = runCatching {
         val seasons = remoteRepository.fetchWatchOrder(malId).getOrThrow()
-        val rootSeason = seasons.firstOrNull { it.isMainSeries }
+        val rootSeason = seasons.firstOrNull { it.isMainSeries } ?: seasons.firstOrNull()
             ?: throw IllegalStateException("No seasons found for malId=$malId")
 
         val rootDetails = remoteRepository.fetchAnimeFullById(rootSeason.malId).getOrNull()
