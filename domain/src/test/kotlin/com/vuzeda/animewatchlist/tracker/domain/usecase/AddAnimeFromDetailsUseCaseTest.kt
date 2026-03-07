@@ -1,7 +1,9 @@
 package com.vuzeda.animewatchlist.tracker.domain.usecase
 
 import com.google.common.truth.Truth.assertThat
+import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.AnimeFullDetails
+import com.vuzeda.animewatchlist.tracker.domain.model.NotificationType
 import com.vuzeda.animewatchlist.tracker.domain.model.SeasonData
 import com.vuzeda.animewatchlist.tracker.domain.model.SequelInfo
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
@@ -14,12 +16,17 @@ import io.mockk.slot
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 class AddAnimeFromDetailsUseCaseTest {
 
     private val animeRepository: AnimeRepository = mockk()
     private val remoteRepository: AnimeRemoteRepository = mockk()
-    private val useCase = AddAnimeFromDetailsUseCase(animeRepository, remoteRepository)
+    private val clock: Clock = mockk {
+        coEvery { now() } returns Instant.fromEpochMilliseconds(1770294088886)
+    }
+    private val useCase = AddAnimeFromDetailsUseCase(animeRepository, remoteRepository, clock)
 
     private val firstSeasonDetails = AnimeFullDetails(
         malId = 100,
@@ -54,6 +61,11 @@ class AddAnimeFromDetailsUseCaseTest {
         SeasonData(malId = 200, title = "Anime S2", type = "TV", episodeCount = 24, score = 9.0)
     )
 
+    private val watchOrderWithNonMainSeriesFirstSeason = listOf(
+        SeasonData(malId = 100, title = "Anime S1", type = "TV", episodeCount = 12, score = 8.5, isMainSeries = false),
+        SeasonData(malId = 200, title = "Anime S2", type = "TV", episodeCount = 24, score = 9.0, isMainSeries = true),
+    )
+
     @BeforeEach
     fun setup() {
         coEvery { animeRepository.addAnime(any(), any()) } returns 1L
@@ -66,15 +78,53 @@ class AddAnimeFromDetailsUseCaseTest {
 
         useCase(secondSeasonDetails, WatchStatus.WATCHING)
 
-        val animeSlot = slot<com.vuzeda.animewatchlist.tracker.domain.model.Anime>()
+        val animeSlot = slot<Anime>()
         coVerify { animeRepository.addAnime(capture(animeSlot), any()) }
 
         val anime = animeSlot.captured
-        assertThat(anime.title).isEqualTo("Anime S1")
-        assertThat(anime.titleEnglish).isEqualTo("Anime Season 1")
-        assertThat(anime.imageUrl).isEqualTo("s1.jpg")
-        assertThat(anime.synopsis).isEqualTo("First season synopsis")
-        assertThat(anime.genres).containsExactly("Action")
+        assertThat(anime).isEqualTo(
+            Anime(
+                id = 0,
+                title = "Anime S1",
+                titleEnglish = "Anime Season 1",
+                titleJapanese = null,
+                imageUrl = "s1.jpg",
+                synopsis = "First season synopsis",
+                genres = listOf("Action"),
+                status = WatchStatus.WATCHING,
+                userRating = null,
+                notificationType = NotificationType.NONE,
+                addedAt = 1770294088886,
+            )
+        )
+    }
+
+    @Test
+    fun `uses second season details when adding non-first season, but first season is not main series`() = runTest {
+        coEvery { remoteRepository.fetchWatchOrder(200) } returns Result.success(watchOrderWithNonMainSeriesFirstSeason)
+        coEvery { remoteRepository.fetchAnimeFullById(200) } returns Result.success(secondSeasonDetails)
+
+        useCase(secondSeasonDetails, WatchStatus.WATCHING)
+
+        val animeSlot = slot<Anime>()
+        coVerify { animeRepository.addAnime(capture(animeSlot), any()) }
+
+        val anime = animeSlot.captured
+        assertThat(anime).isEqualTo(
+            Anime(
+                id = 0,
+                title = "Anime S2",
+                titleEnglish = "Anime Season 2",
+                titleJapanese = null,
+                imageUrl = "s2.jpg",
+                synopsis = "Second season synopsis",
+                genres = listOf("Action", "Drama"),
+                status = WatchStatus.WATCHING,
+                userRating = null,
+                notificationType = NotificationType.NONE,
+                addedAt = 1770294088886,
+            )
+        )
     }
 
     @Test
@@ -98,7 +148,7 @@ class AddAnimeFromDetailsUseCaseTest {
 
         useCase(firstSeasonDetails, WatchStatus.PLAN_TO_WATCH)
 
-        val animeSlot = slot<com.vuzeda.animewatchlist.tracker.domain.model.Anime>()
+        val animeSlot = slot<Anime>()
         coVerify { animeRepository.addAnime(capture(animeSlot), any()) }
 
         val anime = animeSlot.captured
@@ -123,7 +173,7 @@ class AddAnimeFromDetailsUseCaseTest {
 
         useCase(secondSeasonDetails, WatchStatus.WATCHING)
 
-        val animeSlot = slot<com.vuzeda.animewatchlist.tracker.domain.model.Anime>()
+        val animeSlot = slot<Anime>()
         coVerify { animeRepository.addAnime(capture(animeSlot), any()) }
 
         val anime = animeSlot.captured
@@ -137,7 +187,7 @@ class AddAnimeFromDetailsUseCaseTest {
 
         useCase(secondSeasonDetails, WatchStatus.WATCHING)
 
-        val animeSlot = slot<com.vuzeda.animewatchlist.tracker.domain.model.Anime>()
+        val animeSlot = slot<Anime>()
         coVerify { animeRepository.addAnime(capture(animeSlot), any()) }
 
         val anime = animeSlot.captured

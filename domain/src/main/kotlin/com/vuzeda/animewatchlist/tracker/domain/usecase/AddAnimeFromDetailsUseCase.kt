@@ -8,11 +8,13 @@ import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 import com.vuzeda.animewatchlist.tracker.domain.repository.AnimeRemoteRepository
 import com.vuzeda.animewatchlist.tracker.domain.repository.AnimeRepository
 import javax.inject.Inject
+import kotlin.time.Clock
 
 /** Constructs an Anime with its initial Season from API details and persists them. */
 class AddAnimeFromDetailsUseCase @Inject constructor(
     private val animeRepository: AnimeRepository,
-    private val remoteRepository: AnimeRemoteRepository
+    private val remoteRepository: AnimeRemoteRepository,
+    private val clock: Clock = Clock.System,
 ) {
 
     suspend operator fun invoke(details: AnimeFullDetails, status: WatchStatus): Long {
@@ -28,7 +30,7 @@ class AddAnimeFromDetailsUseCase @Inject constructor(
             synopsis = firstSeasonDetails.synopsis,
             genres = firstSeasonDetails.genres,
             status = status,
-            addedAt = System.currentTimeMillis()
+            addedAt = clock.now().toEpochMilliseconds()
         )
         val season = Season(
             malId = details.malId,
