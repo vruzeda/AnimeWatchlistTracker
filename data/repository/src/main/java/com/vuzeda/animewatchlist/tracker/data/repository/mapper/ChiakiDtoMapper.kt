@@ -25,5 +25,6 @@ fun ChiakiWatchOrderEntryDto.toSeasonData(): SeasonData = SeasonData(
     imageUrl = imageUrl,
     type = TYPE_CODE_TO_STRING[typeCode] ?: "TV",
     episodeCount = episodeCount,
-    score = score
+    score = score,
+    isMainSeries = isMainSeries,
 )

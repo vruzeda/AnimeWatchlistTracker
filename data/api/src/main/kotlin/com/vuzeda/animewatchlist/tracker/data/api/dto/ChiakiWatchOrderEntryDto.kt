@@ -7,5 +7,6 @@ data class ChiakiWatchOrderEntryDto(
     val typeCode: Int,
     val episodeCount: Int?,
     val score: Double?,
-    val imageUrl: String?
+    val imageUrl: String?,
+    var isMainSeries: Boolean = true
 )

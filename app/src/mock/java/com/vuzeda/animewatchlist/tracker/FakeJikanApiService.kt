@@ -1,5 +1,6 @@
 package com.vuzeda.animewatchlist.tracker
 
+import com.vuzeda.animewatchlist.tracker.data.api.dto.AiredDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeDataDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeEpisodesResponseDto
 import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeFullDataDto
@@ -101,6 +102,48 @@ class FakeJikanApiService : JikanApiService {
         ),
         // NOT in watchlist — will show "+" add button
         AnimeDataDto(
+            malId = 52991,
+            title = "Sousou no Frieren",
+            titleEnglish = "Frieren: Beyond Journey's End",
+            titleJapanese = "葬送のフリーレン",
+            type = "TV",
+            images = images("https://myanimelist.net/images/anime/1015/138006.jpg"),
+            synopsis = "During their decade-long quest to defeat the Demon King, the members of the hero's party—Himmel himself, the priest Heiter, the dwarf warrior Eisen, and the elven mage Frieren—forge bonds through adventures and battles, creating unforgettable precious memories for most of them.\n\nHowever, the time that Frieren spends with her comrades is equivalent to merely a fraction of her life, which has lasted over a thousand years. When the party disbands after their victory, Frieren casually returns to her \"usual\" routine of collecting spells across the continent. Due to her different sense of time, she seemingly holds no strong feelings toward the experiences she went through.\n\nAs the years pass, Frieren gradually realizes how her days in the hero's party truly impacted her. Witnessing the deaths of two of her former companions, Frieren begins to regret having taken their presence for granted; she vows to better understand humans and create real personal connections. Although the story of that once memorable journey has long ended, a new tale is about to begin.\n\n[Written by MAL Rewrite]",
+            episodes = 28,
+            score = 9.28,
+            genres = genres("Adventure", "Drama", "Fantasy"),
+            status = "Finished Airing",
+            aired = aired("2023-09-29T00:00:00+00:00"),
+        ),
+        AnimeDataDto(
+            malId = 59978,
+            title = "Sousou no Frieren 2nd Season",
+            titleEnglish = "Frieren: Beyond Journey's End Season 2",
+            titleJapanese = "葬送のフリーレン 第2期",
+            type = "TV",
+            images = images("https://myanimelist.net/images/anime/1921/154528.jpg"),
+            synopsis= "Following the First-Class Mage Exam, the trio—elven mage Frieren, warrior Stark, and first-class mage Fern—gains access to the dangerous Northern Plateau. As the party presses onward toward Aureole, formidable adversaries force Stark to confront his insecurities, solidifying his resolve and his role as the party's frontliner. Meanwhile, Fern continues to cherish the gifts she has been blessed with throughout her life, each a reminder of those she holds dear.\n\nFrieren—still honoring her vow to understand humanity—revisits memories of her journey with the Hero's party and her fleeting encounter with a legendary figure. As she reflects on the passage of time, the elven mage quietly questions whether she has truly changed, yet in the small, almost subtle choices that she makes, there are signs that she might have become more human than she realizes.\n\n[Written by MAL Rewrite]",
+            episodes = 10,
+            score = 9.16,
+            genres = genres("Adventure", "Drama", "Fantasy"),
+            status = "Currently Airing",
+            aired = aired("2026-01-16T00:00:00+00:00"),
+        ),
+        AnimeDataDto(
+            malId = 56805,
+            title = "Yuusha",
+            titleEnglish = "The Brave",
+            titleJapanese = "勇者",
+            type = "Music",
+            images = images("https://myanimelist.net/images/anime/1947/138863.jpg"),
+            synopsis = "Music video for the song Yuusha by YOASOBI. The song was used as the first opening theme of the anime Sousou no Frieren.",
+            episodes = 1,
+            score = 7.86,
+            genres = emptyList(),
+            status = "Finished Airing",
+            aired = aired("2023-09-29T00:00:00+00:00"),
+        ),
+        AnimeDataDto(
             malId = 38000,
             title = "Demon Slayer: Kimetsu no Yaiba",
             images = images("https://cdn.myanimelist.net/images/anime/1286/99889.jpg"),
@@ -163,7 +206,39 @@ class FakeJikanApiService : JikanApiService {
                     RelatedEntryDto(malId = 47778, type = "anime", name = "Demon Slayer: Mugen Train Arc")
                 )
             )
-        )
+        ),
+        52991 to listOf(
+            AnimeRelationDto(
+                relation = "Prequel",
+                entry = listOf(
+                    RelatedEntryDto(malId = 56805, type = "music", name = "Yuusha"),
+                ),
+            ),
+            AnimeRelationDto(
+                relation = "Sequel",
+                entry = listOf(
+                    RelatedEntryDto(malId = 59978, type = "anime", name = "Sousou no Frieren 2nd Season"),
+                ),
+            ),
+        ),
+        59978 to listOf(
+            AnimeRelationDto(
+                relation = "Prequel",
+                entry = listOf(
+                    RelatedEntryDto(malId = 56805, type = "music", name = "Yuusha"),
+                    RelatedEntryDto(malId = 52991, type = "anime", name = "Sousou no Frieren"),
+                ),
+            ),
+        ),
+        56805 to listOf(
+            AnimeRelationDto(
+                relation = "Sequel",
+                entry = listOf(
+                    RelatedEntryDto(malId = 52991, type = "anime", name = "Sousou no Frieren"),
+                    RelatedEntryDto(malId = 59978, type = "anime", name = "Sousou no Frieren 2nd Season"),
+                ),
+            ),
+        ),
     )
 
     private fun images(url: String) = AnimeImagesDto(
@@ -171,4 +246,8 @@ class FakeJikanApiService : JikanApiService {
     )
 
     private fun genres(vararg names: String) = names.map { GenreDto(name = it) }
+
+    private fun aired(from: String) = AiredDto(
+        from = from,
+    )
 }

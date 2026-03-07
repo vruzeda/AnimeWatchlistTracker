@@ -11,5 +11,6 @@ data class SeasonData(
     val score: Double? = null,
     val airingStatus: String? = null,
     val synopsis: String? = null,
-    val genres: List<String> = emptyList()
+    val genres: List<String> = emptyList(),
+    val isMainSeries: Boolean = true,
 )

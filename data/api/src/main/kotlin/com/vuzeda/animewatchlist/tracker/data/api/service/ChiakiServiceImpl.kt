@@ -74,6 +74,7 @@ class ChiakiServiceImpl(
                 val imageUrl = imageRelativePath?.let { path ->
                     if (path.startsWith("http")) path else "${ChiakiService.BASE_URL}$path"
                 }
+                val isMainSeries = !rowHtml.contains("wo_row_secondary")
 
                 entries += ChiakiWatchOrderEntryDto(
                     malId = malId,
@@ -82,7 +83,8 @@ class ChiakiServiceImpl(
                     typeCode = typeCode,
                     episodeCount = episodeCount,
                     score = score,
-                    imageUrl = imageUrl
+                    imageUrl = imageUrl,
+                    isMainSeries = isMainSeries,
                 )
             }
 
