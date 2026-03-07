@@ -34,4 +34,8 @@
     <!-- SeasonPickerRow -->
     <string name="cd_previous_season">Previous season</string>
     <string name="cd_next_season">Next season</string>
+
+    <!-- NotificationsButton -->
+    <string name="cd_disable_notifications">Disable notifications</string>
+    <string name="cd_enable_notifications">Enable notifications</string>
 </resources>

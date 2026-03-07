@@ -18,8 +18,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -49,6 +47,7 @@ import coil.compose.AsyncImage
 import com.vuzeda.animewatchlist.tracker.designsystem.component.AnimeCard
 import com.vuzeda.animewatchlist.tracker.designsystem.component.ConfirmationDialog
 import com.vuzeda.animewatchlist.tracker.designsystem.component.EmptyStateMessage
+import com.vuzeda.animewatchlist.tracker.designsystem.component.NotificationButton
 import com.vuzeda.animewatchlist.tracker.designsystem.component.OptionSelectionSheet
 import com.vuzeda.animewatchlist.tracker.designsystem.component.RatingBar
 import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusChip
@@ -58,8 +57,8 @@ import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.NotificationType
 import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import com.vuzeda.animewatchlist.tracker.domain.model.TitleLanguage
-import com.vuzeda.animewatchlist.tracker.domain.model.resolveDisplayTitle
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
+import com.vuzeda.animewatchlist.tracker.domain.model.resolveDisplayTitle
 import com.vuzeda.animewatchlist.tracker.ui.R
 import com.vuzeda.animewatchlist.tracker.ui.screens.home.toColor
 import com.vuzeda.animewatchlist.tracker.ui.screens.home.toDisplayLabelRes
@@ -149,19 +148,10 @@ fun AnimeDetailScreen(
                 },
                 actions = {
                     if (uiState is AnimeDetailUiState.Success && uiState.isInWatchlist) {
-                        IconButton(onClick = onNotificationIconClick) {
-                            Icon(
-                                imageVector = if (uiState.isNotificationsEnabled) {
-                                    Icons.Default.Notifications
-                                } else {
-                                    Icons.Default.NotificationsNone
-                                },
-                                contentDescription = stringResource(
-                                    if (uiState.isNotificationsEnabled) R.string.cd_disable_notifications
-                                    else R.string.cd_enable_notifications
-                                )
-                            )
-                        }
+                        NotificationButton(
+                            enabled = uiState.isNotificationsEnabled,
+                            onClick = onNotificationIconClick,
+                        )
                         IconButton(onClick = onDeleteClick) {
                             Icon(
                                 imageVector = Icons.Default.Delete,

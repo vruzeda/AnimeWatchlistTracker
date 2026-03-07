@@ -62,8 +62,6 @@
 
     <!-- AnimeDetailScreen -->
     <string name="anime_detail_title">Anime Detail</string>
-    <string name="cd_disable_notifications">Disable notifications</string>
-    <string name="cd_enable_notifications">Enable notifications</string>
     <string name="cd_delete">Delete</string>
     <string name="anime_detail_not_found">Anime not found</string>
     <string name="anime_detail_change_status_title">Change status</string>
@@ -100,8 +98,6 @@
     <string name="season_detail_add_sheet_title">Add to watchlist</string>
     <string name="season_detail_added_to_watchlist">%1$s added to watchlist</string>
     <string name="season_detail_view_full_series">View Full Series</string>
-    <string name="cd_season_enable_notifications">Enable episode notifications</string>
-    <string name="cd_season_disable_notifications">Disable episode notifications</string>
     <string name="season_detail_episode_notifications_enabled">Episode notifications enabled</string>
     <string name="season_detail_episode_notifications_disabled">Episode notifications disabled</string>
 

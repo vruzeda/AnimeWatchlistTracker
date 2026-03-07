@@ -28,15 +28,18 @@ class NotificationHelper @Inject constructor(
         ).apply {
             description = CHANNEL_DESCRIPTION
         }
-        val notificationManager = context.getSystemService(NotificationManager::class.java)
+
+        val notificationManager = NotificationManagerCompat.from(context)
         notificationManager.createNotificationChannel(channel)
     }
 
     fun showUpdateNotification(update: AnimeUpdate) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
-            != PackageManager.PERMISSION_GRANTED
-        ) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            return
+        }
+
+        val notificationManager = NotificationManagerCompat.from(context)
+        if (!notificationManager.areNotificationsEnabled()) {
             return
         }
 
@@ -61,7 +64,7 @@ class NotificationHelper @Inject constructor(
             .setAutoCancel(true)
             .build()
 
-        NotificationManagerCompat.from(context).notify(notificationId, notification)
+        notificationManager.notify(notificationId, notification)
     }
 
     companion object {

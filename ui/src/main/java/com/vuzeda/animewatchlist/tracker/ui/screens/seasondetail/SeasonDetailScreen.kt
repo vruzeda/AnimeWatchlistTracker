@@ -16,8 +16,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -49,9 +47,9 @@ import com.vuzeda.animewatchlist.tracker.designsystem.component.ConfirmationDial
 import com.vuzeda.animewatchlist.tracker.designsystem.component.EmptyStateMessage
 import com.vuzeda.animewatchlist.tracker.designsystem.component.EpisodeListItem
 import com.vuzeda.animewatchlist.tracker.designsystem.component.EpisodeStepper
+import com.vuzeda.animewatchlist.tracker.designsystem.component.NotificationButton
 import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusOption
 import com.vuzeda.animewatchlist.tracker.designsystem.component.StatusSelectionSheet
-import com.vuzeda.animewatchlist.tracker.domain.model.EpisodeInfo
 import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import com.vuzeda.animewatchlist.tracker.domain.model.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
@@ -141,19 +139,10 @@ fun SeasonDetailScreen(
                 },
                 actions = {
                     if (uiState is SeasonDetailUiState.Success && uiState.isInWatchlist) {
-                        IconButton(onClick = onToggleEpisodeNotifications) {
-                            Icon(
-                                imageVector = if (uiState.isEpisodeNotificationsEnabled) {
-                                    Icons.Default.Notifications
-                                } else {
-                                    Icons.Default.NotificationsNone
-                                },
-                                contentDescription = stringResource(
-                                    if (uiState.isEpisodeNotificationsEnabled) R.string.cd_season_disable_notifications
-                                    else R.string.cd_season_enable_notifications
-                                )
-                            )
-                        }
+                        NotificationButton(
+                            enabled = uiState.isEpisodeNotificationsEnabled,
+                            onClick = onToggleEpisodeNotifications,
+                        )
                         IconButton(onClick = onDeleteClick) {
                             Icon(
                                 imageVector = Icons.Default.Delete,
