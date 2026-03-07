@@ -66,6 +66,11 @@ class AddAnimeFromDetailsUseCaseTest {
         SeasonData(malId = 200, title = "Anime S2", type = "TV", episodeCount = 24, score = 9.0, isMainSeries = true),
     )
 
+    private val watchOrderWithNoMainSeriesSeasons = listOf(
+        SeasonData(malId = 100, title = "Anime S1", type = "TV", episodeCount = 12, score = 8.5, isMainSeries = false),
+        SeasonData(malId = 200, title = "Anime S2", type = "TV", episodeCount = 24, score = 9.0, isMainSeries = false),
+    )
+
     @BeforeEach
     fun setup() {
         coEvery { animeRepository.addAnime(any(), any()) } returns 1L
@@ -119,6 +124,34 @@ class AddAnimeFromDetailsUseCaseTest {
                 imageUrl = "s2.jpg",
                 synopsis = "Second season synopsis",
                 genres = listOf("Action", "Drama"),
+                status = WatchStatus.WATCHING,
+                userRating = null,
+                notificationType = NotificationType.NONE,
+                addedAt = 1770294088886,
+            )
+        )
+    }
+
+    @Test
+    fun `uses first season details when adding non-first season, but anime has no main series seasons`() = runTest {
+        coEvery { remoteRepository.fetchWatchOrder(200) } returns Result.success(watchOrderWithNoMainSeriesSeasons)
+        coEvery { remoteRepository.fetchAnimeFullById(100) } returns Result.success(firstSeasonDetails)
+
+        useCase(secondSeasonDetails, WatchStatus.WATCHING)
+
+        val animeSlot = slot<Anime>()
+        coVerify { animeRepository.addAnime(capture(animeSlot), any()) }
+
+        val anime = animeSlot.captured
+        assertThat(anime).isEqualTo(
+            Anime(
+                id = 0,
+                title = "Anime S1",
+                titleEnglish = "Anime Season 1",
+                titleJapanese = null,
+                imageUrl = "s1.jpg",
+                synopsis = "First season synopsis",
+                genres = listOf("Action"),
                 status = WatchStatus.WATCHING,
                 userRating = null,
                 notificationType = NotificationType.NONE,

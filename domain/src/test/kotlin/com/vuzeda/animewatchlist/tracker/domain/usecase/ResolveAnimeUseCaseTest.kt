@@ -54,6 +54,11 @@ class ResolveAnimeUseCaseTest {
         SeasonData(malId = 200, title = "Anime S2", type = "TV", episodeCount = 24, score = 9.0, isMainSeries = true),
     )
 
+    private val watchOrderWithNoMainSeriesSeasons = listOf(
+        SeasonData(malId = 100, title = "Anime S1", type = "TV", episodeCount = 12, score = 8.5, isMainSeries = false),
+        SeasonData(malId = 200, title = "Anime S2", type = "TV", episodeCount = 24, score = 9.0, isMainSeries = false),
+    )
+
     @Test
     fun `uses first season details when adding non-first season`() = runTest {
         coEvery { remoteRepository.fetchWatchOrder(200) } returns Result.success(watchOrder)
@@ -92,6 +97,27 @@ class ResolveAnimeUseCaseTest {
                 synopsis = "Second season synopsis",
                 genres = listOf("Action", "Drama"),
                 seasons = watchOrderWithNonMainSeriesFirstSeason,
+            )
+        )
+    }
+
+    @Test
+    fun `uses first season details when adding non-first season, but anime has no main series seasons`() = runTest {
+        coEvery { remoteRepository.fetchWatchOrder(200) } returns Result.success(watchOrderWithNoMainSeriesSeasons)
+        coEvery { remoteRepository.fetchAnimeFullById(100) } returns Result.success(firstSeasonDetails)
+
+        val result = useCase(200)
+
+        assertThat(result.isSuccess).isTrue()
+        assertThat(result.getOrNull()).isEqualTo(
+            ResolvedSeries(
+                title = "Anime S1",
+                titleEnglish = "Anime Season 1",
+                titleJapanese = null,
+                imageUrl = "s1.jpg",
+                synopsis = "First season synopsis",
+                genres = listOf("Action"),
+                seasons = watchOrderWithNoMainSeriesSeasons,
             )
         )
     }
