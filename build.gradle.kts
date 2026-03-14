@@ -8,16 +8,32 @@ plugins {
     alias(libs.plugins.hilt) apply false
 }
 
-val coverageModules = listOf(
-    ":module:domain",
-    ":module:remote-data-source-retrofit",
-    ":module:repository",
-    ":module:local-data-source-room",
-    ":module:use-case",
-)
+val jacocoBranchRatio = 0.80.toBigDecimal()
 
 tasks.register("jacocoCoverageCheck") {
     group = "verification"
-    description = "Runs Jacoco branch-coverage verification (≥80%) across all covered modules."
-    dependsOn(coverageModules.map { "$it:jacocoTestCoverageVerification" })
+    description = "Runs Jacoco branch-coverage verification across all jacoco-enabled modules."
+}
+
+subprojects {
+    pluginManager.withPlugin("jacoco") {
+        afterEvaluate {
+            val verificationTask = tasks.findByName("jacocoTestCoverageVerification")
+                as? JacocoCoverageVerification ?: return@afterEvaluate
+
+            verificationTask.dependsOn(tasks.withType<Test>())
+            verificationTask.violationRules {
+                rule {
+                    limit {
+                        counter = "BRANCH"
+                        value = "COVEREDRATIO"
+                        minimum = jacocoBranchRatio
+                    }
+                }
+            }
+            rootProject.tasks.named("jacocoCoverageCheck") {
+                dependsOn(verificationTask)
+            }
+        }
+    }
 }

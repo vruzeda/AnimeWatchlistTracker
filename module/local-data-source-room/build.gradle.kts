@@ -66,15 +66,6 @@ val jacocoExclude = listOf(
 
 tasks.register<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
     dependsOn("testDebugUnitTest")
-    violationRules {
-        rule {
-            limit {
-                counter = "BRANCH"
-                value = "COVEREDRATIO"
-                minimum = "0.80".toBigDecimal()
-            }
-        }
-    }
     classDirectories.setFrom(
         fileTree(layout.buildDirectory.dir("intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes")) {
             exclude(jacocoExclude)

@@ -42,16 +42,6 @@ tasks.withType<Test> {
 }
 
 tasks.named<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
-    dependsOn(tasks.named("test"))
-    violationRules {
-        rule {
-            limit {
-                counter = "BRANCH"
-                value = "COVEREDRATIO"
-                minimum = "0.80".toBigDecimal()
-            }
-        }
-    }
     classDirectories.setFrom(
         fileTree(layout.buildDirectory) {
             include("**/classes/kotlin/main/**/*.class")
