@@ -1,13 +1,13 @@
 package com.vuzeda.animewatchlist.tracker.di
 
-import com.vuzeda.animewatchlist.tracker.data.repository.impl.AnimeRemoteRepositoryImpl
-import com.vuzeda.animewatchlist.tracker.data.repository.impl.AnimeRepositoryImpl
-import com.vuzeda.animewatchlist.tracker.data.repository.impl.SeasonRepositoryImpl
-import com.vuzeda.animewatchlist.tracker.data.repository.impl.UserPreferencesRepositoryImpl
-import com.vuzeda.animewatchlist.tracker.domain.repository.AnimeRemoteRepository
-import com.vuzeda.animewatchlist.tracker.domain.repository.AnimeRepository
-import com.vuzeda.animewatchlist.tracker.domain.repository.SeasonRepository
-import com.vuzeda.animewatchlist.tracker.domain.repository.UserPreferencesRepository
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.AnimeRemoteDataSource
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.AnimeRemoteDataSourceImpl
+import com.vuzeda.animewatchlist.tracker.module.repository.AnimeRepository
+import com.vuzeda.animewatchlist.tracker.module.repository.SeasonRepository
+import com.vuzeda.animewatchlist.tracker.module.repository.UserPreferencesRepository
+import com.vuzeda.animewatchlist.tracker.module.repository.impl.AnimeRepositoryImpl
+import com.vuzeda.animewatchlist.tracker.module.repository.impl.SeasonRepositoryImpl
+import com.vuzeda.animewatchlist.tracker.module.repository.impl.UserPreferencesRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -28,7 +28,7 @@ abstract class RepositoryModule {
 
     @Binds
     @Singleton
-    abstract fun bindAnimeRemoteRepository(impl: AnimeRemoteRepositoryImpl): AnimeRemoteRepository
+    abstract fun bindAnimeRemoteDataSource(impl: AnimeRemoteDataSourceImpl): AnimeRemoteDataSource
 
     @Binds
     @Singleton

@@ -10,7 +10,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.vuzeda.animewatchlist.tracker.R
-import com.vuzeda.animewatchlist.tracker.domain.model.AnimeUpdate
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdate
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton

@@ -14,42 +14,46 @@ See `AGENTS.md` for the comprehensive architecture guide, coding standards, and 
 ./gradlew assembleRelease
 
 # Run all unit tests
-./gradlew :domain:test :data:api:test :data:repository:test :ui:test
+./gradlew :module:domain:test :module:remote-data-source-retrofit:test :module:repository:test :module:use-case:test :module:ui:test
 
 # Run tests for a specific module
-./gradlew :[module]:test
+./gradlew :module:<name>:test
 
 # Run a single test class
-./gradlew :[module]:test --tests "com.fully.qualified.ClassName"
+./gradlew :module:<name>:test --tests "com.fully.qualified.ClassName"
 ```
 
 All test modules use JUnit 5 — `useJUnitPlatform()` is configured in each module's `build.gradle.kts`.
 
 ## Module Structure
 
-7 Gradle modules with strict one-way dependency enforcement:
+9 Gradle modules (all under `module/` except `:app`) with strict one-way dependency enforcement:
 
 ```
-:app → :ui → :domain
-           → :designsystem
-:app → :data:repository → :data:api   → :domain
-                        → :data:local  → :domain
+:app → :module:ui → :module:use-case → :module:repository → api(:module:remote-data-source) → :module:domain
+                                                           → :module:local-data-source
+     → :module:design-system
+     → :module:local-data-source-room
+     → :module:remote-data-source-retrofit
 ```
 
 | Module | Type | Contains |
 |--------|------|----------|
-| `:domain` | Pure Kotlin lib | Models, repository interfaces, use cases |
-| `:data:api` | Pure Kotlin lib | Retrofit service interfaces, DTOs, Moshi |
-| `:data:local` | Android lib | Room database, DAOs, entities |
-| `:data:repository` | Pure Kotlin lib | Repository implementations, mappers |
-| `:designsystem` | Android lib | Material 3 theme, reusable Compose components |
-| `:ui` | Android lib | Compose screens, ViewModels, navigation (MVVM) |
+| `:module:domain` | Pure Kotlin lib | Domain models only |
+| `:module:local-data-source` | Pure Kotlin lib | Local data source interfaces, plain record classes |
+| `:module:local-data-source-room` | Android lib | Room entities, DAOs, DataStore, migrations |
+| `:module:remote-data-source` | Pure Kotlin lib | `AnimeRemoteDataSource` interface |
+| `:module:remote-data-source-retrofit` | Pure Kotlin lib | Retrofit impl, DTOs, DTO mappers, interceptors |
+| `:module:repository` | Pure Kotlin lib | Repository interfaces + implementations, entity mappers |
+| `:module:use-case` | Pure Kotlin lib | All use cases |
+| `:module:design-system` | Android lib | Material 3 theme, reusable Compose components |
+| `:module:ui` | Android lib | Compose screens, ViewModels, navigation (MVVM) |
 | `:app` | Android app | Hilt entry point, DI wiring, WorkManager |
 
 **Critical boundary rules:**
-- `:domain` has zero dependencies on Android or other modules
-- `:ui` never imports any `:data` module
-- `:designsystem` never imports `:domain` or any `:data` module
+- `:module:domain` has zero dependencies on Android or other modules
+- `:module:ui` never imports any `:module:local-data-source*` or `:module:remote-data-source*` module
+- `:module:design-system` never imports `:module:domain` or any other module
 - Only `:app` sees all modules (cross-module Hilt bindings live here)
 
 ## Key Architecture Patterns
@@ -60,7 +64,7 @@ All test modules use JUnit 5 — `useJUnitPlatform()` is configured in each modu
 
 **Repositories:** Only layer that coordinates local (Room) and remote (Retrofit) sources. Map all DTOs/entities to domain models via extension functions (`toDomainModel()`, `toEntity()`, `toDto()`).
 
-**Composables:** Stateless — receive state and lambda callbacks. Screens are built exclusively from `:designsystem` components; no one-off styled components in `:ui`.
+**Composables:** Stateless — receive state and lambda callbacks. Screens are built exclusively from `:module:design-system` components; no one-off styled components in `:module:ui`.
 
 **Error handling:** Use `Result`-based sealed types (`DataError`) throughout data/domain layers. ViewModels map domain errors to user-facing messages — never Composables.
 

@@ -62,29 +62,45 @@ The project follows **Clean Architecture** with strict layer separation enforced
 
 ```
 AnimeWatchlistTracker/
-├── app/                  # :app — Android Application (Hilt wiring, DI modules)
-├── domain/               # :domain — Pure Kotlin library (models, repository interfaces, use cases)
-├── data/
-│   ├── api/              # :data:api — Pure Kotlin library (Retrofit service, DTOs)
-│   ├── local/            # :data:local — Pure Kotlin library (local data source interfaces, record classes)
-│   ├── local/room/       # :data:local:room — Android library (Room entities, DAOs, DataStore)
-│   └── repository/       # :data:repository — Pure Kotlin library (repository impls, mappers)
-├── designsystem/         # :designsystem — Android library (theme, reusable Compose components)
-└── ui/                   # :ui — Android library (screens, ViewModels, navigation)
+├── app/                              # :app — Android Application (Hilt wiring, DI modules)
+└── module/
+    ├── design-system/                # :module:designsystem — Android library (theme, reusable Compose components)
+    ├── domain/                       # :module:domain — Pure Kotlin library (models)
+    ├── local-data-source/            # :module:local-data-source — Pure Kotlin library (local data source interfaces)
+    ├── local-data-source-room/       # :module:local-data-source-room — Android library (Room entities, DAOs, DataStore, domain mappers)
+    ├── remote-data-source/           # :module:remote-data-source — Pure Kotlin library (remote data source interfaces)
+    ├── remote-data-source-retrofit/  # :module:remote-data-source-retrofit — Android library (Retrofit services, domain mappers)
+    ├── repository/                   # :module:repository — Pure Kotlin library (repositories)
+    ├── use-case/                     # :module:use-case — Pure Kotlin library (use cases)
+    └── ui/                           # :module:ui — Android library (screens, ViewModels, navigation)
 ```
 
 ### Module Dependency Graph
 
 ```
-:app → :ui → :designsystem
-              → :domain
-:app → :data:local:room → :data:local
-                        → :domain
-:app → :data:repository → :data:api    → :domain
-                        → :data:local
+:app
+├── :module:ui
+│   ├── :module:design-system
+│   └── :module:use-case
+│       └── :module:repository
+│           ├── :module:local-data-source
+│           │   └── :module:domain
+│           └── :module:remote-data-source
+│               └── :module:domain
+├── :module:local-data-source-room (for injection)
+│   └── `:module:local-data-source`
+└── :module:remote-data-source-retrofit (for injection)
+    └── `:module:remote-data-source`
 ```
 
-`:domain` depends on nothing. `:data:local` depends on nothing (only coroutines). `:designsystem` depends on nothing. `:data:repository` is a pure Kotlin module that depends only on `:domain`, `:data:api`, and the JVM-only `:data:local` interfaces. `:data:local:room` provides Android Room implementations of the `:data:local` interfaces. Only `:app` sees everything.
+- `:module:ui` have screens build with composables from `:module:design-system`, and ViewModels that interact with use cases from `:module:use-case`.
+- `:module:use-case` have use cases that communicate with repositories from `:module:repository`.
+- `:module:repository` have repositories that orchestrate local and remote data retrieval using `:module:local-data-source` and `:module:remote-data-source`.
+- `:module:local-data-source` contains interfaces for local data manipulation, using the models from `:module:domain`.
+- `:module:local-data-source-room` implements the interfaces in `:module:local-data-source`, mapping Room Entities to models from `:module:domain`.
+- `:module:remote-data-source` contains interfaces for remote data retrieval, using the models from `:module:domain`.
+- `:module:remote-data-source-retrofit` implements the interfaces in `:module:remote-data-source`, mapping network reponse models to models from `:module:domain`.
+- `:app` sees everything needs to wire things together using Hilt for dependency injection.
 
 ### Screens
 

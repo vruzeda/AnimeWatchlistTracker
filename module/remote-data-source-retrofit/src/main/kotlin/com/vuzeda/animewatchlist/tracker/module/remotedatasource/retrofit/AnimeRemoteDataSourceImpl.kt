@@ -1,0 +1,89 @@
+package com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit
+
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.ChiakiService
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.JikanApiService
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mapper.toAnimeFullDetails
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mapper.toEpisodePage
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mapper.toSearchResult
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mapper.toSeasonDataList
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mapper.toSeasonalAnimePage
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
+import com.vuzeda.animewatchlist.tracker.module.domain.DataError
+import com.vuzeda.animewatchlist.tracker.module.domain.EpisodePage
+import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
+import com.vuzeda.animewatchlist.tracker.module.domain.SeasonData
+import com.vuzeda.animewatchlist.tracker.module.domain.SeasonalAnimePage
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.AnimeRemoteDataSource
+import retrofit2.HttpException
+import java.io.IOException
+import javax.inject.Inject
+
+class AnimeRemoteDataSourceImpl @Inject constructor(
+    private val jikanApiService: JikanApiService,
+    private val chiakiService: ChiakiService
+) : AnimeRemoteDataSource {
+
+    override suspend fun searchAnime(query: String): Result<List<SearchResult>> = safeApiCall {
+        jikanApiService.searchAnime(query = query).data
+            .map { it.toSearchResult() }
+            .distinctBy { it.malId }
+    }
+
+    override suspend fun fetchAnimeFullById(malId: Int): Result<AnimeFullDetails> = safeApiCall {
+        jikanApiService.getAnimeFullById(malId).data.toAnimeFullDetails()
+    }
+
+    override suspend fun fetchAnimeEpisodes(malId: Int, page: Int): Result<EpisodePage> = safeApiCall {
+        jikanApiService.getAnimeEpisodes(malId = malId, page = page).toEpisodePage(currentPage = page)
+    }
+
+    override suspend fun fetchLastAiredEpisodeNumber(malId: Int): Result<Int?> = safeApiCall {
+        val firstPage = jikanApiService.getAnimeEpisodes(malId = malId, page = 1)
+        val lastPage = if (firstPage.pagination.lastVisiblePage > 1) {
+            jikanApiService.getAnimeEpisodes(
+                malId = malId,
+                page = firstPage.pagination.lastVisiblePage
+            )
+        } else {
+            firstPage
+        }
+        lastPage.data
+            .filter { it.aired != null }
+            .maxByOrNull { it.malId }
+            ?.malId
+    }
+
+    override suspend fun fetchWatchOrder(malId: Int): Result<List<SeasonData>> = safeApiCall {
+        chiakiService.fetchWatchOrder(malId).toSeasonDataList()
+    }
+
+    override suspend fun fetchSeasonAnime(
+        year: Int,
+        season: AnimeSeason,
+        page: Int
+    ): Result<SeasonalAnimePage> = safeApiCall {
+        jikanApiService.getSeasonAnime(
+            year = year,
+            season = season.apiValue,
+            page = page
+        ).toSeasonalAnimePage(currentPage = page)
+    }
+}
+
+private inline fun <T> safeApiCall(block: () -> T): Result<T> =
+    try {
+        Result.success(block())
+    } catch (e: IOException) {
+        Result.failure(DataError.Network(throwable = e))
+    } catch (e: HttpException) {
+        Result.failure(mapHttpException(e) as Throwable)
+    } catch (e: Exception) {
+        Result.failure(DataError.Unknown(throwable = e))
+    }
+
+private fun mapHttpException(e: HttpException): DataError = when (e.code()) {
+    404 -> DataError.NotFound(errorMessage = e.message())
+    429 -> DataError.RateLimited()
+    else -> DataError.Network(throwable = e)
+}

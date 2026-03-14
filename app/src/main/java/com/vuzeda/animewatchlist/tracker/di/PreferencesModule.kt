@@ -1,8 +1,8 @@
 package com.vuzeda.animewatchlist.tracker.di
 
 import android.content.Context
-import com.vuzeda.animewatchlist.tracker.data.local.UserPreferencesLocalDataSource
-import com.vuzeda.animewatchlist.tracker.data.local.room.preferences.UserPreferencesDataStore
+import com.vuzeda.animewatchlist.tracker.module.localdatasource.UserPreferencesLocalDataSource
+import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.preferences.UserPreferencesDataStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

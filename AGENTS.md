@@ -15,73 +15,90 @@ Prefer **pure Kotlin library modules** (`java-library` + `kotlin` plugins) whene
 
 ### Module Overview
 
+All modules except `:app` live under the `module/` root directory.
+
 ```
-:domain               → Pure Kotlin library
-:data:api             → Pure Kotlin library (Retrofit interfaces, DTOs, JSON parsing)
-:data:local           → Pure Kotlin library (local data source interfaces, plain record classes)
-:data:local:room      → Android library (Room entities, DAOs, DataStore — implements :data:local interfaces)
-:data:repository      → Pure Kotlin library (repository implementations, mappers)
-:designsystem         → Android library (design tokens, theme, reusable Compose components)
-:ui                   → Android library (Compose screens, ViewModels, navigation)
-:app                  → Android application (Hilt entry point, wires all modules together)
+:module:domain                → Pure Kotlin library (models only)
+:module:local-data-source     → Pure Kotlin library (local data source interfaces, plain record classes)
+:module:local-data-source-room → Android library (Room entities, DAOs, DataStore)
+:module:remote-data-source    → Pure Kotlin library (AnimeRemoteDataSource interface)
+:module:remote-data-source-retrofit → Pure Kotlin library (Retrofit impl, DTOs, interceptors)
+:module:repository            → Pure Kotlin library (repository interfaces + implementations, mappers)
+:module:use-case              → Pure Kotlin library (use cases)
+:module:design-system         → Android library (design tokens, theme, reusable Compose components)
+:module:ui                    → Android library (Compose screens, ViewModels, navigation)
+:app                          → Android application (Hilt entry point, wires all modules together)
 ```
 
 ### Layer Rules
 
-**`:domain`** — Pure Kotlin Library
+**`:module:domain`** — Pure Kotlin Library
 - The innermost layer. It has ZERO dependencies on Android, frameworks, or other modules.
-- Contains: models, repository interfaces (including `TransactionRunner` for atomic database operations), and use cases.
-- Models are plain Kotlin data classes. They never contain annotations from Room, Retrofit, Moshi, or any framework.
-- Repository interfaces define contracts. They never reference implementation details like DAOs, API services, or DTOs.
-- Each use case represents a single business operation. Use cases receive repository interfaces via constructor injection and expose a single `operator fun invoke(...)` method. Use cases must not call other use cases — compose them at the ViewModel level if needed.
-- Dependencies: `kotlin-stdlib`, `kotlinx-coroutines-core` only.
+- Contains only **domain models**: plain Kotlin data classes and sealed types.
+- Models never contain annotations from Room, Retrofit, Moshi, or any framework.
+- Package: `com.vuzeda.animewatchlist.tracker.module.domain`
+- Dependencies: `kotlinx-coroutines-core` only.
 
-**`:data:api`** — Pure Kotlin Library
-- Contains: Retrofit service interfaces, DTOs, JSON serialization models, and OkHttp interceptors. Includes `JikanApiService` (Retrofit interface for Jikan/MAL data), `ChiakiService`/`ChiakiServiceImpl` (HTML scraping client for chiaki.site watch order data), and `RateLimitInterceptor` (enforces Jikan's ~3 req/sec rate limit).
-- No Android dependencies. Retrofit interfaces and Moshi/Kotlin Serialization models are pure JVM.
-- Dependencies: `:domain`, Retrofit, OkHttp, Moshi.
-
-**`:data:local`** — Pure Kotlin Library
+**`:module:local-data-source`** — Pure Kotlin Library
 - Contains: local data source interfaces (`AnimeLocalDataSource`, `SeasonLocalDataSource`, `UserPreferencesLocalDataSource`) and plain Kotlin record classes (`Anime`, `Season`) that mirror the stored shape of each entity without any Room or Android annotations.
-- These types form the contract between `:data:repository` (consumer) and `:data:local:room` (provider). `:data:repository` depends only on this module and is therefore also a pure Kotlin module.
-- Dependencies: `kotlinx-coroutines-core` only. No Android, no Room, no `:domain`.
+- These types form the contract between `:module:repository` (consumer) and `:module:local-data-source-room` (provider).
+- Package: `com.vuzeda.animewatchlist.tracker.module.localdatasource`
+- Dependencies: `kotlinx-coroutines-core` only. No Android, no Room, no `:module:domain`.
 
-**`:data:local:room`** — Android Library
-- Contains: Room `@Entity` classes, `@Dao` abstract classes (implementing the `Local DataSource` interfaces from `:data:local`), `DataStore`-based `UserPreferencesDataStore`, the Room `Database` class, type converters, migrations, and `RoomTransactionRunner`.
-- Each `@Dao` is an abstract class that implements its corresponding `LocalDataSource` interface. Abstract Room-annotated methods operate on `@Entity` types; concrete override methods map between `@Entity` types and the plain record classes from `:data:local`.
-- This is an Android library module because Room and DataStore require Android annotation processing and the Android framework.
-- Dependencies: `:data:local`, `:domain`, Room, DataStore, KSP.
+**`:module:local-data-source-room`** — Android Library
+- Contains: Room `@Entity` classes, `@Dao` abstract classes (implementing the `LocalDataSource` interfaces from `:module:local-data-source`), `DataStore`-based `UserPreferencesDataStore`, the Room `Database` class, type converters, migrations, and `RoomTransactionRunner`.
+- Each `@Dao` is an abstract class that implements its corresponding `LocalDataSource` interface. Abstract Room-annotated methods operate on `@Entity` types; concrete override methods map between `@Entity` types and the plain record classes from `:module:local-data-source`.
+- Package: `com.vuzeda.animewatchlist.tracker.module.localdatasource.room`
+- Dependencies: `:module:local-data-source`, `:module:domain`, `:module:repository` (for `TransactionRunner` interface), Room, DataStore, KSP.
 
-**`:data:repository`** — Pure Kotlin Library
-- Contains: repository implementations and mappers.
-- Implements the repository interfaces defined in `:domain`.
-- Depends on `:domain`, `:data:api`, and `:data:local` (interfaces only) to coordinate between remote and local data sources.
-- Every entity and DTO must have a corresponding mapper (extension function) that converts to/from the domain model. Mapper functions for local data use `toDomainModel()` and `toLocalModel()` since the source/target is a plain record class, not a Room entity.
-- Repository implementations are the only classes that know about both local and remote data sources.
-- This is a **pure Kotlin JVM module** — it has no Android dependency because `:data:local` now exposes only JVM-compatible interfaces and record classes.
+**`:module:remote-data-source`** — Pure Kotlin Library
+- Contains: the single `AnimeRemoteDataSource` interface, which defines the remote data access contract.
+- Package: `com.vuzeda.animewatchlist.tracker.module.remotedatasource`
+- Dependencies: `:module:domain`, `kotlinx-coroutines-core`.
 
-**`:designsystem`** — Android Library
+**`:module:remote-data-source-retrofit`** — Pure Kotlin Library
+- Contains: `AnimeRemoteDataSourceImpl` (implements `AnimeRemoteDataSource`), Retrofit service interfaces (`JikanApiService`, `ChiakiService`, `ChiakiServiceImpl`), `RateLimitInterceptor`, DTOs, and DTO mappers.
+- No Android dependencies. Retrofit and Moshi are pure JVM.
+- Package: `com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit`
+- Dependencies: `:module:remote-data-source`, `:module:domain`, Retrofit, OkHttp, Moshi, KSP.
+
+**`:module:repository`** — Pure Kotlin Library
+- Contains: repository interfaces (`AnimeRepository`, `SeasonRepository`, `UserPreferencesRepository`, `TransactionRunner`), repository implementations (`AnimeRepositoryImpl`, `SeasonRepositoryImpl`, `UserPreferencesRepositoryImpl`), and entity mappers.
+- Re-exports `AnimeRemoteDataSource` via `api(project(":module:remote-data-source"))` so use cases can depend on the remote data source interface transitively.
+- Implementations are the only classes that coordinate between local and remote data sources.
+- Package: `com.vuzeda.animewatchlist.tracker.module.repository`
+- Dependencies: `api(:module:remote-data-source)`, `:module:local-data-source`, `:module:domain`.
+
+**`:module:use-case`** — Pure Kotlin Library
+- Contains: all use cases. Each represents a single business operation with a single `operator fun invoke(...)` method.
+- Use cases receive repository interfaces via constructor injection. They must not call other use cases — compose at the ViewModel level.
+- Package: `com.vuzeda.animewatchlist.tracker.module.usecase`
+- Dependencies: `:module:repository` (gives transitive access to `AnimeRemoteDataSource` via `api()`), `:module:domain`.
+
+**`:module:design-system`** — Android Library
 - The app's design system. All visual building blocks live here.
 - Contains: Material 3 theme (colors, typography, shapes), design tokens, and all reusable Compose components (buttons, cards, dialogs, input fields, etc.).
 - Components are purely presentational — they receive data and callbacks, never access ViewModels or business logic.
 - Every component must be previewed with `@Preview` annotations using realistic sample data.
-- The `:ui` module builds screens exclusively from components defined here. No ad-hoc styling or one-off components in `:ui`.
-- Dependencies: Jetpack Compose BOM, Material 3, Coil (for image components). No dependency on `:domain` or any `:data` module.
+- The `:module:ui` module builds screens exclusively from components defined here. No ad-hoc styling or one-off components in `:module:ui`.
+- Package: `com.vuzeda.animewatchlist.tracker.module.designsystem`
+- Dependencies: Jetpack Compose BOM, Material 3, Coil (for image components). No dependency on `:module:domain` or any other module.
 
-**`:ui`** — Android Library
+**`:module:ui`** — Android Library
 - Follows the **MVVM** pattern exclusively.
-- Contains: screens (Composable functions + ViewModels) and navigation. Screens are assembled from `:designsystem` components.
+- Contains: screens (Composable functions + ViewModels) and navigation. Screens are assembled from `:module:design-system` components.
 - ViewModels expose UI state via `StateFlow` and handle user actions through clearly named methods. Never expose `MutableStateFlow` publicly.
 - ViewModels depend on use cases only — never on repositories or data sources directly.
 - UI state is modeled as a single sealed interface or data class per screen (e.g., `HomeUiState`). Avoid managing multiple independent state flows in a single ViewModel.
-- ViewModels must observe local data reactively via `Flow` rather than performing one-shot fetches. When a ViewModel displays data from the database, it should collect a `Flow` so that any changes (inserts, updates, deletes) from any source are automatically reflected in the UI. Write operations (save, delete, toggle) should update the database and let the `Flow` deliver the new state — never manually reconstruct UI state after a write.
+- ViewModels must observe local data reactively via `Flow` rather than performing one-shot fetches. Write operations should update the database and let the `Flow` deliver the new state — never manually reconstruct UI state after a write.
 - Composable functions are stateless whenever possible. They receive state and callbacks as parameters.
-- Dependencies: `:domain`, `:designsystem`. Never depend on any `:data` module.
+- Package: `com.vuzeda.animewatchlist.tracker.module.ui`
+- Dependencies: `:module:use-case`, `:module:design-system`, `:module:domain`. Never depend on any `:module:local-data-source*` or `:module:remote-data-source*` module.
 
 **`:app`** — Android Application
 - The entry point. Contains the `Application` class, `MainActivity`, and all Hilt wiring.
 - This is the only module that knows about every other module.
-- Contains Hilt `@Module` classes that bind implementations from `:data` modules to interfaces in `:domain`: `RepositoryModule`, `DatabaseModule`, `NetworkModule`, `PreferencesModule`, `WorkManagerModule`, and `ClockModule` (provides `kotlin.time.Clock` as an injectable abstraction for testability).
+- Contains Hilt `@Module` classes that bind implementations to interfaces: `RepositoryModule`, `DatabaseModule`, `NetworkModule`, `PreferencesModule`, `WorkManagerModule`, and `ClockModule` (provides `kotlin.time.Clock` as an injectable abstraction for testability).
 - Also contains `notification/NotificationHelper` and `worker/AnimeUpdateWorker`.
 - No business logic, no UI screens, no data access — only DI configuration and app-level setup.
 - **Product flavors** (`environment` dimension): `prod` (real `JikanApiService` + `ChiakiServiceImpl` via `ApiServiceModule`) and `mock` (`FakeJikanApiService` + `FakeChiakiService` via `MockApiServiceModule`, plus `MockMainActivity` and `ScreenshotSeeder` for screenshot testing).
@@ -90,31 +107,55 @@ Prefer **pure Kotlin library modules** (`java-library` + `kotlin` plugins) whene
 ### Dependency Injection Across Modules
 
 - **Hilt** is the DI framework. The `@HiltAndroidApp` annotation lives in `:app`.
-- Each module defines its own Hilt `@Module` for providing its internal dependencies (e.g., `:data:local` provides its Room database and DAOs, `:data:api` provides its Retrofit service).
-- Cross-module bindings (e.g., binding a repository implementation from `:data:repository` to a repository interface from `:domain`) are defined in `:app`'s DI modules. This keeps modules decoupled — no module needs to know who consumes its bindings.
+- Cross-module bindings (e.g., binding a repository implementation from `:module:repository` to a repository interface) are defined in `:app`'s DI modules. This keeps modules decoupled.
 - Use `@Binds` for interface-to-implementation mappings. Use `@Provides` only when construction logic is needed.
 - Use `@Singleton` scope for repositories, database, and network clients. Use `@ViewModelScoped` for ViewModel-specific dependencies.
 - Every injectable class uses constructor injection with `@Inject`. Avoid field injection.
 
-### Dependency Direction
+### Dependency Graph
 
 ```
-:app → :ui → :designsystem
-              → :domain
-:app → :data:local:room → :data:local
-                        → :domain
-:app → :data:repository → :data:api      → :domain
-                        → :data:local
+:module:domain               — no module deps
+:module:local-data-source    — no module deps
+:module:remote-data-source   → :module:domain
+:module:repository           → api(:module:remote-data-source)
+                             → :module:local-data-source
+                             → :module:domain
+:module:use-case             → :module:repository
+                             → :module:domain
+:module:design-system        — no module deps
+:module:ui                   → :module:use-case
+                             → :module:design-system
+                             → :module:domain
+:module:local-data-source-room → :module:local-data-source
+                               → :module:domain
+                               → :module:repository (TransactionRunner)
+:module:remote-data-source-retrofit → :module:remote-data-source
+                                    → :module:domain
+:app → :module:domain
+     → :module:design-system
+     → :module:ui
+     → :module:use-case
+     → :module:repository
+     → :module:local-data-source
+     → :module:local-data-source-room
+     → :module:remote-data-source
+     → :module:remote-data-source-retrofit
 ```
 
-`:domain` depends on nothing. `:data:local` depends on nothing (only coroutines). `:designsystem` depends on nothing (no business logic modules). `:ui` depends on `:domain` and `:designsystem`. `:data:repository` depends on `:domain`, `:data:api`, and `:data:local`. `:data:local:room` provides the Android implementations of the `:data:local` interfaces. Only `:app` sees everything.
+**Critical boundary rules:**
+- `:module:domain` has zero dependencies on Android or other modules
+- `:module:ui` never imports any `:module:local-data-source*` or `:module:remote-data-source*` module
+- `:module:design-system` never imports `:module:domain` or any other module
+- Only `:app` sees all modules (cross-module Hilt bindings live here)
 
 ### Module Gradle Configuration
 
-- Pure Kotlin modules apply `java-library` and `org.jetbrains.kotlin.jvm` plugins only. Current pure Kotlin modules: `:domain`, `:data:api`, `:data:local`, `:data:repository`.
-- Android library modules apply `com.android.library`, `org.jetbrains.kotlin.android`, and `com.google.dagger.hilt.android` (if they provide Hilt modules). Current Android library modules: `:data:local:room`, `:designsystem`, `:ui`.
+- Pure Kotlin modules apply `java-library` and `org.jetbrains.kotlin.jvm` plugins only.
+  Current pure Kotlin modules: `:module:domain`, `:module:local-data-source`, `:module:remote-data-source`, `:module:remote-data-source-retrofit`, `:module:repository`, `:module:use-case`.
+- Android library modules apply `com.android.library` and related plugins.
+  Current Android library modules: `:module:local-data-source-room`, `:module:design-system`, `:module:ui`.
 - The `:app` module applies `com.android.application`, `org.jetbrains.kotlin.android`, and `com.google.dagger.hilt.android`.
-- Use a shared `buildSrc` or convention plugin for common configuration (compile SDK, JVM target, Kotlin options) to avoid duplication.
 - Use version catalogs (`libs.versions.toml`) for all dependency versions.
 
 ### Mock Product Flavor
@@ -155,68 +196,52 @@ AnimeWatchlistTracker/
 │           ├── ScreenshotSeeder.kt
 │           └── di/
 │               └── MockApiServiceModule.kt
-├── domain/                       # :domain — Pure Kotlin library
-│   └── src/main/kotlin/.../
-│       ├── model/
-│       ├── repository/           # includes TransactionRunner interface
-│       └── usecase/
-├── data/
-│   ├── api/                      # :data:api — Pure Kotlin library
-│   │   └── src/main/kotlin/.../
-│   │       ├── service/
-│   │       │   ├── JikanApiService.kt
-│   │       │   ├── ChiakiService.kt
-│   │       │   └── ChiakiServiceImpl.kt
-│   │       ├── interceptor/
-│   │       │   └── RateLimitInterceptor.kt
-│   │       └── dto/
-│   ├── local/                    # :data:local — Pure Kotlin library
-│   │   └── src/main/java/.../
-│   │       ├── Anime.kt              # plain record class
-│   │       ├── Season.kt             # plain record class
+├── module/
+│   ├── domain/                   # :module:domain — Pure Kotlin library
+│   │   └── src/main/kotlin/.../module/domain/
+│   │       └── (16 model files: Anime, AnimeFullDetails, AnimeSeason, ...)
+│   ├── local-data-source/        # :module:local-data-source — Pure Kotlin library
+│   │   └── src/main/kotlin/.../module/localdatasource/
+│   │       ├── Anime.kt
+│   │       ├── Season.kt
 │   │       ├── AnimeLocalDataSource.kt
 │   │       ├── SeasonLocalDataSource.kt
 │   │       └── UserPreferencesLocalDataSource.kt
-│   ├── local/room/               # :data:local:room — Android library
-│   │   └── src/main/java/.../
+│   ├── local-data-source-room/   # :module:local-data-source-room — Android library
+│   │   └── src/main/java/.../module/localdatasource/room/
 │   │       ├── dao/
-│   │       │   ├── AnimeRoomDao.kt       # @Dao abstract class implementing AnimeLocalDataSource
-│   │       │   └── SeasonRoomDao.kt      # @Dao abstract class implementing SeasonLocalDataSource
 │   │       ├── entity/
-│   │       │   ├── AnimeEntity.kt        # Room @Entity + toLocalModel/toEntity mappers
-│   │       │   └── SeasonEntity.kt       # Room @Entity + toLocalModel/toEntity mappers
 │   │       ├── preferences/
-│   │       │   └── UserPreferencesDataStore.kt   # implements UserPreferencesLocalDataSource
 │   │       └── database/
-│   │           ├── AnimeDatabase.kt
-│   │           ├── RoomTransactionRunner.kt
-│   │           ├── Converters.kt
-│   │           └── Migrations.kt
-│   └── repository/               # :data:repository — Pure Kotlin library
-│       └── src/main/kotlin/.../
-│           ├── mapper/
-│           └── impl/
-├── designsystem/                 # :designsystem — Android library
-│   └── src/main/java/.../
-│       ├── theme/
-│       │   ├── Color.kt
-│       │   ├── Type.kt
-│       │   ├── Shape.kt
-│       │   └── Theme.kt
-│       └── component/
-│           ├── AnimeCard.kt
-│           ├── RatingBar.kt
-│           ├── StatusChip.kt
-│           └── ...
-├── ui/                           # :ui — Android library
-│   └── src/main/java/.../
-│       ├── navigation/
-│       └── screens/
-│           ├── home/
-│           ├── detail/
-│           ├── search/
-│           ├── addEdit/
-│           └── settings/
+│   ├── remote-data-source/       # :module:remote-data-source — Pure Kotlin library
+│   │   └── src/main/kotlin/.../module/remotedatasource/
+│   │       └── AnimeRemoteDataSource.kt
+│   ├── remote-data-source-retrofit/ # :module:remote-data-source-retrofit — Pure Kotlin library
+│   │   └── src/main/kotlin/.../module/remotedatasource/retrofit/
+│   │       ├── AnimeRemoteDataSourceImpl.kt
+│   │       ├── dto/
+│   │       ├── mapper/
+│   │       ├── service/
+│   │       └── interceptor/
+│   ├── repository/               # :module:repository — Pure Kotlin library
+│   │   └── src/main/kotlin/.../module/repository/
+│   │       ├── AnimeRepository.kt
+│   │       ├── SeasonRepository.kt
+│   │       ├── UserPreferencesRepository.kt
+│   │       ├── TransactionRunner.kt
+│   │       ├── impl/
+│   │       └── mapper/
+│   ├── use-case/                 # :module:use-case — Pure Kotlin library
+│   │   └── src/main/kotlin/.../module/usecase/
+│   │       └── (27 use case files)
+│   ├── design-system/            # :module:design-system — Android library
+│   │   └── src/main/java/.../module/designsystem/
+│   │       ├── theme/
+│   │       └── component/
+│   └── ui/                       # :module:ui — Android library
+│       └── src/main/java/.../module/ui/
+│           ├── navigation/
+│           └── screens/
 ├── build.gradle.kts
 ├── settings.gradle.kts
 └── gradle/
@@ -234,7 +259,7 @@ Naming is the primary documentation in this project. Every name must be precise 
 - **Variables and properties**: `camelCase`. Name them for what they represent, not their type: `watchingAnimeList` not `list`, `selectedStatus` not `status`.
 - **Constants**: `SCREAMING_SNAKE_CASE` inside companion objects, `PascalCase` for top-level Compose constants.
 - **State flows**: Name the private mutable version with an underscore prefix: `_uiState` / `uiState`.
-- **Mapper functions**: `toDomainModel()`, `toLocalModel()`, `toEntity()`, `toDto()`. Always use extension functions on the source type. Use `toLocalModel()` when mapping domain models to the plain record classes in `:data:local`; use `toEntity()` when mapping to Room `@Entity` types within `:data:local:room`.
+- **Mapper functions**: `toDomainModel()`, `toLocalModel()`, `toEntity()`, `toDto()`. Always use extension functions on the source type. Use `toLocalModel()` when mapping domain models to the plain record classes in `:module:local-data-source`; use `toEntity()` when mapping to Room `@Entity` types within `:module:local-data-source-room`.
 - **Boolean variables**: Prefix with `is`, `has`, `should`, or `can`: `isLoading`, `hasError`, `shouldRetry`.
 
 ### Comments Policy
@@ -269,7 +294,7 @@ If you feel the need to write a comment, refactor the code until the comment is 
 
 - Every screen has its own package containing: the screen Composable, its ViewModel, and its UI state class.
 - Screen Composables receive state and lambda callbacks. They do not access ViewModels directly — use a wrapper Composable that connects the ViewModel to the stateless screen.
-- Screens are built exclusively from components in `:designsystem`. Do not create one-off styled components in `:ui` — if a new component is needed, add it to `:designsystem` first.
+- Screens are built exclusively from components in `:module:design-system`. Do not create one-off styled components in `:module:ui` — if a new component is needed, add it to `:module:design-system` first.
 - Use `remember` and `derivedStateOf` appropriately. Never perform heavy computation in composition.
 - Preview every significant Composable with `@Preview` annotations using realistic sample data.
 - Use `Modifier` as the first optional parameter of every Composable. Always pass modifiers down.

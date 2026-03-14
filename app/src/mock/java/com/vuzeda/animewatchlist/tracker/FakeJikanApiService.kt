@@ -1,20 +1,20 @@
 package com.vuzeda.animewatchlist.tracker
 
-import com.vuzeda.animewatchlist.tracker.data.api.dto.AiredDto
-import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeDataDto
-import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeEpisodesResponseDto
-import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeFullDataDto
-import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeFullResponseDto
-import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeImagesDto
-import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeRelationDto
-import com.vuzeda.animewatchlist.tracker.data.api.dto.AnimeSearchResponseDto
-import com.vuzeda.animewatchlist.tracker.data.api.dto.EpisodeDto
-import com.vuzeda.animewatchlist.tracker.data.api.dto.EpisodesPaginationDto
-import com.vuzeda.animewatchlist.tracker.data.api.dto.GenreDto
-import com.vuzeda.animewatchlist.tracker.data.api.dto.ImageUrlDto
-import com.vuzeda.animewatchlist.tracker.data.api.dto.RelatedEntryDto
-import com.vuzeda.animewatchlist.tracker.data.api.dto.SearchPaginationDto
-import com.vuzeda.animewatchlist.tracker.data.api.service.JikanApiService
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.AiredDto
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.AnimeDataDto
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.AnimeEpisodesResponseDto
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.AnimeFullDataDto
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.AnimeFullResponseDto
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.AnimeImagesDto
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.AnimeRelationDto
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.AnimeSearchResponseDto
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.EpisodeDto
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.EpisodesPaginationDto
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.GenreDto
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.ImageUrlDto
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.RelatedEntryDto
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.SearchPaginationDto
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.JikanApiService
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.seconds
 

@@ -4,8 +4,8 @@ import android.content.Context
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.vuzeda.animewatchlist.tracker.domain.model.DataError
-import com.vuzeda.animewatchlist.tracker.domain.usecase.CheckAnimeUpdatesUseCase
+import com.vuzeda.animewatchlist.tracker.module.domain.DataError
+import com.vuzeda.animewatchlist.tracker.module.usecase.CheckAnimeUpdatesUseCase
 import com.vuzeda.animewatchlist.tracker.notification.NotificationHelper
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject

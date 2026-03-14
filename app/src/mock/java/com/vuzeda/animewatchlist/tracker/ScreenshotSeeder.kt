@@ -1,9 +1,9 @@
 package com.vuzeda.animewatchlist.tracker
 
-import com.vuzeda.animewatchlist.tracker.data.local.Anime as LocalAnime
-import com.vuzeda.animewatchlist.tracker.data.local.AnimeLocalDataSource
-import com.vuzeda.animewatchlist.tracker.data.local.Season as LocalSeason
-import com.vuzeda.animewatchlist.tracker.data.local.SeasonLocalDataSource
+import com.vuzeda.animewatchlist.tracker.module.localdatasource.Anime as LocalAnime
+import com.vuzeda.animewatchlist.tracker.module.localdatasource.AnimeLocalDataSource
+import com.vuzeda.animewatchlist.tracker.module.localdatasource.Season as LocalSeason
+import com.vuzeda.animewatchlist.tracker.module.localdatasource.SeasonLocalDataSource
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton

@@ -2,8 +2,8 @@ package com.vuzeda.animewatchlist.tracker.di
 
 import com.squareup.moshi.Moshi
 import com.vuzeda.animewatchlist.tracker.BuildConfig
-import com.vuzeda.animewatchlist.tracker.data.api.interceptor.RateLimitInterceptor
-import com.vuzeda.animewatchlist.tracker.data.api.service.JikanApiService
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.interceptor.RateLimitInterceptor
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.JikanApiService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

@@ -2,12 +2,12 @@ package com.vuzeda.animewatchlist.tracker.di
 
 import android.content.Context
 import androidx.room.Room
-import com.vuzeda.animewatchlist.tracker.data.local.AnimeLocalDataSource
-import com.vuzeda.animewatchlist.tracker.data.local.SeasonLocalDataSource
-import com.vuzeda.animewatchlist.tracker.data.local.room.database.AnimeDatabase
-import com.vuzeda.animewatchlist.tracker.data.local.room.database.MIGRATION_6_7
-import com.vuzeda.animewatchlist.tracker.data.local.room.database.RoomTransactionRunner
-import com.vuzeda.animewatchlist.tracker.domain.repository.TransactionRunner
+import com.vuzeda.animewatchlist.tracker.module.localdatasource.AnimeLocalDataSource
+import com.vuzeda.animewatchlist.tracker.module.localdatasource.SeasonLocalDataSource
+import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database.AnimeDatabase
+import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database.MIGRATION_6_7
+import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database.RoomTransactionRunner
+import com.vuzeda.animewatchlist.tracker.module.repository.TransactionRunner
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

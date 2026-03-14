@@ -1,0 +1,96 @@
+package com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit
+
+import com.google.common.truth.Truth.assertThat
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.AnimeDataDto
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.AnimeSearchResponseDto
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.SearchPaginationDto
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.ChiakiService
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.JikanApiService
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
+import io.mockk.coEvery
+import io.mockk.mockk
+import kotlinx.coroutines.test.runTest
+import org.junit.jupiter.api.Test
+
+class AnimeRemoteDataSourceImplTest {
+
+    private val jikanApiService: JikanApiService = mockk()
+    private val chiakiService: ChiakiService = mockk()
+    private val repository = AnimeRemoteDataSourceImpl(jikanApiService, chiakiService)
+
+    @Test
+    fun `searchAnime deduplicates results by malId`() = runTest {
+        val duplicatedData = listOf(
+            AnimeDataDto(malId = 1, title = "Naruto"),
+            AnimeDataDto(malId = 2, title = "Bleach"),
+            AnimeDataDto(malId = 1, title = "Naruto")
+        )
+        coEvery { jikanApiService.searchAnime(query = "naruto") } returns
+            AnimeSearchResponseDto(data = duplicatedData)
+
+        val result = repository.searchAnime("naruto").getOrThrow()
+
+        assertThat(result).hasSize(2)
+        assertThat(result[0].malId).isEqualTo(1)
+        assertThat(result[1].malId).isEqualTo(2)
+    }
+
+    @Test
+    fun `searchAnime returns all results when no duplicates`() = runTest {
+        val uniqueData = listOf(
+            AnimeDataDto(malId = 1, title = "Naruto"),
+            AnimeDataDto(malId = 2, title = "Bleach"),
+            AnimeDataDto(malId = 3, title = "One Piece")
+        )
+        coEvery { jikanApiService.searchAnime(query = "anime") } returns
+            AnimeSearchResponseDto(data = uniqueData)
+
+        val result = repository.searchAnime("anime").getOrThrow()
+
+        assertThat(result).hasSize(3)
+    }
+
+    @Test
+    fun `searchAnime keeps first occurrence when duplicates exist`() = runTest {
+        val duplicatedData = listOf(
+            AnimeDataDto(malId = 1, title = "Naruto Original"),
+            AnimeDataDto(malId = 1, title = "Naruto Duplicate")
+        )
+        coEvery { jikanApiService.searchAnime(query = "naruto") } returns
+            AnimeSearchResponseDto(data = duplicatedData)
+
+        val result = repository.searchAnime("naruto").getOrThrow()
+
+        assertThat(result).hasSize(1)
+        assertThat(result[0].title).isEqualTo("Naruto Original")
+    }
+
+    @Test
+    fun `fetchSeasonAnime returns paginated results`() = runTest {
+        val response = AnimeSearchResponseDto(
+            pagination = SearchPaginationDto(hasNextPage = true, lastVisiblePage = 3),
+            data = listOf(
+                AnimeDataDto(malId = 1, title = "Frieren"),
+                AnimeDataDto(malId = 2, title = "Jujutsu Kaisen")
+            )
+        )
+        coEvery {
+            jikanApiService.getSeasonAnime(
+                year = 2026,
+                season = "winter",
+                page = 1
+            )
+        } returns response
+
+        val result = repository.fetchSeasonAnime(
+            year = 2026,
+            season = AnimeSeason.WINTER,
+            page = 1
+        ).getOrThrow()
+
+        assertThat(result.results).hasSize(2)
+        assertThat(result.hasNextPage).isTrue()
+        assertThat(result.currentPage).isEqualTo(1)
+        assertThat(result.results[0].title).isEqualTo("Frieren")
+    }
+}

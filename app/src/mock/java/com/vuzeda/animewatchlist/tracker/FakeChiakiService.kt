@@ -1,7 +1,7 @@
 package com.vuzeda.animewatchlist.tracker
 
-import com.vuzeda.animewatchlist.tracker.data.api.dto.ChiakiWatchOrderEntryDto
-import com.vuzeda.animewatchlist.tracker.data.api.service.ChiakiService
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.ChiakiWatchOrderEntryDto
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.ChiakiService
 
 class FakeChiakiService : ChiakiService {
 

@@ -1,8 +1,8 @@
 package com.vuzeda.animewatchlist.tracker.di
 
-import com.vuzeda.animewatchlist.tracker.data.api.service.ChiakiService
-import com.vuzeda.animewatchlist.tracker.data.api.service.ChiakiServiceImpl
-import com.vuzeda.animewatchlist.tracker.data.api.service.JikanApiService
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.ChiakiService
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.ChiakiServiceImpl
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.JikanApiService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

@@ -86,13 +86,15 @@ android {
 }
 
 dependencies {
-    implementation(project(":domain"))
-    implementation(project(":data:api"))
-    implementation(project(":data:local"))
-    implementation(project(":data:local:room"))
-    implementation(project(":data:repository"))
-    implementation(project(":designsystem"))
-    implementation(project(":ui"))
+    implementation(project(":module:domain"))
+    implementation(project(":module:design-system"))
+    implementation(project(":module:ui"))
+    implementation(project(":module:use-case"))
+    implementation(project(":module:repository"))
+    implementation(project(":module:local-data-source"))
+    implementation(project(":module:local-data-source-room"))
+    implementation(project(":module:remote-data-source"))
+    implementation(project(":module:remote-data-source-retrofit"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
