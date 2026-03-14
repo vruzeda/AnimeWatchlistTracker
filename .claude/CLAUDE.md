@@ -25,7 +25,7 @@ If Android Studio is installed elsewhere, locate it with: `find /Applications -n
 
 # Run branch-coverage verification (≥80%) across all jacoco-enabled modules
 # To opt a module in, apply the `jacoco` plugin in its build.gradle.kts
-./gradlew jacocoCoverageCheck
+./gradlew jacocoTestCoverageVerification
 
 # Run tests for a specific module
 ./gradlew :module:<name>:test

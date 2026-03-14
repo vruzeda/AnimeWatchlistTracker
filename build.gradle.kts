@@ -8,31 +8,20 @@ plugins {
     alias(libs.plugins.hilt) apply false
 }
 
-val jacocoBranchRatio = 0.80.toBigDecimal()
-
-tasks.register("jacocoCoverageCheck") {
-    group = "verification"
-    description = "Runs Jacoco branch-coverage verification across all jacoco-enabled modules."
-}
-
 subprojects {
     pluginManager.withPlugin("jacoco") {
         afterEvaluate {
             val verificationTask = tasks.findByName("jacocoTestCoverageVerification")
                 as? JacocoCoverageVerification ?: return@afterEvaluate
-
             verificationTask.dependsOn(tasks.withType<Test>())
             verificationTask.violationRules {
                 rule {
                     limit {
                         counter = "BRANCH"
                         value = "COVEREDRATIO"
-                        minimum = jacocoBranchRatio
+                        minimum = 0.80.toBigDecimal()
                     }
                 }
-            }
-            rootProject.tasks.named("jacocoCoverageCheck") {
-                dependsOn(verificationTask)
             }
         }
     }
