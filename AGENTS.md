@@ -19,7 +19,7 @@ Prefer **pure Kotlin library modules** (`java-library` + `kotlin` plugins) whene
 :domain          → Pure Kotlin library
 :data:api        → Pure Kotlin library (Retrofit interfaces, DTOs, JSON parsing)
 :data:local      → Android library (Room entities, DAOs, database)
-:data:repository → Pure Kotlin library (repository implementations, mappers)
+:data:repository → Android library (repository implementations, mappers)
 :designsystem    → Android library (design tokens, theme, reusable Compose components)
 :ui              → Android library (Compose screens, ViewModels, navigation)
 :app             → Android application (Hilt entry point, wires all modules together)
@@ -29,28 +29,29 @@ Prefer **pure Kotlin library modules** (`java-library` + `kotlin` plugins) whene
 
 **`:domain`** — Pure Kotlin Library
 - The innermost layer. It has ZERO dependencies on Android, frameworks, or other modules.
-- Contains: models, repository interfaces, and use cases.
+- Contains: models, repository interfaces (including `TransactionRunner` for atomic database operations), and use cases.
 - Models are plain Kotlin data classes. They never contain annotations from Room, Retrofit, Moshi, or any framework.
 - Repository interfaces define contracts. They never reference implementation details like DAOs, API services, or DTOs.
 - Each use case represents a single business operation. Use cases receive repository interfaces via constructor injection and expose a single `operator fun invoke(...)` method. Use cases must not call other use cases — compose them at the ViewModel level if needed.
 - Dependencies: `kotlin-stdlib`, `kotlinx-coroutines-core` only.
 
 **`:data:api`** — Pure Kotlin Library
-- Contains: Retrofit service interfaces, DTOs, and JSON serialization models.
+- Contains: Retrofit service interfaces, DTOs, JSON serialization models, and OkHttp interceptors. Includes `JikanApiService` (Retrofit interface for Jikan/MAL data), `ChiakiService`/`ChiakiServiceImpl` (HTML scraping client for chiaki.site watch order data), and `RateLimitInterceptor` (enforces Jikan's ~3 req/sec rate limit).
 - No Android dependencies. Retrofit interfaces and Moshi/Kotlin Serialization models are pure JVM.
-- Dependencies: `:domain`, Retrofit, OkHttp, Moshi or Kotlin Serialization.
+- Dependencies: `:domain`, Retrofit, OkHttp, Moshi.
 
 **`:data:local`** — Android Library
 - Contains: Room database class, DAOs, and Room entities.
 - This is an Android library module because Room requires Android annotation processing and the Android framework.
 - Dependencies: `:domain`, Room.
 
-**`:data:repository`** — Pure Kotlin Library
+**`:data:repository`** — Android Library
 - Contains: repository implementations and mappers.
 - Implements the repository interfaces defined in `:domain`.
 - Depends on `:domain`, `:data:api`, and `:data:local` to coordinate between remote and local data sources.
 - Every entity and DTO must have a corresponding mapper (extension function or mapper class) that converts to/from the domain model.
 - Repository implementations are the only classes that know about both local and remote data sources.
+- This is an Android library module (not pure Kotlin) because it directly depends on `:data:local`, which is an Android library containing Room entities and DAOs. The Android Gradle plugin is required to resolve these transitive Android dependencies correctly.
 
 **`:designsystem`** — Android Library
 - The app's design system. All visual building blocks live here.
@@ -73,8 +74,10 @@ Prefer **pure Kotlin library modules** (`java-library` + `kotlin` plugins) whene
 **`:app`** — Android Application
 - The entry point. Contains the `Application` class, `MainActivity`, and all Hilt wiring.
 - This is the only module that knows about every other module.
-- Contains Hilt `@Module` classes that bind implementations from `:data` modules to interfaces in `:domain`.
+- Contains Hilt `@Module` classes that bind implementations from `:data` modules to interfaces in `:domain`: `RepositoryModule`, `DatabaseModule`, `NetworkModule`, `PreferencesModule`, `WorkManagerModule`, and `ClockModule` (provides `kotlin.time.Clock` as an injectable abstraction for testability).
+- Also contains `notification/NotificationHelper` and `worker/AnimeUpdateWorker`.
 - No business logic, no UI screens, no data access — only DI configuration and app-level setup.
+- **Product flavors** (`environment` dimension): `prod` (real `JikanApiService` + `ChiakiServiceImpl` via `ApiServiceModule`) and `mock` (`FakeJikanApiService` + `FakeChiakiService` via `MockApiServiceModule`, plus `MockMainActivity` and `ScreenshotSeeder` for screenshot testing).
 - Dependencies: all modules.
 
 ### Dependency Injection Across Modules
@@ -99,40 +102,76 @@ Prefer **pure Kotlin library modules** (`java-library` + `kotlin` plugins) whene
 
 ### Module Gradle Configuration
 
-- Pure Kotlin modules apply `java-library` and `org.jetbrains.kotlin.jvm` plugins only.
-- Android library modules apply `com.android.library`, `org.jetbrains.kotlin.android`, and `com.google.dagger.hilt.android` (if they provide Hilt modules).
+- Pure Kotlin modules apply `java-library` and `org.jetbrains.kotlin.jvm` plugins only. Current pure Kotlin modules: `:domain`, `:data:api`.
+- Android library modules apply `com.android.library`, `org.jetbrains.kotlin.android`, and `com.google.dagger.hilt.android` (if they provide Hilt modules). Current Android library modules: `:data:local`, `:data:repository`, `:designsystem`, `:ui`.
 - The `:app` module applies `com.android.application`, `org.jetbrains.kotlin.android`, and `com.google.dagger.hilt.android`.
 - Use a shared `buildSrc` or convention plugin for common configuration (compile SDK, JVM target, Kotlin options) to avoid duplication.
 - Use version catalogs (`libs.versions.toml`) for all dependency versions.
+
+### Mock Product Flavor
+
+The `:app` module defines a `mock` product flavor (alongside `prod`) under the `environment` flavor dimension. The `mock` flavor is a first-class developer tool — it replaces all real API clients with deterministic in-memory fakes, enabling screenshot tests and UI development without network access.
+
+**Rules:**
+- Any new feature that introduces a new API service or external data source **must** include a corresponding fake implementation in the `mock` flavor.
+- Fake implementations live in `app/src/mock/` and must satisfy the same interface as their real counterparts.
+- `MockMainActivity` seeds the fake data store with `ScreenshotSeeder` before launching, ensuring a consistent visual state for screenshot tests.
+- Never add real network calls, file I/O, or non-deterministic state to the `mock` source set.
 
 ## Project Structure
 
 ```
 AnimeWatchlistTracker/
 ├── app/                          # :app — Android Application module
-│   └── src/main/java/.../
-│       ├── AnimeWatchlistApp.kt
-│       ├── MainActivity.kt
-│       └── di/
-│           ├── RepositoryModule.kt
-│           ├── DatabaseModule.kt
-│           └── NetworkModule.kt
+│   └── src/
+│       ├── main/java/.../
+│       │   ├── AnimeWatchlistApp.kt
+│       │   ├── MainActivity.kt
+│       │   ├── di/
+│       │   │   ├── RepositoryModule.kt
+│       │   │   ├── DatabaseModule.kt
+│       │   │   ├── NetworkModule.kt
+│       │   │   ├── PreferencesModule.kt
+│       │   │   ├── WorkManagerModule.kt
+│       │   │   └── ClockModule.kt
+│       │   ├── notification/
+│       │   │   └── NotificationHelper.kt
+│       │   └── worker/
+│       │       └── AnimeUpdateWorker.kt
+│       ├── prod/java/.../
+│       │   └── di/
+│       │       └── ApiServiceModule.kt
+│       └── mock/java/.../
+│           ├── MockMainActivity.kt
+│           ├── ScreenshotSeeder.kt
+│           └── di/
+│               └── MockApiServiceModule.kt
 ├── domain/                       # :domain — Pure Kotlin library
 │   └── src/main/kotlin/.../
 │       ├── model/
-│       ├── repository/
+│       ├── repository/           # includes TransactionRunner interface
 │       └── usecase/
 ├── data/
 │   ├── api/                      # :data:api — Pure Kotlin library
 │   │   └── src/main/kotlin/.../
 │   │       ├── service/
+│   │       │   ├── JikanApiService.kt
+│   │       │   ├── ChiakiService.kt
+│   │       │   └── ChiakiServiceImpl.kt
+│   │       ├── interceptor/
+│   │       │   └── RateLimitInterceptor.kt
 │   │       └── dto/
 │   ├── local/                    # :data:local — Android library
 │   │   └── src/main/java/.../
 │   │       ├── dao/
 │   │       ├── entity/
+│   │       ├── preferences/
+│   │       │   └── UserPreferencesDataStore.kt
 │   │       └── database/
-│   └── repository/               # :data:repository — Pure Kotlin library
+│   │           ├── RoomTransactionRunner.kt
+│   │           ├── Converters.kt
+│   │           └── Migrations.kt
+│   └── repository/               # :data:repository — Android library
 │       └── src/main/kotlin/.../
 │           ├── mapper/
 │           └── impl/
@@ -230,7 +269,8 @@ Use only well-established, Google-recommended, or widely-adopted industry-standa
 - **Room** — Local database
 - **Hilt** — Dependency injection
 - **Retrofit + OkHttp** — Networking
-- **Moshi** or **Kotlin Serialization** — JSON parsing
+- **Moshi** — JSON parsing (API DTOs)
+- **Kotlinx Serialization** — Type-safe navigation route parameters
 - **Coil** — Image loading (Compose-native)
 - **Jetpack Navigation Compose** — Navigation
 - **Kotlin Coroutines + Flow** — Async and reactive programming

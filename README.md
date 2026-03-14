@@ -23,9 +23,10 @@ Anime Watchlist Tracker is a personal anime management app built for fans who wa
 - **Seasonal Browsing** — Browse anime by year and season (Winter, Spring, Summer, Fall) with pagination, sorting, and quick add to watchlist
 - **Sorting** — Sort your watchlist, search results, and seasonal lists by title, score, or recently added, with reversible ascending/descending direction
 - **Filtering** — Multi-dimensional filtering on the Home screen (by status and notification toggle) and search results (All, In Watchlist, Not in Watchlist)
+- **Home View Mode** — Toggle the Home screen between Anime view (one card per series) and Season view (one card per individual season), configurable in Settings
 - **Notifications** — Enable per-anime notifications to get daily checks for new episodes and new seasons
 - **Title Language** — Choose to display anime titles in Romaji (default), English, or Japanese
-- **Settings** — Configure title language preference and delete all data
+- **Settings** — Configure title language preference, Home view mode, and delete all data
 - **Offline First** — All data stored locally on your device using Room, with user preferences in DataStore
 - **Material You** — Modern, dynamic theming that adapts to your wallpaper (Android 12+)
 
@@ -44,10 +45,12 @@ _Coming soon_
 - **Dependency Injection** — Hilt 2.59.2
 - **Networking** — Retrofit 3.0.0 + OkHttp 5.3.2
 - **JSON Parsing** — Moshi 1.15.2
+- **Serialization** — Kotlinx Serialization 1.8.1
 - **Image Loading** — Coil 2.7.0
 - **Navigation** — Jetpack Navigation Compose 2.9.7
 - **Background Work** — WorkManager 2.11.1
 - **Async** — Kotlin Coroutines 1.10.2 + Flow
+- **Logging** — Timber 5.0.1
 - **API** — Jikan v4 (MyAnimeList unofficial API), chiaki.site (watch order scraping)
 - **Testing** — JUnit 5, MockK, Turbine, Truth
 - **Min SDK** — API 26 (Android 8.0)
