@@ -392,9 +392,20 @@ This ensures that every commit in the history represents a working, verified sta
 
 1. All existing tests pass.
 2. New code has corresponding unit tests.
-3. No compiler warnings.
-4. Code follows the naming and style conventions above.
-5. No unnecessary comments in the code.
-6. Architecture layer boundaries are respected — no cross-layer imports.
-7. No hardcoded strings in the UI — use string resources.
-8. `README.md` is updated to reflect any user-facing changes, new features, new dependencies, or architectural additions.
+3. **Branch coverage ≥ 80%** in every tested module — run the Jacoco verification tasks and fix any violations before committing:
+   ```bash
+   export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
+   export PATH="$JAVA_HOME/bin:$PATH"
+   ./gradlew \
+     :module:domain:jacocoTestCoverageVerification \
+     :module:remote-data-source-retrofit:jacocoTestCoverageVerification \
+     :module:repository:jacocoTestCoverageVerification \
+     :module:local-data-source-room:jacocoTestCoverageVerification
+   ```
+   Modules with interface-only code (`:module:local-data-source`, `:module:remote-data-source`) have no testable implementation and are excluded. Generated code (Moshi adapters, Room DAOs, AGP boilerplate) is also excluded per each module's `jacocoTestCoverageVerification` configuration.
+4. No compiler warnings.
+5. Code follows the naming and style conventions above.
+6. No unnecessary comments in the code.
+7. Architecture layer boundaries are respected — no cross-layer imports.
+8. No hardcoded strings in the UI — use string resources.
+9. `README.md` is updated to reflect any user-facing changes, new features, new dependencies, or architectural additions.

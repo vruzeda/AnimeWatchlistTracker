@@ -35,6 +35,19 @@ class SeasonRepositoryImplTest {
     )
 
     @Test
+    fun `observeAllSeasons emits all seasons from data source`() = runTest {
+        every { seasonLocalDataSource.observeAll() } returns flowOf(listOf(sampleSeason))
+
+        repository.observeAllSeasons().test {
+            val result = awaitItem()
+
+            assertThat(result).hasSize(1)
+            assertThat(result[0].malId).isEqualTo(16498)
+            awaitComplete()
+        }
+    }
+
+    @Test
     fun `observeSeasonsForAnime emits mapped season domain models`() = runTest {
         every { seasonLocalDataSource.observeByAnimeId(1L) } returns flowOf(listOf(sampleSeason))
 
@@ -91,6 +104,24 @@ class SeasonRepositoryImplTest {
     }
 
     @Test
+    fun `findSeasonIdByMalId returns season id when found`() = runTest {
+        coEvery { seasonLocalDataSource.findByMalId(16498) } returns sampleSeason
+
+        val result = repository.findSeasonIdByMalId(16498)
+
+        assertThat(result).isEqualTo(1L)
+    }
+
+    @Test
+    fun `findSeasonIdByMalId returns null when not found`() = runTest {
+        coEvery { seasonLocalDataSource.findByMalId(99999) } returns null
+
+        val result = repository.findSeasonIdByMalId(99999)
+
+        assertThat(result).isNull()
+    }
+
+    @Test
     fun `getSeasonsForAnime returns mapped season domain models`() = runTest {
         coEvery { seasonLocalDataSource.getByAnimeId(1L) } returns listOf(sampleSeason)
 
@@ -132,6 +163,44 @@ class SeasonRepositoryImplTest {
         repository.updateSeasonNotificationData(seasonId = 1L, lastCheckedAiredEpisodeCount = 25)
 
         coVerify { seasonLocalDataSource.updateNotificationData(seasonId = 1L, count = 25) }
+    }
+
+    @Test
+    fun `updateSeasonNotificationData passes null count to data source`() = runTest {
+        coEvery { seasonLocalDataSource.updateNotificationData(any(), any()) } returns Unit
+
+        repository.updateSeasonNotificationData(seasonId = 1L, lastCheckedAiredEpisodeCount = null)
+
+        coVerify { seasonLocalDataSource.updateNotificationData(seasonId = 1L, count = null) }
+    }
+
+    @Test
+    fun `toggleSeasonEpisodeNotifications enables notifications`() = runTest {
+        coEvery { seasonLocalDataSource.updateEpisodeNotificationsEnabled(any(), any()) } returns Unit
+
+        repository.toggleSeasonEpisodeNotifications(seasonId = 1L, enabled = true)
+
+        coVerify { seasonLocalDataSource.updateEpisodeNotificationsEnabled(seasonId = 1L, enabled = true) }
+    }
+
+    @Test
+    fun `toggleSeasonEpisodeNotifications disables notifications`() = runTest {
+        coEvery { seasonLocalDataSource.updateEpisodeNotificationsEnabled(any(), any()) } returns Unit
+
+        repository.toggleSeasonEpisodeNotifications(seasonId = 1L, enabled = false)
+
+        coVerify { seasonLocalDataSource.updateEpisodeNotificationsEnabled(seasonId = 1L, enabled = false) }
+    }
+
+    @Test
+    fun `getSeasonsWithEpisodeNotifications returns seasons from data source`() = runTest {
+        val notificationSeason = sampleSeason.copy(isEpisodeNotificationsEnabled = true)
+        coEvery { seasonLocalDataSource.getSeasonsWithEpisodeNotifications() } returns listOf(notificationSeason)
+
+        val result = repository.getSeasonsWithEpisodeNotifications()
+
+        assertThat(result).hasSize(1)
+        assertThat(result[0].isEpisodeNotificationsEnabled).isTrue()
     }
 
     @Test

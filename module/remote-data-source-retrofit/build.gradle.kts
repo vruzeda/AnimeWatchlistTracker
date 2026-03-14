@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.ksp)
     `java-library`
+    jacoco
 }
 
 java {
@@ -38,4 +39,29 @@ dependencies {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+tasks.named<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
+    dependsOn(tasks.named("test"))
+    violationRules {
+        rule {
+            limit {
+                counter = "BRANCH"
+                value = "COVEREDRATIO"
+                minimum = "0.80".toBigDecimal()
+            }
+        }
+    }
+    classDirectories.setFrom(
+        fileTree(layout.buildDirectory) {
+            include("**/classes/kotlin/main/**/*.class")
+            exclude(
+                // Moshi KSP-generated JSON adapters — machine-generated code with no hand-written branches
+                "**/*JsonAdapter.class",
+                // ChiakiServiceImpl.fetchWatchOrder runs inside withContext(Dispatchers.IO) with a
+                // real OkHttpClient; its suspension branches cannot be exercised in unit tests
+                "**/ChiakiServiceImpl\$fetchWatchOrder*.class"
+            )
+        }
+    )
 }

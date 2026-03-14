@@ -1,22 +1,44 @@
 package com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit
 
 import com.google.common.truth.Truth.assertThat
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
+import com.vuzeda.animewatchlist.tracker.module.domain.DataError
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.AnimeDataDto
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.AnimeEpisodesResponseDto
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.AnimeFullDataDto
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.AnimeFullResponseDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.AnimeSearchResponseDto
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.EpisodeDto
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.EpisodesPaginationDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.SearchPaginationDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.ChiakiService
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.JikanApiService
-import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
+import okhttp3.Protocol
+import okhttp3.Request
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.jupiter.api.Test
+import retrofit2.HttpException
+import retrofit2.Response
+import java.io.IOException
 
 class AnimeRemoteDataSourceImplTest {
 
     private val jikanApiService: JikanApiService = mockk()
     private val chiakiService: ChiakiService = mockk()
     private val repository = AnimeRemoteDataSourceImpl(jikanApiService, chiakiService)
+
+    private fun httpException(code: Int, message: String = "HTTP $code"): HttpException {
+        val rawResponse = okhttp3.Response.Builder()
+            .code(code)
+            .message(message)
+            .protocol(Protocol.HTTP_1_1)
+            .request(Request.Builder().url("https://api.jikan.moe/").build())
+            .build()
+        return HttpException(Response.error<Any>("".toResponseBody(null), rawResponse))
+    }
 
     @Test
     fun `searchAnime deduplicates results by malId`() = runTest {
@@ -66,6 +88,56 @@ class AnimeRemoteDataSourceImplTest {
     }
 
     @Test
+    fun `searchAnime returns failure wrapping DataError Network on IOException`() = runTest {
+        coEvery { jikanApiService.searchAnime(any()) } throws IOException("Connection reset")
+
+        val result = repository.searchAnime("naruto")
+
+        assertThat(result.isFailure).isTrue()
+        assertThat(result.exceptionOrNull()).isInstanceOf(DataError.Network::class.java)
+    }
+
+    @Test
+    fun `searchAnime returns failure wrapping DataError NotFound on HTTP 404`() = runTest {
+        coEvery { jikanApiService.searchAnime(any()) } throws httpException(404, "Not Found")
+
+        val result = repository.searchAnime("naruto")
+
+        assertThat(result.isFailure).isTrue()
+        assertThat(result.exceptionOrNull()).isInstanceOf(DataError.NotFound::class.java)
+    }
+
+    @Test
+    fun `searchAnime returns failure wrapping DataError RateLimited on HTTP 429`() = runTest {
+        coEvery { jikanApiService.searchAnime(any()) } throws httpException(429)
+
+        val result = repository.searchAnime("naruto")
+
+        assertThat(result.isFailure).isTrue()
+        assertThat(result.exceptionOrNull()).isInstanceOf(DataError.RateLimited::class.java)
+    }
+
+    @Test
+    fun `searchAnime returns failure wrapping DataError Network on other HTTP errors`() = runTest {
+        coEvery { jikanApiService.searchAnime(any()) } throws httpException(500)
+
+        val result = repository.searchAnime("naruto")
+
+        assertThat(result.isFailure).isTrue()
+        assertThat(result.exceptionOrNull()).isInstanceOf(DataError.Network::class.java)
+    }
+
+    @Test
+    fun `searchAnime returns failure wrapping DataError Unknown on unexpected exceptions`() = runTest {
+        coEvery { jikanApiService.searchAnime(any()) } throws RuntimeException("Unexpected")
+
+        val result = repository.searchAnime("naruto")
+
+        assertThat(result.isFailure).isTrue()
+        assertThat(result.exceptionOrNull()).isInstanceOf(DataError.Unknown::class.java)
+    }
+
+    @Test
     fun `fetchSeasonAnime returns paginated results`() = runTest {
         val response = AnimeSearchResponseDto(
             pagination = SearchPaginationDto(hasNextPage = true, lastVisiblePage = 3),
@@ -92,5 +164,71 @@ class AnimeRemoteDataSourceImplTest {
         assertThat(result.hasNextPage).isTrue()
         assertThat(result.currentPage).isEqualTo(1)
         assertThat(result.results[0].title).isEqualTo("Frieren")
+    }
+
+    @Test
+    fun `fetchLastAiredEpisodeNumber fetches single page when lastVisiblePage is 1`() = runTest {
+        val page = AnimeEpisodesResponseDto(
+            pagination = EpisodesPaginationDto(lastVisiblePage = 1, hasNextPage = false),
+            data = listOf(
+                EpisodeDto(malId = 1, aired = "2023-01-01"),
+                EpisodeDto(malId = 2, aired = "2023-01-08")
+            )
+        )
+        coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 1) } returns page
+
+        val result = repository.fetchLastAiredEpisodeNumber(100).getOrThrow()
+
+        assertThat(result).isEqualTo(2)
+    }
+
+    @Test
+    fun `fetchLastAiredEpisodeNumber fetches last page when multiple pages exist`() = runTest {
+        val firstPage = AnimeEpisodesResponseDto(
+            pagination = EpisodesPaginationDto(lastVisiblePage = 3, hasNextPage = true),
+            data = listOf(EpisodeDto(malId = 1, aired = "2023-01-01"))
+        )
+        val lastPage = AnimeEpisodesResponseDto(
+            pagination = EpisodesPaginationDto(lastVisiblePage = 3, hasNextPage = false),
+            data = listOf(
+                EpisodeDto(malId = 50, aired = "2023-06-01"),
+                EpisodeDto(malId = 51, aired = "2023-06-08")
+            )
+        )
+        coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 1) } returns firstPage
+        coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 3) } returns lastPage
+
+        val result = repository.fetchLastAiredEpisodeNumber(100).getOrThrow()
+
+        assertThat(result).isEqualTo(51)
+    }
+
+    @Test
+    fun `fetchLastAiredEpisodeNumber returns null when no episodes have aired`() = runTest {
+        val page = AnimeEpisodesResponseDto(
+            pagination = EpisodesPaginationDto(lastVisiblePage = 1, hasNextPage = false),
+            data = listOf(
+                EpisodeDto(malId = 1, aired = null),
+                EpisodeDto(malId = 2, aired = null)
+            )
+        )
+        coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 1) } returns page
+
+        val result = repository.fetchLastAiredEpisodeNumber(100).getOrThrow()
+
+        assertThat(result).isNull()
+    }
+
+    @Test
+    fun `fetchAnimeFullById returns full details on success`() = runTest {
+        val response = AnimeFullResponseDto(
+            data = AnimeFullDataDto(malId = 21, title = "One Punch Man", relations = null)
+        )
+        coEvery { jikanApiService.getAnimeFullById(21) } returns response
+
+        val result = repository.fetchAnimeFullById(21).getOrThrow()
+
+        assertThat(result.malId).isEqualTo(21)
+        assertThat(result.title).isEqualTo("One Punch Man")
     }
 }

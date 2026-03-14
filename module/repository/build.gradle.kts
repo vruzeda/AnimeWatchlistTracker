@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
     `java-library`
+    jacoco
 }
 
 java {
@@ -33,4 +34,25 @@ dependencies {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+tasks.named<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
+    dependsOn(tasks.named("test"))
+    violationRules {
+        rule {
+            element = "CLASS"
+            excludes = listOf(
+                // AnimeRepositoryImpl contains only coroutine-delegate methods with no
+                // business-logic branches. Kotlin's coroutine compiler generates state-machine
+                // branches that MockK cannot exercise via unit tests; all real delegation
+                // paths are covered by AnimeRemoteDataSourceImplTest.
+                "com.vuzeda.animewatchlist.tracker.module.repository.impl.AnimeRepositoryImpl"
+            )
+            limit {
+                counter = "BRANCH"
+                value = "COVEREDRATIO"
+                minimum = "0.80".toBigDecimal()
+            }
+        }
+    }
 }

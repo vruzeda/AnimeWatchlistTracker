@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.ksp)
+    jacoco
 }
 
 android {
@@ -15,6 +16,21 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    buildTypes {
+        debug {
+            enableUnitTestCoverage = true
+        }
+    }
+
+    testOptions {
+        unitTests {
+            isReturnDefaultValues = true
+            all { test ->
+                test.useJUnitPlatform()
+            }
+        }
     }
 }
 
@@ -32,4 +48,41 @@ dependencies {
     ksp(libs.room.compiler)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.kotlinx.coroutines.core)
+
+    testImplementation(libs.junit5.api)
+    testRuntimeOnly(libs.junit5.engine)
+    testRuntimeOnly(libs.junit.platform.launcher)
+    testImplementation(libs.truth)
+}
+
+val jacocoExclude = listOf(
+    "**/R.class", "**/R\$*.class", "**/BuildConfig.*", "**/Manifest*.*",
+    "**/dao/**",
+    "**/database/AnimeDatabase*",
+    "**/database/Migrations*",
+    "**/database/RoomTransactionRunner*",
+    "**/preferences/**"
+)
+
+tasks.register<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
+    dependsOn("testDebugUnitTest")
+    violationRules {
+        rule {
+            limit {
+                counter = "BRANCH"
+                value = "COVEREDRATIO"
+                minimum = "0.80".toBigDecimal()
+            }
+        }
+    }
+    classDirectories.setFrom(
+        fileTree(layout.buildDirectory.dir("intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes")) {
+            exclude(jacocoExclude)
+        }
+    )
+    executionData.setFrom(
+        fileTree(layout.buildDirectory) {
+            include("**/*.exec", "**/*.ec")
+        }
+    )
 }

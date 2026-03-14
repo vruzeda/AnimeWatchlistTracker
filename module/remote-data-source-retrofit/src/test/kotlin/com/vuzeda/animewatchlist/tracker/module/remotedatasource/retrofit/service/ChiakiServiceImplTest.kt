@@ -106,6 +106,57 @@ class ChiakiServiceImplTest {
         assertThat(result[0].imageUrl).isEqualTo("https://cdn.example.com/img.jpg")
     }
 
+    @Test
+    fun `marks secondary entries with isMainSeries false`() {
+        val html = buildSampleHtml(
+            entry(malId = 700, typeCode = 1, eps = 24, title = "Main Series", score = null, ratingCount = null, image = null),
+            entry(malId = 701, typeCode = 1, eps = 1, title = "Side Story", score = null, ratingCount = null, image = null, isSecondary = true)
+        )
+
+        val result = ChiakiServiceImpl.parseWatchOrderHtml(html)
+
+        assertThat(result).hasSize(2)
+        assertThat(result[0].isMainSeries).isTrue()
+        assertThat(result[1].isMainSeries).isFalse()
+    }
+
+    @Test
+    fun `parses English title when present and non-blank`() {
+        val html = buildSampleHtml(
+            entry(malId = 800, typeCode = 1, eps = 25, title = "Shingeki no Kyojin", score = null, ratingCount = null, image = null, englishTitle = "Attack on Titan")
+        )
+
+        val result = ChiakiServiceImpl.parseWatchOrderHtml(html)
+
+        assertThat(result[0].titleEnglish).isEqualTo("Attack on Titan")
+    }
+
+    @Test
+    fun `returns null English title when English title div is blank`() {
+        val html = buildSampleHtml(
+            entry(malId = 900, typeCode = 1, eps = 12, title = "Some Anime", score = null, ratingCount = null, image = null, englishTitle = "   ")
+        )
+
+        val result = ChiakiServiceImpl.parseWatchOrderHtml(html)
+
+        assertThat(result[0].titleEnglish).isNull()
+    }
+
+    @Test
+    fun `handles row with no closing tr tag`() {
+        val html = """
+            <html><body><table>
+            <tr data-id="999" data-type="1" data-eps="12" class="wo_row">
+                <td><span class="wo_title">No End Tag</span></td>
+            </table></body></html>
+        """.trimIndent()
+
+        val result = ChiakiServiceImpl.parseWatchOrderHtml(html)
+
+        assertThat(result).hasSize(1)
+        assertThat(result[0].malId).isEqualTo(999)
+    }
+
     private fun entry(
         malId: Int,
         typeCode: Int,
@@ -113,15 +164,19 @@ class ChiakiServiceImplTest {
         title: String,
         score: String?,
         ratingCount: String?,
-        image: String?
+        image: String?,
+        isSecondary: Boolean = false,
+        englishTitle: String? = null
     ): String {
         val epsAttr = eps?.toString() ?: ""
+        val rowClass = if (isSecondary) "wo_row_secondary" else "wo_row"
         val scoreHtml = if (score != null) """<span class="wo_rating">★$score ($ratingCount)</span>""" else ""
         val imageHtml = if (image != null) """<div class="wo_avatar_big" style="background-image: url('$image')"></div>""" else ""
+        val englishTitleHtml = if (englishTitle != null) """<div class="uk-text-small">$englishTitle</div>""" else ""
         return """
-            <tr data-id="$malId" data-type="$typeCode" data-eps="$epsAttr" class="wo_row">
+            <tr data-id="$malId" data-type="$typeCode" data-eps="$epsAttr" class="$rowClass">
                 <td>$imageHtml</td>
-                <td><span class="wo_title">$title</span></td>
+                <td><span class="wo_title">$title</span>$englishTitleHtml</td>
                 <td>$scoreHtml</td>
             </tr>
         """.trimIndent()
