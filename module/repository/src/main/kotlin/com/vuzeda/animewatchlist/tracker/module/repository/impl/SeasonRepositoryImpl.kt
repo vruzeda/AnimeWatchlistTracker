@@ -34,6 +34,10 @@ class SeasonRepositoryImpl @Inject constructor(
     override suspend fun getSeasonsForAnime(animeId: Long): List<Season> =
         seasonLocalDataSource.getByAnimeId(animeId)
 
+    override suspend fun deleteSeason(id: Long) {
+        seasonLocalDataSource.deleteById(id)
+    }
+
     override suspend fun addSeasonsToAnime(animeId: Long, seasons: List<Season>) {
         transactionRunner.runInTransaction {
             seasonLocalDataSource.insertAll(seasons.map { it.copy(animeId = animeId) })

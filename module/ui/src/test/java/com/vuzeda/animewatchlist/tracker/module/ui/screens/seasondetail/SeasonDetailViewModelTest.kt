@@ -10,7 +10,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddAnimeFromDetailsUseCase
-import com.vuzeda.animewatchlist.tracker.module.usecase.DeleteAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.DeleteSeasonUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FetchEpisodesUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FindSeasonIdByMalIdUseCase
@@ -42,7 +42,7 @@ class SeasonDetailViewModelTest {
     private val fetchSeasonDetailUseCase: FetchSeasonDetailUseCase = mockk()
     private val fetchEpisodesUseCase: FetchEpisodesUseCase = mockk()
     private val updateSeasonProgressUseCase: UpdateSeasonProgressUseCase = mockk(relaxed = true)
-    private val deleteAnimeUseCase: DeleteAnimeUseCase = mockk(relaxed = true)
+    private val deleteSeasonUseCase: DeleteSeasonUseCase = mockk(relaxed = true)
     private val addAnimeFromDetailsUseCase: AddAnimeFromDetailsUseCase = mockk(relaxed = true)
     private val findSeasonIdByMalIdUseCase: FindSeasonIdByMalIdUseCase = mockk()
     private val toggleSeasonEpisodeNotificationsUseCase: ToggleSeasonEpisodeNotificationsUseCase = mockk(relaxed = true)
@@ -97,7 +97,7 @@ class SeasonDetailViewModelTest {
             fetchSeasonDetailUseCase = fetchSeasonDetailUseCase,
             fetchEpisodesUseCase = fetchEpisodesUseCase,
             updateSeasonProgressUseCase = updateSeasonProgressUseCase,
-            deleteAnimeUseCase = deleteAnimeUseCase,
+            deleteSeasonUseCase = deleteSeasonUseCase,
             addAnimeFromDetailsUseCase = addAnimeFromDetailsUseCase,
             findSeasonIdByMalIdUseCase = findSeasonIdByMalIdUseCase,
             toggleSeasonEpisodeNotificationsUseCase = toggleSeasonEpisodeNotificationsUseCase,
@@ -326,7 +326,7 @@ class SeasonDetailViewModelTest {
 
             val deleted = expectMostRecentItem() as SeasonDetailUiState.Success
             assertThat(deleted.isDeleted).isTrue()
-            coVerify { deleteAnimeUseCase(1L) }
+            coVerify { deleteSeasonUseCase(sampleSeason) }
             cancelAndIgnoreRemainingEvents()
         }
     }

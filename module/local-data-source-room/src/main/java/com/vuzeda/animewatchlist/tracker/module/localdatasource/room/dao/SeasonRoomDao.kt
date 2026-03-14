@@ -55,6 +55,9 @@ abstract class SeasonRoomDao : SeasonLocalDataSource {
     override suspend fun insertAll(seasons: List<Season>) =
         insertAllEntities(seasons.map { it.toEntity() })
 
+    @Query("DELETE FROM season WHERE id = :id")
+    override abstract suspend fun deleteById(id: Long)
+
     override suspend fun update(season: Season) = updateEntity(season.toEntity())
 
     @Query("UPDATE season SET lastCheckedAiredEpisodeCount = :count WHERE id = :seasonId")

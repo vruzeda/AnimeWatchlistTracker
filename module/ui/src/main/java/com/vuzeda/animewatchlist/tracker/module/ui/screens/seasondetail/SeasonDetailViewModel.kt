@@ -7,7 +7,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddAnimeFromDetailsUseCase
-import com.vuzeda.animewatchlist.tracker.module.usecase.DeleteAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.DeleteSeasonUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FetchEpisodesUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FindSeasonIdByMalIdUseCase
@@ -30,7 +30,7 @@ class SeasonDetailViewModel @Inject constructor(
     private val fetchSeasonDetailUseCase: FetchSeasonDetailUseCase,
     private val fetchEpisodesUseCase: FetchEpisodesUseCase,
     private val updateSeasonProgressUseCase: UpdateSeasonProgressUseCase,
-    private val deleteAnimeUseCase: DeleteAnimeUseCase,
+    private val deleteSeasonUseCase: DeleteSeasonUseCase,
     private val addAnimeFromDetailsUseCase: AddAnimeFromDetailsUseCase,
     private val findSeasonIdByMalIdUseCase: FindSeasonIdByMalIdUseCase,
     private val toggleSeasonEpisodeNotificationsUseCase: ToggleSeasonEpisodeNotificationsUseCase,
@@ -194,7 +194,7 @@ class SeasonDetailViewModel @Inject constructor(
         if (state !is SeasonDetailUiState.Success) return
 
         viewModelScope.launch {
-            deleteAnimeUseCase(state.season.animeId)
+            deleteSeasonUseCase(state.season)
             _uiState.update { current ->
                 if (current is SeasonDetailUiState.Success) current.copy(isDeleted = true)
                 else current
