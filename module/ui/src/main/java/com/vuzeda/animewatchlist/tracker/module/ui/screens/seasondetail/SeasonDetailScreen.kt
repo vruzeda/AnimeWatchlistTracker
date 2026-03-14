@@ -206,8 +206,14 @@ fun SeasonDetailScreen(
 
                     if (uiState.isDeleteConfirmationVisible) {
                         ConfirmationDialog(
-                            title = stringResource(R.string.delete_anime_dialog_title),
-                            message = stringResource(R.string.delete_anime_dialog_message),
+                            title = stringResource(
+                                if (uiState.isLastSeason) R.string.delete_anime_dialog_title
+                                else R.string.delete_season_dialog_title
+                            ),
+                            message = stringResource(
+                                if (uiState.isLastSeason) R.string.delete_anime_dialog_message
+                                else R.string.delete_season_dialog_message
+                            ),
                             confirmText = stringResource(R.string.delete_anime_dialog_confirm),
                             dismissText = stringResource(R.string.delete_anime_dialog_dismiss),
                             onConfirm = onConfirmDelete,

@@ -59,6 +59,8 @@
     <string name="delete_anime_dialog_message">This will remove the anime and all its seasons from your watchlist. This action cannot be undone.</string>
     <string name="delete_anime_dialog_confirm">Remove</string>
     <string name="delete_anime_dialog_dismiss">Cancel</string>
+    <string name="delete_season_dialog_title">Remove season from watchlist?</string>
+    <string name="delete_season_dialog_message">This will remove this season from your watchlist. This action cannot be undone.</string>
 
     <!-- AnimeDetailScreen -->
     <string name="anime_detail_title">Anime Detail</string>

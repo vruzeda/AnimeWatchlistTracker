@@ -12,6 +12,7 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.FetchEpisodesUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FindSeasonIdByMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSeasonByIdUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSeasonsForAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ToggleSeasonEpisodeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonProgressUseCase
@@ -27,6 +28,7 @@ import javax.inject.Inject
 class SeasonDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val observeSeasonByIdUseCase: ObserveSeasonByIdUseCase,
+    private val observeSeasonsForAnimeUseCase: ObserveSeasonsForAnimeUseCase,
     private val fetchSeasonDetailUseCase: FetchSeasonDetailUseCase,
     private val fetchEpisodesUseCase: FetchEpisodesUseCase,
     private val updateSeasonProgressUseCase: UpdateSeasonProgressUseCase,
@@ -41,6 +43,7 @@ class SeasonDetailViewModel @Inject constructor(
     private val malId: Int = savedStateHandle["malId"] ?: 0
 
     private var pendingDetails: AnimeFullDetails? = null
+    private var observingSiblingsForAnimeId: Long = -1L
 
     private val _uiState = MutableStateFlow<SeasonDetailUiState>(SeasonDetailUiState.Loading)
     val uiState: StateFlow<SeasonDetailUiState> = _uiState.asStateFlow()
@@ -53,6 +56,19 @@ class SeasonDetailViewModel @Inject constructor(
             loadFromApi()
         } else {
             _uiState.value = SeasonDetailUiState.NotFound
+        }
+    }
+
+    private fun observeSiblingCount(animeId: Long) {
+        if (observingSiblingsForAnimeId == animeId) return
+        observingSiblingsForAnimeId = animeId
+        viewModelScope.launch {
+            observeSeasonsForAnimeUseCase(animeId).collect { siblings ->
+                _uiState.update { state ->
+                    if (state is SeasonDetailUiState.Success) state.copy(isLastSeason = siblings.size <= 1)
+                    else state
+                }
+            }
         }
     }
 
@@ -73,6 +89,7 @@ class SeasonDetailViewModel @Inject constructor(
         viewModelScope.launch {
             observeSeasonByIdUseCase(seasonId).collect { season ->
                 if (season != null) {
+                    observeSiblingCount(season.animeId)
                     _uiState.update { currentState ->
                         when (currentState) {
                             is SeasonDetailUiState.Success -> currentState.copy(season = season)
@@ -288,6 +305,7 @@ class SeasonDetailViewModel @Inject constructor(
         viewModelScope.launch {
             observeSeasonByIdUseCase(seasonId).collect { season ->
                 if (season != null) {
+                    observeSiblingCount(season.animeId)
                     _uiState.update { currentState ->
                         when (currentState) {
                             is SeasonDetailUiState.Success -> currentState.copy(

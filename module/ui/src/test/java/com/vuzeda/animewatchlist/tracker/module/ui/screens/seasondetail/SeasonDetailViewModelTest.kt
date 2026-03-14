@@ -15,6 +15,7 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.FetchEpisodesUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FindSeasonIdByMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSeasonByIdUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSeasonsForAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ToggleSeasonEpisodeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonProgressUseCase
@@ -39,6 +40,7 @@ class SeasonDetailViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
     private val observeSeasonByIdUseCase: ObserveSeasonByIdUseCase = mockk()
+    private val observeSeasonsForAnimeUseCase: ObserveSeasonsForAnimeUseCase = mockk()
     private val fetchSeasonDetailUseCase: FetchSeasonDetailUseCase = mockk()
     private val fetchEpisodesUseCase: FetchEpisodesUseCase = mockk()
     private val updateSeasonProgressUseCase: UpdateSeasonProgressUseCase = mockk(relaxed = true)
@@ -73,6 +75,7 @@ class SeasonDetailViewModelTest {
         seasonFlow = MutableStateFlow(sampleSeason)
         every { observeSeasonByIdUseCase(1L) } returns seasonFlow
         every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
+        every { observeSeasonsForAnimeUseCase(any()) } returns flowOf(listOf(sampleSeason))
         coEvery { findSeasonIdByMalIdUseCase(any()) } returns null
         coEvery { fetchEpisodesUseCase(malId = 16498, page = 1) } returns Result.success(
             EpisodePage(episodes = sampleEpisodes, hasNextPage = true, nextPage = 2)
@@ -94,6 +97,7 @@ class SeasonDetailViewModelTest {
         return SeasonDetailViewModel(
             savedStateHandle = savedStateHandle,
             observeSeasonByIdUseCase = observeSeasonByIdUseCase,
+            observeSeasonsForAnimeUseCase = observeSeasonsForAnimeUseCase,
             fetchSeasonDetailUseCase = fetchSeasonDetailUseCase,
             fetchEpisodesUseCase = fetchEpisodesUseCase,
             updateSeasonProgressUseCase = updateSeasonProgressUseCase,
@@ -113,11 +117,10 @@ class SeasonDetailViewModelTest {
             val loading = awaitItem()
             assertThat(loading).isInstanceOf(SeasonDetailUiState.Loading::class.java)
 
-            val loadingEpisodes = awaitItem() as SeasonDetailUiState.Success
-            assertThat(loadingEpisodes.season.title).isEqualTo("Attack on Titan")
-            assertThat(loadingEpisodes.isLoadingEpisodes).isTrue()
+            testDispatcher.scheduler.advanceUntilIdle()
 
-            val loaded = awaitItem() as SeasonDetailUiState.Success
+            val loaded = expectMostRecentItem() as SeasonDetailUiState.Success
+            assertThat(loaded.season.title).isEqualTo("Attack on Titan")
             assertThat(loaded.episodes).hasSize(2)
             assertThat(loaded.hasMoreEpisodes).isTrue()
             assertThat(loaded.isLoadingEpisodes).isFalse()
