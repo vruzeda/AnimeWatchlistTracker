@@ -23,6 +23,10 @@ If Android Studio is installed elsewhere, locate it with: `find /Applications -n
 # Run all unit tests
 ./gradlew :module:domain:test :module:remote-data-source-retrofit:test :module:repository:test :module:use-case:test :module:ui:test
 
+# Run branch-coverage verification (≥80%) across all covered modules
+# Covered modules are listed in coverageModules in the root build.gradle.kts
+./gradlew jacocoCoverageCheck
+
 # Run tests for a specific module
 ./gradlew :module:<name>:test
 

@@ -392,20 +392,16 @@ This ensures that every commit in the history represents a working, verified sta
 
 1. All existing tests pass.
 2. New code has corresponding unit tests.
-3. **Branch coverage ≥ 80%** in every tested module — run the Jacoco verification tasks and fix any violations before committing:
+3. **Branch coverage ≥ 80%** in every tested module — run the aggregate Jacoco verification task and fix any violations before committing:
    ```bash
    export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
    export PATH="$JAVA_HOME/bin:$PATH"
    ```
    If `JAVA_HOME` is not already set and `/usr/libexec/java_home` fails to locate a suitable JDK, use Android Studio's bundled JRE at the path above. If Android Studio is installed in a non-standard location, search for `jbr` inside the Android Studio app bundle (e.g., `find /Applications -name "java" -path "*/jbr/*" -maxdepth 6`).
    ```bash
-   ./gradlew \
-     :module:domain:jacocoTestCoverageVerification \
-     :module:remote-data-source-retrofit:jacocoTestCoverageVerification \
-     :module:repository:jacocoTestCoverageVerification \
-     :module:local-data-source-room:jacocoTestCoverageVerification
+   ./gradlew jacocoCoverageCheck
    ```
-   Modules with interface-only code (`:module:local-data-source`, `:module:remote-data-source`) have no testable implementation and are excluded. Generated code (Moshi adapters, Room DAOs, AGP boilerplate) is also excluded per each module's `jacocoTestCoverageVerification` configuration.
+   The canonical list of covered modules is defined in the root `build.gradle.kts` (`coverageModules`). Currently covered: `:module:domain`, `:module:remote-data-source-retrofit`, `:module:repository`, `:module:local-data-source-room`, `:module:use-case`. Modules with interface-only code (`:module:local-data-source`, `:module:remote-data-source`) have no testable implementation and are excluded. Generated code (Moshi adapters, Room DAOs, AGP boilerplate) is also excluded per each module's `jacocoTestCoverageVerification` configuration. To add a new module to coverage enforcement, add it to the `coverageModules` list in `build.gradle.kts` and configure `jacocoTestCoverageVerification` in that module's `build.gradle.kts`.
 4. No compiler warnings.
 5. Code follows the naming and style conventions above.
 6. No unnecessary comments in the code.

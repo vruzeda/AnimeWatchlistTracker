@@ -276,4 +276,42 @@ class AddAnimeFromDetailsUseCaseTest {
         coVerify(exactly = 1) { animeRepository.addAnime(any(), any()) }
         coVerify(exactly = 0) { seasonRepository.addSeasonsToAnime(any(), any()) }
     }
+
+    @Test
+    fun `uses provided details when it is already first in watch order despite having prequels`() = runTest {
+        val detailsWithPrequel = secondSeasonDetails.copy(malId = 100)
+        val watchOrderFirstIsSecond = listOf(
+            SeasonData(malId = 100, title = "Anime S1", type = "TV", episodeCount = 12, score = 8.5)
+        )
+        coEvery { animeRepository.fetchWatchOrder(100) } returns Result.success(watchOrderFirstIsSecond)
+
+        useCase(detailsWithPrequel, WatchStatus.WATCHING)
+
+        val animeSlot = slot<Anime>()
+        coVerify { animeRepository.addAnime(capture(animeSlot), any()) }
+        assertThat(animeSlot.captured.title).isEqualTo("Anime S2")
+    }
+
+    @Test
+    fun `sets orderIndex to 0 when mal id is not found in watch order`() = runTest {
+        val unknownMalIdDetails = firstSeasonDetails.copy(malId = 999)
+        coEvery { animeRepository.fetchWatchOrder(999) } returns Result.success(watchOrder)
+
+        useCase(unknownMalIdDetails, WatchStatus.WATCHING)
+
+        val seasonsSlot = slot<List<com.vuzeda.animewatchlist.tracker.module.domain.Season>>()
+        coVerify { animeRepository.addAnime(any(), capture(seasonsSlot)) }
+        assertThat(seasonsSlot.captured[0].orderIndex).isEqualTo(0)
+    }
+
+    @Test
+    fun `uses provided details when watch order is empty and details has prequels`() = runTest {
+        coEvery { animeRepository.fetchWatchOrder(200) } returns Result.success(emptyList())
+
+        useCase(secondSeasonDetails, WatchStatus.WATCHING)
+
+        val animeSlot = slot<Anime>()
+        coVerify { animeRepository.addAnime(capture(animeSlot), any()) }
+        assertThat(animeSlot.captured.title).isEqualTo("Anime S2")
+    }
 }

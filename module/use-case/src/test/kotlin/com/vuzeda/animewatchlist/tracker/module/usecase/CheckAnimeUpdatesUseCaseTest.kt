@@ -210,4 +210,192 @@ class CheckAnimeUpdatesUseCaseTest {
             )
         }
     }
+
+    @Test
+    fun `only checks episodes when notification type is NEW_EPISODES`() = runTest {
+        val episodesOnlyAnime = sampleAnime.copy(notificationType = NotificationType.NEW_EPISODES)
+        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(episodesOnlyAnime)
+        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
+        coEvery { animeRepository.fetchLastAiredEpisodeNumber(100) } returns Result.success(15)
+
+        val updates = useCase()
+
+        assertThat(updates.filterIsInstance<AnimeUpdate.NewEpisodes>()).hasSize(1)
+        coVerify(exactly = 0) { animeRepository.fetchAnimeFullById(any()) }
+    }
+
+    @Test
+    fun `only checks new seasons when notification type is NEW_SEASONS`() = runTest {
+        val seasonsOnlyAnime = sampleAnime.copy(notificationType = NotificationType.NEW_SEASONS)
+        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(seasonsOnlyAnime)
+        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
+        coEvery { animeRepository.fetchAnimeFullById(100) } returns Result.success(
+            AnimeFullDetails(
+                malId = 100, title = "Test", type = "TV", episodes = 25,
+                sequels = listOf(SequelInfo(300, "New Season"))
+            )
+        )
+        coEvery { animeRepository.fetchAnimeFullById(300) } returns Result.success(
+            AnimeFullDetails(
+                malId = 300, title = "New Season", type = "TV", episodes = null,
+                airingStatus = CheckAnimeUpdatesUseCase.STATUS_CURRENTLY_AIRING, sequels = emptyList()
+            )
+        )
+
+        val updates = useCase()
+
+        assertThat(updates.filterIsInstance<AnimeUpdate.NewSeason>()).hasSize(1)
+        coVerify(exactly = 0) { animeRepository.fetchLastAiredEpisodeNumber(any()) }
+    }
+
+    @Test
+    fun `skips sequel already present in existing seasons`() = runTest {
+        val seasonWithSequel = sampleSeason.copy(malId = 300)
+        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
+        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason, seasonWithSequel)
+        coEvery { animeRepository.fetchLastAiredEpisodeNumber(any()) } returns Result.success(12)
+        coEvery { animeRepository.fetchAnimeFullById(100) } returns Result.success(
+            AnimeFullDetails(
+                malId = 100, title = "Test", type = "TV", episodes = 12,
+                sequels = listOf(SequelInfo(300, "Already Added"))
+            )
+        )
+
+        val updates = useCase()
+
+        assertThat(updates.filterIsInstance<AnimeUpdate.NewSeason>()).isEmpty()
+    }
+
+    @Test
+    fun `does not notify for sequel when details fetch fails`() = runTest {
+        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
+        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
+        coEvery { animeRepository.fetchLastAiredEpisodeNumber(100) } returns Result.success(12)
+        coEvery { animeRepository.fetchAnimeFullById(100) } returns Result.success(
+            AnimeFullDetails(
+                malId = 100, title = "Test", type = "TV", episodes = 12,
+                sequels = listOf(SequelInfo(300, "New Season"))
+            )
+        )
+        coEvery { animeRepository.fetchAnimeFullById(300) } returns Result.failure(Exception("Not found"))
+
+        val updates = useCase()
+
+        assertThat(updates.filterIsInstance<AnimeUpdate.NewSeason>()).isEmpty()
+    }
+
+    @Test
+    fun `does not notify for sequel when type is not TV or Movie`() = runTest {
+        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
+        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
+        coEvery { animeRepository.fetchLastAiredEpisodeNumber(100) } returns Result.success(12)
+        coEvery { animeRepository.fetchAnimeFullById(100) } returns Result.success(
+            AnimeFullDetails(
+                malId = 100, title = "Test", type = "TV", episodes = 12,
+                sequels = listOf(SequelInfo(300, "OVA"))
+            )
+        )
+        coEvery { animeRepository.fetchAnimeFullById(300) } returns Result.success(
+            AnimeFullDetails(
+                malId = 300, title = "OVA", type = "OVA", episodes = 1,
+                airingStatus = CheckAnimeUpdatesUseCase.STATUS_FINISHED_AIRING, sequels = emptyList()
+            )
+        )
+
+        val updates = useCase()
+
+        assertThat(updates.filterIsInstance<AnimeUpdate.NewSeason>()).isEmpty()
+    }
+
+    @Test
+    fun `detects new season when sequel has finished airing`() = runTest {
+        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
+        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
+        coEvery { animeRepository.fetchLastAiredEpisodeNumber(100) } returns Result.success(12)
+        coEvery { animeRepository.fetchAnimeFullById(100) } returns Result.success(
+            AnimeFullDetails(
+                malId = 100, title = "Test", type = "TV", episodes = 12,
+                sequels = listOf(SequelInfo(300, "Finished Season"))
+            )
+        )
+        coEvery { animeRepository.fetchAnimeFullById(300) } returns Result.success(
+            AnimeFullDetails(
+                malId = 300, title = "Finished Season", type = "TV", episodes = 12,
+                airingStatus = CheckAnimeUpdatesUseCase.STATUS_FINISHED_AIRING, sequels = emptyList()
+            )
+        )
+
+        val updates = useCase()
+
+        assertThat(updates.filterIsInstance<AnimeUpdate.NewSeason>()).hasSize(1)
+    }
+
+    @Test
+    fun `checks per-season episode notifications for seasons not covered by anime-level check`() = runTest {
+        val perSeasonSeason = Season(
+            id = 20L, animeId = 2L, malId = 200, title = "Standalone",
+            lastCheckedAiredEpisodeCount = 5
+        )
+        coEvery { animeRepository.getNotificationEnabledAnime() } returns emptyList()
+        coEvery { seasonRepository.getSeasonsWithEpisodeNotifications() } returns listOf(perSeasonSeason)
+        coEvery { animeRepository.getAnimeById(2L) } returns Anime(id = 2L, title = "Standalone Anime")
+        coEvery { animeRepository.fetchLastAiredEpisodeNumber(200) } returns Result.success(8)
+
+        val updates = useCase()
+
+        assertThat(updates.filterIsInstance<AnimeUpdate.NewEpisodes>()).hasSize(1)
+        assertThat(updates.filterIsInstance<AnimeUpdate.NewEpisodes>()[0].latestAiredEpisode).isEqualTo(8)
+    }
+
+    @Test
+    fun `skips per-season check when season was already checked at anime level`() = runTest {
+        val episodesOnlyAnime = sampleAnime.copy(notificationType = NotificationType.NEW_EPISODES)
+        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(episodesOnlyAnime)
+        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
+        coEvery { animeRepository.fetchLastAiredEpisodeNumber(100) } returns Result.success(12)
+        coEvery { seasonRepository.getSeasonsWithEpisodeNotifications() } returns listOf(sampleSeason)
+
+        val updates = useCase()
+
+        assertThat(updates.filterIsInstance<AnimeUpdate.NewEpisodes>()).isEmpty()
+    }
+
+    @Test
+    fun `skips per-season notification when anime cannot be found`() = runTest {
+        val perSeasonSeason = Season(id = 20L, animeId = 99L, malId = 200, title = "Unknown")
+        coEvery { animeRepository.getNotificationEnabledAnime() } returns emptyList()
+        coEvery { seasonRepository.getSeasonsWithEpisodeNotifications() } returns listOf(perSeasonSeason)
+        coEvery { animeRepository.getAnimeById(99L) } returns null
+
+        val updates = useCase()
+
+        assertThat(updates).isEmpty()
+    }
+
+    @Test
+    fun `skips per-season notification when no new episodes found`() = runTest {
+        val perSeasonSeason = Season(
+            id = 20L, animeId = 2L, malId = 200, title = "Standalone",
+            lastCheckedAiredEpisodeCount = 8
+        )
+        coEvery { animeRepository.getNotificationEnabledAnime() } returns emptyList()
+        coEvery { seasonRepository.getSeasonsWithEpisodeNotifications() } returns listOf(perSeasonSeason)
+        coEvery { animeRepository.getAnimeById(2L) } returns Anime(id = 2L, title = "Standalone Anime")
+        coEvery { animeRepository.fetchLastAiredEpisodeNumber(200) } returns Result.success(8)
+
+        val updates = useCase()
+
+        assertThat(updates.filterIsInstance<AnimeUpdate.NewEpisodes>()).isEmpty()
+    }
+
+    @Test
+    fun `does not check new seasons when existing seasons list is empty for max by`() = runTest {
+        val seasonsOnlyAnime = sampleAnime.copy(notificationType = NotificationType.NEW_SEASONS)
+        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(seasonsOnlyAnime)
+        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns emptyList()
+
+        val updates = useCase()
+
+        assertThat(updates).isEmpty()
+    }
 }

@@ -121,4 +121,38 @@ class ResolveAnimeUseCaseTest {
             )
         )
     }
+
+    @Test
+    fun `returns failure when watch order fetch fails`() = runTest {
+        coEvery { animeRepository.fetchWatchOrder(100) } returns Result.failure(Exception("Network error"))
+
+        val result = useCase(100)
+
+        assertThat(result.isFailure).isTrue()
+    }
+
+    @Test
+    fun `returns failure when watch order is empty`() = runTest {
+        coEvery { animeRepository.fetchWatchOrder(100) } returns Result.success(emptyList())
+
+        val result = useCase(100)
+
+        assertThat(result.isFailure).isTrue()
+    }
+
+    @Test
+    fun `falls back to season data when root details fetch fails`() = runTest {
+        coEvery { animeRepository.fetchWatchOrder(100) } returns Result.success(watchOrder)
+        coEvery { animeRepository.fetchAnimeFullById(100) } returns Result.failure(Exception("Not found"))
+
+        val result = useCase(100)
+
+        assertThat(result.isSuccess).isTrue()
+        val resolved = result.getOrNull()!!
+        assertThat(resolved.title).isEqualTo("Anime S1")
+        assertThat(resolved.titleEnglish).isEqualTo(null)
+        assertThat(resolved.imageUrl).isNull()
+        assertThat(resolved.synopsis).isNull()
+        assertThat(resolved.genres).isEmpty()
+    }
 }
