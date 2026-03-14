@@ -6,30 +6,21 @@ import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonData
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.repository.AnimeRepository
+import com.vuzeda.animewatchlist.tracker.module.repository.SeasonRepository
 import javax.inject.Inject
 import kotlin.time.Clock
 
 /** Constructs an Anime with its initial Season from API details and persists them. */
 class AddAnimeFromDetailsUseCase @Inject constructor(
     private val animeRepository: AnimeRepository,
+    private val seasonRepository: SeasonRepository,
     private val clock: Clock = Clock.System,
 ) {
 
     suspend operator fun invoke(details: AnimeFullDetails, status: WatchStatus): Long {
         val watchOrder = animeRepository.fetchWatchOrder(details.malId).getOrNull()
-        val firstSeasonDetails = resolveFirstSeason(details, watchOrder)
         val orderIndex = resolveOrderIndex(details.malId, watchOrder)
 
-        val anime = Anime(
-            title = firstSeasonDetails.title,
-            titleEnglish = firstSeasonDetails.titleEnglish,
-            titleJapanese = firstSeasonDetails.titleJapanese,
-            imageUrl = firstSeasonDetails.imageUrl,
-            synopsis = firstSeasonDetails.synopsis,
-            genres = firstSeasonDetails.genres,
-            status = status,
-            addedAt = clock.now().toEpochMilliseconds()
-        )
         val season = Season(
             malId = details.malId,
             title = details.title,
@@ -41,6 +32,26 @@ class AddAnimeFromDetailsUseCase @Inject constructor(
             score = details.score,
             airingStatus = details.airingStatus,
             orderIndex = orderIndex
+        )
+
+        seasonRepository.findAnimeIdBySeasonMalId(details.malId)?.let { return it }
+
+        val existingAnimeId = watchOrder?.firstNotNullOfOrNull { seasonRepository.findAnimeIdBySeasonMalId(it.malId) }
+        if (existingAnimeId != null) {
+            seasonRepository.addSeasonsToAnime(existingAnimeId, listOf(season))
+            return existingAnimeId
+        }
+
+        val firstSeasonDetails = resolveFirstSeason(details, watchOrder)
+        val anime = Anime(
+            title = firstSeasonDetails.title,
+            titleEnglish = firstSeasonDetails.titleEnglish,
+            titleJapanese = firstSeasonDetails.titleJapanese,
+            imageUrl = firstSeasonDetails.imageUrl,
+            synopsis = firstSeasonDetails.synopsis,
+            genres = firstSeasonDetails.genres,
+            status = status,
+            addedAt = clock.now().toEpochMilliseconds()
         )
         return animeRepository.addAnime(anime = anime, seasons = listOf(season))
     }

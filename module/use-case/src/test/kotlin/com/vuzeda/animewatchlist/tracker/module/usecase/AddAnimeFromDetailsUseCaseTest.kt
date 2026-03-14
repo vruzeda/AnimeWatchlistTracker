@@ -8,6 +8,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.SeasonData
 import com.vuzeda.animewatchlist.tracker.module.domain.SequelInfo
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.repository.AnimeRepository
+import com.vuzeda.animewatchlist.tracker.module.repository.SeasonRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -21,10 +22,11 @@ import kotlin.time.Instant
 class AddAnimeFromDetailsUseCaseTest {
 
     private val animeRepository: AnimeRepository = mockk()
+    private val seasonRepository: SeasonRepository = mockk()
     private val clock: Clock = mockk {
         coEvery { now() } returns Instant.fromEpochMilliseconds(1770294088886)
     }
-    private val useCase = AddAnimeFromDetailsUseCase(animeRepository, clock)
+    private val useCase = AddAnimeFromDetailsUseCase(animeRepository, seasonRepository, clock)
 
     private val firstSeasonDetails = AnimeFullDetails(
         malId = 100,
@@ -72,6 +74,8 @@ class AddAnimeFromDetailsUseCaseTest {
     @BeforeEach
     fun setup() {
         coEvery { animeRepository.addAnime(any(), any()) } returns 1L
+        coEvery { seasonRepository.findAnimeIdBySeasonMalId(any()) } returns null
+        coEvery { seasonRepository.addSeasonsToAnime(any(), any()) } returns Unit
     }
 
     @Test
@@ -233,5 +237,43 @@ class AddAnimeFromDetailsUseCaseTest {
         val result = useCase(firstSeasonDetails, WatchStatus.WATCHING)
 
         assertThat(result).isEqualTo(42L)
+    }
+
+    @Test
+    fun `returns existing anime id without inserting when season already exists`() = runTest {
+        coEvery { animeRepository.fetchWatchOrder(100) } returns Result.success(watchOrder)
+        coEvery { seasonRepository.findAnimeIdBySeasonMalId(100) } returns 7L
+
+        val result = useCase(firstSeasonDetails, WatchStatus.WATCHING)
+
+        assertThat(result).isEqualTo(7L)
+        coVerify(exactly = 0) { animeRepository.addAnime(any(), any()) }
+        coVerify(exactly = 0) { seasonRepository.addSeasonsToAnime(any(), any()) }
+    }
+
+    @Test
+    fun `adds season to existing anime when sibling season already exists`() = runTest {
+        coEvery { animeRepository.fetchWatchOrder(200) } returns Result.success(watchOrder)
+        coEvery { seasonRepository.findAnimeIdBySeasonMalId(100) } returns 5L
+
+        val result = useCase(secondSeasonDetails, WatchStatus.WATCHING)
+
+        assertThat(result).isEqualTo(5L)
+        coVerify(exactly = 0) { animeRepository.addAnime(any(), any()) }
+
+        val seasonsSlot = slot<List<com.vuzeda.animewatchlist.tracker.module.domain.Season>>()
+        coVerify { seasonRepository.addSeasonsToAnime(eq(5L), capture(seasonsSlot)) }
+        assertThat(seasonsSlot.captured[0].malId).isEqualTo(200)
+    }
+
+    @Test
+    fun `creates new anime when no sibling season exists`() = runTest {
+        coEvery { animeRepository.fetchWatchOrder(200) } returns Result.success(watchOrder)
+        coEvery { animeRepository.fetchAnimeFullById(100) } returns Result.success(firstSeasonDetails)
+
+        useCase(secondSeasonDetails, WatchStatus.WATCHING)
+
+        coVerify(exactly = 1) { animeRepository.addAnime(any(), any()) }
+        coVerify(exactly = 0) { seasonRepository.addSeasonsToAnime(any(), any()) }
     }
 }
