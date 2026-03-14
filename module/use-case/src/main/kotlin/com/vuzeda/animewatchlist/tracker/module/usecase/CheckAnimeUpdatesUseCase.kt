@@ -1,9 +1,9 @@
 package com.vuzeda.animewatchlist.tracker.module.usecase
 
+import com.vuzeda.animewatchlist.tracker.module.domain.Anime
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdate
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
-import com.vuzeda.animewatchlist.tracker.module.remotedatasource.AnimeRemoteDataSource
 import com.vuzeda.animewatchlist.tracker.module.repository.AnimeRepository
 import com.vuzeda.animewatchlist.tracker.module.repository.SeasonRepository
 import javax.inject.Inject
@@ -11,8 +11,7 @@ import javax.inject.Inject
 /** Checks all notification-enabled anime and seasons for new episodes and new seasons. */
 class CheckAnimeUpdatesUseCase @Inject constructor(
     private val animeRepository: AnimeRepository,
-    private val seasonRepository: SeasonRepository,
-    private val remoteRepository: AnimeRemoteDataSource
+    private val seasonRepository: SeasonRepository
 ) {
 
     suspend operator fun invoke(): List<AnimeUpdate> {
@@ -68,7 +67,7 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
     }
 
     private suspend fun checkNewEpisodes(season: Season): Int? {
-        val lastAiredEpisode = remoteRepository.fetchLastAiredEpisodeNumber(season.malId)
+        val lastAiredEpisode = animeRepository.fetchLastAiredEpisodeNumber(season.malId)
             .getOrNull() ?: return null
         val previousCount = season.lastCheckedAiredEpisodeCount
 
@@ -85,11 +84,11 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
     }
 
     private suspend fun checkNewSeasons(
-        anime: com.vuzeda.animewatchlist.tracker.module.domain.Anime,
+        anime: Anime,
         existingSeasons: List<Season>
     ): AnimeUpdate.NewSeason? {
         val lastSeason = existingSeasons.maxByOrNull { it.orderIndex } ?: return null
-        val details = remoteRepository.fetchAnimeFullById(lastSeason.malId).getOrNull()
+        val details = animeRepository.fetchAnimeFullById(lastSeason.malId).getOrNull()
             ?: return null
 
         val knownMalIds = existingSeasons.map { it.malId }.toSet()
@@ -97,7 +96,7 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
         for (sequel in details.sequels) {
             if (sequel.malId in knownMalIds) continue
 
-            val sequelDetails = remoteRepository.fetchAnimeFullById(sequel.malId).getOrNull()
+            val sequelDetails = animeRepository.fetchAnimeFullById(sequel.malId).getOrNull()
 
             if (sequelDetails != null && sequelDetails.type in ALLOWED_TYPES) {
                 val isConfirmed = sequelDetails.airingStatus == STATUS_CURRENTLY_AIRING ||

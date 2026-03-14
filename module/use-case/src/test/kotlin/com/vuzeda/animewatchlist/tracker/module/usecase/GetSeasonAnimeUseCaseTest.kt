@@ -4,7 +4,7 @@ import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonalAnimePage
-import com.vuzeda.animewatchlist.tracker.module.remotedatasource.AnimeRemoteDataSource
+import com.vuzeda.animewatchlist.tracker.module.repository.AnimeRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -13,8 +13,8 @@ import org.junit.jupiter.api.Test
 
 class GetSeasonAnimeUseCaseTest {
 
-    private val remoteRepository = mockk<AnimeRemoteDataSource>()
-    private val useCase = GetSeasonAnimeUseCase(remoteRepository)
+    private val animeRepository = mockk<AnimeRepository>()
+    private val useCase = GetSeasonAnimeUseCase(animeRepository)
 
     @Test
     fun `returns seasonal anime page on success`() = runTest {
@@ -24,7 +24,7 @@ class GetSeasonAnimeUseCaseTest {
             currentPage = 1
         )
         coEvery {
-            remoteRepository.fetchSeasonAnime(
+            animeRepository.fetchSeasonAnime(
                 year = 2026,
                 season = AnimeSeason.WINTER,
                 page = 1
@@ -36,7 +36,7 @@ class GetSeasonAnimeUseCaseTest {
         assertThat(result.isSuccess).isTrue()
         assertThat(result.getOrNull()).isEqualTo(page)
         coVerify {
-            remoteRepository.fetchSeasonAnime(
+            animeRepository.fetchSeasonAnime(
                 year = 2026,
                 season = AnimeSeason.WINTER,
                 page = 1
@@ -48,7 +48,7 @@ class GetSeasonAnimeUseCaseTest {
     fun `returns failure when fetch fails`() = runTest {
         val exception = RuntimeException("Network error")
         coEvery {
-            remoteRepository.fetchSeasonAnime(
+            animeRepository.fetchSeasonAnime(
                 year = 2025,
                 season = AnimeSeason.FALL,
                 page = 1
@@ -64,7 +64,7 @@ class GetSeasonAnimeUseCaseTest {
     @Test
     fun `defaults to page 1`() = runTest {
         coEvery {
-            remoteRepository.fetchSeasonAnime(
+            animeRepository.fetchSeasonAnime(
                 year = 2026,
                 season = AnimeSeason.SPRING,
                 page = 1
@@ -76,7 +76,7 @@ class GetSeasonAnimeUseCaseTest {
         useCase(year = 2026, season = AnimeSeason.SPRING)
 
         coVerify {
-            remoteRepository.fetchSeasonAnime(
+            animeRepository.fetchSeasonAnime(
                 year = 2026,
                 season = AnimeSeason.SPRING,
                 page = 1

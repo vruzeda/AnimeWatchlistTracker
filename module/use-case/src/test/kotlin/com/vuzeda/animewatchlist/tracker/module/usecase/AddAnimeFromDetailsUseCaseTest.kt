@@ -7,7 +7,6 @@ import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonData
 import com.vuzeda.animewatchlist.tracker.module.domain.SequelInfo
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
-import com.vuzeda.animewatchlist.tracker.module.remotedatasource.AnimeRemoteDataSource
 import com.vuzeda.animewatchlist.tracker.module.repository.AnimeRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -22,11 +21,10 @@ import kotlin.time.Instant
 class AddAnimeFromDetailsUseCaseTest {
 
     private val animeRepository: AnimeRepository = mockk()
-    private val remoteRepository: AnimeRemoteDataSource = mockk()
     private val clock: Clock = mockk {
         coEvery { now() } returns Instant.fromEpochMilliseconds(1770294088886)
     }
-    private val useCase = AddAnimeFromDetailsUseCase(animeRepository, remoteRepository, clock)
+    private val useCase = AddAnimeFromDetailsUseCase(animeRepository, clock)
 
     private val firstSeasonDetails = AnimeFullDetails(
         malId = 100,
@@ -78,8 +76,8 @@ class AddAnimeFromDetailsUseCaseTest {
 
     @Test
     fun `uses first season details when adding non-first season`() = runTest {
-        coEvery { remoteRepository.fetchWatchOrder(200) } returns Result.success(watchOrder)
-        coEvery { remoteRepository.fetchAnimeFullById(100) } returns Result.success(firstSeasonDetails)
+        coEvery { animeRepository.fetchWatchOrder(200) } returns Result.success(watchOrder)
+        coEvery { animeRepository.fetchAnimeFullById(100) } returns Result.success(firstSeasonDetails)
 
         useCase(secondSeasonDetails, WatchStatus.WATCHING)
 
@@ -106,8 +104,8 @@ class AddAnimeFromDetailsUseCaseTest {
 
     @Test
     fun `uses second season details when adding non-first season, but first season is not main series`() = runTest {
-        coEvery { remoteRepository.fetchWatchOrder(200) } returns Result.success(watchOrderWithNonMainSeriesFirstSeason)
-        coEvery { remoteRepository.fetchAnimeFullById(200) } returns Result.success(secondSeasonDetails)
+        coEvery { animeRepository.fetchWatchOrder(200) } returns Result.success(watchOrderWithNonMainSeriesFirstSeason)
+        coEvery { animeRepository.fetchAnimeFullById(200) } returns Result.success(secondSeasonDetails)
 
         useCase(secondSeasonDetails, WatchStatus.WATCHING)
 
@@ -134,8 +132,8 @@ class AddAnimeFromDetailsUseCaseTest {
 
     @Test
     fun `uses first season details when adding non-first season, but anime has no main series seasons`() = runTest {
-        coEvery { remoteRepository.fetchWatchOrder(200) } returns Result.success(watchOrderWithNoMainSeriesSeasons)
-        coEvery { remoteRepository.fetchAnimeFullById(100) } returns Result.success(firstSeasonDetails)
+        coEvery { animeRepository.fetchWatchOrder(200) } returns Result.success(watchOrderWithNoMainSeriesSeasons)
+        coEvery { animeRepository.fetchAnimeFullById(100) } returns Result.success(firstSeasonDetails)
 
         useCase(secondSeasonDetails, WatchStatus.WATCHING)
 
@@ -162,8 +160,8 @@ class AddAnimeFromDetailsUseCaseTest {
 
     @Test
     fun `sets correct orderIndex for non-first season`() = runTest {
-        coEvery { remoteRepository.fetchWatchOrder(200) } returns Result.success(watchOrder)
-        coEvery { remoteRepository.fetchAnimeFullById(100) } returns Result.success(firstSeasonDetails)
+        coEvery { animeRepository.fetchWatchOrder(200) } returns Result.success(watchOrder)
+        coEvery { animeRepository.fetchAnimeFullById(100) } returns Result.success(firstSeasonDetails)
 
         useCase(secondSeasonDetails, WatchStatus.WATCHING)
 
@@ -177,7 +175,7 @@ class AddAnimeFromDetailsUseCaseTest {
 
     @Test
     fun `uses provided details when season has no prequels`() = runTest {
-        coEvery { remoteRepository.fetchWatchOrder(100) } returns Result.success(watchOrder)
+        coEvery { animeRepository.fetchWatchOrder(100) } returns Result.success(watchOrder)
 
         useCase(firstSeasonDetails, WatchStatus.PLAN_TO_WATCH)
 
@@ -190,7 +188,7 @@ class AddAnimeFromDetailsUseCaseTest {
 
     @Test
     fun `sets orderIndex to 0 for first season`() = runTest {
-        coEvery { remoteRepository.fetchWatchOrder(100) } returns Result.success(watchOrder)
+        coEvery { animeRepository.fetchWatchOrder(100) } returns Result.success(watchOrder)
 
         useCase(firstSeasonDetails, WatchStatus.PLAN_TO_WATCH)
 
@@ -202,7 +200,7 @@ class AddAnimeFromDetailsUseCaseTest {
 
     @Test
     fun `falls back to provided details when watch order fetch fails`() = runTest {
-        coEvery { remoteRepository.fetchWatchOrder(200) } returns Result.failure(Exception("Network error"))
+        coEvery { animeRepository.fetchWatchOrder(200) } returns Result.failure(Exception("Network error"))
 
         useCase(secondSeasonDetails, WatchStatus.WATCHING)
 
@@ -215,8 +213,8 @@ class AddAnimeFromDetailsUseCaseTest {
 
     @Test
     fun `falls back to provided details when first season fetch fails`() = runTest {
-        coEvery { remoteRepository.fetchWatchOrder(200) } returns Result.success(watchOrder)
-        coEvery { remoteRepository.fetchAnimeFullById(100) } returns Result.failure(Exception("Not found"))
+        coEvery { animeRepository.fetchWatchOrder(200) } returns Result.success(watchOrder)
+        coEvery { animeRepository.fetchAnimeFullById(100) } returns Result.failure(Exception("Not found"))
 
         useCase(secondSeasonDetails, WatchStatus.WATCHING)
 
@@ -229,7 +227,7 @@ class AddAnimeFromDetailsUseCaseTest {
 
     @Test
     fun `returns animeId from repository`() = runTest {
-        coEvery { remoteRepository.fetchWatchOrder(100) } returns Result.success(watchOrder)
+        coEvery { animeRepository.fetchWatchOrder(100) } returns Result.success(watchOrder)
         coEvery { animeRepository.addAnime(any(), any()) } returns 42L
 
         val result = useCase(firstSeasonDetails, WatchStatus.WATCHING)

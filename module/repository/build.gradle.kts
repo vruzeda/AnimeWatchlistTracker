@@ -15,7 +15,7 @@ kotlin {
 }
 
 dependencies {
-    api(project(":module:remote-data-source"))
+    implementation(project(":module:remote-data-source"))
     implementation(project(":module:local-data-source"))
     implementation(project(":module:domain"))
 

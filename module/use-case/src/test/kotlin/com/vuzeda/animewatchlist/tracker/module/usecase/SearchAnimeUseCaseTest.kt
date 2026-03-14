@@ -2,7 +2,7 @@ package com.vuzeda.animewatchlist.tracker.module.usecase
 
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
-import com.vuzeda.animewatchlist.tracker.module.remotedatasource.AnimeRemoteDataSource
+import com.vuzeda.animewatchlist.tracker.module.repository.AnimeRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -11,8 +11,8 @@ import org.junit.jupiter.api.Test
 
 class SearchAnimeUseCaseTest {
 
-    private val remoteRepository = mockk<AnimeRemoteDataSource>()
-    private val useCase = SearchAnimeUseCase(remoteRepository)
+    private val animeRepository = mockk<AnimeRepository>()
+    private val useCase = SearchAnimeUseCase(animeRepository)
 
     @Test
     fun `returns search results on success`() = runTest {
@@ -20,19 +20,19 @@ class SearchAnimeUseCaseTest {
             SearchResult(malId = 20, title = "Naruto"),
             SearchResult(malId = 1735, title = "Naruto Shippuden")
         )
-        coEvery { remoteRepository.searchAnime("Naruto") } returns Result.success(results)
+        coEvery { animeRepository.searchAnime("Naruto") } returns Result.success(results)
 
         val result = useCase("Naruto")
 
         assertThat(result.isSuccess).isTrue()
         assertThat(result.getOrNull()).isEqualTo(results)
-        coVerify { remoteRepository.searchAnime("Naruto") }
+        coVerify { animeRepository.searchAnime("Naruto") }
     }
 
     @Test
     fun `returns failure when search fails`() = runTest {
         val exception = RuntimeException("Network error")
-        coEvery { remoteRepository.searchAnime("test") } returns Result.failure(exception)
+        coEvery { animeRepository.searchAnime("test") } returns Result.failure(exception)
 
         val result = useCase("test")
 

@@ -8,6 +8,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.Anime
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.AnimeRemoteDataSource
 import com.vuzeda.animewatchlist.tracker.module.repository.SeasonRepository
 import com.vuzeda.animewatchlist.tracker.module.repository.TransactionRunner
 import io.mockk.coEvery
@@ -21,11 +22,12 @@ import org.junit.jupiter.api.Test
 class AnimeRepositoryImplTest {
 
     private val animeLocalDataSource: AnimeLocalDataSource = mockk()
+    private val animeRemoteDataSource: AnimeRemoteDataSource = mockk(relaxed = true)
     private val seasonRepository: SeasonRepository = mockk(relaxed = true)
     private val transactionRunner = object : TransactionRunner {
         override suspend fun <T> runInTransaction(block: suspend () -> T): T = block()
     }
-    private val repository = AnimeRepositoryImpl(animeLocalDataSource, seasonRepository, transactionRunner)
+    private val repository = AnimeRepositoryImpl(animeLocalDataSource, animeRemoteDataSource, seasonRepository, transactionRunner)
 
     private val sampleLocalAnime = LocalAnime(
         id = 1L,
