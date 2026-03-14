@@ -396,6 +396,9 @@ This ensures that every commit in the history represents a working, verified sta
    ```bash
    export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
    export PATH="$JAVA_HOME/bin:$PATH"
+   ```
+   If `JAVA_HOME` is not already set and `/usr/libexec/java_home` fails to locate a suitable JDK, use Android Studio's bundled JRE at the path above. If Android Studio is installed in a non-standard location, search for `jbr` inside the Android Studio app bundle (e.g., `find /Applications -name "java" -path "*/jbr/*" -maxdepth 6`).
+   ```bash
    ./gradlew \
      :module:domain:jacocoTestCoverageVerification \
      :module:remote-data-source-retrofit:jacocoTestCoverageVerification \

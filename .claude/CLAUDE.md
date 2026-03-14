@@ -8,6 +8,13 @@ See `AGENTS.md` for the comprehensive architecture guide, coding standards, and 
 
 ## Commands
 
+If `JAVA_HOME` is not set and `/usr/libexec/java_home` cannot locate a suitable JDK, use Android Studio's bundled JRE:
+```bash
+export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
+export PATH="$JAVA_HOME/bin:$PATH"
+```
+If Android Studio is installed elsewhere, locate it with: `find /Applications -name "java" -path "*/jbr/*" -maxdepth 6`
+
 ```bash
 # Build
 ./gradlew build
