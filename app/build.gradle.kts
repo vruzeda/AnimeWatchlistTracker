@@ -89,6 +89,7 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":data:api"))
     implementation(project(":data:local"))
+    implementation(project(":data:local:room"))
     implementation(project(":data:repository"))
     implementation(project(":designsystem"))
     implementation(project(":ui"))
@@ -104,8 +105,6 @@ dependencies {
     ksp(libs.hilt.android.compiler)
 
     implementation(libs.room.runtime)
-    implementation(libs.room.ktx)
-    ksp(libs.room.compiler)
 
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.moshi)

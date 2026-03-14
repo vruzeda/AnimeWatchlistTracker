@@ -2,8 +2,8 @@ package com.vuzeda.animewatchlist.tracker.data.repository.impl
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
-import com.vuzeda.animewatchlist.tracker.data.local.dao.SeasonDao
-import com.vuzeda.animewatchlist.tracker.data.local.entity.SeasonEntity
+import com.vuzeda.animewatchlist.tracker.data.local.Season as LocalSeason
+import com.vuzeda.animewatchlist.tracker.data.local.SeasonLocalDataSource
 import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import com.vuzeda.animewatchlist.tracker.domain.repository.TransactionRunner
 import io.mockk.coEvery
@@ -17,13 +17,13 @@ import org.junit.jupiter.api.Test
 
 class SeasonRepositoryImplTest {
 
-    private val seasonDao: SeasonDao = mockk()
+    private val seasonLocalDataSource: SeasonLocalDataSource = mockk()
     private val transactionRunner = object : TransactionRunner {
         override suspend fun <T> runInTransaction(block: suspend () -> T): T = block()
     }
-    private val repository = SeasonRepositoryImpl(seasonDao, transactionRunner)
+    private val repository = SeasonRepositoryImpl(seasonLocalDataSource, transactionRunner)
 
-    private val sampleSeasonEntity = SeasonEntity(
+    private val sampleLocalSeason = LocalSeason(
         id = 1L,
         animeId = 1L,
         malId = 16498,
@@ -37,7 +37,7 @@ class SeasonRepositoryImplTest {
 
     @Test
     fun `observeSeasonsForAnime emits mapped season domain models`() = runTest {
-        every { seasonDao.observeByAnimeId(1L) } returns flowOf(listOf(sampleSeasonEntity))
+        every { seasonLocalDataSource.observeByAnimeId(1L) } returns flowOf(listOf(sampleLocalSeason))
 
         repository.observeSeasonsForAnime(1L).test {
             val result = awaitItem()
@@ -51,7 +51,7 @@ class SeasonRepositoryImplTest {
 
     @Test
     fun `observeSeasonById emits mapped domain model`() = runTest {
-        every { seasonDao.observeById(1L) } returns flowOf(sampleSeasonEntity)
+        every { seasonLocalDataSource.observeById(1L) } returns flowOf(sampleLocalSeason)
 
         repository.observeSeasonById(1L).test {
             val result = awaitItem()
@@ -65,7 +65,7 @@ class SeasonRepositoryImplTest {
 
     @Test
     fun `observeSeasonById emits null when not found`() = runTest {
-        every { seasonDao.observeById(999L) } returns flowOf(null)
+        every { seasonLocalDataSource.observeById(999L) } returns flowOf(null)
 
         repository.observeSeasonById(999L).test {
             assertThat(awaitItem()).isNull()
@@ -75,7 +75,7 @@ class SeasonRepositoryImplTest {
 
     @Test
     fun `findAnimeIdBySeasonMalId returns animeId when found`() = runTest {
-        coEvery { seasonDao.findByMalId(16498) } returns sampleSeasonEntity
+        coEvery { seasonLocalDataSource.findByMalId(16498) } returns sampleLocalSeason
 
         val result = repository.findAnimeIdBySeasonMalId(16498)
 
@@ -84,7 +84,7 @@ class SeasonRepositoryImplTest {
 
     @Test
     fun `findAnimeIdBySeasonMalId returns null when not found`() = runTest {
-        coEvery { seasonDao.findByMalId(99999) } returns null
+        coEvery { seasonLocalDataSource.findByMalId(99999) } returns null
 
         val result = repository.findAnimeIdBySeasonMalId(99999)
 
@@ -93,7 +93,7 @@ class SeasonRepositoryImplTest {
 
     @Test
     fun `getSeasonsForAnime returns mapped season domain models`() = runTest {
-        coEvery { seasonDao.getByAnimeId(1L) } returns listOf(sampleSeasonEntity)
+        coEvery { seasonLocalDataSource.getByAnimeId(1L) } returns listOf(sampleLocalSeason)
 
         val result = repository.getSeasonsForAnime(1L)
 
@@ -103,7 +103,7 @@ class SeasonRepositoryImplTest {
 
     @Test
     fun `addSeasonsToAnime inserts seasons with correct animeId`() = runTest {
-        coEvery { seasonDao.insertAll(any()) } returns Unit
+        coEvery { seasonLocalDataSource.insertAll(any()) } returns Unit
 
         val seasons = listOf(
             Season(malId = 200, title = "Season 2", orderIndex = 1)
@@ -111,33 +111,33 @@ class SeasonRepositoryImplTest {
 
         repository.addSeasonsToAnime(animeId = 5L, seasons = seasons)
 
-        val seasonSlot = slot<List<SeasonEntity>>()
-        coVerify { seasonDao.insertAll(capture(seasonSlot)) }
+        val seasonSlot = slot<List<LocalSeason>>()
+        coVerify { seasonLocalDataSource.insertAll(capture(seasonSlot)) }
         assertThat(seasonSlot.captured[0].animeId).isEqualTo(5L)
         assertThat(seasonSlot.captured[0].malId).isEqualTo(200)
     }
 
     @Test
-    fun `updateSeason delegates to seasonDao`() = runTest {
-        coEvery { seasonDao.update(any()) } returns Unit
+    fun `updateSeason delegates to data source`() = runTest {
+        coEvery { seasonLocalDataSource.update(any()) } returns Unit
 
         repository.updateSeason(Season(id = 1L, animeId = 1L, malId = 100, title = "S1", currentEpisode = 5))
 
-        coVerify { seasonDao.update(any()) }
+        coVerify { seasonLocalDataSource.update(any()) }
     }
 
     @Test
-    fun `updateSeasonNotificationData delegates to seasonDao`() = runTest {
-        coEvery { seasonDao.updateNotificationData(any(), any()) } returns Unit
+    fun `updateSeasonNotificationData delegates to data source`() = runTest {
+        coEvery { seasonLocalDataSource.updateNotificationData(any(), any()) } returns Unit
 
         repository.updateSeasonNotificationData(seasonId = 1L, lastCheckedAiredEpisodeCount = 25)
 
-        coVerify { seasonDao.updateNotificationData(seasonId = 1L, count = 25) }
+        coVerify { seasonLocalDataSource.updateNotificationData(seasonId = 1L, count = 25) }
     }
 
     @Test
     fun `observeAllSeasonMalIds emits set of malIds`() = runTest {
-        every { seasonDao.observeAllMalIds() } returns flowOf(listOf(100, 200, 300))
+        every { seasonLocalDataSource.observeAllMalIds() } returns flowOf(listOf(100, 200, 300))
 
         repository.observeAllSeasonMalIds().test {
             val result = awaitItem()

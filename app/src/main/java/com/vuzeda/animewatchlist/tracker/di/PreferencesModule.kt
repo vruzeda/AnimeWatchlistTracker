@@ -1,7 +1,8 @@
 package com.vuzeda.animewatchlist.tracker.di
 
 import android.content.Context
-import com.vuzeda.animewatchlist.tracker.data.local.preferences.UserPreferencesDataStore
+import com.vuzeda.animewatchlist.tracker.data.local.UserPreferencesLocalDataSource
+import com.vuzeda.animewatchlist.tracker.data.local.room.preferences.UserPreferencesDataStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -15,6 +16,6 @@ object PreferencesModule {
 
     @Provides
     @Singleton
-    fun provideUserPreferencesDataStore(@ApplicationContext context: Context): UserPreferencesDataStore =
+    fun provideUserPreferencesLocalDataSource(@ApplicationContext context: Context): UserPreferencesLocalDataSource =
         UserPreferencesDataStore(context)
 }

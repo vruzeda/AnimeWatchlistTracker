@@ -66,8 +66,9 @@ AnimeWatchlistTracker/
 ├── domain/               # :domain — Pure Kotlin library (models, repository interfaces, use cases)
 ├── data/
 │   ├── api/              # :data:api — Pure Kotlin library (Retrofit service, DTOs)
-│   ├── local/            # :data:local — Android library (Room entities, DAOs, database)
-│   └── repository/       # :data:repository — Android library (repository impls, mappers)
+│   ├── local/            # :data:local — Pure Kotlin library (local data source interfaces, record classes)
+│   ├── local/room/       # :data:local:room — Android library (Room entities, DAOs, DataStore)
+│   └── repository/       # :data:repository — Pure Kotlin library (repository impls, mappers)
 ├── designsystem/         # :designsystem — Android library (theme, reusable Compose components)
 └── ui/                   # :ui — Android library (screens, ViewModels, navigation)
 ```
@@ -77,11 +78,13 @@ AnimeWatchlistTracker/
 ```
 :app → :ui → :designsystem
               → :domain
+:app → :data:local:room → :data:local
+                        → :domain
 :app → :data:repository → :data:api    → :domain
-                        → :data:local   → :domain
+                        → :data:local
 ```
 
-`:domain` depends on nothing. `:designsystem` depends on nothing (no business logic modules). `:ui` depends on `:domain` and `:designsystem`. The `:data` modules depend on `:domain`. Only `:app` sees everything.
+`:domain` depends on nothing. `:data:local` depends on nothing (only coroutines). `:designsystem` depends on nothing. `:data:repository` is a pure Kotlin module that depends only on `:domain`, `:data:api`, and the JVM-only `:data:local` interfaces. `:data:local:room` provides Android Room implementations of the `:data:local` interfaces. Only `:app` sees everything.
 
 ### Screens
 

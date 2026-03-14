@@ -1,4 +1,4 @@
-package com.vuzeda.animewatchlist.tracker.data.local.preferences
+package com.vuzeda.animewatchlist.tracker.data.local.room.preferences
 
 import android.content.Context
 import androidx.datastore.core.DataStore
@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.vuzeda.animewatchlist.tracker.data.local.UserPreferencesLocalDataSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -13,25 +14,25 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 
 class UserPreferencesDataStore(
     private val context: Context
-) {
+) : UserPreferencesLocalDataSource {
 
-    fun observeTitleLanguage(): Flow<String> =
+    override fun observeTitleLanguage(): Flow<String> =
         context.dataStore.data.map { preferences ->
             preferences[TITLE_LANGUAGE_KEY] ?: DEFAULT_TITLE_LANGUAGE
         }
 
-    suspend fun setTitleLanguage(language: String) {
+    override suspend fun setTitleLanguage(language: String) {
         context.dataStore.edit { preferences ->
             preferences[TITLE_LANGUAGE_KEY] = language
         }
     }
 
-    fun observeHomeViewMode(): Flow<String> =
+    override fun observeHomeViewMode(): Flow<String> =
         context.dataStore.data.map { preferences ->
             preferences[HOME_VIEW_MODE_KEY] ?: DEFAULT_HOME_VIEW_MODE
         }
 
-    suspend fun setHomeViewMode(mode: String) {
+    override suspend fun setHomeViewMode(mode: String) {
         context.dataStore.edit { preferences ->
             preferences[HOME_VIEW_MODE_KEY] = mode
         }

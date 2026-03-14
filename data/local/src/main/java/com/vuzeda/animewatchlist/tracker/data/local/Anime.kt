@@ -1,11 +1,7 @@
-package com.vuzeda.animewatchlist.tracker.data.local.entity
+package com.vuzeda.animewatchlist.tracker.data.local
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-
-@Entity(tableName = "anime")
-data class AnimeEntity(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+data class Anime(
+    val id: Long = 0,
     val title: String,
     val titleEnglish: String? = null,
     val titleJapanese: String? = null,

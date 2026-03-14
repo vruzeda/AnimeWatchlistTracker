@@ -1,11 +1,11 @@
 package com.vuzeda.animewatchlist.tracker.data.repository.mapper
 
-import com.vuzeda.animewatchlist.tracker.data.local.entity.AnimeEntity
+import com.vuzeda.animewatchlist.tracker.data.local.Anime as LocalAnime
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.NotificationType
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
 
-fun AnimeEntity.toDomainModel(): Anime = Anime(
+fun LocalAnime.toDomainModel(): Anime = Anime(
     id = id,
     title = title,
     titleEnglish = titleEnglish,
@@ -19,7 +19,7 @@ fun AnimeEntity.toDomainModel(): Anime = Anime(
     addedAt = addedAt
 )
 
-fun Anime.toEntity(): AnimeEntity = AnimeEntity(
+fun Anime.toLocalModel(): LocalAnime = LocalAnime(
     id = id,
     title = title,
     titleEnglish = titleEnglish,

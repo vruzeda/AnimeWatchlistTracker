@@ -1,4 +1,4 @@
-package com.vuzeda.animewatchlist.tracker.data.local.database
+package com.vuzeda.animewatchlist.tracker.data.local.room.database
 
 import androidx.room.withTransaction
 import com.vuzeda.animewatchlist.tracker.domain.repository.TransactionRunner

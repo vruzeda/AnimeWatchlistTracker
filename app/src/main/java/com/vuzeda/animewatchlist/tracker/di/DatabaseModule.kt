@@ -2,11 +2,11 @@ package com.vuzeda.animewatchlist.tracker.di
 
 import android.content.Context
 import androidx.room.Room
-import com.vuzeda.animewatchlist.tracker.data.local.dao.AnimeDao
-import com.vuzeda.animewatchlist.tracker.data.local.dao.SeasonDao
-import com.vuzeda.animewatchlist.tracker.data.local.database.AnimeDatabase
-import com.vuzeda.animewatchlist.tracker.data.local.database.MIGRATION_6_7
-import com.vuzeda.animewatchlist.tracker.data.local.database.RoomTransactionRunner
+import com.vuzeda.animewatchlist.tracker.data.local.AnimeLocalDataSource
+import com.vuzeda.animewatchlist.tracker.data.local.SeasonLocalDataSource
+import com.vuzeda.animewatchlist.tracker.data.local.room.database.AnimeDatabase
+import com.vuzeda.animewatchlist.tracker.data.local.room.database.MIGRATION_6_7
+import com.vuzeda.animewatchlist.tracker.data.local.room.database.RoomTransactionRunner
 import com.vuzeda.animewatchlist.tracker.domain.repository.TransactionRunner
 import dagger.Module
 import dagger.Provides
@@ -32,11 +32,13 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideAnimeDao(database: AnimeDatabase): AnimeDao = database.animeDao()
+    fun provideAnimeLocalDataSource(database: AnimeDatabase): AnimeLocalDataSource =
+        database.animeDao()
 
     @Provides
     @Singleton
-    fun provideSeasonDao(database: AnimeDatabase): SeasonDao = database.seasonDao()
+    fun provideSeasonLocalDataSource(database: AnimeDatabase): SeasonLocalDataSource =
+        database.seasonDao()
 
     @Provides
     @Singleton

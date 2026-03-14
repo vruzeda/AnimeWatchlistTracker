@@ -1,8 +1,8 @@
 package com.vuzeda.animewatchlist.tracker.data.repository.impl
 
-import com.vuzeda.animewatchlist.tracker.data.local.dao.AnimeDao
+import com.vuzeda.animewatchlist.tracker.data.local.AnimeLocalDataSource
 import com.vuzeda.animewatchlist.tracker.data.repository.mapper.toDomainModel
-import com.vuzeda.animewatchlist.tracker.data.repository.mapper.toEntity
+import com.vuzeda.animewatchlist.tracker.data.repository.mapper.toLocalModel
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.NotificationType
 import com.vuzeda.animewatchlist.tracker.domain.model.Season
@@ -15,48 +15,48 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class AnimeRepositoryImpl @Inject constructor(
-    private val animeDao: AnimeDao,
+    private val animeLocalDataSource: AnimeLocalDataSource,
     private val seasonRepository: SeasonRepository,
     private val transactionRunner: TransactionRunner
 ) : AnimeRepository {
 
     override fun observeAll(): Flow<List<Anime>> =
-        animeDao.observeAll().map { entities -> entities.map { it.toDomainModel() } }
+        animeLocalDataSource.observeAll().map { entities -> entities.map { it.toDomainModel() } }
 
     override fun observeByStatus(status: WatchStatus): Flow<List<Anime>> =
-        animeDao.observeByStatus(status.name).map { entities -> entities.map { it.toDomainModel() } }
+        animeLocalDataSource.observeByStatus(status.name).map { entities -> entities.map { it.toDomainModel() } }
 
     override fun observeById(id: Long): Flow<Anime?> =
-        animeDao.observeById(id).map { it?.toDomainModel() }
+        animeLocalDataSource.observeById(id).map { it?.toDomainModel() }
 
     override suspend fun getAnimeById(id: Long): Anime? =
-        animeDao.getById(id)?.toDomainModel()
+        animeLocalDataSource.getById(id)?.toDomainModel()
 
     override suspend fun addAnime(anime: Anime, seasons: List<Season>): Long =
         transactionRunner.runInTransaction {
-            val animeId = animeDao.insert(anime.toEntity())
+            val animeId = animeLocalDataSource.insert(anime.toLocalModel())
             seasonRepository.addSeasonsToAnime(animeId, seasons)
             animeId
         }
 
     override suspend fun updateAnime(anime: Anime) {
-        animeDao.update(anime.toEntity())
+        animeLocalDataSource.update(anime.toLocalModel())
     }
 
     override suspend fun deleteAnime(id: Long) {
-        animeDao.deleteById(id)
+        animeLocalDataSource.deleteById(id)
     }
 
     override suspend fun updateNotificationType(id: Long, notificationType: NotificationType) {
-        animeDao.updateNotificationType(id = id, notificationType = notificationType.name)
+        animeLocalDataSource.updateNotificationType(id = id, notificationType = notificationType.name)
     }
 
     override suspend fun getNotificationEnabledAnime(): List<Anime> =
-        animeDao.getNotificationEnabledAnime().map { it.toDomainModel() }
+        animeLocalDataSource.getNotificationEnabledAnime().map { it.toDomainModel() }
 
     override suspend fun deleteAllData() {
         transactionRunner.runInTransaction {
-            animeDao.deleteAll()
+            animeLocalDataSource.deleteAll()
         }
     }
 }

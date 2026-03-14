@@ -1,7 +1,7 @@
 package com.vuzeda.animewatchlist.tracker.data.repository.mapper
 
 import com.google.common.truth.Truth.assertThat
-import com.vuzeda.animewatchlist.tracker.data.local.entity.AnimeEntity
+import com.vuzeda.animewatchlist.tracker.data.local.Anime as LocalAnime
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.NotificationType
 import com.vuzeda.animewatchlist.tracker.domain.model.WatchStatus
@@ -11,7 +11,7 @@ class AnimeEntityMapperTest {
 
     @Test
     fun `toDomainModel maps all fields correctly`() {
-        val entity = AnimeEntity(
+        val localAnime = LocalAnime(
             id = 1L,
             title = "Attack on Titan",
             imageUrl = "https://example.com/aot.jpg",
@@ -23,7 +23,7 @@ class AnimeEntityMapperTest {
             addedAt = 1000L
         )
 
-        val anime = entity.toDomainModel()
+        val anime = localAnime.toDomainModel()
 
         assertThat(anime.id).isEqualTo(1L)
         assertThat(anime.title).isEqualTo("Attack on Titan")
@@ -39,21 +39,21 @@ class AnimeEntityMapperTest {
 
     @Test
     fun `toDomainModel handles empty genres`() {
-        val entity = AnimeEntity(
+        val localAnime = LocalAnime(
             id = 1L,
             title = "Test",
             status = "COMPLETED",
             genres = ""
         )
 
-        val anime = entity.toDomainModel()
+        val anime = localAnime.toDomainModel()
 
         assertThat(anime.genres).isEmpty()
     }
 
     @Test
     fun `toDomainModel handles null optional fields`() {
-        val entity = AnimeEntity(
+        val localAnime = LocalAnime(
             id = 1L,
             title = "Test",
             imageUrl = null,
@@ -63,7 +63,7 @@ class AnimeEntityMapperTest {
             genres = ""
         )
 
-        val anime = entity.toDomainModel()
+        val anime = localAnime.toDomainModel()
 
         assertThat(anime.imageUrl).isNull()
         assertThat(anime.synopsis).isNull()
@@ -72,34 +72,34 @@ class AnimeEntityMapperTest {
 
     @Test
     fun `toDomainModel defaults to PLAN_TO_WATCH for unknown status`() {
-        val entity = AnimeEntity(
+        val localAnime = LocalAnime(
             id = 1L,
             title = "Test",
             status = "UNKNOWN_STATUS",
             genres = ""
         )
 
-        val anime = entity.toDomainModel()
+        val anime = localAnime.toDomainModel()
 
         assertThat(anime.status).isEqualTo(WatchStatus.PLAN_TO_WATCH)
     }
 
     @Test
     fun `toDomainModel trims whitespace from genres`() {
-        val entity = AnimeEntity(
+        val localAnime = LocalAnime(
             id = 1L,
             title = "Test",
             status = "WATCHING",
             genres = "Action , Comedy , Drama"
         )
 
-        val anime = entity.toDomainModel()
+        val anime = localAnime.toDomainModel()
 
         assertThat(anime.genres).containsExactly("Action", "Comedy", "Drama")
     }
 
     @Test
-    fun `toEntity maps all fields correctly`() {
+    fun `toLocalModel maps all fields correctly`() {
         val anime = Anime(
             id = 1L,
             title = "Attack on Titan",
@@ -112,30 +112,30 @@ class AnimeEntityMapperTest {
             addedAt = 1000L
         )
 
-        val entity = anime.toEntity()
+        val localAnime = anime.toLocalModel()
 
-        assertThat(entity.id).isEqualTo(1L)
-        assertThat(entity.title).isEqualTo("Attack on Titan")
-        assertThat(entity.imageUrl).isEqualTo("https://example.com/aot.jpg")
-        assertThat(entity.synopsis).isEqualTo("Humanity fights titans.")
-        assertThat(entity.genres).isEqualTo("Action,Drama")
-        assertThat(entity.status).isEqualTo("WATCHING")
-        assertThat(entity.userRating).isEqualTo(9)
-        assertThat(entity.notificationType).isEqualTo("BOTH")
-        assertThat(entity.addedAt).isEqualTo(1000L)
+        assertThat(localAnime.id).isEqualTo(1L)
+        assertThat(localAnime.title).isEqualTo("Attack on Titan")
+        assertThat(localAnime.imageUrl).isEqualTo("https://example.com/aot.jpg")
+        assertThat(localAnime.synopsis).isEqualTo("Humanity fights titans.")
+        assertThat(localAnime.genres).isEqualTo("Action,Drama")
+        assertThat(localAnime.status).isEqualTo("WATCHING")
+        assertThat(localAnime.userRating).isEqualTo(9)
+        assertThat(localAnime.notificationType).isEqualTo("BOTH")
+        assertThat(localAnime.addedAt).isEqualTo(1000L)
     }
 
     @Test
-    fun `toEntity handles empty genres list`() {
+    fun `toLocalModel handles empty genres list`() {
         val anime = Anime(
             id = 1L,
             title = "Test",
             genres = emptyList()
         )
 
-        val entity = anime.toEntity()
+        val localAnime = anime.toLocalModel()
 
-        assertThat(entity.genres).isEmpty()
+        assertThat(localAnime.genres).isEmpty()
     }
 
     @Test
@@ -152,7 +152,7 @@ class AnimeEntityMapperTest {
             addedAt = 1000L
         )
 
-        val roundTripped = original.toEntity().toDomainModel()
+        val roundTripped = original.toLocalModel().toDomainModel()
 
         assertThat(roundTripped).isEqualTo(original)
     }

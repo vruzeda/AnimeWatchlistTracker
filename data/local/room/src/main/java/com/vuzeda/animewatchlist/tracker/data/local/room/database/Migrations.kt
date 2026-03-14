@@ -1,4 +1,4 @@
-package com.vuzeda.animewatchlist.tracker.data.local.database
+package com.vuzeda.animewatchlist.tracker.data.local.room.database
 
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase

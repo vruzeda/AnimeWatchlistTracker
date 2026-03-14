@@ -1,9 +1,9 @@
 package com.vuzeda.animewatchlist.tracker.data.repository.mapper
 
-import com.vuzeda.animewatchlist.tracker.data.local.entity.SeasonEntity
+import com.vuzeda.animewatchlist.tracker.data.local.Season as LocalSeason
 import com.vuzeda.animewatchlist.tracker.domain.model.Season
 
-fun SeasonEntity.toDomainModel(): Season = Season(
+fun LocalSeason.toDomainModel(): Season = Season(
     id = id,
     animeId = animeId,
     malId = malId,
@@ -21,7 +21,7 @@ fun SeasonEntity.toDomainModel(): Season = Season(
     isEpisodeNotificationsEnabled = isEpisodeNotificationsEnabled
 )
 
-fun Season.toEntity(): SeasonEntity = SeasonEntity(
+fun Season.toLocalModel(): LocalSeason = LocalSeason(
     id = id,
     animeId = animeId,
     malId = malId,

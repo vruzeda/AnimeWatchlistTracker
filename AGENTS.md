@@ -16,13 +16,14 @@ Prefer **pure Kotlin library modules** (`java-library` + `kotlin` plugins) whene
 ### Module Overview
 
 ```
-:domain          → Pure Kotlin library
-:data:api        → Pure Kotlin library (Retrofit interfaces, DTOs, JSON parsing)
-:data:local      → Android library (Room entities, DAOs, database)
-:data:repository → Android library (repository implementations, mappers)
-:designsystem    → Android library (design tokens, theme, reusable Compose components)
-:ui              → Android library (Compose screens, ViewModels, navigation)
-:app             → Android application (Hilt entry point, wires all modules together)
+:domain               → Pure Kotlin library
+:data:api             → Pure Kotlin library (Retrofit interfaces, DTOs, JSON parsing)
+:data:local           → Pure Kotlin library (local data source interfaces, plain record classes)
+:data:local:room      → Android library (Room entities, DAOs, DataStore — implements :data:local interfaces)
+:data:repository      → Pure Kotlin library (repository implementations, mappers)
+:designsystem         → Android library (design tokens, theme, reusable Compose components)
+:ui                   → Android library (Compose screens, ViewModels, navigation)
+:app                  → Android application (Hilt entry point, wires all modules together)
 ```
 
 ### Layer Rules
@@ -40,18 +41,24 @@ Prefer **pure Kotlin library modules** (`java-library` + `kotlin` plugins) whene
 - No Android dependencies. Retrofit interfaces and Moshi/Kotlin Serialization models are pure JVM.
 - Dependencies: `:domain`, Retrofit, OkHttp, Moshi.
 
-**`:data:local`** — Android Library
-- Contains: Room database class, DAOs, and Room entities.
-- This is an Android library module because Room requires Android annotation processing and the Android framework.
-- Dependencies: `:domain`, Room.
+**`:data:local`** — Pure Kotlin Library
+- Contains: local data source interfaces (`AnimeLocalDataSource`, `SeasonLocalDataSource`, `UserPreferencesLocalDataSource`) and plain Kotlin record classes (`Anime`, `Season`) that mirror the stored shape of each entity without any Room or Android annotations.
+- These types form the contract between `:data:repository` (consumer) and `:data:local:room` (provider). `:data:repository` depends only on this module and is therefore also a pure Kotlin module.
+- Dependencies: `kotlinx-coroutines-core` only. No Android, no Room, no `:domain`.
 
-**`:data:repository`** — Android Library
+**`:data:local:room`** — Android Library
+- Contains: Room `@Entity` classes, `@Dao` abstract classes (implementing the `Local DataSource` interfaces from `:data:local`), `DataStore`-based `UserPreferencesDataStore`, the Room `Database` class, type converters, migrations, and `RoomTransactionRunner`.
+- Each `@Dao` is an abstract class that implements its corresponding `LocalDataSource` interface. Abstract Room-annotated methods operate on `@Entity` types; concrete override methods map between `@Entity` types and the plain record classes from `:data:local`.
+- This is an Android library module because Room and DataStore require Android annotation processing and the Android framework.
+- Dependencies: `:data:local`, `:domain`, Room, DataStore, KSP.
+
+**`:data:repository`** — Pure Kotlin Library
 - Contains: repository implementations and mappers.
 - Implements the repository interfaces defined in `:domain`.
-- Depends on `:domain`, `:data:api`, and `:data:local` to coordinate between remote and local data sources.
-- Every entity and DTO must have a corresponding mapper (extension function or mapper class) that converts to/from the domain model.
+- Depends on `:domain`, `:data:api`, and `:data:local` (interfaces only) to coordinate between remote and local data sources.
+- Every entity and DTO must have a corresponding mapper (extension function) that converts to/from the domain model. Mapper functions for local data use `toDomainModel()` and `toLocalModel()` since the source/target is a plain record class, not a Room entity.
 - Repository implementations are the only classes that know about both local and remote data sources.
-- This is an Android library module (not pure Kotlin) because it directly depends on `:data:local`, which is an Android library containing Room entities and DAOs. The Android Gradle plugin is required to resolve these transitive Android dependencies correctly.
+- This is a **pure Kotlin JVM module** — it has no Android dependency because `:data:local` now exposes only JVM-compatible interfaces and record classes.
 
 **`:designsystem`** — Android Library
 - The app's design system. All visual building blocks live here.
@@ -94,16 +101,18 @@ Prefer **pure Kotlin library modules** (`java-library` + `kotlin` plugins) whene
 ```
 :app → :ui → :designsystem
               → :domain
-:app → :data:repository → :data:api    → :domain
-                        → :data:local   → :domain
+:app → :data:local:room → :data:local
+                        → :domain
+:app → :data:repository → :data:api      → :domain
+                        → :data:local
 ```
 
-`:domain` depends on nothing. `:designsystem` depends on nothing (no business logic modules). `:ui` depends on `:domain` and `:designsystem`. The `:data` modules depend on `:domain`. Only `:app` sees everything.
+`:domain` depends on nothing. `:data:local` depends on nothing (only coroutines). `:designsystem` depends on nothing (no business logic modules). `:ui` depends on `:domain` and `:designsystem`. `:data:repository` depends on `:domain`, `:data:api`, and `:data:local`. `:data:local:room` provides the Android implementations of the `:data:local` interfaces. Only `:app` sees everything.
 
 ### Module Gradle Configuration
 
-- Pure Kotlin modules apply `java-library` and `org.jetbrains.kotlin.jvm` plugins only. Current pure Kotlin modules: `:domain`, `:data:api`.
-- Android library modules apply `com.android.library`, `org.jetbrains.kotlin.android`, and `com.google.dagger.hilt.android` (if they provide Hilt modules). Current Android library modules: `:data:local`, `:data:repository`, `:designsystem`, `:ui`.
+- Pure Kotlin modules apply `java-library` and `org.jetbrains.kotlin.jvm` plugins only. Current pure Kotlin modules: `:domain`, `:data:api`, `:data:local`, `:data:repository`.
+- Android library modules apply `com.android.library`, `org.jetbrains.kotlin.android`, and `com.google.dagger.hilt.android` (if they provide Hilt modules). Current Android library modules: `:data:local:room`, `:designsystem`, `:ui`.
 - The `:app` module applies `com.android.application`, `org.jetbrains.kotlin.android`, and `com.google.dagger.hilt.android`.
 - Use a shared `buildSrc` or convention plugin for common configuration (compile SDK, JVM target, Kotlin options) to avoid duplication.
 - Use version catalogs (`libs.versions.toml`) for all dependency versions.
@@ -161,17 +170,29 @@ AnimeWatchlistTracker/
 │   │       ├── interceptor/
 │   │       │   └── RateLimitInterceptor.kt
 │   │       └── dto/
-│   ├── local/                    # :data:local — Android library
+│   ├── local/                    # :data:local — Pure Kotlin library
+│   │   └── src/main/java/.../
+│   │       ├── Anime.kt              # plain record class
+│   │       ├── Season.kt             # plain record class
+│   │       ├── AnimeLocalDataSource.kt
+│   │       ├── SeasonLocalDataSource.kt
+│   │       └── UserPreferencesLocalDataSource.kt
+│   ├── local/room/               # :data:local:room — Android library
 │   │   └── src/main/java/.../
 │   │       ├── dao/
+│   │       │   ├── AnimeRoomDao.kt       # @Dao abstract class implementing AnimeLocalDataSource
+│   │       │   └── SeasonRoomDao.kt      # @Dao abstract class implementing SeasonLocalDataSource
 │   │       ├── entity/
+│   │       │   ├── AnimeEntity.kt        # Room @Entity + toLocalModel/toEntity mappers
+│   │       │   └── SeasonEntity.kt       # Room @Entity + toLocalModel/toEntity mappers
 │   │       ├── preferences/
-│   │       │   └── UserPreferencesDataStore.kt
+│   │       │   └── UserPreferencesDataStore.kt   # implements UserPreferencesLocalDataSource
 │   │       └── database/
+│   │           ├── AnimeDatabase.kt
 │   │           ├── RoomTransactionRunner.kt
 │   │           ├── Converters.kt
 │   │           └── Migrations.kt
-│   └── repository/               # :data:repository — Android library
+│   └── repository/               # :data:repository — Pure Kotlin library
 │       └── src/main/kotlin/.../
 │           ├── mapper/
 │           └── impl/
@@ -213,7 +234,7 @@ Naming is the primary documentation in this project. Every name must be precise 
 - **Variables and properties**: `camelCase`. Name them for what they represent, not their type: `watchingAnimeList` not `list`, `selectedStatus` not `status`.
 - **Constants**: `SCREAMING_SNAKE_CASE` inside companion objects, `PascalCase` for top-level Compose constants.
 - **State flows**: Name the private mutable version with an underscore prefix: `_uiState` / `uiState`.
-- **Mapper functions**: `toDomainModel()`, `toEntity()`, `toDto()`. Always use extension functions on the source type.
+- **Mapper functions**: `toDomainModel()`, `toLocalModel()`, `toEntity()`, `toDto()`. Always use extension functions on the source type. Use `toLocalModel()` when mapping domain models to the plain record classes in `:data:local`; use `toEntity()` when mapping to Room `@Entity` types within `:data:local:room`.
 - **Boolean variables**: Prefix with `is`, `has`, `should`, or `can`: `isLoading`, `hasError`, `shouldRetry`.
 
 ### Comments Policy

@@ -2,8 +2,8 @@ package com.vuzeda.animewatchlist.tracker.data.repository.impl
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
-import com.vuzeda.animewatchlist.tracker.data.local.dao.AnimeDao
-import com.vuzeda.animewatchlist.tracker.data.local.entity.AnimeEntity
+import com.vuzeda.animewatchlist.tracker.data.local.Anime as LocalAnime
+import com.vuzeda.animewatchlist.tracker.data.local.AnimeLocalDataSource
 import com.vuzeda.animewatchlist.tracker.domain.model.Anime
 import com.vuzeda.animewatchlist.tracker.domain.model.NotificationType
 import com.vuzeda.animewatchlist.tracker.domain.model.Season
@@ -20,14 +20,14 @@ import org.junit.jupiter.api.Test
 
 class AnimeRepositoryImplTest {
 
-    private val animeDao: AnimeDao = mockk()
+    private val animeLocalDataSource: AnimeLocalDataSource = mockk()
     private val seasonRepository: SeasonRepository = mockk(relaxed = true)
     private val transactionRunner = object : TransactionRunner {
         override suspend fun <T> runInTransaction(block: suspend () -> T): T = block()
     }
-    private val repository = AnimeRepositoryImpl(animeDao, seasonRepository, transactionRunner)
+    private val repository = AnimeRepositoryImpl(animeLocalDataSource, seasonRepository, transactionRunner)
 
-    private val sampleEntity = AnimeEntity(
+    private val sampleLocalAnime = LocalAnime(
         id = 1L,
         title = "Attack on Titan",
         imageUrl = "https://example.com/aot.jpg",
@@ -41,7 +41,7 @@ class AnimeRepositoryImplTest {
 
     @Test
     fun `observeAll emits mapped domain models`() = runTest {
-        every { animeDao.observeAll() } returns flowOf(listOf(sampleEntity))
+        every { animeLocalDataSource.observeAll() } returns flowOf(listOf(sampleLocalAnime))
 
         repository.observeAll().test {
             val result = awaitItem()
@@ -54,8 +54,8 @@ class AnimeRepositoryImplTest {
     }
 
     @Test
-    fun `observeByStatus passes correct status string to dao`() = runTest {
-        every { animeDao.observeByStatus("COMPLETED") } returns flowOf(listOf(sampleEntity.copy(status = "COMPLETED")))
+    fun `observeByStatus passes correct status string to data source`() = runTest {
+        every { animeLocalDataSource.observeByStatus("COMPLETED") } returns flowOf(listOf(sampleLocalAnime.copy(status = "COMPLETED")))
 
         repository.observeByStatus(WatchStatus.COMPLETED).test {
             val result = awaitItem()
@@ -67,7 +67,7 @@ class AnimeRepositoryImplTest {
 
     @Test
     fun `observeById emits mapped domain model`() = runTest {
-        every { animeDao.observeById(1L) } returns flowOf(sampleEntity)
+        every { animeLocalDataSource.observeById(1L) } returns flowOf(sampleLocalAnime)
 
         repository.observeById(1L).test {
             val result = awaitItem()
@@ -80,7 +80,7 @@ class AnimeRepositoryImplTest {
 
     @Test
     fun `observeById emits null when not found`() = runTest {
-        every { animeDao.observeById(999L) } returns flowOf(null)
+        every { animeLocalDataSource.observeById(999L) } returns flowOf(null)
 
         repository.observeById(999L).test {
             assertThat(awaitItem()).isNull()
@@ -90,7 +90,7 @@ class AnimeRepositoryImplTest {
 
     @Test
     fun `addAnime inserts anime and delegates seasons to seasonRepository`() = runTest {
-        coEvery { animeDao.insert(any()) } returns 5L
+        coEvery { animeLocalDataSource.insert(any()) } returns 5L
 
         val anime = Anime(
             title = "Attack on Titan",
@@ -108,36 +108,36 @@ class AnimeRepositoryImplTest {
     }
 
     @Test
-    fun `updateAnime delegates to dao`() = runTest {
-        coEvery { animeDao.update(any()) } returns Unit
+    fun `updateAnime delegates to data source`() = runTest {
+        coEvery { animeLocalDataSource.update(any()) } returns Unit
 
         repository.updateAnime(Anime(id = 1L, title = "Test", status = WatchStatus.COMPLETED))
 
-        coVerify { animeDao.update(any()) }
+        coVerify { animeLocalDataSource.update(any()) }
     }
 
     @Test
-    fun `deleteAnime delegates to dao`() = runTest {
-        coEvery { animeDao.deleteById(1L) } returns Unit
+    fun `deleteAnime delegates to data source`() = runTest {
+        coEvery { animeLocalDataSource.deleteById(1L) } returns Unit
 
         repository.deleteAnime(1L)
 
-        coVerify { animeDao.deleteById(1L) }
+        coVerify { animeLocalDataSource.deleteById(1L) }
     }
 
     @Test
-    fun `updateNotificationType delegates to dao`() = runTest {
-        coEvery { animeDao.updateNotificationType(id = 1L, notificationType = "BOTH") } returns Unit
+    fun `updateNotificationType delegates to data source`() = runTest {
+        coEvery { animeLocalDataSource.updateNotificationType(id = 1L, notificationType = "BOTH") } returns Unit
 
         repository.updateNotificationType(id = 1L, notificationType = NotificationType.BOTH)
 
-        coVerify { animeDao.updateNotificationType(id = 1L, notificationType = "BOTH") }
+        coVerify { animeLocalDataSource.updateNotificationType(id = 1L, notificationType = "BOTH") }
     }
 
     @Test
     fun `getNotificationEnabledAnime returns mapped domain models`() = runTest {
-        val notifiedEntity = sampleEntity.copy(notificationType = "BOTH")
-        coEvery { animeDao.getNotificationEnabledAnime() } returns listOf(notifiedEntity)
+        val notifiedLocalAnime = sampleLocalAnime.copy(notificationType = "BOTH")
+        coEvery { animeLocalDataSource.getNotificationEnabledAnime() } returns listOf(notifiedLocalAnime)
 
         val result = repository.getNotificationEnabledAnime()
 
@@ -146,11 +146,11 @@ class AnimeRepositoryImplTest {
     }
 
     @Test
-    fun `deleteAllData delegates to animeDao deleteAll`() = runTest {
-        coEvery { animeDao.deleteAll() } returns Unit
+    fun `deleteAllData delegates to data source deleteAll`() = runTest {
+        coEvery { animeLocalDataSource.deleteAll() } returns Unit
 
         repository.deleteAllData()
 
-        coVerify(exactly = 1) { animeDao.deleteAll() }
+        coVerify(exactly = 1) { animeLocalDataSource.deleteAll() }
     }
 }

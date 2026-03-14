@@ -1,7 +1,7 @@
 package com.vuzeda.animewatchlist.tracker.data.repository.mapper
 
 import com.google.common.truth.Truth.assertThat
-import com.vuzeda.animewatchlist.tracker.data.local.entity.SeasonEntity
+import com.vuzeda.animewatchlist.tracker.data.local.Season as LocalSeason
 import com.vuzeda.animewatchlist.tracker.domain.model.Season
 import org.junit.jupiter.api.Test
 
@@ -9,7 +9,7 @@ class SeasonEntityMapperTest {
 
     @Test
     fun `toDomainModel maps all fields correctly`() {
-        val entity = SeasonEntity(
+        val localSeason = LocalSeason(
             id = 1L,
             animeId = 10L,
             malId = 16498,
@@ -25,7 +25,7 @@ class SeasonEntityMapperTest {
             isEpisodeNotificationsEnabled = true
         )
 
-        val season = entity.toDomainModel()
+        val season = localSeason.toDomainModel()
 
         assertThat(season.id).isEqualTo(1L)
         assertThat(season.animeId).isEqualTo(10L)
@@ -43,7 +43,7 @@ class SeasonEntityMapperTest {
     }
 
     @Test
-    fun `toEntity maps all fields correctly`() {
+    fun `toLocalModel maps all fields correctly`() {
         val season = Season(
             id = 1L,
             animeId = 10L,
@@ -60,26 +60,26 @@ class SeasonEntityMapperTest {
             isEpisodeNotificationsEnabled = true
         )
 
-        val entity = season.toEntity()
+        val localSeason = season.toLocalModel()
 
-        assertThat(entity.id).isEqualTo(1L)
-        assertThat(entity.animeId).isEqualTo(10L)
-        assertThat(entity.malId).isEqualTo(16498)
-        assertThat(entity.title).isEqualTo("Attack on Titan")
-        assertThat(entity.imageUrl).isEqualTo("https://example.com/aot.jpg")
-        assertThat(entity.type).isEqualTo("TV")
-        assertThat(entity.episodeCount).isEqualTo(25)
-        assertThat(entity.currentEpisode).isEqualTo(12)
-        assertThat(entity.score).isEqualTo(8.5)
-        assertThat(entity.orderIndex).isEqualTo(0)
-        assertThat(entity.airingStatus).isEqualTo("Finished Airing")
-        assertThat(entity.lastCheckedAiredEpisodeCount).isEqualTo(25)
-        assertThat(entity.isEpisodeNotificationsEnabled).isTrue()
+        assertThat(localSeason.id).isEqualTo(1L)
+        assertThat(localSeason.animeId).isEqualTo(10L)
+        assertThat(localSeason.malId).isEqualTo(16498)
+        assertThat(localSeason.title).isEqualTo("Attack on Titan")
+        assertThat(localSeason.imageUrl).isEqualTo("https://example.com/aot.jpg")
+        assertThat(localSeason.type).isEqualTo("TV")
+        assertThat(localSeason.episodeCount).isEqualTo(25)
+        assertThat(localSeason.currentEpisode).isEqualTo(12)
+        assertThat(localSeason.score).isEqualTo(8.5)
+        assertThat(localSeason.orderIndex).isEqualTo(0)
+        assertThat(localSeason.airingStatus).isEqualTo("Finished Airing")
+        assertThat(localSeason.lastCheckedAiredEpisodeCount).isEqualTo(25)
+        assertThat(localSeason.isEpisodeNotificationsEnabled).isTrue()
     }
 
     @Test
     fun `handles null optional fields`() {
-        val entity = SeasonEntity(
+        val localSeason = LocalSeason(
             id = 1L,
             animeId = 10L,
             malId = 100,
@@ -91,7 +91,7 @@ class SeasonEntityMapperTest {
             lastCheckedAiredEpisodeCount = null
         )
 
-        val season = entity.toDomainModel()
+        val season = localSeason.toDomainModel()
 
         assertThat(season.imageUrl).isNull()
         assertThat(season.episodeCount).isNull()
@@ -118,7 +118,7 @@ class SeasonEntityMapperTest {
             isEpisodeNotificationsEnabled = true
         )
 
-        val roundTripped = original.toEntity().toDomainModel()
+        val roundTripped = original.toLocalModel().toDomainModel()
 
         assertThat(roundTripped).isEqualTo(original)
     }
