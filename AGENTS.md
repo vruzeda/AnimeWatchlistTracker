@@ -64,16 +64,16 @@ All modules except `:app` live under the `module/` root directory.
 
 **`:module:repository`** — Pure Kotlin Library
 - Contains: repository interfaces (`AnimeRepository`, `SeasonRepository`, `UserPreferencesRepository`, `TransactionRunner`), repository implementations (`AnimeRepositoryImpl`, `SeasonRepositoryImpl`, `UserPreferencesRepositoryImpl`), and entity mappers.
-- Re-exports `AnimeRemoteDataSource` via `api(project(":module:remote-data-source"))` so use cases can depend on the remote data source interface transitively.
+- `AnimeRepositoryImpl` delegates all remote-fetching operations to `AnimeRemoteDataSource` internally; `AnimeRemoteDataSource` is not exposed to consumers.
 - Implementations are the only classes that coordinate between local and remote data sources.
 - Package: `com.vuzeda.animewatchlist.tracker.module.repository`
-- Dependencies: `api(:module:remote-data-source)`, `:module:local-data-source`, `:module:domain`.
+- Dependencies: `:module:remote-data-source` (implementation), `:module:local-data-source`, `:module:domain`.
 
 **`:module:use-case`** — Pure Kotlin Library
 - Contains: all use cases. Each represents a single business operation with a single `operator fun invoke(...)` method.
 - Use cases receive repository interfaces via constructor injection. They must not call other use cases — compose at the ViewModel level.
 - Package: `com.vuzeda.animewatchlist.tracker.module.usecase`
-- Dependencies: `:module:repository` (gives transitive access to `AnimeRemoteDataSource` via `api()`), `:module:domain`.
+- Dependencies: `:module:repository`, `:module:domain`.
 
 **`:module:design-system`** — Android Library
 - The app's design system. All visual building blocks live here.
@@ -118,7 +118,7 @@ All modules except `:app` live under the `module/` root directory.
 :module:domain               — no module deps
 :module:local-data-source    — no module deps
 :module:remote-data-source   → :module:domain
-:module:repository           → api(:module:remote-data-source)
+:module:repository           → :module:remote-data-source
                              → :module:local-data-source
                              → :module:domain
 :module:use-case             → :module:repository
