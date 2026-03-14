@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.vuzeda.animewatchlist.tracker.module.localdatasource.Season as LocalSeason
+import com.vuzeda.animewatchlist.tracker.module.domain.Season
 
 @Entity(
     tableName = "season",
@@ -36,7 +36,7 @@ data class SeasonEntity(
     val isEpisodeNotificationsEnabled: Boolean = false
 )
 
-fun SeasonEntity.toLocalModel(): LocalSeason = LocalSeason(
+fun SeasonEntity.toDomainModel(): Season = Season(
     id = id,
     animeId = animeId,
     malId = malId,
@@ -54,7 +54,7 @@ fun SeasonEntity.toLocalModel(): LocalSeason = LocalSeason(
     isEpisodeNotificationsEnabled = isEpisodeNotificationsEnabled
 )
 
-fun LocalSeason.toEntity(): SeasonEntity = SeasonEntity(
+fun Season.toEntity(): SeasonEntity = SeasonEntity(
     id = id,
     animeId = animeId,
     malId = malId,

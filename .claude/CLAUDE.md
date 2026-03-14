@@ -40,7 +40,7 @@ All test modules use JUnit 5 — `useJUnitPlatform()` is configured in each modu
 | Module | Type | Contains |
 |--------|------|----------|
 | `:module:domain` | Pure Kotlin lib | Domain models only |
-| `:module:local-data-source` | Pure Kotlin lib | Local data source interfaces, plain record classes |
+| `:module:local-data-source` | Pure Kotlin lib | Local data source interfaces (using domain types) |
 | `:module:local-data-source-room` | Android lib | Room entities, DAOs, DataStore, migrations |
 | `:module:remote-data-source` | Pure Kotlin lib | `AnimeRemoteDataSource` interface |
 | `:module:remote-data-source-retrofit` | Pure Kotlin lib | Retrofit impl, DTOs, DTO mappers, interceptors |

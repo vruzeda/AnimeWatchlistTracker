@@ -2,12 +2,11 @@ package com.vuzeda.animewatchlist.tracker.module.repository.impl
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
-import com.vuzeda.animewatchlist.tracker.module.localdatasource.Anime as LocalAnime
-import com.vuzeda.animewatchlist.tracker.module.localdatasource.AnimeLocalDataSource
 import com.vuzeda.animewatchlist.tracker.module.domain.Anime
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
+import com.vuzeda.animewatchlist.tracker.module.localdatasource.AnimeLocalDataSource
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.AnimeRemoteDataSource
 import com.vuzeda.animewatchlist.tracker.module.repository.SeasonRepository
 import com.vuzeda.animewatchlist.tracker.module.repository.TransactionRunner
@@ -29,21 +28,21 @@ class AnimeRepositoryImplTest {
     }
     private val repository = AnimeRepositoryImpl(animeLocalDataSource, animeRemoteDataSource, seasonRepository, transactionRunner)
 
-    private val sampleLocalAnime = LocalAnime(
+    private val sampleAnime = Anime(
         id = 1L,
         title = "Attack on Titan",
         imageUrl = "https://example.com/aot.jpg",
         synopsis = "Humanity fights titans.",
-        genres = "Action,Drama",
-        status = "WATCHING",
+        genres = listOf("Action", "Drama"),
+        status = WatchStatus.WATCHING,
         userRating = 9,
-        notificationType = "NONE",
+        notificationType = NotificationType.NONE,
         addedAt = 1000L
     )
 
     @Test
     fun `observeAll emits mapped domain models`() = runTest {
-        every { animeLocalDataSource.observeAll() } returns flowOf(listOf(sampleLocalAnime))
+        every { animeLocalDataSource.observeAll() } returns flowOf(listOf(sampleAnime))
 
         repository.observeAll().test {
             val result = awaitItem()
@@ -56,8 +55,8 @@ class AnimeRepositoryImplTest {
     }
 
     @Test
-    fun `observeByStatus passes correct status string to data source`() = runTest {
-        every { animeLocalDataSource.observeByStatus("COMPLETED") } returns flowOf(listOf(sampleLocalAnime.copy(status = "COMPLETED")))
+    fun `observeByStatus passes correct status to data source`() = runTest {
+        every { animeLocalDataSource.observeByStatus(WatchStatus.COMPLETED) } returns flowOf(listOf(sampleAnime.copy(status = WatchStatus.COMPLETED)))
 
         repository.observeByStatus(WatchStatus.COMPLETED).test {
             val result = awaitItem()
@@ -69,7 +68,7 @@ class AnimeRepositoryImplTest {
 
     @Test
     fun `observeById emits mapped domain model`() = runTest {
-        every { animeLocalDataSource.observeById(1L) } returns flowOf(sampleLocalAnime)
+        every { animeLocalDataSource.observeById(1L) } returns flowOf(sampleAnime)
 
         repository.observeById(1L).test {
             val result = awaitItem()
@@ -129,17 +128,17 @@ class AnimeRepositoryImplTest {
 
     @Test
     fun `updateNotificationType delegates to data source`() = runTest {
-        coEvery { animeLocalDataSource.updateNotificationType(id = 1L, notificationType = "BOTH") } returns Unit
+        coEvery { animeLocalDataSource.updateNotificationType(id = 1L, notificationType = NotificationType.BOTH) } returns Unit
 
         repository.updateNotificationType(id = 1L, notificationType = NotificationType.BOTH)
 
-        coVerify { animeLocalDataSource.updateNotificationType(id = 1L, notificationType = "BOTH") }
+        coVerify { animeLocalDataSource.updateNotificationType(id = 1L, notificationType = NotificationType.BOTH) }
     }
 
     @Test
-    fun `getNotificationEnabledAnime returns mapped domain models`() = runTest {
-        val notifiedLocalAnime = sampleLocalAnime.copy(notificationType = "BOTH")
-        coEvery { animeLocalDataSource.getNotificationEnabledAnime() } returns listOf(notifiedLocalAnime)
+    fun `getNotificationEnabledAnime returns domain models`() = runTest {
+        val notifiedAnime = sampleAnime.copy(notificationType = NotificationType.BOTH)
+        coEvery { animeLocalDataSource.getNotificationEnabledAnime() } returns listOf(notifiedAnime)
 
         val result = repository.getNotificationEnabledAnime()
 

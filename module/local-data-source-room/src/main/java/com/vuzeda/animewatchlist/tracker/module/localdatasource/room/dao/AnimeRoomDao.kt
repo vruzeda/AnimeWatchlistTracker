@@ -5,11 +5,13 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
-import com.vuzeda.animewatchlist.tracker.module.localdatasource.Anime as LocalAnime
+import com.vuzeda.animewatchlist.tracker.module.domain.Anime
+import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
+import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.AnimeLocalDataSource
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.AnimeEntity
+import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.toDomainModel
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.toEntity
-import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.toLocalModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -37,18 +39,21 @@ abstract class AnimeRoomDao : AnimeLocalDataSource {
     @Query("SELECT * FROM anime WHERE notificationType != 'NONE'")
     abstract suspend fun getNotificationEnabledAnimeEntities(): List<AnimeEntity>
 
-    override fun observeAll(): Flow<List<LocalAnime>> =
-        observeAllEntities().map { it.map { e -> e.toLocalModel() } }
+    @Query("UPDATE anime SET notificationType = :notificationType WHERE id = :id")
+    abstract suspend fun updateNotificationTypeByName(id: Long, notificationType: String)
 
-    override fun observeByStatus(status: String): Flow<List<LocalAnime>> =
-        observeByStatusEntity(status).map { it.map { e -> e.toLocalModel() } }
+    override fun observeAll(): Flow<List<Anime>> =
+        observeAllEntities().map { it.map { e -> e.toDomainModel() } }
 
-    override fun observeById(id: Long): Flow<LocalAnime?> =
-        observeByIdEntity(id).map { it?.toLocalModel() }
+    override fun observeByStatus(status: WatchStatus): Flow<List<Anime>> =
+        observeByStatusEntity(status.name).map { it.map { e -> e.toDomainModel() } }
 
-    override suspend fun insert(anime: LocalAnime): Long = insertEntity(anime.toEntity())
+    override fun observeById(id: Long): Flow<Anime?> =
+        observeByIdEntity(id).map { it?.toDomainModel() }
 
-    override suspend fun update(anime: LocalAnime) = updateEntity(anime.toEntity())
+    override suspend fun insert(anime: Anime): Long = insertEntity(anime.toEntity())
+
+    override suspend fun update(anime: Anime) = updateEntity(anime.toEntity())
 
     @Query("DELETE FROM anime WHERE id = :id")
     override abstract suspend fun deleteById(id: Long)
@@ -56,11 +61,11 @@ abstract class AnimeRoomDao : AnimeLocalDataSource {
     @Query("DELETE FROM anime")
     override abstract suspend fun deleteAll()
 
-    override suspend fun getById(id: Long): LocalAnime? = getByIdEntity(id)?.toLocalModel()
+    override suspend fun getById(id: Long): Anime? = getByIdEntity(id)?.toDomainModel()
 
-    override suspend fun getNotificationEnabledAnime(): List<LocalAnime> =
-        getNotificationEnabledAnimeEntities().map { it.toLocalModel() }
+    override suspend fun getNotificationEnabledAnime(): List<Anime> =
+        getNotificationEnabledAnimeEntities().map { it.toDomainModel() }
 
-    @Query("UPDATE anime SET notificationType = :notificationType WHERE id = :id")
-    override abstract suspend fun updateNotificationType(id: Long, notificationType: String)
+    override suspend fun updateNotificationType(id: Long, notificationType: NotificationType) =
+        updateNotificationTypeByName(id, notificationType.name)
 }

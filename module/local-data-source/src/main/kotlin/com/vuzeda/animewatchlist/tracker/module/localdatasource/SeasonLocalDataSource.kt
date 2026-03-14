@@ -1,5 +1,6 @@
 package com.vuzeda.animewatchlist.tracker.module.localdatasource
 
+import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import kotlinx.coroutines.flow.Flow
 
 interface SeasonLocalDataSource {

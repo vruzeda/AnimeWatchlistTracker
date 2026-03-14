@@ -15,10 +15,7 @@ import com.vuzeda.animewatchlist.tracker.module.remotedatasource.AnimeRemoteData
 import com.vuzeda.animewatchlist.tracker.module.repository.AnimeRepository
 import com.vuzeda.animewatchlist.tracker.module.repository.SeasonRepository
 import com.vuzeda.animewatchlist.tracker.module.repository.TransactionRunner
-import com.vuzeda.animewatchlist.tracker.module.repository.mapper.toDomainModel
-import com.vuzeda.animewatchlist.tracker.module.repository.mapper.toLocalModel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class AnimeRepositoryImpl @Inject constructor(
@@ -29,26 +26,26 @@ class AnimeRepositoryImpl @Inject constructor(
 ) : AnimeRepository {
 
     override fun observeAll(): Flow<List<Anime>> =
-        animeLocalDataSource.observeAll().map { entities -> entities.map { it.toDomainModel() } }
+        animeLocalDataSource.observeAll()
 
     override fun observeByStatus(status: WatchStatus): Flow<List<Anime>> =
-        animeLocalDataSource.observeByStatus(status.name).map { entities -> entities.map { it.toDomainModel() } }
+        animeLocalDataSource.observeByStatus(status)
 
     override fun observeById(id: Long): Flow<Anime?> =
-        animeLocalDataSource.observeById(id).map { it?.toDomainModel() }
+        animeLocalDataSource.observeById(id)
 
     override suspend fun getAnimeById(id: Long): Anime? =
-        animeLocalDataSource.getById(id)?.toDomainModel()
+        animeLocalDataSource.getById(id)
 
     override suspend fun addAnime(anime: Anime, seasons: List<Season>): Long =
         transactionRunner.runInTransaction {
-            val animeId = animeLocalDataSource.insert(anime.toLocalModel())
+            val animeId = animeLocalDataSource.insert(anime)
             seasonRepository.addSeasonsToAnime(animeId, seasons)
             animeId
         }
 
     override suspend fun updateAnime(anime: Anime) {
-        animeLocalDataSource.update(anime.toLocalModel())
+        animeLocalDataSource.update(anime)
     }
 
     override suspend fun deleteAnime(id: Long) {
@@ -56,11 +53,11 @@ class AnimeRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateNotificationType(id: Long, notificationType: NotificationType) {
-        animeLocalDataSource.updateNotificationType(id = id, notificationType = notificationType.name)
+        animeLocalDataSource.updateNotificationType(id = id, notificationType = notificationType)
     }
 
     override suspend fun getNotificationEnabledAnime(): List<Anime> =
-        animeLocalDataSource.getNotificationEnabledAnime().map { it.toDomainModel() }
+        animeLocalDataSource.getNotificationEnabledAnime()
 
     override suspend fun deleteAllData() {
         transactionRunner.runInTransaction {

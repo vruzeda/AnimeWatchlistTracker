@@ -2,9 +2,8 @@ package com.vuzeda.animewatchlist.tracker.module.repository.impl
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
-import com.vuzeda.animewatchlist.tracker.module.localdatasource.Season as LocalSeason
-import com.vuzeda.animewatchlist.tracker.module.localdatasource.SeasonLocalDataSource
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
+import com.vuzeda.animewatchlist.tracker.module.localdatasource.SeasonLocalDataSource
 import com.vuzeda.animewatchlist.tracker.module.repository.TransactionRunner
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -23,7 +22,7 @@ class SeasonRepositoryImplTest {
     }
     private val repository = SeasonRepositoryImpl(seasonLocalDataSource, transactionRunner)
 
-    private val sampleLocalSeason = LocalSeason(
+    private val sampleSeason = Season(
         id = 1L,
         animeId = 1L,
         malId = 16498,
@@ -37,7 +36,7 @@ class SeasonRepositoryImplTest {
 
     @Test
     fun `observeSeasonsForAnime emits mapped season domain models`() = runTest {
-        every { seasonLocalDataSource.observeByAnimeId(1L) } returns flowOf(listOf(sampleLocalSeason))
+        every { seasonLocalDataSource.observeByAnimeId(1L) } returns flowOf(listOf(sampleSeason))
 
         repository.observeSeasonsForAnime(1L).test {
             val result = awaitItem()
@@ -51,7 +50,7 @@ class SeasonRepositoryImplTest {
 
     @Test
     fun `observeSeasonById emits mapped domain model`() = runTest {
-        every { seasonLocalDataSource.observeById(1L) } returns flowOf(sampleLocalSeason)
+        every { seasonLocalDataSource.observeById(1L) } returns flowOf(sampleSeason)
 
         repository.observeSeasonById(1L).test {
             val result = awaitItem()
@@ -75,7 +74,7 @@ class SeasonRepositoryImplTest {
 
     @Test
     fun `findAnimeIdBySeasonMalId returns animeId when found`() = runTest {
-        coEvery { seasonLocalDataSource.findByMalId(16498) } returns sampleLocalSeason
+        coEvery { seasonLocalDataSource.findByMalId(16498) } returns sampleSeason
 
         val result = repository.findAnimeIdBySeasonMalId(16498)
 
@@ -93,7 +92,7 @@ class SeasonRepositoryImplTest {
 
     @Test
     fun `getSeasonsForAnime returns mapped season domain models`() = runTest {
-        coEvery { seasonLocalDataSource.getByAnimeId(1L) } returns listOf(sampleLocalSeason)
+        coEvery { seasonLocalDataSource.getByAnimeId(1L) } returns listOf(sampleSeason)
 
         val result = repository.getSeasonsForAnime(1L)
 
@@ -111,7 +110,7 @@ class SeasonRepositoryImplTest {
 
         repository.addSeasonsToAnime(animeId = 5L, seasons = seasons)
 
-        val seasonSlot = slot<List<LocalSeason>>()
+        val seasonSlot = slot<List<Season>>()
         coVerify { seasonLocalDataSource.insertAll(capture(seasonSlot)) }
         assertThat(seasonSlot.captured[0].animeId).isEqualTo(5L)
         assertThat(seasonSlot.captured[0].malId).isEqualTo(200)

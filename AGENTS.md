@@ -19,7 +19,7 @@ All modules except `:app` live under the `module/` root directory.
 
 ```
 :module:domain                → Pure Kotlin library (models only)
-:module:local-data-source     → Pure Kotlin library (local data source interfaces, plain record classes)
+:module:local-data-source     → Pure Kotlin library (local data source interfaces, uses domain types)
 :module:local-data-source-room → Android library (Room entities, DAOs, DataStore)
 :module:remote-data-source    → Pure Kotlin library (AnimeRemoteDataSource interface)
 :module:remote-data-source-retrofit → Pure Kotlin library (Retrofit impl, DTOs, interceptors)
@@ -40,14 +40,14 @@ All modules except `:app` live under the `module/` root directory.
 - Dependencies: `kotlinx-coroutines-core` only.
 
 **`:module:local-data-source`** — Pure Kotlin Library
-- Contains: local data source interfaces (`AnimeLocalDataSource`, `SeasonLocalDataSource`, `UserPreferencesLocalDataSource`) and plain Kotlin record classes (`Anime`, `Season`) that mirror the stored shape of each entity without any Room or Android annotations.
-- These types form the contract between `:module:repository` (consumer) and `:module:local-data-source-room` (provider).
+- Contains: local data source interfaces (`AnimeLocalDataSource`, `SeasonLocalDataSource`, `UserPreferencesLocalDataSource`). These interfaces use domain models directly as their parameter and return types.
+- These interfaces form the contract between `:module:repository` (consumer) and `:module:local-data-source-room` (provider).
 - Package: `com.vuzeda.animewatchlist.tracker.module.localdatasource`
-- Dependencies: `kotlinx-coroutines-core` only. No Android, no Room, no `:module:domain`.
+- Dependencies: `:module:domain`, `kotlinx-coroutines-core`. No Android, no Room.
 
 **`:module:local-data-source-room`** — Android Library
 - Contains: Room `@Entity` classes, `@Dao` abstract classes (implementing the `LocalDataSource` interfaces from `:module:local-data-source`), `DataStore`-based `UserPreferencesDataStore`, the Room `Database` class, type converters, migrations, and `RoomTransactionRunner`.
-- Each `@Dao` is an abstract class that implements its corresponding `LocalDataSource` interface. Abstract Room-annotated methods operate on `@Entity` types; concrete override methods map between `@Entity` types and the plain record classes from `:module:local-data-source`.
+- Each `@Dao` is an abstract class that implements its corresponding `LocalDataSource` interface. Abstract Room-annotated methods operate on `@Entity` types; concrete override methods map between `@Entity` types and domain models via `toDomainModel()`/`toEntity()` extension functions defined alongside the entity classes.
 - Package: `com.vuzeda.animewatchlist.tracker.module.localdatasource.room`
 - Dependencies: `:module:local-data-source`, `:module:domain`, `:module:repository` (for `TransactionRunner` interface), Room, DataStore, KSP.
 
@@ -63,7 +63,7 @@ All modules except `:app` live under the `module/` root directory.
 - Dependencies: `:module:remote-data-source`, `:module:domain`, Retrofit, OkHttp, Moshi, KSP.
 
 **`:module:repository`** — Pure Kotlin Library
-- Contains: repository interfaces (`AnimeRepository`, `SeasonRepository`, `UserPreferencesRepository`, `TransactionRunner`), repository implementations (`AnimeRepositoryImpl`, `SeasonRepositoryImpl`, `UserPreferencesRepositoryImpl`), and entity mappers.
+- Contains: repository interfaces (`AnimeRepository`, `SeasonRepository`, `UserPreferencesRepository`, `TransactionRunner`) and repository implementations (`AnimeRepositoryImpl`, `SeasonRepositoryImpl`, `UserPreferencesRepositoryImpl`).
 - `AnimeRepositoryImpl` delegates all remote-fetching operations to `AnimeRemoteDataSource` internally; `AnimeRemoteDataSource` is not exposed to consumers.
 - Implementations are the only classes that coordinate between local and remote data sources.
 - Package: `com.vuzeda.animewatchlist.tracker.module.repository`
@@ -116,7 +116,7 @@ All modules except `:app` live under the `module/` root directory.
 
 ```
 :module:domain               — no module deps
-:module:local-data-source    — no module deps
+:module:local-data-source    → :module:domain
 :module:remote-data-source   → :module:domain
 :module:repository           → :module:remote-data-source
                              → :module:local-data-source
@@ -202,8 +202,6 @@ AnimeWatchlistTracker/
 │   │       └── (16 model files: Anime, AnimeFullDetails, AnimeSeason, ...)
 │   ├── local-data-source/        # :module:local-data-source — Pure Kotlin library
 │   │   └── src/main/kotlin/.../module/localdatasource/
-│   │       ├── Anime.kt
-│   │       ├── Season.kt
 │   │       ├── AnimeLocalDataSource.kt
 │   │       ├── SeasonLocalDataSource.kt
 │   │       └── UserPreferencesLocalDataSource.kt
@@ -229,8 +227,7 @@ AnimeWatchlistTracker/
 │   │       ├── SeasonRepository.kt
 │   │       ├── UserPreferencesRepository.kt
 │   │       ├── TransactionRunner.kt
-│   │       ├── impl/
-│   │       └── mapper/
+│   │       └── impl/
 │   ├── use-case/                 # :module:use-case — Pure Kotlin library
 │   │   └── src/main/kotlin/.../module/usecase/
 │   │       └── (27 use case files)
@@ -259,7 +256,7 @@ Naming is the primary documentation in this project. Every name must be precise 
 - **Variables and properties**: `camelCase`. Name them for what they represent, not their type: `watchingAnimeList` not `list`, `selectedStatus` not `status`.
 - **Constants**: `SCREAMING_SNAKE_CASE` inside companion objects, `PascalCase` for top-level Compose constants.
 - **State flows**: Name the private mutable version with an underscore prefix: `_uiState` / `uiState`.
-- **Mapper functions**: `toDomainModel()`, `toLocalModel()`, `toEntity()`, `toDto()`. Always use extension functions on the source type. Use `toLocalModel()` when mapping domain models to the plain record classes in `:module:local-data-source`; use `toEntity()` when mapping to Room `@Entity` types within `:module:local-data-source-room`.
+- **Mapper functions**: `toDomainModel()`, `toEntity()`, `toDto()`. Always use extension functions on the source type. Use `toEntity()` when mapping domain models to Room `@Entity` types within `:module:local-data-source-room`; use `toDomainModel()` for the reverse.
 - **Boolean variables**: Prefix with `is`, `has`, `should`, or `can`: `isLoading`, `hasError`, `shouldRetry`.
 
 ### Comments Policy

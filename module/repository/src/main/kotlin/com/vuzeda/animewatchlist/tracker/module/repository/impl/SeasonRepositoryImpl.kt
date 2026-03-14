@@ -1,8 +1,6 @@
 package com.vuzeda.animewatchlist.tracker.module.repository.impl
 
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.SeasonLocalDataSource
-import com.vuzeda.animewatchlist.tracker.module.repository.mapper.toDomainModel
-import com.vuzeda.animewatchlist.tracker.module.repository.mapper.toLocalModel
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.repository.SeasonRepository
 import com.vuzeda.animewatchlist.tracker.module.repository.TransactionRunner
@@ -16,16 +14,16 @@ class SeasonRepositoryImpl @Inject constructor(
 ) : SeasonRepository {
 
     override fun observeAllSeasons(): Flow<List<Season>> =
-        seasonLocalDataSource.observeAll().map { entities -> entities.map { it.toDomainModel() } }
+        seasonLocalDataSource.observeAll()
 
     override fun observeAllSeasonMalIds(): Flow<Set<Int>> =
         seasonLocalDataSource.observeAllMalIds().map { it.toSet() }
 
     override fun observeSeasonsForAnime(animeId: Long): Flow<List<Season>> =
-        seasonLocalDataSource.observeByAnimeId(animeId).map { entities -> entities.map { it.toDomainModel() } }
+        seasonLocalDataSource.observeByAnimeId(animeId)
 
     override fun observeSeasonById(id: Long): Flow<Season?> =
-        seasonLocalDataSource.observeById(id).map { it?.toDomainModel() }
+        seasonLocalDataSource.observeById(id)
 
     override suspend fun findAnimeIdBySeasonMalId(malId: Int): Long? =
         seasonLocalDataSource.findByMalId(malId)?.animeId
@@ -34,17 +32,16 @@ class SeasonRepositoryImpl @Inject constructor(
         seasonLocalDataSource.findByMalId(malId)?.id
 
     override suspend fun getSeasonsForAnime(animeId: Long): List<Season> =
-        seasonLocalDataSource.getByAnimeId(animeId).map { it.toDomainModel() }
+        seasonLocalDataSource.getByAnimeId(animeId)
 
     override suspend fun addSeasonsToAnime(animeId: Long, seasons: List<Season>) {
         transactionRunner.runInTransaction {
-            val localSeasons = seasons.map { it.copy(animeId = animeId).toLocalModel() }
-            seasonLocalDataSource.insertAll(localSeasons)
+            seasonLocalDataSource.insertAll(seasons.map { it.copy(animeId = animeId) })
         }
     }
 
     override suspend fun updateSeason(season: Season) {
-        seasonLocalDataSource.update(season.toLocalModel())
+        seasonLocalDataSource.update(season)
     }
 
     override suspend fun updateSeasonNotificationData(
@@ -62,5 +59,5 @@ class SeasonRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getSeasonsWithEpisodeNotifications(): List<Season> =
-        seasonLocalDataSource.getSeasonsWithEpisodeNotifications().map { it.toDomainModel() }
+        seasonLocalDataSource.getSeasonsWithEpisodeNotifications()
 }
