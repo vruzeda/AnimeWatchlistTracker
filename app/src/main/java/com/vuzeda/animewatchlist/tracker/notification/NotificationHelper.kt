@@ -43,28 +43,42 @@ class NotificationHelper @Inject constructor(
             return
         }
 
-        val (title, text, notificationId) = when (update) {
-            is AnimeUpdate.NewEpisodes -> Triple(
-                update.anime.title,
+        val anime = when (update) {
+            is AnimeUpdate.NewEpisodes -> update.anime
+            is AnimeUpdate.NewSeason -> update.anime
+        }
+        val (text, notificationId) = when (update) {
+            is AnimeUpdate.NewEpisodes -> Pair(
                 "Episode ${update.latestAiredEpisode} has aired!",
-                update.anime.id.toInt()
+                "ep_${anime.id}".hashCode()
             )
-            is AnimeUpdate.NewSeason -> Triple(
-                update.anime.title,
+            is AnimeUpdate.NewSeason -> Pair(
                 "New season announced: ${update.sequelTitle}",
-                update.anime.id.toInt() + update.sequelMalId
+                "season_${anime.id}_${update.sequelMalId}".hashCode()
             )
         }
+        val groupKey = "anime_${anime.id}"
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle(title)
+            .setContentTitle(anime.title)
             .setContentText(text)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
+            .setGroup(groupKey)
             .build()
 
         notificationManager.notify(notificationId, notification)
+
+        val summary = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle(anime.title)
+            .setGroup(groupKey)
+            .setGroupSummary(true)
+            .setAutoCancel(true)
+            .build()
+
+        notificationManager.notify(anime.id.toInt(), summary)
     }
 
     companion object {
