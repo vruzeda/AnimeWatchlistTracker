@@ -87,13 +87,22 @@ All test modules use JUnit 5 — `useJUnitPlatform()` is configured in each modu
 - Pattern: Arrange-Act-Assert with blank line separation
 - Tests must be fast and deterministic — no network, no real DB (use fake DAOs / in-memory Room for DAO tests)
 
+## Milestone Checklist (mandatory after every working change)
+
+After completing each logical unit of work, always run these steps **in order** before moving on:
+
+1. **Run all unit tests** — `./gradlew :module:domain:test :module:remote-data-source-retrofit:test :module:repository:test :module:use-case:test :module:ui:test`
+2. **Verify branch coverage** — `./gradlew jacocoTestCoverageVerification` (must pass ≥80%)
+3. **Commit** — conventional commit (`feat:`, `fix:`, `refactor:`, `test:`, `chore:`) describing *why*, not *what*
+
+Do not skip or defer any of these steps. Do not batch multiple milestones before committing.
+
 ## Coding Standards (summary)
 
 - No comments except KDoc on public use case classes and `TODO` markers
 - Never use `!!` — handle nullability with `?.`, `?:`, `let`
 - `suspend` for one-shot operations; `Flow` for data displayed on screen
 - `_uiState` / `uiState` convention for private/public state flows
-- Commit with conventional commits (`feat:`, `fix:`, `refactor:`, `test:`, `chore:`) at each working milestone — build and tests must pass before each commit
 
 ## Technology Stack
 
