@@ -15,16 +15,21 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
-import java.time.Clock
 import java.time.LocalDate
 import java.time.ZoneOffset
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 class CheckAnimeUpdatesUseCaseTest {
 
     private val animeRepository = mockk<AnimeRepository>(relaxed = true)
     private val seasonRepository = mockk<SeasonRepository>(relaxed = true)
     private val fixedDate = LocalDate.of(2026, 3, 15)
-    private val fixedClock = Clock.fixed(fixedDate.atStartOfDay(ZoneOffset.UTC).toInstant(), ZoneOffset.UTC)
+    private val fixedClock = object : Clock {
+        override fun now(): Instant = Instant.fromEpochMilliseconds(
+            fixedDate.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+        )
+    }
     private val useCase = CheckAnimeUpdatesUseCase(animeRepository, seasonRepository, fixedClock)
 
     private val sampleAnime = Anime(

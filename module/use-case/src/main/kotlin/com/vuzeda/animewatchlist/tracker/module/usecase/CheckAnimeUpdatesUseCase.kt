@@ -6,19 +6,20 @@ import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.repository.AnimeRepository
 import com.vuzeda.animewatchlist.tracker.module.repository.SeasonRepository
-import java.time.Clock
 import java.time.LocalDate
+import java.time.ZoneOffset
 import javax.inject.Inject
+import kotlin.time.Clock
 
 /** Checks all notification-enabled anime and seasons for new episodes and new seasons. */
 class CheckAnimeUpdatesUseCase @Inject constructor(
     private val animeRepository: AnimeRepository,
     private val seasonRepository: SeasonRepository,
-    private val clock: Clock = Clock.systemDefaultZone()
+    private val clock: Clock = Clock.System
 ) {
 
     suspend operator fun invoke(): List<AnimeUpdate> {
-        val today = LocalDate.now(clock)
+        val today = clock.todayUtc()
         val updates = mutableListOf<AnimeUpdate>()
         val checkedSeasonIds = mutableSetOf<Long>()
 
@@ -124,3 +125,8 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
         val ALLOWED_TYPES = setOf("TV", "Movie")
     }
 }
+
+private fun Clock.todayUtc(): LocalDate =
+    java.time.Instant.ofEpochMilli(now().toEpochMilliseconds())
+        .atZone(ZoneOffset.UTC)
+        .toLocalDate()
