@@ -17,15 +17,20 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.vuzeda.animewatchlist.tracker.module.designsystem.R
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
 
@@ -37,6 +42,32 @@ fun NotificationButton(
 ) {
     val context = LocalContext.current
     var showRationaleDialog by remember { mutableStateOf(false) }
+
+    // Explicit MutableState reference so the DisposableEffect observer always reads the
+    // current value without relying on Kotlin delegate capture semantics in a lambda.
+    val waitingForSettingsResult = remember { mutableStateOf(false) }
+
+    val currentOnClick by rememberUpdatedState(onClick)
+    val currentOnPermissionDenied by rememberUpdatedState(onPermissionDenied)
+
+    // When the user returns from the Settings app, check if permission was granted and
+    // proceed with enabling notifications if so.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME && waitingForSettingsResult.value) {
+                waitingForSettingsResult.value = false
+                val granted = Build.VERSION.SDK_INT < 33 ||
+                    ContextCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.POST_NOTIFICATIONS
+                    ) == PackageManager.PERMISSION_GRANTED
+                if (granted) currentOnClick() else currentOnPermissionDenied()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) {
@@ -78,6 +109,7 @@ fun NotificationButton(
             confirmButton = {
                 TextButton(onClick = {
                     showRationaleDialog = false
+                    waitingForSettingsResult.value = true
                     context.startActivity(
                         Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
                             putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
