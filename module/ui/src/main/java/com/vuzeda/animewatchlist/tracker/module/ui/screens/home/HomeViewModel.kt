@@ -117,6 +117,7 @@ fun buildSeasonItems(
     val animeMap = animeList.associateBy { it.id }
 
     val enriched = seasonList.mapNotNull { season ->
+        if (!season.isInWatchlist) return@mapNotNull null
         val anime = animeMap[season.animeId] ?: return@mapNotNull null
         HomeSeasonItem(
             season = season,

@@ -352,6 +352,32 @@ class HomeViewModelTest {
     }
 
     @Test
+    fun `season mode excludes seasons not in watchlist`() = runTest {
+        val seasonListWithNonWatchlist = sampleSeasonList + Season(
+            id = 99L, animeId = 1L, malId = 999, title = "Attack on Titan OVA", isInWatchlist = false
+        )
+        every { observeAnimeListUseCase() } returns flowOf(sampleAnimeList)
+        every { observeAllSeasonsUseCase() } returns flowOf(seasonListWithNonWatchlist)
+        every { observeHomeViewModeUseCase() } returns flowOf(HomeViewMode.SEASON)
+
+        val viewModel = HomeViewModel(
+            observeAnimeListUseCase,
+            observeTitleLanguageUseCase,
+            observeHomeViewModeUseCase,
+            observeAllSeasonsUseCase
+        )
+
+        viewModel.uiState.test {
+            val loading = awaitItem()
+            assertThat(loading.isLoading).isTrue()
+
+            val loaded = awaitItem()
+            assertThat(loaded.seasonItems).hasSize(4)
+            assertThat(loaded.seasonItems.none { it.season.title == "Attack on Titan OVA" }).isTrue()
+        }
+    }
+
+    @Test
     fun `season mode sorts by score when USER_RATING selected`() = runTest {
         every { observeAnimeListUseCase() } returns flowOf(sampleAnimeList)
         every { observeAllSeasonsUseCase() } returns flowOf(sampleSeasonList)
