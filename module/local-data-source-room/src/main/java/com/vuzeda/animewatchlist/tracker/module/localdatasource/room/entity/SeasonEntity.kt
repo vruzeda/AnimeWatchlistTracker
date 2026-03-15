@@ -5,6 +5,7 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
+import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 
 @Entity(
     tableName = "season",
@@ -29,11 +30,13 @@ data class SeasonEntity(
     val type: String = "TV",
     val episodeCount: Int? = null,
     val currentEpisode: Int = 0,
+    val status: String = "PLAN_TO_WATCH",
     val score: Double? = null,
     val orderIndex: Int = 0,
     val airingStatus: String? = null,
     val lastCheckedAiredEpisodeCount: Int? = null,
-    val isEpisodeNotificationsEnabled: Boolean = false
+    val isEpisodeNotificationsEnabled: Boolean = false,
+    val isInWatchlist: Boolean = true
 )
 
 fun SeasonEntity.toDomainModel(): Season = Season(
@@ -47,11 +50,13 @@ fun SeasonEntity.toDomainModel(): Season = Season(
     type = type,
     episodeCount = episodeCount,
     currentEpisode = currentEpisode,
+    status = WatchStatus.entries.firstOrNull { it.name == status } ?: WatchStatus.PLAN_TO_WATCH,
     score = score,
     orderIndex = orderIndex,
     airingStatus = airingStatus,
     lastCheckedAiredEpisodeCount = lastCheckedAiredEpisodeCount,
-    isEpisodeNotificationsEnabled = isEpisodeNotificationsEnabled
+    isEpisodeNotificationsEnabled = isEpisodeNotificationsEnabled,
+    isInWatchlist = isInWatchlist
 )
 
 fun Season.toEntity(): SeasonEntity = SeasonEntity(
@@ -65,9 +70,11 @@ fun Season.toEntity(): SeasonEntity = SeasonEntity(
     type = type,
     episodeCount = episodeCount,
     currentEpisode = currentEpisode,
+    status = status.name,
     score = score,
     orderIndex = orderIndex,
     airingStatus = airingStatus,
     lastCheckedAiredEpisodeCount = lastCheckedAiredEpisodeCount,
-    isEpisodeNotificationsEnabled = isEpisodeNotificationsEnabled
+    isEpisodeNotificationsEnabled = isEpisodeNotificationsEnabled,
+    isInWatchlist = isInWatchlist
 )

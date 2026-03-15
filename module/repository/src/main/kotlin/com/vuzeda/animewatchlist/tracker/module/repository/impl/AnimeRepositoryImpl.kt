@@ -16,6 +16,7 @@ import com.vuzeda.animewatchlist.tracker.module.repository.AnimeRepository
 import com.vuzeda.animewatchlist.tracker.module.repository.SeasonRepository
 import com.vuzeda.animewatchlist.tracker.module.repository.TransactionRunner
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
 
 class AnimeRepositoryImpl @Inject constructor(
@@ -25,17 +26,53 @@ class AnimeRepositoryImpl @Inject constructor(
     private val transactionRunner: TransactionRunner
 ) : AnimeRepository {
 
-    override fun observeAll(): Flow<List<Anime>> =
-        animeLocalDataSource.observeAll()
+    override fun observeAll(): Flow<List<Anime>> = combine(
+        animeLocalDataSource.observeAll(),
+        seasonRepository.observeAllSeasons()
+    ) { animeList, seasons ->
+        val seasonsByAnimeId = seasons.groupBy { it.animeId }
+        animeList.map { anime ->
+            anime.copy(
+                status = seasonsByAnimeId[anime.id]
+                    ?.filter { it.isInWatchlist }
+                    ?.maxByOrNull { it.orderIndex }?.status
+                    ?: WatchStatus.PLAN_TO_WATCH
+            )
+        }
+    }
 
-    override fun observeByStatus(status: WatchStatus): Flow<List<Anime>> =
-        animeLocalDataSource.observeByStatus(status)
+    override fun observeByStatus(status: WatchStatus): Flow<List<Anime>> = combine(
+        animeLocalDataSource.observeAll(),
+        seasonRepository.observeAllSeasons()
+    ) { animeList, seasons ->
+        val seasonsByAnimeId = seasons.groupBy { it.animeId }
+        animeList.mapNotNull { anime ->
+            val effectiveStatus = seasonsByAnimeId[anime.id]
+                ?.filter { it.isInWatchlist }
+                ?.maxByOrNull { it.orderIndex }?.status
+                ?: WatchStatus.PLAN_TO_WATCH
+            if (effectiveStatus == status) anime.copy(status = effectiveStatus) else null
+        }
+    }
 
-    override fun observeById(id: Long): Flow<Anime?> =
-        animeLocalDataSource.observeById(id)
+    override fun observeById(id: Long): Flow<Anime?> = combine(
+        animeLocalDataSource.observeById(id),
+        seasonRepository.observeSeasonsForAnime(id)
+    ) { anime, seasons ->
+        anime?.copy(
+            status = seasons.filter { it.isInWatchlist }
+                .maxByOrNull { it.orderIndex }?.status ?: WatchStatus.PLAN_TO_WATCH
+        )
+    }
 
-    override suspend fun getAnimeById(id: Long): Anime? =
-        animeLocalDataSource.getById(id)
+    override suspend fun getAnimeById(id: Long): Anime? {
+        val anime = animeLocalDataSource.getById(id) ?: return null
+        val seasons = seasonRepository.getSeasonsForAnime(anime.id)
+        return anime.copy(
+            status = seasons.filter { it.isInWatchlist }
+                .maxByOrNull { it.orderIndex }?.status ?: WatchStatus.PLAN_TO_WATCH
+        )
+    }
 
     override suspend fun addAnime(anime: Anime, seasons: List<Season>): Long =
         transactionRunner.runInTransaction {

@@ -7,7 +7,6 @@ import androidx.room.Query
 import androidx.room.Update
 import com.vuzeda.animewatchlist.tracker.module.domain.Anime
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
-import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.AnimeLocalDataSource
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.AnimeEntity
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.toDomainModel
@@ -20,9 +19,6 @@ abstract class AnimeRoomDao : AnimeLocalDataSource {
 
     @Query("SELECT * FROM anime ORDER BY title ASC")
     abstract fun observeAllEntities(): Flow<List<AnimeEntity>>
-
-    @Query("SELECT * FROM anime WHERE status = :status ORDER BY title ASC")
-    abstract fun observeByStatusEntity(status: String): Flow<List<AnimeEntity>>
 
     @Query("SELECT * FROM anime WHERE id = :id")
     abstract fun observeByIdEntity(id: Long): Flow<AnimeEntity?>
@@ -44,9 +40,6 @@ abstract class AnimeRoomDao : AnimeLocalDataSource {
 
     override fun observeAll(): Flow<List<Anime>> =
         observeAllEntities().map { it.map { e -> e.toDomainModel() } }
-
-    override fun observeByStatus(status: WatchStatus): Flow<List<Anime>> =
-        observeByStatusEntity(status.name).map { it.map { e -> e.toDomainModel() } }
 
     override fun observeById(id: Long): Flow<Anime?> =
         observeByIdEntity(id).map { it?.toDomainModel() }

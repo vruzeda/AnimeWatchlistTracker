@@ -44,14 +44,14 @@ class AddAnimeUseCaseTest {
     }
 
     @Test
-    fun `add anime with given watch status and current date`() = runTest {
+    fun `add anime with current date and status propagated to all seasons`() = runTest {
         useCase(anime, seasons, WatchStatus.WATCHING)
 
         val animeSlot = slot<Anime>()
-        coVerify { animeRepository.addAnime(capture(animeSlot), any()) }
+        val seasonsSlot = slot<List<Season>>()
+        coVerify { animeRepository.addAnime(capture(animeSlot), capture(seasonsSlot)) }
 
-        val anime = animeSlot.captured
-        assertThat(anime).isEqualTo(
+        assertThat(animeSlot.captured).isEqualTo(
             Anime(
                 id = 0,
                 title = "Anime S1",
@@ -60,11 +60,12 @@ class AddAnimeUseCaseTest {
                 imageUrl = "s1.jpg",
                 synopsis = "First season synopsis",
                 genres = listOf("Action"),
-                status = WatchStatus.WATCHING,
                 userRating = null,
                 notificationType = NotificationType.NONE,
                 addedAt = 1770294088886,
             )
         )
+        assertThat(seasonsSlot.captured).hasSize(2)
+        assertThat(seasonsSlot.captured.all { it.status == WatchStatus.WATCHING }).isTrue()
     }
 }

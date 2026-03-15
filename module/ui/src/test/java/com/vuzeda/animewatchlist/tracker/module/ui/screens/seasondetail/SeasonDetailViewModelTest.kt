@@ -10,6 +10,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddAnimeFromDetailsUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.AddSeasonToWatchlistUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.DeleteSeasonUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FetchEpisodesUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FetchSeasonDetailUseCase
@@ -45,6 +46,7 @@ class SeasonDetailViewModelTest {
     private val fetchEpisodesUseCase: FetchEpisodesUseCase = mockk()
     private val updateSeasonProgressUseCase: UpdateSeasonProgressUseCase = mockk(relaxed = true)
     private val deleteSeasonUseCase: DeleteSeasonUseCase = mockk(relaxed = true)
+    private val addSeasonToWatchlistUseCase: AddSeasonToWatchlistUseCase = mockk(relaxed = true)
     private val addAnimeFromDetailsUseCase: AddAnimeFromDetailsUseCase = mockk(relaxed = true)
     private val findSeasonIdByMalIdUseCase: FindSeasonIdByMalIdUseCase = mockk()
     private val toggleSeasonEpisodeNotificationsUseCase: ToggleSeasonEpisodeNotificationsUseCase = mockk(relaxed = true)
@@ -102,6 +104,7 @@ class SeasonDetailViewModelTest {
             fetchEpisodesUseCase = fetchEpisodesUseCase,
             updateSeasonProgressUseCase = updateSeasonProgressUseCase,
             deleteSeasonUseCase = deleteSeasonUseCase,
+            addSeasonToWatchlistUseCase = addSeasonToWatchlistUseCase,
             addAnimeFromDetailsUseCase = addAnimeFromDetailsUseCase,
             findSeasonIdByMalIdUseCase = findSeasonIdByMalIdUseCase,
             toggleSeasonEpisodeNotificationsUseCase = toggleSeasonEpisodeNotificationsUseCase,
@@ -421,6 +424,56 @@ class SeasonDetailViewModelTest {
                     enabled = true
                 )
             }
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `isInWatchlist reflects season isInWatchlist field`() = runTest {
+        val nonWatchlistSeason = sampleSeason.copy(isInWatchlist = false)
+        seasonFlow.value = nonWatchlistSeason
+
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            val state = expectMostRecentItem() as SeasonDetailUiState.Success
+            assertThat(state.isInWatchlist).isFalse()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `isLastSeason counts only in-watchlist siblings`() = runTest {
+        val nonWatchlistSibling = Season(id = 2L, animeId = 1L, malId = 200, title = "S2", isInWatchlist = false)
+        every { observeSeasonsForAnimeUseCase(1L) } returns flowOf(listOf(sampleSeason, nonWatchlistSibling))
+
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            val state = expectMostRecentItem() as SeasonDetailUiState.Success
+            assertThat(state.isLastSeason).isTrue()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `addToWatchlist for in-DB non-watchlist season calls addSeasonToWatchlistUseCase`() = runTest {
+        val nonWatchlistSeason = sampleSeason.copy(isInWatchlist = false)
+        seasonFlow.value = nonWatchlistSeason
+
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.addToWatchlist(WatchStatus.WATCHING)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            coVerify { addSeasonToWatchlistUseCase(nonWatchlistSeason, WatchStatus.WATCHING) }
+            coVerify(exactly = 0) { addAnimeFromDetailsUseCase(any(), any()) }
             cancelAndIgnoreRemainingEvents()
         }
     }

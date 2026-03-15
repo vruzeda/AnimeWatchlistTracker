@@ -13,7 +13,8 @@ class DeleteSeasonUseCase @Inject constructor(
 
     suspend operator fun invoke(season: Season) {
         val siblings = seasonRepository.getSeasonsForAnime(season.animeId)
-        if (siblings.size <= 1) {
+        val watchlistSiblings = siblings.filter { it.isInWatchlist }
+        if (watchlistSiblings.size <= 1) {
             animeRepository.deleteAnime(season.animeId)
         } else {
             seasonRepository.deleteSeason(season.id)

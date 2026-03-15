@@ -45,9 +45,20 @@ class AnimeRepositoryImplTest {
         addedAt = 1000L
     )
 
+    private val sampleSeason = Season(
+        id = 1L,
+        animeId = 1L,
+        malId = 16498,
+        title = "Season 1",
+        orderIndex = 0,
+        status = WatchStatus.WATCHING,
+        isInWatchlist = true
+    )
+
     @Test
-    fun `observeAll emits mapped domain models`() = runTest {
+    fun `observeAll derives status from most recent season`() = runTest {
         every { animeLocalDataSource.observeAll() } returns flowOf(listOf(sampleAnime))
+        every { seasonRepository.observeAllSeasons() } returns flowOf(listOf(sampleSeason))
 
         repository.observeAll().test {
             val result = awaitItem()
@@ -60,26 +71,73 @@ class AnimeRepositoryImplTest {
     }
 
     @Test
-    fun `observeByStatus passes correct status to data source`() = runTest {
-        every { animeLocalDataSource.observeByStatus(WatchStatus.COMPLETED) } returns flowOf(listOf(sampleAnime.copy(status = WatchStatus.COMPLETED)))
+    fun `observeAll defaults status to PLAN_TO_WATCH when anime has no seasons`() = runTest {
+        every { animeLocalDataSource.observeAll() } returns flowOf(listOf(sampleAnime))
+        every { seasonRepository.observeAllSeasons() } returns flowOf(emptyList())
 
-        repository.observeByStatus(WatchStatus.COMPLETED).test {
+        repository.observeAll().test {
             val result = awaitItem()
 
-            assertThat(result).hasSize(1)
+            assertThat(result[0].status).isEqualTo(WatchStatus.PLAN_TO_WATCH)
             awaitComplete()
         }
     }
 
     @Test
-    fun `observeById emits mapped domain model`() = runTest {
+    fun `observeAll ignores non-watchlist seasons when deriving status`() = runTest {
+        val nonWatchlistSeason = sampleSeason.copy(
+            id = 2L, orderIndex = 1, status = WatchStatus.COMPLETED, isInWatchlist = false
+        )
+        every { animeLocalDataSource.observeAll() } returns flowOf(listOf(sampleAnime))
+        every { seasonRepository.observeAllSeasons() } returns flowOf(listOf(sampleSeason, nonWatchlistSeason))
+
+        repository.observeAll().test {
+            val result = awaitItem()
+
+            assertThat(result[0].status).isEqualTo(WatchStatus.WATCHING)
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `observeByStatus filters by derived season status`() = runTest {
+        val completedSeason = sampleSeason.copy(status = WatchStatus.COMPLETED)
+        every { animeLocalDataSource.observeAll() } returns flowOf(listOf(sampleAnime))
+        every { seasonRepository.observeAllSeasons() } returns flowOf(listOf(completedSeason))
+
+        repository.observeByStatus(WatchStatus.COMPLETED).test {
+            val result = awaitItem()
+
+            assertThat(result).hasSize(1)
+            assertThat(result[0].status).isEqualTo(WatchStatus.COMPLETED)
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `observeByStatus excludes anime whose most recent season has a different status`() = runTest {
+        every { animeLocalDataSource.observeAll() } returns flowOf(listOf(sampleAnime))
+        every { seasonRepository.observeAllSeasons() } returns flowOf(listOf(sampleSeason))
+
+        repository.observeByStatus(WatchStatus.COMPLETED).test {
+            val result = awaitItem()
+
+            assertThat(result).isEmpty()
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `observeById derives status from most recent season`() = runTest {
         every { animeLocalDataSource.observeById(1L) } returns flowOf(sampleAnime)
+        every { seasonRepository.observeSeasonsForAnime(1L) } returns flowOf(listOf(sampleSeason))
 
         repository.observeById(1L).test {
             val result = awaitItem()
 
             assertThat(result).isNotNull()
             assertThat(result?.title).isEqualTo("Attack on Titan")
+            assertThat(result?.status).isEqualTo(WatchStatus.WATCHING)
             awaitComplete()
         }
     }
@@ -87,6 +145,7 @@ class AnimeRepositoryImplTest {
     @Test
     fun `observeById emits null when not found`() = runTest {
         every { animeLocalDataSource.observeById(999L) } returns flowOf(null)
+        every { seasonRepository.observeSeasonsForAnime(999L) } returns flowOf(emptyList())
 
         repository.observeById(999L).test {
             assertThat(awaitItem()).isNull()
@@ -95,8 +154,9 @@ class AnimeRepositoryImplTest {
     }
 
     @Test
-    fun `getAnimeById returns anime when found`() = runTest {
+    fun `getAnimeById derives status from most recent season`() = runTest {
         coEvery { animeLocalDataSource.getById(1L) } returns sampleAnime
+        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
 
         val result = repository.getAnimeById(1L)
 

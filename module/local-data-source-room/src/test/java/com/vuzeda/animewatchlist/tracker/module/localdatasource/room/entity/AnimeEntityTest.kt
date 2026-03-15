@@ -12,8 +12,7 @@ class AnimeEntityTest {
     fun `toDomainModel maps blank genres string to empty list`() {
         val entity = AnimeEntity(
             title = "Test",
-            genres = "",
-            status = "WATCHING"
+            genres = ""
         )
 
         val result = entity.toDomainModel()
@@ -25,8 +24,7 @@ class AnimeEntityTest {
     fun `toDomainModel maps genres string with whitespace around comma entries`() {
         val entity = AnimeEntity(
             title = "Test",
-            genres = "Action, Drama, Sci-Fi",
-            status = "WATCHING"
+            genres = "Action, Drama, Sci-Fi"
         )
 
         val result = entity.toDomainModel()
@@ -35,30 +33,11 @@ class AnimeEntityTest {
     }
 
     @Test
-    fun `toDomainModel maps valid WatchStatus`() {
-        WatchStatus.entries.forEach { watchStatus ->
-            val entity = AnimeEntity(title = "Test", genres = "", status = watchStatus.name)
-
-            assertThat(entity.toDomainModel().status).isEqualTo(watchStatus)
-        }
-    }
-
-    @Test
-    fun `toDomainModel falls back to PLAN_TO_WATCH for unknown status`() {
-        val entity = AnimeEntity(title = "Test", genres = "", status = "UNKNOWN_STATUS")
-
-        val result = entity.toDomainModel()
-
-        assertThat(result.status).isEqualTo(WatchStatus.PLAN_TO_WATCH)
-    }
-
-    @Test
     fun `toDomainModel maps valid NotificationType`() {
         NotificationType.entries.forEach { notificationType ->
             val entity = AnimeEntity(
                 title = "Test",
                 genres = "",
-                status = "WATCHING",
                 notificationType = notificationType.name
             )
 
@@ -71,7 +50,6 @@ class AnimeEntityTest {
         val entity = AnimeEntity(
             title = "Test",
             genres = "",
-            status = "WATCHING",
             notificationType = "UNKNOWN_TYPE"
         )
 
@@ -90,7 +68,6 @@ class AnimeEntityTest {
             imageUrl = "https://example.com/aot.jpg",
             synopsis = "Humanity vs titans",
             genres = "Action,Drama",
-            status = "WATCHING",
             userRating = 9,
             notificationType = "BOTH",
             addedAt = 1000L
@@ -105,7 +82,6 @@ class AnimeEntityTest {
         assertThat(result.imageUrl).isEqualTo("https://example.com/aot.jpg")
         assertThat(result.synopsis).isEqualTo("Humanity vs titans")
         assertThat(result.genres).containsExactly("Action", "Drama").inOrder()
-        assertThat(result.status).isEqualTo(WatchStatus.WATCHING)
         assertThat(result.userRating).isEqualTo(9)
         assertThat(result.notificationType).isEqualTo(NotificationType.BOTH)
         assertThat(result.addedAt).isEqualTo(1000L)
@@ -136,7 +112,6 @@ class AnimeEntityTest {
         assertThat(result.imageUrl).isEqualTo("https://example.com/op.jpg")
         assertThat(result.synopsis).isEqualTo("Pirates and treasure")
         assertThat(result.genres).isEqualTo("Adventure,Comedy")
-        assertThat(result.status).isEqualTo("COMPLETED")
         assertThat(result.userRating).isEqualTo(10)
         assertThat(result.notificationType).isEqualTo("NEW_EPISODES")
         assertThat(result.addedAt).isEqualTo(2000L)
@@ -144,7 +119,7 @@ class AnimeEntityTest {
 
     @Test
     fun `toEntity joins empty genres list as empty string`() {
-        val anime = Anime(title = "Test", genres = emptyList(), status = WatchStatus.PLAN_TO_WATCH)
+        val anime = Anime(title = "Test", genres = emptyList())
 
         val result = anime.toEntity()
 

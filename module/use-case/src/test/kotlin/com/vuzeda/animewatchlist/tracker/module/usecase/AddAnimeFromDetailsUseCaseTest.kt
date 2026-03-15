@@ -98,7 +98,6 @@ class AddAnimeFromDetailsUseCaseTest {
                 imageUrl = "s1.jpg",
                 synopsis = "First season synopsis",
                 genres = listOf("Action"),
-                status = WatchStatus.WATCHING,
                 userRating = null,
                 notificationType = NotificationType.NONE,
                 addedAt = 1770294088886,
@@ -126,7 +125,6 @@ class AddAnimeFromDetailsUseCaseTest {
                 imageUrl = "s2.jpg",
                 synopsis = "Second season synopsis",
                 genres = listOf("Action", "Drama"),
-                status = WatchStatus.WATCHING,
                 userRating = null,
                 notificationType = NotificationType.NONE,
                 addedAt = 1770294088886,
@@ -154,7 +152,6 @@ class AddAnimeFromDetailsUseCaseTest {
                 imageUrl = "s1.jpg",
                 synopsis = "First season synopsis",
                 genres = listOf("Action"),
-                status = WatchStatus.WATCHING,
                 userRating = null,
                 notificationType = NotificationType.NONE,
                 addedAt = 1770294088886,
@@ -172,9 +169,25 @@ class AddAnimeFromDetailsUseCaseTest {
         val seasonsSlot = slot<List<com.vuzeda.animewatchlist.tracker.module.domain.Season>>()
         coVerify { animeRepository.addAnime(any(), capture(seasonsSlot)) }
 
-        val season = seasonsSlot.captured[0]
-        assertThat(season.malId).isEqualTo(200)
+        val season = seasonsSlot.captured.first { it.malId == 200 }
         assertThat(season.orderIndex).isEqualTo(1)
+        assertThat(season.status).isEqualTo(WatchStatus.WATCHING)
+        assertThat(season.isInWatchlist).isTrue()
+    }
+
+    @Test
+    fun `saves all watch order seasons when adding new anime, marking only clicked as in watchlist`() = runTest {
+        coEvery { animeRepository.fetchWatchOrder(200) } returns Result.success(watchOrder)
+        coEvery { animeRepository.fetchAnimeFullById(100) } returns Result.success(firstSeasonDetails)
+
+        useCase(secondSeasonDetails, WatchStatus.WATCHING)
+
+        val seasonsSlot = slot<List<com.vuzeda.animewatchlist.tracker.module.domain.Season>>()
+        coVerify { animeRepository.addAnime(any(), capture(seasonsSlot)) }
+
+        assertThat(seasonsSlot.captured).hasSize(2)
+        assertThat(seasonsSlot.captured.first { it.malId == 100 }.isInWatchlist).isFalse()
+        assertThat(seasonsSlot.captured.first { it.malId == 200 }.isInWatchlist).isTrue()
     }
 
     @Test
@@ -301,7 +314,9 @@ class AddAnimeFromDetailsUseCaseTest {
 
         val seasonsSlot = slot<List<com.vuzeda.animewatchlist.tracker.module.domain.Season>>()
         coVerify { animeRepository.addAnime(any(), capture(seasonsSlot)) }
-        assertThat(seasonsSlot.captured[0].orderIndex).isEqualTo(0)
+        val clickedSeason = seasonsSlot.captured.first { it.malId == 999 }
+        assertThat(clickedSeason.orderIndex).isEqualTo(0)
+        assertThat(clickedSeason.isInWatchlist).isTrue()
     }
 
     @Test

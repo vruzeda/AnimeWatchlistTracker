@@ -2,12 +2,10 @@ package com.vuzeda.animewatchlist.tracker.module.localdatasource
 
 import com.vuzeda.animewatchlist.tracker.module.domain.Anime
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
-import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import kotlinx.coroutines.flow.Flow
 
 interface AnimeLocalDataSource {
     fun observeAll(): Flow<List<Anime>>
-    fun observeByStatus(status: WatchStatus): Flow<List<Anime>>
     fun observeById(id: Long): Flow<Anime?>
     suspend fun insert(anime: Anime): Long
     suspend fun update(anime: Anime)

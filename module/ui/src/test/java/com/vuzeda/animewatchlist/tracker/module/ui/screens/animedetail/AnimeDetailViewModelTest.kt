@@ -19,6 +19,8 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseC
 import com.vuzeda.animewatchlist.tracker.module.usecase.ResolveAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ToggleAnimeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.RefreshAnimeSeasonsUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonStatusUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -42,12 +44,14 @@ class AnimeDetailViewModelTest {
     private val observeAnimeByIdUseCase: ObserveAnimeByIdUseCase = mockk()
     private val observeSeasonsForAnimeUseCase: ObserveSeasonsForAnimeUseCase = mockk()
     private val updateAnimeUseCase: UpdateAnimeUseCase = mockk()
+    private val updateSeasonStatusUseCase: UpdateSeasonStatusUseCase = mockk()
     private val deleteAnimeUseCase: DeleteAnimeUseCase = mockk()
     private val toggleAnimeNotificationsUseCase: ToggleAnimeNotificationsUseCase = mockk(relaxed = true)
     private val resolveAnimeUseCase: ResolveAnimeUseCase = mockk()
     private val addAnimeUseCase: AddAnimeUseCase = mockk()
     private val findAnimeBySeasonMalIdUseCase: FindAnimeBySeasonMalIdUseCase = mockk()
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
+    private val refreshAnimeSeasonsUseCase: RefreshAnimeSeasonsUseCase = mockk(relaxed = true)
 
     private val sampleAnime = Anime(
         id = 1L,
@@ -91,12 +95,14 @@ class AnimeDetailViewModelTest {
             observeAnimeByIdUseCase = observeAnimeByIdUseCase,
             observeSeasonsForAnimeUseCase = observeSeasonsForAnimeUseCase,
             updateAnimeUseCase = updateAnimeUseCase,
+            updateSeasonStatusUseCase = updateSeasonStatusUseCase,
             deleteAnimeUseCase = deleteAnimeUseCase,
             toggleAnimeNotificationsUseCase = toggleAnimeNotificationsUseCase,
             resolveAnimeUseCase = resolveAnimeUseCase,
             addAnimeUseCase = addAnimeUseCase,
             findAnimeBySeasonMalIdUseCase = findAnimeBySeasonMalIdUseCase,
-            observeTitleLanguageUseCase = observeTitleLanguageUseCase
+            observeTitleLanguageUseCase = observeTitleLanguageUseCase,
+            refreshAnimeSeasonsUseCase = refreshAnimeSeasonsUseCase
         )
     }
 
@@ -210,9 +216,9 @@ class AnimeDetailViewModelTest {
     }
 
     @Test
-    fun `updateStatus persists via use case`() = runTest {
-        coEvery { updateAnimeUseCase(any()) } coAnswers {
-            animeFlow.value = firstArg()
+    fun `updateStatus updates most recent season status via use case`() = runTest {
+        coEvery { updateSeasonStatusUseCase(any(), any()) } coAnswers {
+            animeFlow.value = animeFlow.value!!.copy(status = secondArg())
         }
 
         val viewModel = createViewModel()
@@ -222,11 +228,12 @@ class AnimeDetailViewModelTest {
             expectMostRecentItem()
 
             viewModel.updateStatus(WatchStatus.COMPLETED)
+            testDispatcher.scheduler.advanceUntilIdle()
 
-            val updated = awaitItem() as AnimeDetailUiState.Success
+            val updated = expectMostRecentItem() as AnimeDetailUiState.Success
             assertThat(updated.anime.status).isEqualTo(WatchStatus.COMPLETED)
 
-            coVerify { updateAnimeUseCase(match { it.status == WatchStatus.COMPLETED }) }
+            coVerify { updateSeasonStatusUseCase(match { it.id == 2L }, WatchStatus.COMPLETED) }
             cancelAndIgnoreRemainingEvents()
         }
     }

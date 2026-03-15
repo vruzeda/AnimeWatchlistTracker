@@ -21,7 +21,7 @@ class AddAnimeFromDetailsUseCase @Inject constructor(
         val watchOrder = animeRepository.fetchWatchOrder(details.malId).getOrNull()
         val orderIndex = resolveOrderIndex(details.malId, watchOrder)
 
-        val season = Season(
+        val clickedSeason = Season(
             malId = details.malId,
             title = details.title,
             titleEnglish = details.titleEnglish,
@@ -31,14 +31,16 @@ class AddAnimeFromDetailsUseCase @Inject constructor(
             episodeCount = details.episodes,
             score = details.score,
             airingStatus = details.airingStatus,
-            orderIndex = orderIndex
+            orderIndex = orderIndex,
+            status = status,
+            isInWatchlist = true
         )
 
         seasonRepository.findAnimeIdBySeasonMalId(details.malId)?.let { return it }
 
         val existingAnimeId = watchOrder?.firstNotNullOfOrNull { seasonRepository.findAnimeIdBySeasonMalId(it.malId) }
         if (existingAnimeId != null) {
-            seasonRepository.addSeasonsToAnime(existingAnimeId, listOf(season))
+            seasonRepository.addSeasonsToAnime(existingAnimeId, listOf(clickedSeason))
             return existingAnimeId
         }
 
@@ -50,10 +52,38 @@ class AddAnimeFromDetailsUseCase @Inject constructor(
             imageUrl = firstSeasonDetails.imageUrl,
             synopsis = firstSeasonDetails.synopsis,
             genres = firstSeasonDetails.genres,
-            status = status,
             addedAt = clock.now().toEpochMilliseconds()
         )
-        return animeRepository.addAnime(anime = anime, seasons = listOf(season))
+        val allSeasons = buildAllSeasons(clickedSeason, watchOrder)
+        return animeRepository.addAnime(anime = anime, seasons = allSeasons)
+    }
+
+    private fun buildAllSeasons(clickedSeason: Season, watchOrder: List<SeasonData>?): List<Season> {
+        if (watchOrder == null) return listOf(clickedSeason)
+        val watchOrderSeasons = watchOrder.mapIndexed { index, seasonData ->
+            if (seasonData.malId == clickedSeason.malId) {
+                clickedSeason
+            } else {
+                Season(
+                    malId = seasonData.malId,
+                    title = seasonData.title,
+                    titleEnglish = seasonData.titleEnglish,
+                    titleJapanese = seasonData.titleJapanese,
+                    imageUrl = seasonData.imageUrl,
+                    type = seasonData.type,
+                    episodeCount = seasonData.episodeCount,
+                    score = seasonData.score,
+                    airingStatus = seasonData.airingStatus,
+                    orderIndex = index,
+                    isInWatchlist = false
+                )
+            }
+        }
+        return if (watchOrderSeasons.none { it.malId == clickedSeason.malId }) {
+            watchOrderSeasons + clickedSeason
+        } else {
+            watchOrderSeasons
+        }
     }
 
     private suspend fun resolveFirstSeason(

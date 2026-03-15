@@ -7,6 +7,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddAnimeFromDetailsUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.AddSeasonToWatchlistUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.DeleteSeasonUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FetchEpisodesUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FetchSeasonDetailUseCase
@@ -33,6 +34,7 @@ class SeasonDetailViewModel @Inject constructor(
     private val fetchEpisodesUseCase: FetchEpisodesUseCase,
     private val updateSeasonProgressUseCase: UpdateSeasonProgressUseCase,
     private val deleteSeasonUseCase: DeleteSeasonUseCase,
+    private val addSeasonToWatchlistUseCase: AddSeasonToWatchlistUseCase,
     private val addAnimeFromDetailsUseCase: AddAnimeFromDetailsUseCase,
     private val findSeasonIdByMalIdUseCase: FindSeasonIdByMalIdUseCase,
     private val toggleSeasonEpisodeNotificationsUseCase: ToggleSeasonEpisodeNotificationsUseCase,
@@ -65,8 +67,9 @@ class SeasonDetailViewModel @Inject constructor(
         viewModelScope.launch {
             observeSeasonsForAnimeUseCase(animeId).collect { siblings ->
                 _uiState.update { state ->
-                    if (state is SeasonDetailUiState.Success) state.copy(isLastSeason = siblings.size <= 1)
-                    else state
+                    if (state is SeasonDetailUiState.Success) state.copy(
+                        isLastSeason = siblings.count { it.isInWatchlist } <= 1
+                    ) else state
                 }
             }
         }
@@ -92,11 +95,15 @@ class SeasonDetailViewModel @Inject constructor(
                     observeSiblingCount(season.animeId)
                     _uiState.update { currentState ->
                         when (currentState) {
-                            is SeasonDetailUiState.Success -> currentState.copy(season = season)
+                            is SeasonDetailUiState.Success -> currentState.copy(
+                                season = season,
+                                isInWatchlist = season.isInWatchlist
+                            )
                             else -> {
                                 loadEpisodes(season.malId, page = 1)
                                 SeasonDetailUiState.Success(
                                     season = season,
+                                    isInWatchlist = season.isInWatchlist,
                                     isLoadingEpisodes = true
                                 )
                             }
@@ -234,20 +241,33 @@ class SeasonDetailViewModel @Inject constructor(
     }
 
     fun addToWatchlist(status: WatchStatus) {
-        val details = pendingDetails ?: return
+        val state = _uiState.value
+        if (state !is SeasonDetailUiState.Success) return
+        val season = state.season
 
+        if (season.id > 0) {
+            viewModelScope.launch {
+                addSeasonToWatchlistUseCase(season, status)
+                _uiState.update { s ->
+                    if (s is SeasonDetailUiState.Success) s.copy(
+                        isAddSheetVisible = false,
+                        snackbarEvent = SeasonDetailSnackbarEvent.AddedToWatchlist(season.title)
+                    ) else s
+                }
+            }
+            return
+        }
+
+        val details = pendingDetails ?: return
         viewModelScope.launch {
             addAnimeFromDetailsUseCase(details, status)
-
             pendingDetails = null
-            _uiState.update { state ->
-                if (state is SeasonDetailUiState.Success) state.copy(
+            _uiState.update { s ->
+                if (s is SeasonDetailUiState.Success) s.copy(
                     isAddSheetVisible = false,
                     snackbarEvent = SeasonDetailSnackbarEvent.AddedToWatchlist(details.title)
-                )
-                else state
+                ) else s
             }
-
             val addedSeasonId = findSeasonIdByMalIdUseCase(malId)
             if (addedSeasonId != null) {
                 observeSeason(addedSeasonId)

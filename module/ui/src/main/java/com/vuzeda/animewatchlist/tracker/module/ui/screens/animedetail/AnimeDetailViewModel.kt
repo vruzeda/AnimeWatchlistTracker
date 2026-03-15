@@ -16,6 +16,8 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseC
 import com.vuzeda.animewatchlist.tracker.module.usecase.ResolveAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ToggleAnimeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.RefreshAnimeSeasonsUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonStatusUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
@@ -33,12 +35,14 @@ class AnimeDetailViewModel @Inject constructor(
     private val observeAnimeByIdUseCase: ObserveAnimeByIdUseCase,
     private val observeSeasonsForAnimeUseCase: ObserveSeasonsForAnimeUseCase,
     private val updateAnimeUseCase: UpdateAnimeUseCase,
+    private val updateSeasonStatusUseCase: UpdateSeasonStatusUseCase,
     private val deleteAnimeUseCase: DeleteAnimeUseCase,
     private val toggleAnimeNotificationsUseCase: ToggleAnimeNotificationsUseCase,
     private val resolveAnimeUseCase: ResolveAnimeUseCase,
     private val addAnimeUseCase: AddAnimeUseCase,
     private val findAnimeBySeasonMalIdUseCase: FindAnimeBySeasonMalIdUseCase,
-    private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase
+    private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase,
+    private val refreshAnimeSeasonsUseCase: RefreshAnimeSeasonsUseCase
 ) : ViewModel() {
 
     private val animeId: Long = checkNotNull(savedStateHandle["animeId"])
@@ -102,9 +106,15 @@ class AnimeDetailViewModel @Inject constructor(
                         }
                     }
                 } else {
-                    _uiState.value = AnimeDetailUiState.NotFound
+                    _uiState.update { current ->
+                        if (current is AnimeDetailUiState.Success) current.copy(isDeleted = true)
+                        else AnimeDetailUiState.NotFound
+                    }
                 }
             }
+        }
+        viewModelScope.launch {
+            runCatching { refreshAnimeSeasonsUseCase(id) }
         }
     }
 
@@ -236,9 +246,10 @@ class AnimeDetailViewModel @Inject constructor(
     fun updateStatus(status: WatchStatus) {
         val state = _uiState.value
         if (state !is AnimeDetailUiState.Success) return
+        val mostRecentSeason = state.seasons.maxByOrNull { it.orderIndex } ?: return
 
         viewModelScope.launch {
-            updateAnimeUseCase(state.anime.copy(status = status))
+            updateSeasonStatusUseCase(mostRecentSeason, status)
         }
     }
 

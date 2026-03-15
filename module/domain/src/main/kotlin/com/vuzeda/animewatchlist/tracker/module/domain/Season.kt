@@ -11,9 +11,11 @@ data class Season(
     val type: String = "TV",
     val episodeCount: Int? = null,
     val currentEpisode: Int = 0,
+    val status: WatchStatus = WatchStatus.PLAN_TO_WATCH,
     val score: Double? = null,
     val orderIndex: Int = 0,
     val airingStatus: String? = null,
     val lastCheckedAiredEpisodeCount: Int? = null,
-    val isEpisodeNotificationsEnabled: Boolean = false
+    val isEpisodeNotificationsEnabled: Boolean = false,
+    val isInWatchlist: Boolean = true
 )

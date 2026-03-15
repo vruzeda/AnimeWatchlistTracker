@@ -18,10 +18,7 @@ class AddAnimeUseCase @Inject constructor(
         seasons: List<Season>,
         status: WatchStatus
     ): Long = animeRepository.addAnime(
-        anime = anime.copy(
-            status = status,
-            addedAt = clock.now().toEpochMilliseconds(),
-        ),
-        seasons = seasons
+        anime = anime.copy(addedAt = clock.now().toEpochMilliseconds()),
+        seasons = seasons.map { it.copy(status = status) }
     )
 }
