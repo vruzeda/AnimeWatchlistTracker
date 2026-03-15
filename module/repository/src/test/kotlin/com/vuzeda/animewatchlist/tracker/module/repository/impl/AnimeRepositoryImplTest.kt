@@ -22,6 +22,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 class AnimeRepositoryImplTest {
 
@@ -273,9 +274,10 @@ class AnimeRepositoryImplTest {
     @Test
     fun `fetchLastAiredEpisodeNumber delegates to remote data source`() = runTest {
         val expected = Result.success(25)
-        coEvery { animeRemoteDataSource.fetchLastAiredEpisodeNumber(100) } returns expected
+        val today = LocalDate.of(2026, 3, 15)
+        coEvery { animeRemoteDataSource.fetchLastAiredEpisodeNumber(100, today) } returns expected
 
-        val result = repository.fetchLastAiredEpisodeNumber(100)
+        val result = repository.fetchLastAiredEpisodeNumber(100, today)
 
         assertThat(result).isEqualTo(expected)
     }

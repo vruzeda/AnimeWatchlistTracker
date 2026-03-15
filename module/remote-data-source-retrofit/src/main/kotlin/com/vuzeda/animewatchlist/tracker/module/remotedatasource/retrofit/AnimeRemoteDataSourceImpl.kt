@@ -17,6 +17,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.SeasonalAnimePage
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.AnimeRemoteDataSource
 import retrofit2.HttpException
 import java.io.IOException
+import java.time.LocalDate
 import javax.inject.Inject
 
 class AnimeRemoteDataSourceImpl @Inject constructor(
@@ -38,7 +39,7 @@ class AnimeRemoteDataSourceImpl @Inject constructor(
         jikanApiService.getAnimeEpisodes(malId = malId, page = page).toEpisodePage(currentPage = page)
     }
 
-    override suspend fun fetchLastAiredEpisodeNumber(malId: Int): Result<Int?> = safeApiCall {
+    override suspend fun fetchLastAiredEpisodeNumber(malId: Int, today: LocalDate): Result<Int?> = safeApiCall {
         val firstPage = jikanApiService.getAnimeEpisodes(malId = malId, page = 1)
         val lastPage = if (firstPage.pagination.lastVisiblePage > 1) {
             jikanApiService.getAnimeEpisodes(
@@ -49,7 +50,7 @@ class AnimeRemoteDataSourceImpl @Inject constructor(
             firstPage
         }
         lastPage.data
-            .filter { it.aired != null }
+            .filter { parseAiredDate(it.aired)?.let { date -> !date.isAfter(today) } == true }
             .maxByOrNull { it.malId }
             ?.malId
     }
@@ -68,6 +69,15 @@ class AnimeRemoteDataSourceImpl @Inject constructor(
             season = season.apiValue,
             page = page
         ).toSeasonalAnimePage(currentPage = page)
+    }
+}
+
+private fun parseAiredDate(aired: String?): LocalDate? {
+    if (aired == null) return null
+    return try {
+        LocalDate.parse(aired.take(10))
+    } catch (_: Exception) {
+        null
     }
 }
 

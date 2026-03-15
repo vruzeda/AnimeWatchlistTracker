@@ -6,15 +6,19 @@ import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.repository.AnimeRepository
 import com.vuzeda.animewatchlist.tracker.module.repository.SeasonRepository
+import java.time.Clock
+import java.time.LocalDate
 import javax.inject.Inject
 
 /** Checks all notification-enabled anime and seasons for new episodes and new seasons. */
 class CheckAnimeUpdatesUseCase @Inject constructor(
     private val animeRepository: AnimeRepository,
-    private val seasonRepository: SeasonRepository
+    private val seasonRepository: SeasonRepository,
+    private val clock: Clock = Clock.systemDefaultZone()
 ) {
 
     suspend operator fun invoke(): List<AnimeUpdate> {
+        val today = LocalDate.now(clock)
         val updates = mutableListOf<AnimeUpdate>()
         val checkedSeasonIds = mutableSetOf<Long>()
 
@@ -31,7 +35,7 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
             if (shouldCheckEpisodes) {
                 for (season in seasons) {
                     checkedSeasonIds += season.id
-                    checkNewEpisodes(season)?.let { latestEpisode ->
+                    checkNewEpisodes(season, today)?.let { latestEpisode ->
                         updates += AnimeUpdate.NewEpisodes(
                             anime = anime,
                             season = season,
@@ -55,7 +59,7 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
                 anime = animeRepository.getAnimeById(season.animeId) ?: continue
                 animeCache[season.animeId] = anime
             }
-            val latestEpisode = checkNewEpisodes(season) ?: continue
+            val latestEpisode = checkNewEpisodes(season, today) ?: continue
             updates += AnimeUpdate.NewEpisodes(
                 anime = anime,
                 season = season,
@@ -66,8 +70,8 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
         return updates
     }
 
-    private suspend fun checkNewEpisodes(season: Season): Int? {
-        val lastAiredEpisode = animeRepository.fetchLastAiredEpisodeNumber(season.malId)
+    private suspend fun checkNewEpisodes(season: Season, today: LocalDate): Int? {
+        val lastAiredEpisode = animeRepository.fetchLastAiredEpisodeNumber(season.malId, today)
             .getOrNull() ?: return null
         val previousCount = season.lastCheckedAiredEpisodeCount
 

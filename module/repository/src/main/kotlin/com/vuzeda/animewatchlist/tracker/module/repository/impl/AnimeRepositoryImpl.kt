@@ -15,6 +15,7 @@ import com.vuzeda.animewatchlist.tracker.module.remotedatasource.AnimeRemoteData
 import com.vuzeda.animewatchlist.tracker.module.repository.AnimeRepository
 import com.vuzeda.animewatchlist.tracker.module.repository.SeasonRepository
 import com.vuzeda.animewatchlist.tracker.module.repository.TransactionRunner
+import java.time.LocalDate
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
@@ -111,8 +112,8 @@ class AnimeRepositoryImpl @Inject constructor(
     override suspend fun fetchAnimeEpisodes(malId: Int, page: Int): Result<EpisodePage> =
         animeRemoteDataSource.fetchAnimeEpisodes(malId = malId, page = page)
 
-    override suspend fun fetchLastAiredEpisodeNumber(malId: Int): Result<Int?> =
-        animeRemoteDataSource.fetchLastAiredEpisodeNumber(malId)
+    override suspend fun fetchLastAiredEpisodeNumber(malId: Int, today: LocalDate): Result<Int?> =
+        animeRemoteDataSource.fetchLastAiredEpisodeNumber(malId, today)
 
     override suspend fun fetchWatchOrder(malId: Int): Result<List<SeasonData>> =
         animeRemoteDataSource.fetchWatchOrder(malId)

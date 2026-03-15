@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test
 import retrofit2.HttpException
 import retrofit2.Response
 import java.io.IOException
+import java.time.LocalDate
 
 class AnimeRemoteDataSourceImplTest {
 
@@ -177,7 +178,7 @@ class AnimeRemoteDataSourceImplTest {
         )
         coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 1) } returns page
 
-        val result = repository.fetchLastAiredEpisodeNumber(100).getOrThrow()
+        val result = repository.fetchLastAiredEpisodeNumber(100, LocalDate.of(2026, 3, 15)).getOrThrow()
 
         assertThat(result).isEqualTo(2)
     }
@@ -198,7 +199,7 @@ class AnimeRemoteDataSourceImplTest {
         coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 1) } returns firstPage
         coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 3) } returns lastPage
 
-        val result = repository.fetchLastAiredEpisodeNumber(100).getOrThrow()
+        val result = repository.fetchLastAiredEpisodeNumber(100, LocalDate.of(2026, 3, 15)).getOrThrow()
 
         assertThat(result).isEqualTo(51)
     }
@@ -214,9 +215,75 @@ class AnimeRemoteDataSourceImplTest {
         )
         coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 1) } returns page
 
-        val result = repository.fetchLastAiredEpisodeNumber(100).getOrThrow()
+        val result = repository.fetchLastAiredEpisodeNumber(100, LocalDate.of(2026, 3, 15)).getOrThrow()
 
         assertThat(result).isNull()
+    }
+
+    @Test
+    fun `fetchLastAiredEpisodeNumber excludes episodes with future air dates`() = runTest {
+        val page = AnimeEpisodesResponseDto(
+            pagination = EpisodesPaginationDto(lastVisiblePage = 1, hasNextPage = false),
+            data = listOf(
+                EpisodeDto(malId = 10, aired = "2026-03-01"),
+                EpisodeDto(malId = 11, aired = "2026-03-08"),
+                EpisodeDto(malId = 12, aired = "2026-04-01"),
+                EpisodeDto(malId = 13, aired = "2026-04-08")
+            )
+        )
+        coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 1) } returns page
+
+        val result = repository.fetchLastAiredEpisodeNumber(100, LocalDate.of(2026, 3, 15)).getOrThrow()
+
+        assertThat(result).isEqualTo(11)
+    }
+
+    @Test
+    fun `fetchLastAiredEpisodeNumber returns null when all episodes have future air dates`() = runTest {
+        val page = AnimeEpisodesResponseDto(
+            pagination = EpisodesPaginationDto(lastVisiblePage = 1, hasNextPage = false),
+            data = listOf(
+                EpisodeDto(malId = 1, aired = "2026-04-01"),
+                EpisodeDto(malId = 2, aired = "2026-04-08")
+            )
+        )
+        coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 1) } returns page
+
+        val result = repository.fetchLastAiredEpisodeNumber(100, LocalDate.of(2026, 3, 15)).getOrThrow()
+
+        assertThat(result).isNull()
+    }
+
+    @Test
+    fun `fetchLastAiredEpisodeNumber counts episode aired exactly on today as aired`() = runTest {
+        val page = AnimeEpisodesResponseDto(
+            pagination = EpisodesPaginationDto(lastVisiblePage = 1, hasNextPage = false),
+            data = listOf(
+                EpisodeDto(malId = 5, aired = "2026-03-15"),
+                EpisodeDto(malId = 6, aired = "2026-03-16")
+            )
+        )
+        coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 1) } returns page
+
+        val result = repository.fetchLastAiredEpisodeNumber(100, LocalDate.of(2026, 3, 15)).getOrThrow()
+
+        assertThat(result).isEqualTo(5)
+    }
+
+    @Test
+    fun `fetchLastAiredEpisodeNumber handles ISO 8601 datetime strings with timezone offset`() = runTest {
+        val page = AnimeEpisodesResponseDto(
+            pagination = EpisodesPaginationDto(lastVisiblePage = 1, hasNextPage = false),
+            data = listOf(
+                EpisodeDto(malId = 1, aired = "2023-01-05T00:00:00+00:00"),
+                EpisodeDto(malId = 2, aired = "2026-06-01T00:00:00+00:00")
+            )
+        )
+        coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 1) } returns page
+
+        val result = repository.fetchLastAiredEpisodeNumber(100, LocalDate.of(2026, 3, 15)).getOrThrow()
+
+        assertThat(result).isEqualTo(1)
     }
 
     @Test

@@ -6,6 +6,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.EpisodePage
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonData
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonalAnimePage
+import java.time.LocalDate
 
 interface AnimeRemoteDataSource {
 
@@ -15,7 +16,7 @@ interface AnimeRemoteDataSource {
 
     suspend fun fetchAnimeEpisodes(malId: Int, page: Int): Result<EpisodePage>
 
-    suspend fun fetchLastAiredEpisodeNumber(malId: Int): Result<Int?>
+    suspend fun fetchLastAiredEpisodeNumber(malId: Int, today: LocalDate): Result<Int?>
 
     suspend fun fetchWatchOrder(malId: Int): Result<List<SeasonData>>
 
