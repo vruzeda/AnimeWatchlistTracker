@@ -5,21 +5,21 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class AnimeEpisodesResponseDto(
-    @Json(name = "pagination") val pagination: EpisodesPaginationDto,
-    @Json(name = "data") val data: List<EpisodeDto>
+    @param:Json(name = "pagination") val pagination: EpisodesPaginationDto,
+    @param:Json(name = "data") val data: List<EpisodeDto>
 )
 
 @JsonClass(generateAdapter = true)
 data class EpisodesPaginationDto(
-    @Json(name = "last_visible_page") val lastVisiblePage: Int,
-    @Json(name = "has_next_page") val hasNextPage: Boolean
+    @param:Json(name = "last_visible_page") val lastVisiblePage: Int,
+    @param:Json(name = "has_next_page") val hasNextPage: Boolean
 )
 
 @JsonClass(generateAdapter = true)
 data class EpisodeDto(
-    @Json(name = "mal_id") val malId: Int,
-    @Json(name = "title") val title: String? = null,
-    @Json(name = "aired") val aired: String? = null,
-    @Json(name = "filler") val filler: Boolean = false,
-    @Json(name = "recap") val recap: Boolean = false
+    @param:Json(name = "mal_id") val malId: Int,
+    @param:Json(name = "title") val title: String? = null,
+    @param:Json(name = "aired") val aired: String? = null,
+    @param:Json(name = "filler") val filler: Boolean = false,
+    @param:Json(name = "recap") val recap: Boolean = false
 )
