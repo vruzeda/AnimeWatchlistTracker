@@ -91,7 +91,8 @@ fun SeasonDetailScreenRoute(
         onDismissAddSheet = viewModel::dismissAddSheet,
         onToggleEpisodeNotifications = viewModel::toggleEpisodeNotifications,
         onViewFullSeriesClick = viewModel::navigateToAnimeDetail,
-        onSnackbarDismissed = viewModel::clearSnackbar
+        onSnackbarDismissed = viewModel::clearSnackbar,
+        onNotificationPermissionDenied = viewModel::notifyPermissionDenied
     )
 }
 
@@ -110,7 +111,8 @@ fun SeasonDetailScreen(
     onDismissAddSheet: () -> Unit,
     onToggleEpisodeNotifications: () -> Unit,
     onViewFullSeriesClick: () -> Unit,
-    onSnackbarDismissed: () -> Unit
+    onSnackbarDismissed: () -> Unit,
+    onNotificationPermissionDenied: () -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -142,6 +144,7 @@ fun SeasonDetailScreen(
                         NotificationButton(
                             enabled = uiState.isEpisodeNotificationsEnabled,
                             onClick = onToggleEpisodeNotifications,
+                            onPermissionDenied = onNotificationPermissionDenied
                         )
                         IconButton(onClick = onDeleteClick) {
                             Icon(
@@ -403,4 +406,6 @@ private fun resolveSnackbarMessage(event: SeasonDetailSnackbarEvent): String = w
         if (event.enabled) R.string.season_detail_episode_notifications_enabled
         else R.string.season_detail_episode_notifications_disabled
     )
+    is SeasonDetailSnackbarEvent.NotificationPermissionDenied ->
+        stringResource(R.string.notification_permission_denied)
 }

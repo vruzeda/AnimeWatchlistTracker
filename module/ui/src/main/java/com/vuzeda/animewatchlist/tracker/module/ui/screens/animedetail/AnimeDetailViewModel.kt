@@ -342,6 +342,13 @@ class AnimeDetailViewModel @Inject constructor(
         }
     }
 
+    fun notifyPermissionDenied() {
+        _uiState.update {
+            if (it is AnimeDetailUiState.Success) it.copy(snackbarEvent = AnimeDetailSnackbarEvent.NotificationPermissionDenied)
+            else it
+        }
+    }
+
     fun clearSnackbar() {
         _uiState.update { state ->
             if (state is AnimeDetailUiState.Success) state.copy(snackbarEvent = null)

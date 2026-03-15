@@ -95,7 +95,8 @@ fun AnimeDetailScreenRoute(
         onDismissAddSheet = viewModel::dismissAddSheet,
         onConfirmAddScope = viewModel::confirmAddScope,
         onDismissAddScopeSheet = viewModel::dismissAddScopeSheet,
-        onSnackbarDismissed = viewModel::clearSnackbar
+        onSnackbarDismissed = viewModel::clearSnackbar,
+        onNotificationPermissionDenied = viewModel::notifyPermissionDenied
     )
 }
 
@@ -120,7 +121,8 @@ fun AnimeDetailScreen(
     onDismissAddSheet: () -> Unit,
     onConfirmAddScope: (Boolean) -> Unit,
     onDismissAddScopeSheet: () -> Unit,
-    onSnackbarDismissed: () -> Unit
+    onSnackbarDismissed: () -> Unit,
+    onNotificationPermissionDenied: () -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -152,6 +154,7 @@ fun AnimeDetailScreen(
                         NotificationButton(
                             enabled = uiState.isNotificationsEnabled,
                             onClick = onNotificationIconClick,
+                            onPermissionDenied = onNotificationPermissionDenied
                         )
                         IconButton(onClick = onDeleteClick) {
                             Icon(
@@ -441,6 +444,8 @@ private fun resolveSnackbarMessage(event: AnimeDetailSnackbarEvent): String = wh
     }
     is AnimeDetailSnackbarEvent.NotificationsDisabled ->
         stringResource(R.string.anime_detail_notifications_disabled)
+    is AnimeDetailSnackbarEvent.NotificationPermissionDenied ->
+        stringResource(R.string.notification_permission_denied)
 }
 
 @Composable

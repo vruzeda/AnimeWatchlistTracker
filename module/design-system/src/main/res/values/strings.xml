@@ -38,4 +38,8 @@
     <!-- NotificationsButton -->
     <string name="cd_disable_notifications">Disable notifications</string>
     <string name="cd_enable_notifications">Enable notifications</string>
+    <string name="notification_permission_rationale_title">Permission required</string>
+    <string name="notification_permission_rationale_message">Notifications are permanently blocked. Open Settings to allow them for this app.</string>
+    <string name="notification_permission_go_to_settings">Go to Settings</string>
+    <string name="notification_permission_cancel">Cancel</string>
 </resources>

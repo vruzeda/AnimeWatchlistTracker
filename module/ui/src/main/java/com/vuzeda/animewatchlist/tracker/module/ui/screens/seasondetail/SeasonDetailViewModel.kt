@@ -314,6 +314,13 @@ class SeasonDetailViewModel @Inject constructor(
         }
     }
 
+    fun notifyPermissionDenied() {
+        _uiState.update {
+            if (it is SeasonDetailUiState.Success) it.copy(snackbarEvent = SeasonDetailSnackbarEvent.NotificationPermissionDenied)
+            else it
+        }
+    }
+
     fun clearSnackbar() {
         _uiState.update { state ->
             if (state is SeasonDetailUiState.Success) state.copy(snackbarEvent = null)

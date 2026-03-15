@@ -32,4 +32,5 @@ sealed interface AnimeDetailSnackbarEvent {
     data class AddedToWatchlist(val title: String) : AnimeDetailSnackbarEvent
     data class NotificationsEnabled(val type: NotificationType) : AnimeDetailSnackbarEvent
     data object NotificationsDisabled : AnimeDetailSnackbarEvent
+    data object NotificationPermissionDenied : AnimeDetailSnackbarEvent
 }
