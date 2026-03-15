@@ -21,7 +21,7 @@ If Android Studio is installed elsewhere, locate it with: `find /Applications -n
 ./gradlew assembleRelease
 
 # Run all unit tests
-./gradlew :module:domain:test :module:remote-data-source-retrofit:test :module:repository:test :module:use-case:test :module:ui:test
+./gradlew test
 
 # Run branch-coverage verification (≥80%) across all jacoco-enabled modules
 # To opt a module in, apply the `jacoco` plugin in its build.gradle.kts
