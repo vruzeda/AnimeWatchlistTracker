@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -357,7 +358,6 @@ private fun AnimeDetailContent(
                 SeasonCardItem(
                     season = season,
                     titleLanguage = state.titleLanguage,
-                    isInWatchlist = state.isInWatchlist,
                     onClick = { onSeasonClick(season.id, season.malId) }
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -447,7 +447,6 @@ private fun resolveSnackbarMessage(event: AnimeDetailSnackbarEvent): String = wh
 private fun SeasonCardItem(
     season: Season,
     titleLanguage: TitleLanguage,
-    isInWatchlist: Boolean,
     onClick: () -> Unit
 ) {
     val displayTitle = resolveDisplayTitle(
@@ -457,15 +456,15 @@ private fun SeasonCardItem(
         language = titleLanguage
     )
     val totalEpisodes = season.episodeCount
-    val episodeText = if (isInWatchlist && totalEpisodes != null) {
+    val episodeText = if (season.isInWatchlist && totalEpisodes != null) {
         stringResource(R.string.anime_detail_season_episodes, season.currentEpisode, totalEpisodes)
-    } else if (isInWatchlist && season.currentEpisode > 0) {
+    } else if (season.isInWatchlist && season.currentEpisode > 0) {
         stringResource(R.string.anime_detail_season_episodes_no_total, season.currentEpisode)
     } else {
         totalEpisodes?.let { stringResource(R.string.season_detail_episode_count, it) }
     }
 
-    val progress = if (isInWatchlist && totalEpisodes != null && totalEpisodes > 0) {
+    val progress = if (season.isInWatchlist && totalEpisodes != null && totalEpisodes > 0) {
         season.currentEpisode.toFloat() / totalEpisodes.toFloat()
     } else {
         null
@@ -478,6 +477,23 @@ private fun SeasonCardItem(
         score = season.score,
         episodeText = episodeText,
         genresText = "${season.type}${season.airingStatus?.let { " · $it" } ?: ""}",
-        progress = progress
+        progress = progress,
+        trailingContent = if (season.isInWatchlist) {
+            {
+                StatusChip(
+                    label = stringResource(season.status.toDisplayLabelRes()),
+                    color = season.status.toColor()
+                )
+            }
+        } else {
+            {
+                IconButton(onClick = onClick) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = stringResource(R.string.anime_detail_add_to_watchlist)
+                    )
+                }
+            }
+        }
     )
 }
