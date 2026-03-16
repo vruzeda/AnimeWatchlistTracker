@@ -31,7 +31,7 @@ class ChiakiServiceImpl(
                 }
             }
 
-            parseWatchOrderHtml(html)
+            parseWatchOrderHtml(html, filterToChainContaining = malId)
         }
 
     companion object {
@@ -50,9 +50,16 @@ class ChiakiServiceImpl(
         private val IMAGE_PATTERN = Regex(
             """<div\s+class="wo_avatar_big"[^>]*style="background-image:\s*url\('([^']+)'\)"""
         )
+        private val RELATED_PATTERN = Regex("""data-related='(\{[^']*\})'""")
+        private val RELATED_ENTRY_PATTERN = Regex(""""(\d+)":"([^"]+)"""")
 
-        fun parseWatchOrderHtml(html: String): List<ChiakiWatchOrderEntryDto> {
-            val entries = mutableListOf<ChiakiWatchOrderEntryDto>()
+        private data class ParsedEntry(
+            val dto: ChiakiWatchOrderEntryDto,
+            val relatedIds: Map<Int, String>
+        )
+
+        fun parseWatchOrderHtml(html: String, filterToChainContaining: Int? = null): List<ChiakiWatchOrderEntryDto> {
+            val parsedEntries = mutableListOf<ParsedEntry>()
 
             val rowMatches = ROW_PATTERN.findAll(html).toList()
             for (rowMatch in rowMatches) {
@@ -76,19 +83,55 @@ class ChiakiServiceImpl(
                 }
                 val isMainSeries = !rowHtml.contains("wo_row_secondary")
 
-                entries += ChiakiWatchOrderEntryDto(
-                    malId = malId,
-                    title = title,
-                    titleEnglish = titleEnglish,
-                    typeCode = typeCode,
-                    episodeCount = episodeCount,
-                    score = score,
-                    imageUrl = imageUrl,
-                    isMainSeries = isMainSeries,
+                val relatedIds = RELATED_PATTERN.find(rowHtml)?.groupValues?.get(1)?.let { json ->
+                    RELATED_ENTRY_PATTERN.findAll(json).associate { m ->
+                        m.groupValues[1].toInt() to m.groupValues[2]
+                    }
+                } ?: emptyMap()
+
+                parsedEntries += ParsedEntry(
+                    dto = ChiakiWatchOrderEntryDto(
+                        malId = malId,
+                        title = title,
+                        titleEnglish = titleEnglish,
+                        typeCode = typeCode,
+                        episodeCount = episodeCount,
+                        score = score,
+                        imageUrl = imageUrl,
+                        isMainSeries = isMainSeries,
+                    ),
+                    relatedIds = relatedIds,
                 )
             }
 
-            return entries
+            if (filterToChainContaining == null) return parsedEntries.map { it.dto }
+
+            val chain = findChain(filterToChainContaining, parsedEntries)
+            return parsedEntries.filter { it.dto.malId in chain }.map { it.dto }
+        }
+
+        private fun findChain(startMalId: Int, entries: List<ParsedEntry>): Set<Int> {
+            val adjacency = mutableMapOf<Int, MutableSet<Int>>()
+            for (entry in entries) {
+                val id = entry.dto.malId
+                for ((relatedId, label) in entry.relatedIds) {
+                    if (label != "Alternative Version") {
+                        adjacency.getOrPut(id) { mutableSetOf() } += relatedId
+                        adjacency.getOrPut(relatedId) { mutableSetOf() } += id
+                    }
+                }
+            }
+
+            val visited = mutableSetOf(startMalId)
+            val queue = ArrayDeque<Int>()
+            queue += startMalId
+            while (queue.isNotEmpty()) {
+                val current = queue.removeFirst()
+                for (neighbor in adjacency[current] ?: emptySet()) {
+                    if (visited.add(neighbor)) queue += neighbor
+                }
+            }
+            return visited
         }
     }
 }

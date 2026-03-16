@@ -143,6 +143,60 @@ class ChiakiServiceImplTest {
     }
 
     @Test
+    fun `splits watch order at Alternative Version boundary`() {
+        val html = buildSampleHtml(
+            entry(malId = 121, typeCode = 1, eps = 51, title = "Fullmetal Alchemist", score = null, ratingCount = null, image = null, related = mapOf(5114 to "Alternative Version")),
+            entry(malId = 5114, typeCode = 1, eps = 64, title = "Fullmetal Alchemist: Brotherhood", score = null, ratingCount = null, image = null, related = mapOf(121 to "Alternative Version"))
+        )
+
+        val fmaChain = ChiakiServiceImpl.parseWatchOrderHtml(html, filterToChainContaining = 121)
+        val brotherhoodChain = ChiakiServiceImpl.parseWatchOrderHtml(html, filterToChainContaining = 5114)
+
+        assertThat(fmaChain).hasSize(1)
+        assertThat(fmaChain[0].malId).isEqualTo(121)
+
+        assertThat(brotherhoodChain).hasSize(1)
+        assertThat(brotherhoodChain[0].malId).isEqualTo(5114)
+    }
+
+    @Test
+    fun `entries linked by non-Alternative-Version relationships stay in the same chain`() {
+        val html = buildSampleHtml(
+            entry(malId = 16498, typeCode = 1, eps = 25, title = "AoT S1", score = null, ratingCount = null, image = null, related = mapOf(25777 to "Sequel")),
+            entry(malId = 25777, typeCode = 1, eps = 12, title = "AoT S2", score = null, ratingCount = null, image = null, related = mapOf(16498 to "Prequel"))
+        )
+
+        val chain = ChiakiServiceImpl.parseWatchOrderHtml(html, filterToChainContaining = 16498)
+
+        assertThat(chain).hasSize(2)
+        assertThat(chain.map { it.malId }).containsExactly(16498, 25777).inOrder()
+    }
+
+    @Test
+    fun `returns all entries when filterToChainContaining is null`() {
+        val html = buildSampleHtml(
+            entry(malId = 121, typeCode = 1, eps = 51, title = "FMA", score = null, ratingCount = null, image = null, related = mapOf(5114 to "Alternative Version")),
+            entry(malId = 5114, typeCode = 1, eps = 64, title = "FMA Brotherhood", score = null, ratingCount = null, image = null, related = mapOf(121 to "Alternative Version"))
+        )
+
+        val result = ChiakiServiceImpl.parseWatchOrderHtml(html)
+
+        assertThat(result).hasSize(2)
+    }
+
+    @Test
+    fun `returns single entry when malId has no related entries`() {
+        val html = buildSampleHtml(
+            entry(malId = 1, typeCode = 1, eps = 12, title = "Standalone", score = null, ratingCount = null, image = null)
+        )
+
+        val result = ChiakiServiceImpl.parseWatchOrderHtml(html, filterToChainContaining = 1)
+
+        assertThat(result).hasSize(1)
+        assertThat(result[0].malId).isEqualTo(1)
+    }
+
+    @Test
     fun `handles row with no closing tr tag`() {
         val html = """
             <html><body><table>
@@ -166,15 +220,20 @@ class ChiakiServiceImplTest {
         ratingCount: String?,
         image: String?,
         isSecondary: Boolean = false,
-        englishTitle: String? = null
+        englishTitle: String? = null,
+        related: Map<Int, String> = emptyMap()
     ): String {
         val epsAttr = eps?.toString() ?: ""
         val rowClass = if (isSecondary) "wo_row_secondary" else "wo_row"
         val scoreHtml = if (score != null) """<span class="wo_rating">★$score ($ratingCount)</span>""" else ""
         val imageHtml = if (image != null) """<div class="wo_avatar_big" style="background-image: url('$image')"></div>""" else ""
         val englishTitleHtml = if (englishTitle != null) """<div class="uk-text-small">$englishTitle</div>""" else ""
+        val relatedAttr = if (related.isNotEmpty()) {
+            val json = related.entries.joinToString(",") { (id, label) -> """"$id":"$label"""" }
+            """ data-related='{$json}'"""
+        } else ""
         return """
-            <tr data-id="$malId" data-type="$typeCode" data-eps="$epsAttr" class="$rowClass">
+            <tr data-id="$malId" data-type="$typeCode" data-eps="$epsAttr" class="$rowClass"$relatedAttr>
                 <td>$imageHtml</td>
                 <td><span class="wo_title">$title</span>$englishTitleHtml</td>
                 <td>$scoreHtml</td>
