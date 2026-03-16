@@ -44,6 +44,18 @@ class AddAnimeUseCaseTest {
     }
 
     @Test
+    fun `seasons are stored as in-watchlist regardless of input isInWatchlist value`() = runTest {
+        val browseSeasons = seasons.map { it.copy(isInWatchlist = false) }
+
+        useCase(anime, browseSeasons, WatchStatus.COMPLETED)
+
+        val seasonsSlot = slot<List<Season>>()
+        coVerify { animeRepository.addAnime(any(), capture(seasonsSlot)) }
+        assertThat(seasonsSlot.captured.all { it.isInWatchlist }).isTrue()
+        assertThat(seasonsSlot.captured.all { it.status == WatchStatus.COMPLETED }).isTrue()
+    }
+
+    @Test
     fun `add anime with current date and status propagated to all seasons`() = runTest {
         useCase(anime, seasons, WatchStatus.WATCHING)
 
@@ -67,5 +79,6 @@ class AddAnimeUseCaseTest {
         )
         assertThat(seasonsSlot.captured).hasSize(2)
         assertThat(seasonsSlot.captured.all { it.status == WatchStatus.WATCHING }).isTrue()
+        assertThat(seasonsSlot.captured.all { it.isInWatchlist }).isTrue()
     }
 }
