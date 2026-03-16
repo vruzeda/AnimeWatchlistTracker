@@ -10,6 +10,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonData
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.AddSeasonToWatchlistUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.DeleteAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FindAnimeBySeasonMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
@@ -49,6 +50,7 @@ class AnimeDetailViewModelTest {
     private val toggleAnimeNotificationsUseCase: ToggleAnimeNotificationsUseCase = mockk(relaxed = true)
     private val resolveAnimeUseCase: ResolveAnimeUseCase = mockk()
     private val addAnimeUseCase: AddAnimeUseCase = mockk()
+    private val addSeasonToWatchlistUseCase: AddSeasonToWatchlistUseCase = mockk(relaxed = true)
     private val findAnimeBySeasonMalIdUseCase: FindAnimeBySeasonMalIdUseCase = mockk()
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
     private val refreshAnimeSeasonsUseCase: RefreshAnimeSeasonsUseCase = mockk(relaxed = true)
@@ -100,6 +102,7 @@ class AnimeDetailViewModelTest {
             toggleAnimeNotificationsUseCase = toggleAnimeNotificationsUseCase,
             resolveAnimeUseCase = resolveAnimeUseCase,
             addAnimeUseCase = addAnimeUseCase,
+            addSeasonToWatchlistUseCase = addSeasonToWatchlistUseCase,
             findAnimeBySeasonMalIdUseCase = findAnimeBySeasonMalIdUseCase,
             observeTitleLanguageUseCase = observeTitleLanguageUseCase,
             refreshAnimeSeasonsUseCase = refreshAnimeSeasonsUseCase
@@ -452,6 +455,98 @@ class AnimeDetailViewModelTest {
             assertThat(watchlisted.anime.id).isEqualTo(10L)
 
             coVerify { addAnimeUseCase(any(), match { it.size == 2 }, WatchStatus.PLAN_TO_WATCH) }
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `confirmAddSeason calls AddSeasonToWatchlistUseCase for season already in DB`() = runTest {
+        val dbSeason = Season(id = 1L, animeId = 1L, malId = 16498, title = "Season 1", isInWatchlist = false)
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.showAddSeasonSheet(dbSeason)
+            val withSheet = awaitItem() as AnimeDetailUiState.Success
+            assertThat(withSheet.isAddSeasonSheetVisible).isTrue()
+            assertThat(withSheet.pendingAddSeason).isEqualTo(dbSeason)
+
+            viewModel.confirmAddSeason(WatchStatus.WATCHING)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val afterAdd = expectMostRecentItem() as AnimeDetailUiState.Success
+            assertThat(afterAdd.isAddSeasonSheetVisible).isFalse()
+            assertThat(afterAdd.pendingAddSeason).isNull()
+
+            coVerify { addSeasonToWatchlistUseCase(dbSeason, WatchStatus.WATCHING) }
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `confirmAddSeason uses AddAnimeUseCase for transient season and switches to watchlist mode`() = runTest {
+        coEvery { findAnimeBySeasonMalIdUseCase(50) } returns null
+        coEvery { resolveAnimeUseCase(50) } returns Result.success(
+            ResolvedSeries(
+                title = "Spy x Family",
+                seasons = listOf(
+                    SeasonData(malId = 50, title = "Season 1", type = "TV"),
+                    SeasonData(malId = 51, title = "Season 2", type = "TV")
+                )
+            )
+        )
+        coEvery { addAnimeUseCase(any(), any(), any()) } returns 10L
+
+        val addedAnimeFlow = MutableStateFlow<Anime?>(
+            Anime(id = 10L, title = "Spy x Family", status = WatchStatus.PLAN_TO_WATCH)
+        )
+        val addedSeasonsFlow = MutableStateFlow(
+            listOf(Season(id = 5L, animeId = 10L, malId = 50, title = "Season 1"))
+        )
+        every { observeAnimeByIdUseCase(10L) } returns addedAnimeFlow
+        every { observeSeasonsForAnimeUseCase(10L) } returns addedSeasonsFlow
+
+        val viewModel = createViewModel(animeId = 0L, malId = 50)
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            val resolved = expectMostRecentItem() as AnimeDetailUiState.Success
+            assertThat(resolved.isInWatchlist).isFalse()
+
+            val transientSeason = resolved.seasons[0]
+            viewModel.showAddSeasonSheet(transientSeason)
+            awaitItem()
+
+            viewModel.confirmAddSeason(WatchStatus.PLAN_TO_WATCH)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val watchlisted = expectMostRecentItem() as AnimeDetailUiState.Success
+            assertThat(watchlisted.isInWatchlist).isTrue()
+            assertThat(watchlisted.anime.id).isEqualTo(10L)
+
+            coVerify { addAnimeUseCase(any(), match { it.size == 1 && it[0].malId == 50 }, WatchStatus.PLAN_TO_WATCH) }
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `dismissAddSeasonSheet clears sheet state`() = runTest {
+        val season = Season(id = 1L, animeId = 1L, malId = 100, title = "S1", isInWatchlist = false)
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.showAddSeasonSheet(season)
+            awaitItem()
+
+            viewModel.dismissAddSeasonSheet()
+            val hidden = awaitItem() as AnimeDetailUiState.Success
+            assertThat(hidden.isAddSeasonSheetVisible).isFalse()
+            assertThat(hidden.pendingAddSeason).isNull()
             cancelAndIgnoreRemainingEvents()
         }
     }

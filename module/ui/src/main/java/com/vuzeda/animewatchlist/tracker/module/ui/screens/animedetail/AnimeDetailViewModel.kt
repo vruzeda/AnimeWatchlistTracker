@@ -8,6 +8,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.AddSeasonToWatchlistUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.DeleteAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FindAnimeBySeasonMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveAnimeByIdUseCase
@@ -40,6 +41,7 @@ class AnimeDetailViewModel @Inject constructor(
     private val toggleAnimeNotificationsUseCase: ToggleAnimeNotificationsUseCase,
     private val resolveAnimeUseCase: ResolveAnimeUseCase,
     private val addAnimeUseCase: AddAnimeUseCase,
+    private val addSeasonToWatchlistUseCase: AddSeasonToWatchlistUseCase,
     private val findAnimeBySeasonMalIdUseCase: FindAnimeBySeasonMalIdUseCase,
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase,
     private val refreshAnimeSeasonsUseCase: RefreshAnimeSeasonsUseCase
@@ -209,6 +211,54 @@ class AnimeDetailViewModel @Inject constructor(
                 isAddScopeSheetVisible = false,
                 pendingAddStatus = null
             ) else state
+        }
+    }
+
+    fun showAddSeasonSheet(season: Season) {
+        _uiState.update { state ->
+            if (state is AnimeDetailUiState.Success) state.copy(
+                isAddSeasonSheetVisible = true,
+                pendingAddSeason = season
+            ) else state
+        }
+    }
+
+    fun dismissAddSeasonSheet() {
+        _uiState.update { state ->
+            if (state is AnimeDetailUiState.Success) state.copy(
+                isAddSeasonSheetVisible = false,
+                pendingAddSeason = null
+            ) else state
+        }
+    }
+
+    fun confirmAddSeason(status: WatchStatus) {
+        val state = _uiState.value
+        if (state !is AnimeDetailUiState.Success) return
+        val season = state.pendingAddSeason ?: return
+
+        _uiState.update {
+            if (it is AnimeDetailUiState.Success) it.copy(
+                isAddSeasonSheetVisible = false,
+                pendingAddSeason = null
+            ) else it
+        }
+
+        viewModelScope.launch {
+            if (season.id > 0) {
+                addSeasonToWatchlistUseCase(season, status)
+            } else {
+                val anime = resolvedAnime ?: return@launch
+                val newId = addAnimeUseCase(anime, listOf(season), status)
+                resolvedAnime = null
+                resolvedSeasons = emptyList()
+                _uiState.update {
+                    if (it is AnimeDetailUiState.Success) it.copy(
+                        snackbarEvent = AnimeDetailSnackbarEvent.AddedToWatchlist(anime.title)
+                    ) else it
+                }
+                observeAnime(newId)
+            }
         }
     }
 

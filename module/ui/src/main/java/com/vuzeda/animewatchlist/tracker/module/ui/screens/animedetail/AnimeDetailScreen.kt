@@ -95,6 +95,9 @@ fun AnimeDetailScreenRoute(
         onDismissAddSheet = viewModel::dismissAddSheet,
         onConfirmAddScope = viewModel::confirmAddScope,
         onDismissAddScopeSheet = viewModel::dismissAddScopeSheet,
+        onSeasonAddClick = viewModel::showAddSeasonSheet,
+        onAddSeasonStatusSelected = viewModel::confirmAddSeason,
+        onDismissAddSeasonSheet = viewModel::dismissAddSeasonSheet,
         onSnackbarDismissed = viewModel::clearSnackbar,
         onNotificationPermissionDenied = viewModel::notifyPermissionDenied
     )
@@ -121,6 +124,9 @@ fun AnimeDetailScreen(
     onDismissAddSheet: () -> Unit,
     onConfirmAddScope: (Boolean) -> Unit,
     onDismissAddScopeSheet: () -> Unit,
+    onSeasonAddClick: (Season) -> Unit,
+    onAddSeasonStatusSelected: (WatchStatus) -> Unit,
+    onDismissAddSeasonSheet: () -> Unit,
     onSnackbarDismissed: () -> Unit,
     onNotificationPermissionDenied: () -> Unit
 ) {
@@ -193,7 +199,8 @@ fun AnimeDetailScreen(
                         onStatusChipClick = onStatusChipClick,
                         onRatingChanged = onRatingChanged,
                         onAddToWatchlistClick = onAddToWatchlistClick,
-                        onSeasonClick = onSeasonClick
+                        onSeasonClick = onSeasonClick,
+                        onSeasonAddClick = onSeasonAddClick
                     )
 
                     val animeDisplayTitle = resolveDisplayTitle(
@@ -250,6 +257,28 @@ fun AnimeDetailScreen(
                         )
                     }
 
+                    if (uiState.isAddSeasonSheetVisible) {
+                        val statusOptions = WatchStatus.entries.map {
+                            StatusOption(stringResource(it.toDisplayLabelRes()), it.toColor())
+                        }
+                        StatusSelectionSheet(
+                            title = stringResource(R.string.anime_detail_add_sheet_title),
+                            subtitle = uiState.pendingAddSeason?.let {
+                                resolveDisplayTitle(
+                                    title = it.title,
+                                    titleEnglish = it.titleEnglish,
+                                    titleJapanese = it.titleJapanese,
+                                    language = uiState.titleLanguage
+                                )
+                            } ?: animeDisplayTitle,
+                            options = statusOptions,
+                            onOptionSelected = { index ->
+                                onAddSeasonStatusSelected(WatchStatus.entries[index])
+                            },
+                            onDismiss = onDismissAddSeasonSheet
+                        )
+                    }
+
                     if (uiState.isNotificationTypeSheetVisible) {
                         val notificationOptions = listOf(
                             stringResource(R.string.anime_detail_notification_new_episodes),
@@ -294,7 +323,8 @@ private fun AnimeDetailContent(
     onStatusChipClick: () -> Unit,
     onRatingChanged: (Int) -> Unit,
     onAddToWatchlistClick: () -> Unit,
-    onSeasonClick: (seasonId: Long, malId: Int) -> Unit
+    onSeasonClick: (seasonId: Long, malId: Int) -> Unit,
+    onSeasonAddClick: (Season) -> Unit
 ) {
     val anime = state.anime
     LazyColumn(
@@ -361,7 +391,8 @@ private fun AnimeDetailContent(
                 SeasonCardItem(
                     season = season,
                     titleLanguage = state.titleLanguage,
-                    onClick = { onSeasonClick(season.id, season.malId) }
+                    onClick = { onSeasonClick(season.id, season.malId) },
+                    onAddClick = { onSeasonAddClick(season) }
                 )
                 Spacer(modifier = Modifier.height(8.dp))
             }
@@ -452,7 +483,8 @@ private fun resolveSnackbarMessage(event: AnimeDetailSnackbarEvent): String = wh
 private fun SeasonCardItem(
     season: Season,
     titleLanguage: TitleLanguage,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onAddClick: () -> Unit
 ) {
     val displayTitle = resolveDisplayTitle(
         title = season.title,
@@ -492,7 +524,7 @@ private fun SeasonCardItem(
             }
         } else {
             {
-                IconButton(onClick = onClick) {
+                IconButton(onClick = onAddClick) {
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = stringResource(R.string.anime_detail_add_to_watchlist)

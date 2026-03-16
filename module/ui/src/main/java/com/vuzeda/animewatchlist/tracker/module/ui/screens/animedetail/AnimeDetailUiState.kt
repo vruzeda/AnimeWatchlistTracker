@@ -19,6 +19,8 @@ sealed interface AnimeDetailUiState {
         val isAddSheetVisible: Boolean = false,
         val isAddScopeSheetVisible: Boolean = false,
         val pendingAddStatus: WatchStatus? = null,
+        val isAddSeasonSheetVisible: Boolean = false,
+        val pendingAddSeason: Season? = null,
         val isNotificationTypeSheetVisible: Boolean = false,
         val isDeleteConfirmationVisible: Boolean = false,
         val isDeleted: Boolean = false,
