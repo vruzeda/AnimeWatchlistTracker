@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- WatchStatus labels -->
+    <string name="status_watching">Viendo</string>
+    <string name="status_completed">Completado</string>
+    <string name="status_plan_to_watch">Planeado</string>
+    <string name="status_on_hold">En pausa</string>
+    <string name="status_dropped">Abandonado</string>
+
+    <!-- Home sort options -->
+    <string name="sort_alphabetical">Alfabético</string>
+    <string name="sort_recently_added">Añadidos recientemente</string>
+    <string name="sort_user_rating">Tu puntuación</string>
+
+    <!-- Search sort options -->
+    <string name="sort_relevance">Relevancia</string>
+    <string name="sort_score">Puntuación</string>
+
+    <!-- Search filter tabs -->
+    <string name="filter_all">Todos</string>
+
+    <!-- HomeScreen filters -->
+    <string name="filter_group_status">Por estado</string>
+    <string name="filter_group_notification">Por notificación</string>
+    <string name="filter_notification_on">Activada</string>
+    <string name="filter_notification_off">Desactivada</string>
+    <string name="filter_reset">Restablecer filtros</string>
+    <string name="home_title">Mi lista</string>
+    <string name="home_empty_title">Aún no hay anime aquí</string>
+    <string name="home_empty_subtitle">Busca anime para añadir a tu lista</string>
+    <string name="home_episode_with_total">%1$d / %2$d ep</string>
+    <string name="home_episode_without_total">%1$d ep</string>
+    <string name="home_tab_all">Todos</string>
+
+    <!-- SearchScreen -->
+    <string name="search_title">Buscar anime</string>
+    <string name="search_error_title">Algo salió mal</string>
+    <string name="search_no_results_title">Sin resultados</string>
+    <string name="search_no_results_subtitle">Intenta con otro término de búsqueda</string>
+    <string name="search_initial_title">Busca anime</string>
+    <string name="search_initial_subtitle">Encuentra anime de MyAnimeList y añádelo a tu lista</string>
+    <string name="search_no_filter_match_title">Ningún anime coincide con este filtro</string>
+    <string name="search_no_filter_match_subtitle">Prueba con otro filtro</string>
+    <string name="search_episode_count">%1$d episodios</string>
+    <string name="search_added_to_watchlist">%1$s añadido a la lista</string>
+    <string name="cd_already_in_watchlist">Ya está en la lista</string>
+    <string name="cd_add_to_watchlist">Añadir a la lista</string>
+    <string name="search_add_sheet_title">Añadir a la lista</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Inicio</string>
+    <string name="nav_seasons">Temporadas</string>
+    <string name="nav_search">Buscar</string>
+    <string name="nav_settings">Ajustes</string>
+
+    <!-- Common -->
+    <string name="cd_back">Atrás</string>
+    <string name="notification_permission_denied">Permiso de notificación no concedido</string>
+    <string name="delete_anime_dialog_title">¿Eliminar de la lista?</string>
+    <string name="delete_anime_dialog_message">Esto eliminará el anime y todas sus temporadas de tu lista. Esta acción no se puede deshacer.</string>
+    <string name="delete_anime_dialog_confirm">Eliminar</string>
+    <string name="delete_anime_dialog_dismiss">Cancelar</string>
+    <string name="delete_season_dialog_title">¿Eliminar temporada de la lista?</string>
+    <string name="delete_season_dialog_message">Esto eliminará esta temporada de tu lista. Esta acción no se puede deshacer.</string>
+
+    <!-- AnimeDetailScreen -->
+    <string name="anime_detail_title">Detalle del anime</string>
+    <string name="cd_delete">Eliminar</string>
+    <string name="anime_detail_not_found">Anime no encontrado</string>
+    <string name="anime_detail_change_status_title">Cambiar estado</string>
+    <string name="anime_detail_section_your_rating">Tu puntuación</string>
+    <string name="anime_detail_section_synopsis">Sinopsis</string>
+    <string name="anime_detail_section_seasons">Temporadas</string>
+    <string name="anime_detail_add_to_watchlist">Añadir a la lista</string>
+    <string name="anime_detail_add_sheet_title">Añadir a la lista</string>
+    <string name="anime_detail_added_to_watchlist">%1$s añadido a la lista</string>
+    <string name="anime_detail_season_episodes">%1$d / %2$d ep</string>
+    <string name="anime_detail_season_episodes_no_total">%1$d ep vistos</string>
+    <string name="anime_detail_add_scope_title">¿Cuántas temporadas?</string>
+    <string name="anime_detail_add_scope_all">Todas las temporadas</string>
+    <string name="anime_detail_add_scope_first_only">Solo la primera temporada</string>
+    <string name="anime_detail_notification_sheet_title">Tipo de notificación</string>
+    <string name="anime_detail_notification_new_episodes">Nuevos episodios emitidos</string>
+    <string name="anime_detail_notification_new_seasons">Nuevas temporadas emitidas</string>
+    <string name="anime_detail_notification_both">Ambos</string>
+    <string name="anime_detail_notifications_enabled_episodes">Notificaciones activadas: nuevos episodios</string>
+    <string name="anime_detail_notifications_enabled_seasons">Notificaciones activadas: nuevas temporadas</string>
+    <string name="anime_detail_notifications_enabled_both">Notificaciones activadas: episodios y temporadas</string>
+    <string name="anime_detail_notifications_disabled">Notificaciones desactivadas</string>
+
+    <!-- SeasonDetailScreen -->
+    <string name="season_detail_title">Detalle de la temporada</string>
+    <string name="season_detail_not_found">Temporada no encontrada</string>
+    <string name="season_detail_mal_score">Puntuación MAL: ★ %1$s</string>
+    <string name="season_detail_section_progress">Progreso</string>
+    <string name="season_detail_section_episodes">Episodios</string>
+    <string name="season_detail_episode_count">%1$d episodios</string>
+    <string name="season_detail_load_more_episodes">Cargar más episodios</string>
+    <string name="season_detail_airing_status">Estado: %1$s</string>
+    <string name="season_detail_add_to_watchlist">Añadir a la lista</string>
+    <string name="season_detail_add_sheet_title">Añadir a la lista</string>
+    <string name="season_detail_added_to_watchlist">%1$s añadido a la lista</string>
+    <string name="season_detail_view_full_series">Ver la serie completa</string>
+    <string name="season_detail_episode_notifications_enabled">Notificaciones de episodios activadas</string>
+    <string name="season_detail_episode_notifications_disabled">Notificaciones de episodios desactivadas</string>
+
+    <!-- SeasonsScreen -->
+    <string name="seasons_title">Temporadas</string>
+    <string name="seasons_sort_default">Por defecto</string>
+    <string name="seasons_label_winter">Invierno</string>
+    <string name="seasons_label_spring">Primavera</string>
+    <string name="seasons_label_summer">Verano</string>
+    <string name="seasons_label_fall">Otoño</string>
+    <string name="seasons_picker_label">%1$s %2$d</string>
+    <string name="seasons_error_title">Algo salió mal</string>
+    <string name="seasons_empty_title">No se encontró ningún anime</string>
+    <string name="seasons_empty_subtitle">No se encontró ningún anime para esta temporada</string>
+    <string name="seasons_episode_count">%1$d episodios</string>
+    <string name="seasons_added_to_watchlist">%1$s añadido a la lista</string>
+    <string name="seasons_add_sheet_title">Añadir a la lista</string>
+    <string name="seasons_load_more">Cargar más</string>
+
+    <!-- SettingsScreen -->
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_title_language">Idioma del título</string>
+    <string name="settings_home_view_mode">Modo de vista de inicio</string>
+    <string name="settings_home_view_mode_anime">Por anime</string>
+    <string name="settings_home_view_mode_season">Por temporada</string>
+    <string name="settings_title_language_default">Por defecto (Romaji)</string>
+    <string name="settings_title_language_english">Inglés</string>
+    <string name="settings_title_language_japanese">Japonés</string>
+    <string name="settings_delete_all_data">Eliminar todos los datos</string>
+    <string name="settings_delete_dialog_title">¿Eliminar todos los datos?</string>
+    <string name="settings_delete_dialog_message">Esto eliminará permanentemente todo el anime y las temporadas de tu lista. Esta acción no se puede deshacer.</string>
+    <string name="settings_delete_dialog_confirm">Eliminar</string>
+    <string name="settings_delete_dialog_dismiss">Cancelar</string>
+    <string name="settings_data_deleted">Todos los datos eliminados</string>
+</resources>

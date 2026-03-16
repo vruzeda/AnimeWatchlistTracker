@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- AnimeCard -->
+    <string name="score_format">★ %1$s</string>
+
+    <!-- SearchBar -->
+    <string name="search_placeholder">Buscar anime…</string>
+    <string name="cd_search">Buscar</string>
+    <string name="cd_clear">Limpar</string>
+
+    <!-- SortMenuButton -->
+    <string name="cd_sort">Ordenar</string>
+
+    <!-- FilterMenuButton -->
+    <string name="cd_filter">Filtrar</string>
+    <string name="cd_ascending">Crescente</string>
+    <string name="cd_descending">Decrescente</string>
+
+    <!-- EpisodeStepper -->
+    <string name="episode_stepper_decrement">−</string>
+    <string name="episode_stepper_increment">+</string>
+    <string name="episode_stepper_with_total">%1$d / %2$d</string>
+    <string name="episode_stepper_without_total">%1$d</string>
+
+    <!-- EpisodeListItem -->
+    <string name="episode_number_format">EP %1$d</string>
+    <string name="episode_title_unknown">A confirmar</string>
+    <string name="episode_badge_filler">Filler</string>
+    <string name="episode_badge_recap">Resumo</string>
+
+    <!-- RatingBar -->
+    <string name="cd_star">Estrela %1$d de %2$d</string>
+
+    <!-- SeasonPickerRow -->
+    <string name="cd_previous_season">Temporada anterior</string>
+    <string name="cd_next_season">Próxima temporada</string>
+
+    <!-- NotificationsButton -->
+    <string name="cd_disable_notifications">Desativar notificações</string>
+    <string name="cd_enable_notifications">Ativar notificações</string>
+    <string name="notification_permission_rationale_title">Permissão necessária</string>
+    <string name="notification_permission_rationale_message">As notificações estão permanentemente bloqueadas. Abra as Configurações para permitir neste aplicativo.</string>
+    <string name="notification_permission_go_to_settings">Ir para Configurações</string>
+    <string name="notification_permission_cancel">Cancelar</string>
+</resources>
