@@ -6,7 +6,7 @@
     <!-- SearchBar -->
     <string name="search_placeholder">Buscar anime…</string>
     <string name="cd_search">Buscar</string>
-    <string name="cd_clear">Borrar</string>
+    <string name="cd_clear">Limpiar</string>
 
     <!-- SortMenuButton -->
     <string name="cd_sort">Ordenar</string>
@@ -39,7 +39,7 @@
     <string name="cd_disable_notifications">Desactivar notificaciones</string>
     <string name="cd_enable_notifications">Activar notificaciones</string>
     <string name="notification_permission_rationale_title">Permiso requerido</string>
-    <string name="notification_permission_rationale_message">Las notificaciones están permanentemente bloqueadas. Abre los Ajustes para permitirlas en esta aplicación.</string>
-    <string name="notification_permission_go_to_settings">Ir a Ajustes</string>
+    <string name="notification_permission_rationale_message">Las notificaciones están permanentemente bloqueadas. Abre la Configuración para permitirlas en esta aplicación.</string>
+    <string name="notification_permission_go_to_settings">Ir a Configuración</string>
     <string name="notification_permission_cancel">Cancelar</string>
 </resources>

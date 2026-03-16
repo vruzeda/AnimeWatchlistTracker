@@ -33,11 +33,11 @@
     <string name="home_tab_all">Todos</string>
 
     <!-- SearchScreen -->
-    <string name="search_title">Buscar anime</string>
+    <string name="search_title">Pesquisar anime</string>
     <string name="search_error_title">Algo deu errado</string>
     <string name="search_no_results_title">Nenhum resultado encontrado</string>
     <string name="search_no_results_subtitle">Tente um termo de pesquisa diferente</string>
-    <string name="search_initial_title">Busque anime</string>
+    <string name="search_initial_title">Pesquise anime</string>
     <string name="search_initial_subtitle">Encontre anime do MyAnimeList e adicione à sua lista</string>
     <string name="search_no_filter_match_title">Nenhum anime corresponde a este filtro</string>
     <string name="search_no_filter_match_subtitle">Tente um filtro diferente</string>
@@ -50,7 +50,7 @@
     <!-- Navigation -->
     <string name="nav_home">Início</string>
     <string name="nav_seasons">Temporadas</string>
-    <string name="nav_search">Buscar</string>
+    <string name="nav_search">Pesquisar</string>
     <string name="nav_settings">Configurações</string>
 
     <!-- Common -->

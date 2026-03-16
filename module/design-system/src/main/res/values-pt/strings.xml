@@ -4,8 +4,8 @@
     <string name="score_format">★ %1$s</string>
 
     <!-- SearchBar -->
-    <string name="search_placeholder">Buscar anime…</string>
-    <string name="cd_search">Buscar</string>
+    <string name="search_placeholder">Pesquisar anime…</string>
+    <string name="cd_search">Pesquisar</string>
     <string name="cd_clear">Limpar</string>
 
     <!-- SortMenuButton -->
