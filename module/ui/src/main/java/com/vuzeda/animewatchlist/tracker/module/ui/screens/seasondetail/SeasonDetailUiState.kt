@@ -16,6 +16,7 @@ sealed interface SeasonDetailUiState {
         val hasMoreEpisodes: Boolean = false,
         val nextEpisodePage: Int = 1,
         val isLastSeason: Boolean = false,
+        val isStatusSheetVisible: Boolean = false,
         val isDeleteConfirmationVisible: Boolean = false,
         val isDeleted: Boolean = false,
         val isAddSheetVisible: Boolean = false,

@@ -20,6 +20,7 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSeasonsForAnimeUs
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ToggleSeasonEpisodeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonProgressUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonStatusUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -45,6 +46,7 @@ class SeasonDetailViewModelTest {
     private val fetchSeasonDetailUseCase: FetchSeasonDetailUseCase = mockk()
     private val fetchEpisodesUseCase: FetchEpisodesUseCase = mockk()
     private val updateSeasonProgressUseCase: UpdateSeasonProgressUseCase = mockk(relaxed = true)
+    private val updateSeasonStatusUseCase: UpdateSeasonStatusUseCase = mockk(relaxed = true)
     private val deleteSeasonUseCase: DeleteSeasonUseCase = mockk(relaxed = true)
     private val addSeasonToWatchlistUseCase: AddSeasonToWatchlistUseCase = mockk(relaxed = true)
     private val addAnimeFromDetailsUseCase: AddAnimeFromDetailsUseCase = mockk(relaxed = true)
@@ -103,6 +105,7 @@ class SeasonDetailViewModelTest {
             fetchSeasonDetailUseCase = fetchSeasonDetailUseCase,
             fetchEpisodesUseCase = fetchEpisodesUseCase,
             updateSeasonProgressUseCase = updateSeasonProgressUseCase,
+            updateSeasonStatusUseCase = updateSeasonStatusUseCase,
             deleteSeasonUseCase = deleteSeasonUseCase,
             addSeasonToWatchlistUseCase = addSeasonToWatchlistUseCase,
             addAnimeFromDetailsUseCase = addAnimeFromDetailsUseCase,
@@ -474,6 +477,41 @@ class SeasonDetailViewModelTest {
 
             coVerify { addSeasonToWatchlistUseCase(nonWatchlistSeason, WatchStatus.WATCHING) }
             coVerify(exactly = 0) { addAnimeFromDetailsUseCase(any(), any()) }
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `showStatusSheet and dismissStatusSheet toggle visibility`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.showStatusSheet()
+            val shown = awaitItem() as SeasonDetailUiState.Success
+            assertThat(shown.isStatusSheetVisible).isTrue()
+
+            viewModel.dismissStatusSheet()
+            val hidden = awaitItem() as SeasonDetailUiState.Success
+            assertThat(hidden.isStatusSheetVisible).isFalse()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `updateStatus delegates to use case`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.updateStatus(WatchStatus.COMPLETED)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            coVerify { updateSeasonStatusUseCase(sampleSeason, WatchStatus.COMPLETED) }
             cancelAndIgnoreRemainingEvents()
         }
     }

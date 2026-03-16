@@ -17,6 +17,7 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSeasonsForAnimeUs
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ToggleSeasonEpisodeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonProgressUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonStatusUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -33,6 +34,7 @@ class SeasonDetailViewModel @Inject constructor(
     private val fetchSeasonDetailUseCase: FetchSeasonDetailUseCase,
     private val fetchEpisodesUseCase: FetchEpisodesUseCase,
     private val updateSeasonProgressUseCase: UpdateSeasonProgressUseCase,
+    private val updateSeasonStatusUseCase: UpdateSeasonStatusUseCase,
     private val deleteSeasonUseCase: DeleteSeasonUseCase,
     private val addSeasonToWatchlistUseCase: AddSeasonToWatchlistUseCase,
     private val addAnimeFromDetailsUseCase: AddAnimeFromDetailsUseCase,
@@ -196,6 +198,29 @@ class SeasonDetailViewModel @Inject constructor(
 
         viewModelScope.launch {
             updateSeasonProgressUseCase(state.season, clamped)
+        }
+    }
+
+    fun showStatusSheet() {
+        _uiState.update { state ->
+            if (state is SeasonDetailUiState.Success) state.copy(isStatusSheetVisible = true)
+            else state
+        }
+    }
+
+    fun dismissStatusSheet() {
+        _uiState.update { state ->
+            if (state is SeasonDetailUiState.Success) state.copy(isStatusSheetVisible = false)
+            else state
+        }
+    }
+
+    fun updateStatus(status: WatchStatus) {
+        val state = _uiState.value
+        if (state !is SeasonDetailUiState.Success) return
+
+        viewModelScope.launch {
+            updateSeasonStatusUseCase(state.season, status)
         }
     }
 

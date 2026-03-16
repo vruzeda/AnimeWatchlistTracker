@@ -1,5 +1,6 @@
 package com.vuzeda.animewatchlist.tracker.module.ui.screens.seasondetail
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,6 +45,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.ConfirmationDialog
+import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusChip
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.EmptyStateMessage
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.EpisodeListItem
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.EpisodeStepper
@@ -81,6 +83,9 @@ fun SeasonDetailScreenRoute(
     SeasonDetailScreen(
         uiState = uiState,
         onNavigateBack = onNavigateBack,
+        onStatusChipClick = viewModel::showStatusSheet,
+        onStatusSelected = viewModel::updateStatus,
+        onDismissStatusSheet = viewModel::dismissStatusSheet,
         onEpisodeProgressChanged = viewModel::updateEpisodeProgress,
         onLoadMoreEpisodes = viewModel::loadMoreEpisodes,
         onDeleteClick = viewModel::showDeleteConfirmation,
@@ -101,6 +106,9 @@ fun SeasonDetailScreenRoute(
 fun SeasonDetailScreen(
     uiState: SeasonDetailUiState,
     onNavigateBack: () -> Unit,
+    onStatusChipClick: () -> Unit,
+    onStatusSelected: (WatchStatus) -> Unit,
+    onDismissStatusSheet: () -> Unit,
     onEpisodeProgressChanged: (Int) -> Unit,
     onLoadMoreEpisodes: () -> Unit,
     onDeleteClick: () -> Unit,
@@ -180,11 +188,34 @@ fun SeasonDetailScreen(
                 is SeasonDetailUiState.Success -> {
                     SeasonDetailContent(
                         state = uiState,
+                        onStatusChipClick = onStatusChipClick,
                         onEpisodeProgressChanged = onEpisodeProgressChanged,
                         onLoadMoreEpisodes = onLoadMoreEpisodes,
                         onAddToWatchlistClick = onAddToWatchlistClick,
                         onViewFullSeriesClick = onViewFullSeriesClick
                     )
+
+                    if (uiState.isStatusSheetVisible) {
+                        val statusOptions = WatchStatus.entries.map {
+                            StatusOption(stringResource(it.toDisplayLabelRes()), it.toColor())
+                        }
+                        val displayTitle = resolveDisplayTitle(
+                            title = uiState.season.title,
+                            titleEnglish = uiState.season.titleEnglish,
+                            titleJapanese = uiState.season.titleJapanese,
+                            language = uiState.titleLanguage
+                        )
+                        StatusSelectionSheet(
+                            title = stringResource(R.string.anime_detail_change_status_title),
+                            subtitle = displayTitle,
+                            options = statusOptions,
+                            onOptionSelected = { index ->
+                                onStatusSelected(WatchStatus.entries[index])
+                                onDismissStatusSheet()
+                            },
+                            onDismiss = onDismissStatusSheet
+                        )
+                    }
 
                     if (uiState.isAddSheetVisible) {
                         val statusOptions = WatchStatus.entries.map {
@@ -232,6 +263,7 @@ fun SeasonDetailScreen(
 @Composable
 private fun SeasonDetailContent(
     state: SeasonDetailUiState.Success,
+    onStatusChipClick: () -> Unit,
     onEpisodeProgressChanged: (Int) -> Unit,
     onLoadMoreEpisodes: () -> Unit,
     onAddToWatchlistClick: () -> Unit,
@@ -248,6 +280,7 @@ private fun SeasonDetailContent(
             season = season,
             titleLanguage = state.titleLanguage,
             isInWatchlist = state.isInWatchlist,
+            onStatusChipClick = onStatusChipClick,
             onAddToWatchlistClick = onAddToWatchlistClick
         )
 
@@ -325,6 +358,7 @@ private fun SeasonHeaderSection(
     season: Season,
     titleLanguage: TitleLanguage,
     isInWatchlist: Boolean,
+    onStatusChipClick: () -> Unit,
     onAddToWatchlistClick: () -> Unit
 ) {
     val displayTitle = resolveDisplayTitle(
@@ -386,8 +420,14 @@ private fun SeasonHeaderSection(
                 )
             }
 
-            if (!isInWatchlist) {
-                Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(4.dp))
+            if (isInWatchlist) {
+                StatusChip(
+                    label = stringResource(season.status.toDisplayLabelRes()),
+                    color = season.status.toColor(),
+                    modifier = Modifier.clickable(onClick = onStatusChipClick)
+                )
+            } else {
                 Button(onClick = onAddToWatchlistClick) {
                     Text(stringResource(R.string.season_detail_add_to_watchlist))
                 }
