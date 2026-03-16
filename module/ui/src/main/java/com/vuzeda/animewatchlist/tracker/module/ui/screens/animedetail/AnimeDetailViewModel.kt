@@ -147,7 +147,8 @@ class AnimeDetailViewModel @Inject constructor(
                             episodeCount = seasonData.episodeCount,
                             score = seasonData.score,
                             airingStatus = seasonData.airingStatus,
-                            orderIndex = index
+                            orderIndex = index,
+                            isInWatchlist = false
                         )
                     }
                     resolvedAnime = anime

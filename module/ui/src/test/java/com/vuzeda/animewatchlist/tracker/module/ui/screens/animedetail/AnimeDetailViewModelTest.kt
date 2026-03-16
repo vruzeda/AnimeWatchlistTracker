@@ -183,6 +183,31 @@ class AnimeDetailViewModelTest {
     }
 
     @Test
+    fun `seasons resolved from API have isInWatchlist false`() = runTest {
+        coEvery { findAnimeBySeasonMalIdUseCase(50) } returns null
+        coEvery { resolveAnimeUseCase(50) } returns Result.success(
+            ResolvedSeries(
+                title = "Spy x Family",
+                seasons = listOf(
+                    SeasonData(malId = 50, title = "Season 1", type = "TV"),
+                    SeasonData(malId = 51, title = "Season 2", type = "TV")
+                )
+            )
+        )
+
+        val viewModel = createViewModel(animeId = 0L, malId = 50)
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            val success = awaitItem() as AnimeDetailUiState.Success
+            assertThat(success.seasons).hasSize(2)
+            assertThat(success.seasons.all { !it.isInWatchlist }).isTrue()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `redirects to watchlist mode when anime already exists`() = runTest {
         coEvery { findAnimeBySeasonMalIdUseCase(16498) } returns 1L
 
