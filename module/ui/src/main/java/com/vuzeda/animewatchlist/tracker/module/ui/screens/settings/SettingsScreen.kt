@@ -57,8 +57,7 @@ private enum class HomeViewModeOption(
 @Composable
 fun SettingsScreenRoute(
     viewModel: SettingsViewModel = hiltViewModel(),
-    onFireTestEpisodeNotification: () -> Unit = {},
-    onFireTestSeasonNotification: () -> Unit = {}
+    onDeveloperClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     SettingsScreen(
@@ -69,8 +68,7 @@ fun SettingsScreenRoute(
         onConfirmDelete = viewModel::confirmDeleteAllData,
         onDismissDelete = viewModel::dismissDeleteConfirmation,
         onDataDeletedShown = viewModel::clearDataDeletedFlag,
-        onFireTestEpisodeNotification = onFireTestEpisodeNotification,
-        onFireTestSeasonNotification = onFireTestSeasonNotification
+        onDeveloperClick = onDeveloperClick
     )
 }
 
@@ -84,8 +82,7 @@ fun SettingsScreen(
     onConfirmDelete: () -> Unit,
     onDismissDelete: () -> Unit,
     onDataDeletedShown: () -> Unit,
-    onFireTestEpisodeNotification: () -> Unit = {},
-    onFireTestSeasonNotification: () -> Unit = {}
+    onDeveloperClick: () -> Unit = {}
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val dataDeletedMessage = stringResource(R.string.settings_data_deleted)
@@ -192,32 +189,14 @@ fun SettingsScreen(
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Text(
-                    text = stringResource(R.string.settings_developer_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                )
-
                 TextButton(
-                    onClick = onFireTestEpisodeNotification,
+                    onClick = onDeveloperClick,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 8.dp)
                 ) {
                     Text(
-                        text = stringResource(R.string.settings_developer_test_episode_notification),
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                TextButton(
-                    onClick = onFireTestSeasonNotification,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp)
-                ) {
-                    Text(
-                        text = stringResource(R.string.settings_developer_test_season_notification),
+                        text = stringResource(R.string.developer_title),
                         modifier = Modifier.weight(1f)
                     )
                 }

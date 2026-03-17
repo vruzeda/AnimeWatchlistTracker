@@ -26,6 +26,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.vuzeda.animewatchlist.tracker.module.ui.R
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.animedetail.AnimeDetailScreenRoute
+import com.vuzeda.animewatchlist.tracker.module.ui.screens.developer.DeveloperScreenRoute
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.home.HomeScreenRoute
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.search.SearchScreenRoute
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.seasondetail.SeasonDetailScreenRoute
@@ -50,9 +51,7 @@ private val BottomNavItems = listOf(
 @Composable
 fun AppNavigation(
     modifier: Modifier = Modifier,
-    seasonMalId: Int = 0,
-    onFireTestEpisodeNotification: () -> Unit = {},
-    onFireTestSeasonNotification: () -> Unit = {}
+    seasonMalId: Int = 0
 ) {
     val navController = rememberNavController()
 
@@ -119,8 +118,13 @@ fun AppNavigation(
 
             composable<Route.Settings> {
                 SettingsScreenRoute(
-                    onFireTestEpisodeNotification = onFireTestEpisodeNotification,
-                    onFireTestSeasonNotification = onFireTestSeasonNotification
+                    onDeveloperClick = { navController.navigate(Route.Developer) }
+                )
+            }
+
+            composable<Route.Developer> {
+                DeveloperScreenRoute(
+                    onNavigateBack = { navController.popBackStack() }
                 )
             }
 

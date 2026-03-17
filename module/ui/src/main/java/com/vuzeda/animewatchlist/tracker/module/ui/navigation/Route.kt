@@ -22,4 +22,7 @@ sealed interface Route {
 
     @Serializable
     data class SeasonDetail(val seasonId: Long = 0, val malId: Int = 0) : Route
+
+    @Serializable
+    data object Developer : Route
 }

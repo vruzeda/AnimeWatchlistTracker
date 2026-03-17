@@ -15,6 +15,7 @@ import androidx.core.content.ContextCompat
 import com.vuzeda.animewatchlist.tracker.MainActivity
 import com.vuzeda.animewatchlist.tracker.R
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdate
+import com.vuzeda.animewatchlist.tracker.module.ui.notification.AnimeUpdateNotifier
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -22,7 +23,7 @@ import javax.inject.Singleton
 @Singleton
 class NotificationHelper @Inject constructor(
     @param:ApplicationContext private val context: Context
-) {
+) : AnimeUpdateNotifier {
 
     fun createNotificationChannel() {
         val channel = NotificationChannel(

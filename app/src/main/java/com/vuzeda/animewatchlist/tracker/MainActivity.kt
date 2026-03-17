@@ -11,19 +11,11 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
-import com.vuzeda.animewatchlist.tracker.module.domain.Anime
-import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdate
-import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.ui.navigation.AppNavigation
-import com.vuzeda.animewatchlist.tracker.notification.NotificationHelper
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
-    @Inject
-    lateinit var notificationHelper: NotificationHelper
 
     private var seasonMalId by mutableIntStateOf(0)
 
@@ -35,33 +27,7 @@ class MainActivity : ComponentActivity() {
             AnimeWatchlistTrackerTheme {
                 AppNavigation(
                     modifier = Modifier.fillMaxSize(),
-                    seasonMalId = seasonMalId,
-                    onFireTestEpisodeNotification = if (BuildConfig.DEBUG) {
-                        {
-                            notificationHelper.showUpdateNotification(
-                                AnimeUpdate.NewEpisodes(
-                                    anime = Anime(title = "Fullmetal Alchemist"),
-                                    season = Season(malId = 121, title = "Fullmetal Alchemist"),
-                                    newEpisodeCount = 3
-                                )
-                            )
-                        }
-                    } else {
-                        {}
-                    },
-                    onFireTestSeasonNotification = if (BuildConfig.DEBUG) {
-                        {
-                            notificationHelper.showUpdateNotification(
-                                AnimeUpdate.NewSeason(
-                                    anime = Anime(title = "Fullmetal Alchemist"),
-                                    sequelMalId = 430,
-                                    sequelTitle = "Fullmetal Alchemist: The Conqueror of Shamballa"
-                                )
-                            )
-                        }
-                    } else {
-                        {}
-                    }
+                    seasonMalId = seasonMalId
                 )
             }
         }
