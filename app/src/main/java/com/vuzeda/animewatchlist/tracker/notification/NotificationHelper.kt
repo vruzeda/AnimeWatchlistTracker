@@ -3,12 +3,16 @@ package com.vuzeda.animewatchlist.tracker.notification
 import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.app.TaskStackBuilder
 import androidx.core.content.ContextCompat
+import com.vuzeda.animewatchlist.tracker.MainActivity
 import com.vuzeda.animewatchlist.tracker.R
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdate
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -62,6 +66,17 @@ class NotificationHelper @Inject constructor(
             )
         }
         val groupKey = "anime_${anime.id}"
+        val seasonMalId = when (update) {
+            is AnimeUpdate.NewEpisodes -> update.season.malId
+            is AnimeUpdate.NewSeason -> update.sequelMalId
+        }
+        val contentIntent = TaskStackBuilder.create(context).run {
+            addNextIntentWithParentStack(
+                Intent(context, MainActivity::class.java)
+                    .putExtra(MainActivity.EXTRA_SEASON_MAL_ID, seasonMalId)
+            )
+            getPendingIntent(notificationId, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        }
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
@@ -70,6 +85,7 @@ class NotificationHelper @Inject constructor(
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .setGroup(groupKey)
+            .setContentIntent(contentIntent)
             .build()
 
         notificationManager.notify(notificationId, notification)
