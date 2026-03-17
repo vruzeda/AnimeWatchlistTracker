@@ -6,7 +6,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 val MIGRATION_9_10 = object : Migration(9, 10) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("ALTER TABLE season ADD COLUMN lastEpisodeCheckDate TEXT")
+        db.execSQL("UPDATE season SET lastEpisodeCheckDate = date('now')")
         db.execSQL("ALTER TABLE anime ADD COLUMN lastSeasonCheckDate TEXT")
+        db.execSQL("UPDATE anime SET lastSeasonCheckDate = date('now')")
     }
 }
 
