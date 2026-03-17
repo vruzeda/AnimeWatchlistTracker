@@ -69,7 +69,7 @@ abstract class SeasonRoomDao : SeasonLocalDataSource {
     @Query("SELECT * FROM season WHERE isEpisodeNotificationsEnabled = 1")
     abstract suspend fun getSeasonsWithEpisodeNotificationsEntities(): List<SeasonEntity>
 
-    @Query("SELECT malId FROM season")
+    @Query("SELECT malId FROM season WHERE isInWatchlist = 1")
     override abstract fun observeAllMalIds(): Flow<List<Int>>
 
     override suspend fun getSeasonsWithEpisodeNotifications(): List<Season> =
