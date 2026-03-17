@@ -135,4 +135,7 @@
     <string name="settings_delete_dialog_confirm">Eliminar</string>
     <string name="settings_delete_dialog_dismiss">Cancelar</string>
     <string name="settings_data_deleted">Todos los datos eliminados</string>
+    <string name="developer_title">Developer</string>
+    <string name="developer_test_episode_notification">Test episode notification</string>
+    <string name="developer_test_season_notification">Test season notification</string>
 </resources>
