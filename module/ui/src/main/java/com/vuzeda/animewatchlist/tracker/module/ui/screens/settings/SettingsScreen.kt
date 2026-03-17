@@ -34,6 +34,7 @@ import androidx.annotation.StringRes
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.ConfirmationDialog
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
+import com.vuzeda.animewatchlist.tracker.module.ui.BuildConfig
 import com.vuzeda.animewatchlist.tracker.module.ui.R
 
 private enum class TitleLanguageOption(
@@ -55,7 +56,9 @@ private enum class HomeViewModeOption(
 
 @Composable
 fun SettingsScreenRoute(
-    viewModel: SettingsViewModel = hiltViewModel()
+    viewModel: SettingsViewModel = hiltViewModel(),
+    onFireTestEpisodeNotification: () -> Unit = {},
+    onFireTestSeasonNotification: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     SettingsScreen(
@@ -65,7 +68,9 @@ fun SettingsScreenRoute(
         onDeleteAllClick = viewModel::requestDeleteAllData,
         onConfirmDelete = viewModel::confirmDeleteAllData,
         onDismissDelete = viewModel::dismissDeleteConfirmation,
-        onDataDeletedShown = viewModel::clearDataDeletedFlag
+        onDataDeletedShown = viewModel::clearDataDeletedFlag,
+        onFireTestEpisodeNotification = onFireTestEpisodeNotification,
+        onFireTestSeasonNotification = onFireTestSeasonNotification
     )
 }
 
@@ -78,7 +83,9 @@ fun SettingsScreen(
     onDeleteAllClick: () -> Unit,
     onConfirmDelete: () -> Unit,
     onDismissDelete: () -> Unit,
-    onDataDeletedShown: () -> Unit
+    onDataDeletedShown: () -> Unit,
+    onFireTestEpisodeNotification: () -> Unit = {},
+    onFireTestSeasonNotification: () -> Unit = {}
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val dataDeletedMessage = stringResource(R.string.settings_data_deleted)
@@ -178,6 +185,42 @@ fun SettingsScreen(
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.weight(1f)
                 )
+            }
+
+            if (BuildConfig.DEBUG) {
+                Spacer(modifier = Modifier.height(8.dp))
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = stringResource(R.string.settings_developer_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+
+                TextButton(
+                    onClick = onFireTestEpisodeNotification,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.settings_developer_test_episode_notification),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                TextButton(
+                    onClick = onFireTestSeasonNotification,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.settings_developer_test_season_notification),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
             }
         }
 

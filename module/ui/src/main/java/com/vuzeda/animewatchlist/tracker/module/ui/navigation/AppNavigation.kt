@@ -48,7 +48,12 @@ private val BottomNavItems = listOf(
 )
 
 @Composable
-fun AppNavigation(modifier: Modifier = Modifier, seasonMalId: Int = 0) {
+fun AppNavigation(
+    modifier: Modifier = Modifier,
+    seasonMalId: Int = 0,
+    onFireTestEpisodeNotification: () -> Unit = {},
+    onFireTestSeasonNotification: () -> Unit = {}
+) {
     val navController = rememberNavController()
 
     LaunchedEffect(seasonMalId) {
@@ -113,7 +118,10 @@ fun AppNavigation(modifier: Modifier = Modifier, seasonMalId: Int = 0) {
             }
 
             composable<Route.Settings> {
-                SettingsScreenRoute()
+                SettingsScreenRoute(
+                    onFireTestEpisodeNotification = onFireTestEpisodeNotification,
+                    onFireTestSeasonNotification = onFireTestSeasonNotification
+                )
             }
 
             composable<Route.Search> {

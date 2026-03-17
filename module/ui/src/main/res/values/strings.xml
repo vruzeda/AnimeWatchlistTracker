@@ -135,4 +135,7 @@
     <string name="settings_delete_dialog_confirm">Delete</string>
     <string name="settings_delete_dialog_dismiss">Cancel</string>
     <string name="settings_data_deleted">All data deleted</string>
+    <string name="settings_developer_title">Developer</string>
+    <string name="settings_developer_test_episode_notification">Test episode notification</string>
+    <string name="settings_developer_test_season_notification">Test season notification</string>
 </resources>
