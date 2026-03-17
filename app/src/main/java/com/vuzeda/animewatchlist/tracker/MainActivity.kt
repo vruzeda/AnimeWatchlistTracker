@@ -40,8 +40,8 @@ class MainActivity : ComponentActivity() {
                         {
                             notificationHelper.showUpdateNotification(
                                 AnimeUpdate.NewEpisodes(
-                                    anime = Anime(title = "Test Anime"),
-                                    season = Season(malId = 0, title = "Test Season"),
+                                    anime = Anime(title = "Fullmetal Alchemist"),
+                                    season = Season(malId = 121, title = "Fullmetal Alchemist"),
                                     newEpisodeCount = 3
                                 )
                             )
@@ -53,9 +53,9 @@ class MainActivity : ComponentActivity() {
                         {
                             notificationHelper.showUpdateNotification(
                                 AnimeUpdate.NewSeason(
-                                    anime = Anime(title = "Test Anime"),
-                                    sequelMalId = 0,
-                                    sequelTitle = "Test Season 2"
+                                    anime = Anime(title = "Fullmetal Alchemist"),
+                                    sequelMalId = 430,
+                                    sequelTitle = "Fullmetal Alchemist: The Conqueror of Shamballa"
                                 )
                             )
                         }
