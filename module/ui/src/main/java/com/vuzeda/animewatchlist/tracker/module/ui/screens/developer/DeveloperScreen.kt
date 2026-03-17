@@ -40,7 +40,7 @@ fun DeveloperScreen(
     onFireTestEpisodeNotification: () -> Unit,
     onFireTestSeasonNotification: () -> Unit
 ) {
-    Scaffold { innerPadding ->
+    Scaffold(contentWindowInsets = WindowInsets(0)) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
