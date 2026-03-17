@@ -1,5 +1,7 @@
 package com.vuzeda.animewatchlist.tracker.module.domain
 
+import java.time.LocalDate
+
 data class SeasonData(
     val malId: Int,
     val title: String,
@@ -13,4 +15,5 @@ data class SeasonData(
     val synopsis: String? = null,
     val genres: List<String> = emptyList(),
     val isMainSeries: Boolean = true,
+    val startDate: LocalDate? = null,
 )

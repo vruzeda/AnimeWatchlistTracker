@@ -2,11 +2,11 @@ package com.vuzeda.animewatchlist.tracker.module.usecase
 
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.domain.Anime
-import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdate
+import com.vuzeda.animewatchlist.tracker.module.domain.EpisodeInfo
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
-import com.vuzeda.animewatchlist.tracker.module.domain.SequelInfo
+import com.vuzeda.animewatchlist.tracker.module.domain.SeasonData
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.repository.AnimeRepository
 import com.vuzeda.animewatchlist.tracker.module.repository.SeasonRepository
@@ -25,6 +25,7 @@ class CheckAnimeUpdatesUseCaseTest {
     private val animeRepository = mockk<AnimeRepository>(relaxed = true)
     private val seasonRepository = mockk<SeasonRepository>(relaxed = true)
     private val fixedDate = LocalDate.of(2026, 3, 15)
+    private val yesterday = fixedDate.minusDays(1)
     private val fixedClock = object : Clock {
         override fun now(): Instant = Instant.fromEpochMilliseconds(
             fixedDate.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
@@ -36,7 +37,8 @@ class CheckAnimeUpdatesUseCaseTest {
         id = 1,
         title = "Test Anime",
         status = WatchStatus.WATCHING,
-        notificationType = NotificationType.BOTH
+        notificationType = NotificationType.BOTH,
+        lastSeasonCheckDate = yesterday
     )
 
     private val sampleSeason = Season(
@@ -46,8 +48,13 @@ class CheckAnimeUpdatesUseCaseTest {
         title = "Test Anime Season 1",
         type = "TV",
         orderIndex = 0,
-        lastCheckedAiredEpisodeCount = 12
+        lastCheckedAiredEpisodeCount = 12,
+        lastEpisodeCheckDate = yesterday,
+        isInWatchlist = true
     )
+
+    private fun episodeInfo(number: Int, aired: String) =
+        EpisodeInfo(number = number, title = null, aired = aired, isFiller = false, isRecap = false)
 
     @Test
     fun `returns empty list when no notified anime`() = runTest {
@@ -69,43 +76,31 @@ class CheckAnimeUpdatesUseCaseTest {
     }
 
     @Test
-    fun `detects new episodes when aired episode count increased`() = runTest {
+    fun `detects new episodes when episodes aired since last check date`() = runTest {
         coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
         coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
-        coEvery { animeRepository.fetchLastAiredEpisodeNumber(100, fixedDate) } returns Result.success(15)
-        coEvery { animeRepository.fetchAnimeFullById(100) } returns Result.success(
-            AnimeFullDetails(
-                malId = 100,
-                title = "Test",
-                type = "TV",
-                episodes = 25,
-                sequels = emptyList()
-            )
-        )
+        coEvery {
+            animeRepository.fetchEpisodesAiredBetween(100, yesterday, fixedDate, 12)
+        } returns Result.success(listOf(episodeInfo(13, "2026-03-15")))
+        coEvery { animeRepository.fetchWatchOrder(100) } returns Result.success(emptyList())
 
         val updates = useCase()
 
         val episodeUpdates = updates.filterIsInstance<AnimeUpdate.NewEpisodes>()
         assertThat(episodeUpdates).hasSize(1)
-        assertThat(episodeUpdates[0].latestAiredEpisode).isEqualTo(15)
+        assertThat(episodeUpdates[0].newEpisodeCount).isEqualTo(1)
         assertThat(episodeUpdates[0].anime).isEqualTo(sampleAnime)
         assertThat(episodeUpdates[0].season).isEqualTo(sampleSeason)
     }
 
     @Test
-    fun `does not detect new episodes when aired count unchanged`() = runTest {
+    fun `does not notify when no new episodes have aired since last check`() = runTest {
         coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
         coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
-        coEvery { animeRepository.fetchLastAiredEpisodeNumber(100, fixedDate) } returns Result.success(12)
-        coEvery { animeRepository.fetchAnimeFullById(100) } returns Result.success(
-            AnimeFullDetails(
-                malId = 100,
-                title = "Test",
-                type = "TV",
-                episodes = 25,
-                sequels = emptyList()
-            )
-        )
+        coEvery {
+            animeRepository.fetchEpisodesAiredBetween(100, yesterday, fixedDate, 12)
+        } returns Result.success(emptyList())
+        coEvery { animeRepository.fetchWatchOrder(100) } returns Result.success(emptyList())
 
         val updates = useCase()
 
@@ -113,20 +108,14 @@ class CheckAnimeUpdatesUseCaseTest {
     }
 
     @Test
-    fun `does not detect new episodes on first check`() = runTest {
-        val firstCheckSeason = sampleSeason.copy(lastCheckedAiredEpisodeCount = null)
+    fun `does not notify on first episode check run when lastEpisodeCheckDate is null`() = runTest {
+        val firstRunSeason = sampleSeason.copy(lastEpisodeCheckDate = null)
         coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
-        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(firstCheckSeason)
-        coEvery { animeRepository.fetchLastAiredEpisodeNumber(100, fixedDate) } returns Result.success(12)
-        coEvery { animeRepository.fetchAnimeFullById(100) } returns Result.success(
-            AnimeFullDetails(
-                malId = 100,
-                title = "Test",
-                type = "TV",
-                episodes = 25,
-                sequels = emptyList()
-            )
-        )
+        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(firstRunSeason)
+        coEvery {
+            animeRepository.fetchEpisodesAiredBetween(100, LocalDate.MIN, fixedDate, 12)
+        } returns Result.success(listOf(episodeInfo(13, "2026-03-15")))
+        coEvery { animeRepository.fetchWatchOrder(100) } returns Result.success(emptyList())
 
         val updates = useCase()
 
@@ -134,27 +123,48 @@ class CheckAnimeUpdatesUseCaseTest {
     }
 
     @Test
-    fun `detects new season when sequel is currently airing`() = runTest {
+    fun `updates lastCheckedAiredEpisodeCount after checking episodes`() = runTest {
         coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
         coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
-        coEvery { animeRepository.fetchLastAiredEpisodeNumber(100, fixedDate) } returns Result.success(12)
-        coEvery { animeRepository.fetchAnimeFullById(100) } returns Result.success(
-            AnimeFullDetails(
-                malId = 100,
-                title = "Test",
-                type = "TV",
-                episodes = 25,
-                sequels = listOf(SequelInfo(300, "New Season"))
-            )
-        )
-        coEvery { animeRepository.fetchAnimeFullById(300) } returns Result.success(
-            AnimeFullDetails(
-                malId = 300,
-                title = "New Season",
-                type = "TV",
-                episodes = null,
-                airingStatus = "Currently Airing",
-                sequels = emptyList()
+        coEvery {
+            animeRepository.fetchEpisodesAiredBetween(100, yesterday, fixedDate, 12)
+        } returns Result.success(listOf(episodeInfo(13, "2026-03-15"), episodeInfo(14, "2026-03-15")))
+        coEvery { animeRepository.fetchWatchOrder(100) } returns Result.success(emptyList())
+
+        useCase()
+
+        coVerify {
+            seasonRepository.updateSeasonNotificationData(seasonId = 10L, lastCheckedAiredEpisodeCount = 14)
+        }
+    }
+
+    @Test
+    fun `does not update lastCheckedAiredEpisodeCount when no episodes returned`() = runTest {
+        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
+        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
+        coEvery {
+            animeRepository.fetchEpisodesAiredBetween(100, yesterday, fixedDate, 12)
+        } returns Result.success(emptyList())
+        coEvery { animeRepository.fetchWatchOrder(100) } returns Result.success(emptyList())
+
+        useCase()
+
+        coVerify(exactly = 0) {
+            seasonRepository.updateSeasonNotificationData(any(), any())
+        }
+    }
+
+    @Test
+    fun `detects new season when Chiaki entry has startDate after lastSeasonCheckDate`() = runTest {
+        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
+        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
+        coEvery {
+            animeRepository.fetchEpisodesAiredBetween(100, yesterday, fixedDate, 12)
+        } returns Result.success(emptyList())
+        coEvery { animeRepository.fetchWatchOrder(100) } returns Result.success(
+            listOf(
+                SeasonData(malId = 100, title = "Season 1", type = "TV", startDate = LocalDate.of(2003, 10, 4)),
+                SeasonData(malId = 300, title = "Season 2", type = "TV", startDate = fixedDate)
             )
         )
 
@@ -163,31 +173,21 @@ class CheckAnimeUpdatesUseCaseTest {
         val seasonUpdates = updates.filterIsInstance<AnimeUpdate.NewSeason>()
         assertThat(seasonUpdates).hasSize(1)
         assertThat(seasonUpdates[0].sequelMalId).isEqualTo(300)
-        assertThat(seasonUpdates[0].sequelTitle).isEqualTo("New Season")
+        assertThat(seasonUpdates[0].sequelTitle).isEqualTo("Season 2")
     }
 
     @Test
-    fun `does not notify for sequel that is not yet confirmed`() = runTest {
-        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
+    fun `does not notify for new season on first run when lastSeasonCheckDate is null`() = runTest {
+        val firstRunAnime = sampleAnime.copy(lastSeasonCheckDate = null)
+        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(firstRunAnime)
         coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
-        coEvery { animeRepository.fetchLastAiredEpisodeNumber(100, fixedDate) } returns Result.success(12)
-        coEvery { animeRepository.fetchAnimeFullById(100) } returns Result.success(
-            AnimeFullDetails(
-                malId = 100,
-                title = "Test",
-                type = "TV",
-                episodes = 25,
-                sequels = listOf(SequelInfo(300, "Unconfirmed"))
-            )
-        )
-        coEvery { animeRepository.fetchAnimeFullById(300) } returns Result.success(
-            AnimeFullDetails(
-                malId = 300,
-                title = "Unconfirmed",
-                type = "TV",
-                episodes = null,
-                airingStatus = "Not yet aired",
-                sequels = emptyList()
+        coEvery {
+            animeRepository.fetchEpisodesAiredBetween(100, yesterday, fixedDate, 12)
+        } returns Result.success(emptyList())
+        coEvery { animeRepository.fetchWatchOrder(100) } returns Result.success(
+            listOf(
+                SeasonData(malId = 100, title = "Season 1", type = "TV", startDate = LocalDate.of(2003, 10, 4)),
+                SeasonData(malId = 300, title = "Season 2", type = "TV", startDate = fixedDate)
             )
         )
 
@@ -197,28 +197,77 @@ class CheckAnimeUpdatesUseCaseTest {
     }
 
     @Test
-    fun `updates season notification data after checking episodes`() = runTest {
+    fun `does not notify for new season when startDate is in the future`() = runTest {
         coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
         coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
-        coEvery { animeRepository.fetchLastAiredEpisodeNumber(100, fixedDate) } returns Result.success(15)
-        coEvery { animeRepository.fetchAnimeFullById(100) } returns Result.success(
-            AnimeFullDetails(
-                malId = 100,
-                title = "Test",
-                type = "TV",
-                episodes = 25,
-                sequels = emptyList()
+        coEvery {
+            animeRepository.fetchEpisodesAiredBetween(100, yesterday, fixedDate, 12)
+        } returns Result.success(emptyList())
+        coEvery { animeRepository.fetchWatchOrder(100) } returns Result.success(
+            listOf(
+                SeasonData(malId = 100, title = "Season 1", type = "TV", startDate = LocalDate.of(2003, 10, 4)),
+                SeasonData(malId = 300, title = "Season 2", type = "TV", startDate = fixedDate.plusDays(1))
             )
         )
 
-        useCase()
+        val updates = useCase()
 
-        coVerify {
-            seasonRepository.updateSeasonNotificationData(
-                seasonId = 10L,
-                lastCheckedAiredEpisodeCount = 15
+        assertThat(updates.filterIsInstance<AnimeUpdate.NewSeason>()).isEmpty()
+    }
+
+    @Test
+    fun `does not notify for new season when startDate is not after lastSeasonCheckDate`() = runTest {
+        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
+        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
+        coEvery {
+            animeRepository.fetchEpisodesAiredBetween(100, yesterday, fixedDate, 12)
+        } returns Result.success(emptyList())
+        coEvery { animeRepository.fetchWatchOrder(100) } returns Result.success(
+            listOf(
+                SeasonData(malId = 100, title = "Season 1", type = "TV", startDate = LocalDate.of(2003, 10, 4)),
+                SeasonData(malId = 300, title = "Season 2", type = "TV", startDate = yesterday)
             )
-        }
+        )
+
+        val updates = useCase()
+
+        assertThat(updates.filterIsInstance<AnimeUpdate.NewSeason>()).isEmpty()
+    }
+
+    @Test
+    fun `skips season entry already present in known malIds`() = runTest {
+        val season2 = sampleSeason.copy(id = 11L, malId = 300, orderIndex = 1)
+        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
+        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason, season2)
+        coEvery { animeRepository.fetchEpisodesAiredBetween(any(), any(), any(), any()) } returns Result.success(emptyList())
+        coEvery { animeRepository.fetchWatchOrder(300) } returns Result.success(
+            listOf(
+                SeasonData(malId = 100, title = "Season 1", type = "TV", startDate = LocalDate.of(2003, 10, 4)),
+                SeasonData(malId = 300, title = "Season 2", type = "TV", startDate = fixedDate)
+            )
+        )
+
+        val updates = useCase()
+
+        assertThat(updates.filterIsInstance<AnimeUpdate.NewSeason>()).isEmpty()
+    }
+
+    @Test
+    fun `does not notify for new season when startDate is null in Chiaki entry`() = runTest {
+        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
+        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
+        coEvery {
+            animeRepository.fetchEpisodesAiredBetween(100, yesterday, fixedDate, 12)
+        } returns Result.success(emptyList())
+        coEvery { animeRepository.fetchWatchOrder(100) } returns Result.success(
+            listOf(
+                SeasonData(malId = 300, title = "Season 2", type = "TV", startDate = null)
+            )
+        )
+
+        val updates = useCase()
+
+        assertThat(updates.filterIsInstance<AnimeUpdate.NewSeason>()).isEmpty()
     }
 
     @Test
@@ -226,12 +275,14 @@ class CheckAnimeUpdatesUseCaseTest {
         val episodesOnlyAnime = sampleAnime.copy(notificationType = NotificationType.NEW_EPISODES)
         coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(episodesOnlyAnime)
         coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
-        coEvery { animeRepository.fetchLastAiredEpisodeNumber(100, fixedDate) } returns Result.success(15)
+        coEvery {
+            animeRepository.fetchEpisodesAiredBetween(100, yesterday, fixedDate, 12)
+        } returns Result.success(listOf(episodeInfo(13, "2026-03-15")))
 
         val updates = useCase()
 
         assertThat(updates.filterIsInstance<AnimeUpdate.NewEpisodes>()).hasSize(1)
-        coVerify(exactly = 0) { animeRepository.fetchAnimeFullById(any()) }
+        coVerify(exactly = 0) { animeRepository.fetchWatchOrder(any()) }
     }
 
     @Test
@@ -239,122 +290,54 @@ class CheckAnimeUpdatesUseCaseTest {
         val seasonsOnlyAnime = sampleAnime.copy(notificationType = NotificationType.NEW_SEASONS)
         coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(seasonsOnlyAnime)
         coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
-        coEvery { animeRepository.fetchAnimeFullById(100) } returns Result.success(
-            AnimeFullDetails(
-                malId = 100, title = "Test", type = "TV", episodes = 25,
-                sequels = listOf(SequelInfo(300, "New Season"))
-            )
-        )
-        coEvery { animeRepository.fetchAnimeFullById(300) } returns Result.success(
-            AnimeFullDetails(
-                malId = 300, title = "New Season", type = "TV", episodes = null,
-                airingStatus = CheckAnimeUpdatesUseCase.STATUS_CURRENTLY_AIRING, sequels = emptyList()
+        coEvery { animeRepository.fetchWatchOrder(100) } returns Result.success(
+            listOf(
+                SeasonData(malId = 300, title = "Season 2", type = "TV", startDate = fixedDate)
             )
         )
 
         val updates = useCase()
 
         assertThat(updates.filterIsInstance<AnimeUpdate.NewSeason>()).hasSize(1)
-        coVerify(exactly = 0) { animeRepository.fetchLastAiredEpisodeNumber(any(), any()) }
+        coVerify(exactly = 0) { animeRepository.fetchEpisodesAiredBetween(any(), any(), any(), any()) }
     }
 
     @Test
-    fun `skips sequel already present in existing seasons`() = runTest {
-        val seasonWithSequel = sampleSeason.copy(malId = 300)
-        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
-        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason, seasonWithSequel)
-        coEvery { animeRepository.fetchLastAiredEpisodeNumber(any(), fixedDate) } returns Result.success(12)
-        coEvery { animeRepository.fetchAnimeFullById(100) } returns Result.success(
-            AnimeFullDetails(
-                malId = 100, title = "Test", type = "TV", episodes = 12,
-                sequels = listOf(SequelInfo(300, "Already Added"))
-            )
-        )
+    fun `bulk updates lastEpisodeCheckDate for all seasons after run`() = runTest {
+        coEvery { animeRepository.getNotificationEnabledAnime() } returns emptyList()
 
-        val updates = useCase()
+        useCase()
 
-        assertThat(updates.filterIsInstance<AnimeUpdate.NewSeason>()).isEmpty()
+        coVerify { seasonRepository.updateLastEpisodeCheckDateForAll(fixedDate) }
     }
 
     @Test
-    fun `does not notify for sequel when details fetch fails`() = runTest {
-        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
-        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
-        coEvery { animeRepository.fetchLastAiredEpisodeNumber(100, fixedDate) } returns Result.success(12)
-        coEvery { animeRepository.fetchAnimeFullById(100) } returns Result.success(
-            AnimeFullDetails(
-                malId = 100, title = "Test", type = "TV", episodes = 12,
-                sequels = listOf(SequelInfo(300, "New Season"))
-            )
-        )
-        coEvery { animeRepository.fetchAnimeFullById(300) } returns Result.failure(Exception("Not found"))
+    fun `bulk updates lastSeasonCheckDate for all anime after run`() = runTest {
+        coEvery { animeRepository.getNotificationEnabledAnime() } returns emptyList()
 
-        val updates = useCase()
+        useCase()
 
-        assertThat(updates.filterIsInstance<AnimeUpdate.NewSeason>()).isEmpty()
-    }
-
-    @Test
-    fun `does not notify for sequel when type is not TV or Movie`() = runTest {
-        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
-        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
-        coEvery { animeRepository.fetchLastAiredEpisodeNumber(100, fixedDate) } returns Result.success(12)
-        coEvery { animeRepository.fetchAnimeFullById(100) } returns Result.success(
-            AnimeFullDetails(
-                malId = 100, title = "Test", type = "TV", episodes = 12,
-                sequels = listOf(SequelInfo(300, "OVA"))
-            )
-        )
-        coEvery { animeRepository.fetchAnimeFullById(300) } returns Result.success(
-            AnimeFullDetails(
-                malId = 300, title = "OVA", type = "OVA", episodes = 1,
-                airingStatus = CheckAnimeUpdatesUseCase.STATUS_FINISHED_AIRING, sequels = emptyList()
-            )
-        )
-
-        val updates = useCase()
-
-        assertThat(updates.filterIsInstance<AnimeUpdate.NewSeason>()).isEmpty()
-    }
-
-    @Test
-    fun `detects new season when sequel has finished airing`() = runTest {
-        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
-        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
-        coEvery { animeRepository.fetchLastAiredEpisodeNumber(100, fixedDate) } returns Result.success(12)
-        coEvery { animeRepository.fetchAnimeFullById(100) } returns Result.success(
-            AnimeFullDetails(
-                malId = 100, title = "Test", type = "TV", episodes = 12,
-                sequels = listOf(SequelInfo(300, "Finished Season"))
-            )
-        )
-        coEvery { animeRepository.fetchAnimeFullById(300) } returns Result.success(
-            AnimeFullDetails(
-                malId = 300, title = "Finished Season", type = "TV", episodes = 12,
-                airingStatus = CheckAnimeUpdatesUseCase.STATUS_FINISHED_AIRING, sequels = emptyList()
-            )
-        )
-
-        val updates = useCase()
-
-        assertThat(updates.filterIsInstance<AnimeUpdate.NewSeason>()).hasSize(1)
+        coVerify { animeRepository.updateLastSeasonCheckDateForAll(fixedDate) }
     }
 
     @Test
     fun `checks per-season episode notifications for seasons not covered by anime-level check`() = runTest {
         val perSeasonSeason = Season(
             id = 20L, animeId = 2L, malId = 200, title = "Standalone",
-            lastCheckedAiredEpisodeCount = 5
+            lastCheckedAiredEpisodeCount = 5, lastEpisodeCheckDate = yesterday, isInWatchlist = true
         )
         coEvery { animeRepository.getNotificationEnabledAnime() } returns emptyList()
         coEvery { seasonRepository.getSeasonsWithEpisodeNotifications() } returns listOf(perSeasonSeason)
         coEvery { animeRepository.getAnimeById(2L) } returns Anime(id = 2L, title = "Standalone Anime")
-        coEvery { animeRepository.fetchLastAiredEpisodeNumber(200, fixedDate) } returns Result.success(8)
+        coEvery {
+            animeRepository.fetchEpisodesAiredBetween(200, yesterday, fixedDate, 5)
+        } returns Result.success(listOf(episodeInfo(6, "2026-03-15"), episodeInfo(7, "2026-03-15"), episodeInfo(8, "2026-03-15")))
 
         val updates = useCase()
 
-        assertThat(updates.filterIsInstance<AnimeUpdate.NewEpisodes>()).hasSize(1)
-        assertThat(updates.filterIsInstance<AnimeUpdate.NewEpisodes>()[0].latestAiredEpisode).isEqualTo(8)
+        val episodeUpdates = updates.filterIsInstance<AnimeUpdate.NewEpisodes>()
+        assertThat(episodeUpdates).hasSize(1)
+        assertThat(episodeUpdates[0].newEpisodeCount).isEqualTo(3)
     }
 
     @Test
@@ -362,7 +345,9 @@ class CheckAnimeUpdatesUseCaseTest {
         val episodesOnlyAnime = sampleAnime.copy(notificationType = NotificationType.NEW_EPISODES)
         coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(episodesOnlyAnime)
         coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
-        coEvery { animeRepository.fetchLastAiredEpisodeNumber(100, fixedDate) } returns Result.success(12)
+        coEvery {
+            animeRepository.fetchEpisodesAiredBetween(100, yesterday, fixedDate, 12)
+        } returns Result.success(emptyList())
         coEvery { seasonRepository.getSeasonsWithEpisodeNotifications() } returns listOf(sampleSeason)
 
         val updates = useCase()
@@ -372,7 +357,10 @@ class CheckAnimeUpdatesUseCaseTest {
 
     @Test
     fun `skips per-season notification when anime cannot be found`() = runTest {
-        val perSeasonSeason = Season(id = 20L, animeId = 99L, malId = 200, title = "Unknown")
+        val perSeasonSeason = Season(
+            id = 20L, animeId = 99L, malId = 200, title = "Unknown",
+            lastEpisodeCheckDate = yesterday, isInWatchlist = true
+        )
         coEvery { animeRepository.getNotificationEnabledAnime() } returns emptyList()
         coEvery { seasonRepository.getSeasonsWithEpisodeNotifications() } returns listOf(perSeasonSeason)
         coEvery { animeRepository.getAnimeById(99L) } returns null
@@ -383,75 +371,30 @@ class CheckAnimeUpdatesUseCaseTest {
     }
 
     @Test
-    fun `skips per-season notification when no new episodes found`() = runTest {
-        val perSeasonSeason = Season(
-            id = 20L, animeId = 2L, malId = 200, title = "Standalone",
-            lastCheckedAiredEpisodeCount = 8
-        )
-        coEvery { animeRepository.getNotificationEnabledAnime() } returns emptyList()
-        coEvery { seasonRepository.getSeasonsWithEpisodeNotifications() } returns listOf(perSeasonSeason)
-        coEvery { animeRepository.getAnimeById(2L) } returns Anime(id = 2L, title = "Standalone Anime")
-        coEvery { animeRepository.fetchLastAiredEpisodeNumber(200, fixedDate) } returns Result.success(8)
+    fun `uses last watchlisted season by orderIndex to fetch Chiaki watch order`() = runTest {
+        val season1 = sampleSeason.copy(id = 10L, malId = 100, orderIndex = 0, isInWatchlist = true)
+        val season2 = sampleSeason.copy(id = 11L, malId = 200, orderIndex = 1, isInWatchlist = true)
+        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
+        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(season1, season2)
+        coEvery { animeRepository.fetchEpisodesAiredBetween(any(), any(), any(), any()) } returns Result.success(emptyList())
+        coEvery { animeRepository.fetchWatchOrder(200) } returns Result.success(emptyList())
 
-        val updates = useCase()
+        useCase()
 
-        assertThat(updates.filterIsInstance<AnimeUpdate.NewEpisodes>()).isEmpty()
+        coVerify { animeRepository.fetchWatchOrder(200) }
+        coVerify(exactly = 0) { animeRepository.fetchWatchOrder(100) }
     }
 
     @Test
-    fun `does not check new seasons when existing seasons list is empty for max by`() = runTest {
+    fun `does not check new seasons when watchlisted seasons list is empty`() = runTest {
         val seasonsOnlyAnime = sampleAnime.copy(notificationType = NotificationType.NEW_SEASONS)
+        val nonWatchlistedSeason = sampleSeason.copy(isInWatchlist = false)
         coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(seasonsOnlyAnime)
-        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns emptyList()
+        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(nonWatchlistedSeason)
 
         val updates = useCase()
 
         assertThat(updates).isEmpty()
-    }
-
-    @Test
-    fun `passes today from injected clock when checking for new episodes`() = runTest {
-        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
-        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
-        coEvery { animeRepository.fetchLastAiredEpisodeNumber(100, fixedDate) } returns Result.success(15)
-        coEvery { animeRepository.fetchAnimeFullById(100) } returns Result.success(
-            AnimeFullDetails(malId = 100, title = "Test", type = "TV", episodes = 25, sequels = emptyList())
-        )
-
-        useCase()
-
-        coVerify { animeRepository.fetchLastAiredEpisodeNumber(100, fixedDate) }
-    }
-
-    @Test
-    fun `notifies when previously future episodes have now aired`() = runTest {
-        val season = sampleSeason.copy(lastCheckedAiredEpisodeCount = 10)
-        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
-        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(season)
-        coEvery { animeRepository.fetchLastAiredEpisodeNumber(100, fixedDate) } returns Result.success(12)
-        coEvery { animeRepository.fetchAnimeFullById(100) } returns Result.success(
-            AnimeFullDetails(malId = 100, title = "Test", type = "TV", episodes = 25, sequels = emptyList())
-        )
-
-        val updates = useCase()
-
-        val episodeUpdates = updates.filterIsInstance<AnimeUpdate.NewEpisodes>()
-        assertThat(episodeUpdates).hasSize(1)
-        assertThat(episodeUpdates[0].latestAiredEpisode).isEqualTo(12)
-    }
-
-    @Test
-    fun `does not notify when last checked count matches aired count after date filtering`() = runTest {
-        val season = sampleSeason.copy(lastCheckedAiredEpisodeCount = 12)
-        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
-        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(season)
-        coEvery { animeRepository.fetchLastAiredEpisodeNumber(100, fixedDate) } returns Result.success(12)
-        coEvery { animeRepository.fetchAnimeFullById(100) } returns Result.success(
-            AnimeFullDetails(malId = 100, title = "Test", type = "TV", episodes = 25, sequels = emptyList())
-        )
-
-        val updates = useCase()
-
-        assertThat(updates.filterIsInstance<AnimeUpdate.NewEpisodes>()).isEmpty()
+        coVerify(exactly = 0) { animeRepository.fetchWatchOrder(any()) }
     }
 }

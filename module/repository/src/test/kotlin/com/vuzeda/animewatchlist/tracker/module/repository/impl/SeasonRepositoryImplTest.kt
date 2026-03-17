@@ -10,6 +10,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import java.time.LocalDate
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
@@ -212,5 +213,15 @@ class SeasonRepositoryImplTest {
             assertThat(result).containsExactly(100, 200, 300)
             awaitComplete()
         }
+    }
+
+    @Test
+    fun `updateLastEpisodeCheckDateForAll delegates to data source`() = runTest {
+        val date = LocalDate.of(2026, 3, 15)
+        coEvery { seasonLocalDataSource.updateLastEpisodeCheckDateForAll(date) } returns Unit
+
+        repository.updateLastEpisodeCheckDateForAll(date)
+
+        coVerify { seasonLocalDataSource.updateLastEpisodeCheckDateForAll(date) }
     }
 }

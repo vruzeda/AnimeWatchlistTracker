@@ -1,6 +1,7 @@
 package com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service
 
 import com.google.common.truth.Truth.assertThat
+import java.time.LocalDate
 import org.junit.jupiter.api.Test
 
 class ChiakiServiceImplTest {
@@ -197,6 +198,71 @@ class ChiakiServiceImplTest {
     }
 
     @Test
+    fun `parseChiakiStartDate parses full cross-year date range`() {
+        val result = ChiakiServiceImpl.parseChiakiStartDate("Oct 4, 2003 – Oct 2, 2004")
+
+        assertThat(result).isEqualTo(LocalDate.of(2003, 10, 4))
+    }
+
+    @Test
+    fun `parseChiakiStartDate parses abbreviated start with same-year range`() {
+        val result = ChiakiServiceImpl.parseChiakiStartDate("Apr 7 – Sep 29, 2013")
+
+        assertThat(result).isEqualTo(LocalDate.of(2013, 4, 7))
+    }
+
+    @Test
+    fun `parseChiakiStartDate parses single date`() {
+        val result = ChiakiServiceImpl.parseChiakiStartDate("Jul 23, 2005")
+
+        assertThat(result).isEqualTo(LocalDate.of(2005, 7, 23))
+    }
+
+    @Test
+    fun `parseChiakiStartDate parses open-ended date range`() {
+        val result = ChiakiServiceImpl.parseChiakiStartDate("Oct 11, 2023 – ?")
+
+        assertThat(result).isEqualTo(LocalDate.of(2023, 10, 11))
+    }
+
+    @Test
+    fun `parseChiakiStartDate returns null for unparseable input`() {
+        val result = ChiakiServiceImpl.parseChiakiStartDate("Unknown date")
+
+        assertThat(result).isNull()
+    }
+
+    @Test
+    fun `parseChiakiStartDate returns null when abbreviated start has no year in end part`() {
+        val result = ChiakiServiceImpl.parseChiakiStartDate("Apr 7 – ?")
+
+        assertThat(result).isNull()
+    }
+
+    @Test
+    fun `parses wo_meta start date from HTML entry`() {
+        val html = buildSampleHtml(
+            entryWithMeta(malId = 16498, typeCode = 1, eps = 25, title = "AoT", meta = "Oct 4, 2013 – Mar 29, 2014 | 25 eps")
+        )
+
+        val result = ChiakiServiceImpl.parseWatchOrderHtml(html)
+
+        assertThat(result).hasSize(1)
+        assertThat(result[0].startDate).isEqualTo(LocalDate.of(2013, 10, 4))
+    }
+
+    @Test
+    fun `startDate is null when no wo_meta span present`() {
+        val html = buildSampleHtml(
+            entry(malId = 100, typeCode = 1, eps = 12, title = "No Meta", score = null, ratingCount = null, image = null)
+        )
+
+        val result = ChiakiServiceImpl.parseWatchOrderHtml(html)
+
+        assertThat(result[0].startDate).isNull()
+    }
+
+    @Test
     fun `handles row with no closing tr tag`() {
         val html = """
             <html><body><table>
@@ -237,6 +303,22 @@ class ChiakiServiceImplTest {
                 <td>$imageHtml</td>
                 <td><span class="wo_title">$title</span>$englishTitleHtml</td>
                 <td>$scoreHtml</td>
+            </tr>
+        """.trimIndent()
+    }
+
+    private fun entryWithMeta(
+        malId: Int,
+        typeCode: Int,
+        eps: Int?,
+        title: String,
+        meta: String
+    ): String {
+        val epsAttr = eps?.toString() ?: ""
+        return """
+            <tr data-id="$malId" data-type="$typeCode" data-eps="$epsAttr" class="wo_row">
+                <td><span class="wo_title">$title</span></td>
+                <td><span class="wo_meta">$meta</span></td>
             </tr>
         """.trimIndent()
     }

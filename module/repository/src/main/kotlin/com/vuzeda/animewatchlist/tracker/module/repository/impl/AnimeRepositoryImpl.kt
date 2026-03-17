@@ -3,6 +3,7 @@ package com.vuzeda.animewatchlist.tracker.module.repository.impl
 import com.vuzeda.animewatchlist.tracker.module.domain.Anime
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
+import com.vuzeda.animewatchlist.tracker.module.domain.EpisodeInfo
 import com.vuzeda.animewatchlist.tracker.module.domain.EpisodePage
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
@@ -112,12 +113,26 @@ class AnimeRepositoryImpl @Inject constructor(
     override suspend fun fetchAnimeEpisodes(malId: Int, page: Int): Result<EpisodePage> =
         animeRemoteDataSource.fetchAnimeEpisodes(malId = malId, page = page)
 
-    override suspend fun fetchLastAiredEpisodeNumber(malId: Int, today: LocalDate): Result<Int?> =
-        animeRemoteDataSource.fetchLastAiredEpisodeNumber(malId, today)
+    override suspend fun fetchEpisodesAiredBetween(
+        malId: Int,
+        after: LocalDate,
+        upTo: LocalDate,
+        startingFromEpisode: Int?
+    ): Result<List<EpisodeInfo>> =
+        animeRemoteDataSource.fetchEpisodesAiredBetween(
+            malId = malId,
+            after = after,
+            upTo = upTo,
+            startingFromEpisode = startingFromEpisode
+        )
 
     override suspend fun fetchWatchOrder(malId: Int): Result<List<SeasonData>> =
         animeRemoteDataSource.fetchWatchOrder(malId)
 
     override suspend fun fetchSeasonAnime(year: Int, season: AnimeSeason, page: Int): Result<SeasonalAnimePage> =
         animeRemoteDataSource.fetchSeasonAnime(year = year, season = season, page = page)
+
+    override suspend fun updateLastSeasonCheckDateForAll(date: LocalDate) {
+        animeLocalDataSource.updateLastSeasonCheckDateForAll(date)
+    }
 }

@@ -16,6 +16,7 @@ import io.mockk.slot
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -101,6 +102,7 @@ class AddAnimeFromDetailsUseCaseTest {
                 userRating = null,
                 notificationType = NotificationType.NONE,
                 addedAt = 1770294088886,
+                lastSeasonCheckDate = LocalDate.of(2026, 2, 5),
             )
         )
     }
@@ -128,6 +130,7 @@ class AddAnimeFromDetailsUseCaseTest {
                 userRating = null,
                 notificationType = NotificationType.NONE,
                 addedAt = 1770294088886,
+                lastSeasonCheckDate = LocalDate.of(2026, 2, 5),
             )
         )
     }
@@ -155,6 +158,7 @@ class AddAnimeFromDetailsUseCaseTest {
                 userRating = null,
                 notificationType = NotificationType.NONE,
                 addedAt = 1770294088886,
+                lastSeasonCheckDate = LocalDate.of(2026, 2, 5),
             )
         )
     }

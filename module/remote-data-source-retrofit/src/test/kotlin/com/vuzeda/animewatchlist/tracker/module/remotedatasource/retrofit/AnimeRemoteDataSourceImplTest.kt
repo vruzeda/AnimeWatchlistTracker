@@ -14,6 +14,7 @@ import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.Se
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.ChiakiService
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.JikanApiService
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import okhttp3.Protocol
@@ -168,110 +169,120 @@ class AnimeRemoteDataSourceImplTest {
     }
 
     @Test
-    fun `fetchLastAiredEpisodeNumber fetches single page when lastVisiblePage is 1`() = runTest {
+    fun `fetchEpisodesAiredBetween returns episodes aired in range on single page`() = runTest {
+        val after = LocalDate.of(2026, 3, 14)
+        val upTo = LocalDate.of(2026, 3, 15)
         val page = AnimeEpisodesResponseDto(
             pagination = EpisodesPaginationDto(lastVisiblePage = 1, hasNextPage = false),
             data = listOf(
-                EpisodeDto(malId = 1, aired = "2023-01-01"),
-                EpisodeDto(malId = 2, aired = "2023-01-08")
+                EpisodeDto(malId = 12, aired = "2026-03-14"),
+                EpisodeDto(malId = 13, aired = "2026-03-15"),
+                EpisodeDto(malId = 14, aired = "2026-03-16")
             )
         )
         coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 1) } returns page
 
-        val result = repository.fetchLastAiredEpisodeNumber(100, LocalDate.of(2026, 3, 15)).getOrThrow()
+        val result = repository.fetchEpisodesAiredBetween(100, after, upTo, null).getOrThrow()
 
-        assertThat(result).isEqualTo(2)
+        assertThat(result).hasSize(1)
+        assertThat(result[0].number).isEqualTo(13)
     }
 
     @Test
-    fun `fetchLastAiredEpisodeNumber fetches last page when multiple pages exist`() = runTest {
-        val firstPage = AnimeEpisodesResponseDto(
-            pagination = EpisodesPaginationDto(lastVisiblePage = 3, hasNextPage = true),
-            data = listOf(EpisodeDto(malId = 1, aired = "2023-01-01"))
-        )
-        val lastPage = AnimeEpisodesResponseDto(
-            pagination = EpisodesPaginationDto(lastVisiblePage = 3, hasNextPage = false),
-            data = listOf(
-                EpisodeDto(malId = 50, aired = "2023-06-01"),
-                EpisodeDto(malId = 51, aired = "2023-06-08")
-            )
-        )
-        coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 1) } returns firstPage
-        coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 3) } returns lastPage
-
-        val result = repository.fetchLastAiredEpisodeNumber(100, LocalDate.of(2026, 3, 15)).getOrThrow()
-
-        assertThat(result).isEqualTo(51)
-    }
-
-    @Test
-    fun `fetchLastAiredEpisodeNumber returns null when no episodes have aired`() = runTest {
+    fun `fetchEpisodesAiredBetween stops pagination when null aired date encountered`() = runTest {
+        val after = LocalDate.of(2026, 3, 1)
+        val upTo = LocalDate.of(2026, 3, 15)
         val page = AnimeEpisodesResponseDto(
-            pagination = EpisodesPaginationDto(lastVisiblePage = 1, hasNextPage = false),
+            pagination = EpisodesPaginationDto(lastVisiblePage = 2, hasNextPage = true),
             data = listOf(
-                EpisodeDto(malId = 1, aired = null),
-                EpisodeDto(malId = 2, aired = null)
+                EpisodeDto(malId = 10, aired = "2026-03-10"),
+                EpisodeDto(malId = 11, aired = null)
             )
         )
         coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 1) } returns page
 
-        val result = repository.fetchLastAiredEpisodeNumber(100, LocalDate.of(2026, 3, 15)).getOrThrow()
+        val result = repository.fetchEpisodesAiredBetween(100, after, upTo, null).getOrThrow()
 
-        assertThat(result).isNull()
+        assertThat(result).hasSize(1)
+        assertThat(result[0].number).isEqualTo(10)
+        coVerify(exactly = 0) { jikanApiService.getAnimeEpisodes(malId = 100, page = 2) }
     }
 
     @Test
-    fun `fetchLastAiredEpisodeNumber excludes episodes with future air dates`() = runTest {
+    fun `fetchEpisodesAiredBetween paginates when hasNextPage and no stop condition`() = runTest {
+        val after = LocalDate.of(2026, 3, 1)
+        val upTo = LocalDate.of(2026, 3, 15)
+        val page1 = AnimeEpisodesResponseDto(
+            pagination = EpisodesPaginationDto(lastVisiblePage = 2, hasNextPage = true),
+            data = listOf(EpisodeDto(malId = 10, aired = "2026-03-10"))
+        )
+        val page2 = AnimeEpisodesResponseDto(
+            pagination = EpisodesPaginationDto(lastVisiblePage = 2, hasNextPage = false),
+            data = listOf(EpisodeDto(malId = 11, aired = "2026-03-12"))
+        )
+        coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 1) } returns page1
+        coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 2) } returns page2
+
+        val result = repository.fetchEpisodesAiredBetween(100, after, upTo, null).getOrThrow()
+
+        assertThat(result).hasSize(2)
+        assertThat(result.map { it.number }).containsExactly(10, 11).inOrder()
+    }
+
+    @Test
+    fun `fetchEpisodesAiredBetween starts from correct page based on startingFromEpisode`() = runTest {
+        val after = LocalDate.of(2026, 3, 1)
+        val upTo = LocalDate.of(2026, 3, 15)
+        val page2 = AnimeEpisodesResponseDto(
+            pagination = EpisodesPaginationDto(lastVisiblePage = 2, hasNextPage = false),
+            data = listOf(EpisodeDto(malId = 101, aired = "2026-03-10"))
+        )
+        coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 2) } returns page2
+
+        val result = repository.fetchEpisodesAiredBetween(100, after, upTo, startingFromEpisode = 100).getOrThrow()
+
+        assertThat(result).hasSize(1)
+        coVerify(exactly = 0) { jikanApiService.getAnimeEpisodes(malId = 100, page = 1) }
+    }
+
+    @Test
+    fun `fetchEpisodesAiredBetween returns empty list when all episodes aired before after date`() = runTest {
+        val after = LocalDate.of(2026, 3, 14)
+        val upTo = LocalDate.of(2026, 3, 15)
         val page = AnimeEpisodesResponseDto(
             pagination = EpisodesPaginationDto(lastVisiblePage = 1, hasNextPage = false),
             data = listOf(
-                EpisodeDto(malId = 10, aired = "2026-03-01"),
-                EpisodeDto(malId = 11, aired = "2026-03-08"),
-                EpisodeDto(malId = 12, aired = "2026-04-01"),
-                EpisodeDto(malId = 13, aired = "2026-04-08")
+                EpisodeDto(malId = 1, aired = "2026-03-01"),
+                EpisodeDto(malId = 2, aired = "2026-03-13")
             )
         )
         coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 1) } returns page
 
-        val result = repository.fetchLastAiredEpisodeNumber(100, LocalDate.of(2026, 3, 15)).getOrThrow()
+        val result = repository.fetchEpisodesAiredBetween(100, after, upTo, null).getOrThrow()
 
-        assertThat(result).isEqualTo(11)
+        assertThat(result).isEmpty()
     }
 
     @Test
-    fun `fetchLastAiredEpisodeNumber returns null when all episodes have future air dates`() = runTest {
+    fun `fetchEpisodesAiredBetween includes episode aired exactly on upTo date`() = runTest {
+        val after = LocalDate.of(2026, 3, 14)
+        val upTo = LocalDate.of(2026, 3, 15)
         val page = AnimeEpisodesResponseDto(
             pagination = EpisodesPaginationDto(lastVisiblePage = 1, hasNextPage = false),
-            data = listOf(
-                EpisodeDto(malId = 1, aired = "2026-04-01"),
-                EpisodeDto(malId = 2, aired = "2026-04-08")
-            )
+            data = listOf(EpisodeDto(malId = 5, aired = "2026-03-15"))
         )
         coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 1) } returns page
 
-        val result = repository.fetchLastAiredEpisodeNumber(100, LocalDate.of(2026, 3, 15)).getOrThrow()
+        val result = repository.fetchEpisodesAiredBetween(100, after, upTo, null).getOrThrow()
 
-        assertThat(result).isNull()
+        assertThat(result).hasSize(1)
+        assertThat(result[0].number).isEqualTo(5)
     }
 
     @Test
-    fun `fetchLastAiredEpisodeNumber counts episode aired exactly on today as aired`() = runTest {
-        val page = AnimeEpisodesResponseDto(
-            pagination = EpisodesPaginationDto(lastVisiblePage = 1, hasNextPage = false),
-            data = listOf(
-                EpisodeDto(malId = 5, aired = "2026-03-15"),
-                EpisodeDto(malId = 6, aired = "2026-03-16")
-            )
-        )
-        coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 1) } returns page
-
-        val result = repository.fetchLastAiredEpisodeNumber(100, LocalDate.of(2026, 3, 15)).getOrThrow()
-
-        assertThat(result).isEqualTo(5)
-    }
-
-    @Test
-    fun `fetchLastAiredEpisodeNumber handles ISO 8601 datetime strings with timezone offset`() = runTest {
+    fun `fetchEpisodesAiredBetween handles ISO 8601 datetime strings`() = runTest {
+        val after = LocalDate.of(2023, 1, 1)
+        val upTo = LocalDate.of(2026, 3, 15)
         val page = AnimeEpisodesResponseDto(
             pagination = EpisodesPaginationDto(lastVisiblePage = 1, hasNextPage = false),
             data = listOf(
@@ -281,9 +292,10 @@ class AnimeRemoteDataSourceImplTest {
         )
         coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 1) } returns page
 
-        val result = repository.fetchLastAiredEpisodeNumber(100, LocalDate.of(2026, 3, 15)).getOrThrow()
+        val result = repository.fetchEpisodesAiredBetween(100, after, upTo, null).getOrThrow()
 
-        assertThat(result).isEqualTo(1)
+        assertThat(result).hasSize(1)
+        assertThat(result[0].number).isEqualTo(1)
     }
 
     @Test

@@ -49,7 +49,11 @@ class NotificationHelper @Inject constructor(
         }
         val (text, notificationId) = when (update) {
             is AnimeUpdate.NewEpisodes -> Pair(
-                "Episode ${update.latestAiredEpisode} has aired!",
+                context.resources.getQuantityString(
+                    R.plurals.new_episodes_aired,
+                    update.newEpisodeCount,
+                    update.newEpisodeCount
+                ),
                 "ep_${anime.id}".hashCode()
             )
             is AnimeUpdate.NewSeason -> Pair(

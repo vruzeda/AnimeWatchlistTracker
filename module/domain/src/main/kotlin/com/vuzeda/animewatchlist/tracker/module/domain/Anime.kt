@@ -1,5 +1,7 @@
 package com.vuzeda.animewatchlist.tracker.module.domain
 
+import java.time.LocalDate
+
 data class Anime(
     val id: Long = 0,
     val title: String,
@@ -11,6 +13,7 @@ data class Anime(
     val status: WatchStatus = WatchStatus.PLAN_TO_WATCH,
     val userRating: Int? = null,
     val notificationType: NotificationType = NotificationType.NONE,
+    val lastSeasonCheckDate: LocalDate? = null,
     val addedAt: Long = 0
 ) {
     val isNotificationsEnabled: Boolean get() = notificationType != NotificationType.NONE

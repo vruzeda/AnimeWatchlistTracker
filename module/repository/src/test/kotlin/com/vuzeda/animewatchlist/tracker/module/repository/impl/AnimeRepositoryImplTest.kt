@@ -5,6 +5,7 @@ import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.domain.Anime
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
+import com.vuzeda.animewatchlist.tracker.module.domain.EpisodeInfo
 import com.vuzeda.animewatchlist.tracker.module.domain.EpisodePage
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
@@ -272,14 +273,25 @@ class AnimeRepositoryImplTest {
     }
 
     @Test
-    fun `fetchLastAiredEpisodeNumber delegates to remote data source`() = runTest {
-        val expected = Result.success(25)
-        val today = LocalDate.of(2026, 3, 15)
-        coEvery { animeRemoteDataSource.fetchLastAiredEpisodeNumber(100, today) } returns expected
+    fun `fetchEpisodesAiredBetween delegates to remote data source`() = runTest {
+        val after = LocalDate.of(2026, 3, 14)
+        val upTo = LocalDate.of(2026, 3, 15)
+        val expected = Result.success(listOf(EpisodeInfo(number = 13, title = null, aired = "2026-03-15", isFiller = false, isRecap = false)))
+        coEvery { animeRemoteDataSource.fetchEpisodesAiredBetween(100, after, upTo, 12) } returns expected
 
-        val result = repository.fetchLastAiredEpisodeNumber(100, today)
+        val result = repository.fetchEpisodesAiredBetween(100, after, upTo, 12)
 
         assertThat(result).isEqualTo(expected)
+    }
+
+    @Test
+    fun `updateLastSeasonCheckDateForAll delegates to local data source`() = runTest {
+        val date = LocalDate.of(2026, 3, 15)
+        coEvery { animeLocalDataSource.updateLastSeasonCheckDateForAll(date) } returns Unit
+
+        repository.updateLastSeasonCheckDateForAll(date)
+
+        coVerify { animeLocalDataSource.updateLastSeasonCheckDateForAll(date) }
     }
 
     @Test

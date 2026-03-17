@@ -11,6 +11,7 @@ import com.vuzeda.animewatchlist.tracker.module.localdatasource.AnimeLocalDataSo
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.AnimeEntity
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.toDomainModel
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.toEntity
+import java.time.LocalDate
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -61,4 +62,7 @@ abstract class AnimeRoomDao : AnimeLocalDataSource {
 
     override suspend fun updateNotificationType(id: Long, notificationType: NotificationType) =
         updateNotificationTypeByName(id, notificationType.name)
+
+    @Query("UPDATE anime SET lastSeasonCheckDate = :date")
+    override abstract suspend fun updateLastSeasonCheckDateForAll(date: LocalDate)
 }

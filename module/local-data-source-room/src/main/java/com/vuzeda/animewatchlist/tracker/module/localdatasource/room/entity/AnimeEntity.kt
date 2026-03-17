@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.vuzeda.animewatchlist.tracker.module.domain.Anime
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
+import java.time.LocalDate
 
 @Entity(tableName = "anime")
 data class AnimeEntity(
@@ -16,6 +17,7 @@ data class AnimeEntity(
     val genres: String = "",
     val userRating: Int? = null,
     val notificationType: String = "NONE",
+    val lastSeasonCheckDate: LocalDate? = null,
     val addedAt: Long = 0
 )
 
@@ -29,6 +31,7 @@ fun AnimeEntity.toDomainModel(): Anime = Anime(
     genres = if (genres.isBlank()) emptyList() else genres.split(",").map { it.trim() },
     userRating = userRating,
     notificationType = NotificationType.entries.firstOrNull { it.name == notificationType } ?: NotificationType.NONE,
+    lastSeasonCheckDate = lastSeasonCheckDate,
     addedAt = addedAt
 )
 
@@ -42,5 +45,6 @@ fun Anime.toEntity(): AnimeEntity = AnimeEntity(
     genres = genres.joinToString(","),
     userRating = userRating,
     notificationType = notificationType.name,
+    lastSeasonCheckDate = lastSeasonCheckDate,
     addedAt = addedAt
 )

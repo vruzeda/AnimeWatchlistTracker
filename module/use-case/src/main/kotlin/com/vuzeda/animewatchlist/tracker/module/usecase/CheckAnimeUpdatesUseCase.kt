@@ -34,20 +34,21 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
                 anime.notificationType == NotificationType.BOTH
 
             if (shouldCheckEpisodes) {
-                for (season in seasons) {
+                for (season in seasons.filter { it.isInWatchlist }) {
                     checkedSeasonIds += season.id
-                    checkNewEpisodes(season, today)?.let { latestEpisode ->
+                    val newCount = checkNewEpisodes(season, today)
+                    if (newCount != null) {
                         updates += AnimeUpdate.NewEpisodes(
                             anime = anime,
                             season = season,
-                            latestAiredEpisode = latestEpisode
+                            newEpisodeCount = newCount
                         )
                     }
                 }
             }
 
             if (shouldCheckSeasons) {
-                checkNewSeasons(anime, seasons)?.let { updates += it }
+                checkNewSeasons(anime, seasons, today)?.let { updates += it }
             }
         }
 
@@ -60,69 +61,68 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
                 anime = animeRepository.getAnimeById(season.animeId) ?: continue
                 animeCache[season.animeId] = anime
             }
-            val latestEpisode = checkNewEpisodes(season, today) ?: continue
+            val newCount = checkNewEpisodes(season, today) ?: continue
             updates += AnimeUpdate.NewEpisodes(
                 anime = anime,
                 season = season,
-                latestAiredEpisode = latestEpisode
+                newEpisodeCount = newCount
             )
         }
+
+        seasonRepository.updateLastEpisodeCheckDateForAll(today)
+        animeRepository.updateLastSeasonCheckDateForAll(today)
 
         return updates
     }
 
     private suspend fun checkNewEpisodes(season: Season, today: LocalDate): Int? {
-        val lastAiredEpisode = animeRepository.fetchLastAiredEpisodeNumber(season.malId, today)
-            .getOrNull() ?: return null
-        val previousCount = season.lastCheckedAiredEpisodeCount
+        val after = season.lastEpisodeCheckDate ?: LocalDate.MIN
+        val episodes = animeRepository.fetchEpisodesAiredBetween(
+            malId = season.malId,
+            after = after,
+            upTo = today,
+            startingFromEpisode = season.lastCheckedAiredEpisodeCount
+        ).getOrNull() ?: return null
 
-        seasonRepository.updateSeasonNotificationData(
-            seasonId = season.id,
-            lastCheckedAiredEpisodeCount = lastAiredEpisode
-        )
-
-        return if (previousCount != null && lastAiredEpisode > previousCount) {
-            lastAiredEpisode
-        } else {
-            null
+        val lastEpisodeNumber = episodes.maxByOrNull { it.number }?.number
+        if (lastEpisodeNumber != null) {
+            seasonRepository.updateSeasonNotificationData(
+                seasonId = season.id,
+                lastCheckedAiredEpisodeCount = lastEpisodeNumber
+            )
         }
+
+        if (season.lastEpisodeCheckDate == null) return null
+
+        return if (episodes.isNotEmpty()) episodes.size else null
     }
 
     private suspend fun checkNewSeasons(
         anime: Anime,
-        existingSeasons: List<Season>
+        seasons: List<Season>,
+        today: LocalDate
     ): AnimeUpdate.NewSeason? {
-        val lastSeason = existingSeasons.maxByOrNull { it.orderIndex } ?: return null
-        val details = animeRepository.fetchAnimeFullById(lastSeason.malId).getOrNull()
-            ?: return null
+        val watchlistedSeasons = seasons.filter { it.isInWatchlist }
+        val lastSeason = watchlistedSeasons.maxByOrNull { it.orderIndex } ?: return null
+        val watchOrder = animeRepository.fetchWatchOrder(lastSeason.malId).getOrNull() ?: return null
 
-        val knownMalIds = existingSeasons.map { it.malId }.toSet()
+        val knownMalIds = seasons.map { it.malId }.toSet()
 
-        for (sequel in details.sequels) {
-            if (sequel.malId in knownMalIds) continue
+        for (entry in watchOrder) {
+            if (entry.malId in knownMalIds) continue
 
-            val sequelDetails = animeRepository.fetchAnimeFullById(sequel.malId).getOrNull()
+            val startDate = entry.startDate ?: continue
+            if (anime.lastSeasonCheckDate == null) continue
+            if (!startDate.isAfter(anime.lastSeasonCheckDate)) continue
+            if (startDate.isAfter(today)) continue
 
-            if (sequelDetails != null && sequelDetails.type in ALLOWED_TYPES) {
-                val isConfirmed = sequelDetails.airingStatus == STATUS_CURRENTLY_AIRING ||
-                    sequelDetails.airingStatus == STATUS_FINISHED_AIRING
-
-                if (isConfirmed) {
-                    return AnimeUpdate.NewSeason(
-                        anime = anime,
-                        sequelMalId = sequel.malId,
-                        sequelTitle = sequelDetails.title
-                    )
-                }
-            }
+            return AnimeUpdate.NewSeason(
+                anime = anime,
+                sequelMalId = entry.malId,
+                sequelTitle = entry.title
+            )
         }
         return null
-    }
-
-    companion object {
-        const val STATUS_CURRENTLY_AIRING = "Currently Airing"
-        const val STATUS_FINISHED_AIRING = "Finished Airing"
-        val ALLOWED_TYPES = setOf("TV", "Movie")
     }
 }
 

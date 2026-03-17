@@ -27,4 +27,5 @@ fun ChiakiWatchOrderEntryDto.toSeasonData(): SeasonData = SeasonData(
     episodeCount = episodeCount,
     score = score,
     isMainSeries = isMainSeries,
+    startDate = startDate,
 )

@@ -10,6 +10,7 @@ import com.vuzeda.animewatchlist.tracker.module.localdatasource.SeasonLocalDataS
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.SeasonEntity
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.toDomainModel
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.toEntity
+import java.time.LocalDate
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -74,4 +75,7 @@ abstract class SeasonRoomDao : SeasonLocalDataSource {
 
     override suspend fun getSeasonsWithEpisodeNotifications(): List<Season> =
         getSeasonsWithEpisodeNotificationsEntities().map { it.toDomainModel() }
+
+    @Query("UPDATE season SET lastEpisodeCheckDate = :date")
+    override abstract suspend fun updateLastEpisodeCheckDateForAll(date: LocalDate)
 }

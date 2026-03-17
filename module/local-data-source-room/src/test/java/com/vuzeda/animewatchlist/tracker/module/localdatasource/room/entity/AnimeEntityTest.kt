@@ -4,6 +4,7 @@ import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.domain.Anime
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
+import java.time.LocalDate
 import org.junit.jupiter.api.Test
 
 class AnimeEntityTest {
@@ -60,6 +61,7 @@ class AnimeEntityTest {
 
     @Test
     fun `toDomainModel maps all fields correctly`() {
+        val checkDate = LocalDate.of(2026, 3, 15)
         val entity = AnimeEntity(
             id = 42L,
             title = "Attack on Titan",
@@ -70,6 +72,7 @@ class AnimeEntityTest {
             genres = "Action,Drama",
             userRating = 9,
             notificationType = "BOTH",
+            lastSeasonCheckDate = checkDate,
             addedAt = 1000L
         )
 
@@ -84,11 +87,13 @@ class AnimeEntityTest {
         assertThat(result.genres).containsExactly("Action", "Drama").inOrder()
         assertThat(result.userRating).isEqualTo(9)
         assertThat(result.notificationType).isEqualTo(NotificationType.BOTH)
+        assertThat(result.lastSeasonCheckDate).isEqualTo(checkDate)
         assertThat(result.addedAt).isEqualTo(1000L)
     }
 
     @Test
     fun `toEntity maps Anime to AnimeEntity`() {
+        val checkDate = LocalDate.of(2026, 3, 15)
         val anime = Anime(
             id = 5L,
             title = "One Piece",
@@ -100,6 +105,7 @@ class AnimeEntityTest {
             status = WatchStatus.COMPLETED,
             userRating = 10,
             notificationType = NotificationType.NEW_EPISODES,
+            lastSeasonCheckDate = checkDate,
             addedAt = 2000L
         )
 
@@ -114,6 +120,7 @@ class AnimeEntityTest {
         assertThat(result.genres).isEqualTo("Adventure,Comedy")
         assertThat(result.userRating).isEqualTo(10)
         assertThat(result.notificationType).isEqualTo("NEW_EPISODES")
+        assertThat(result.lastSeasonCheckDate).isEqualTo(checkDate)
         assertThat(result.addedAt).isEqualTo(2000L)
     }
 

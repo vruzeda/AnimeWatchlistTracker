@@ -4,6 +4,7 @@ import com.vuzeda.animewatchlist.tracker.module.localdatasource.SeasonLocalDataS
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.repository.SeasonRepository
 import com.vuzeda.animewatchlist.tracker.module.repository.TransactionRunner
+import java.time.LocalDate
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -64,4 +65,8 @@ class SeasonRepositoryImpl @Inject constructor(
 
     override suspend fun getSeasonsWithEpisodeNotifications(): List<Season> =
         seasonLocalDataSource.getSeasonsWithEpisodeNotifications()
+
+    override suspend fun updateLastEpisodeCheckDateForAll(date: LocalDate) {
+        seasonLocalDataSource.updateLastEpisodeCheckDateForAll(date)
+    }
 }

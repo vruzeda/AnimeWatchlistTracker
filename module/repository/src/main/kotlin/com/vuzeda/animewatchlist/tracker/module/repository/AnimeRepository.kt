@@ -3,6 +3,7 @@ package com.vuzeda.animewatchlist.tracker.module.repository
 import com.vuzeda.animewatchlist.tracker.module.domain.Anime
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
+import com.vuzeda.animewatchlist.tracker.module.domain.EpisodeInfo
 import com.vuzeda.animewatchlist.tracker.module.domain.EpisodePage
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
@@ -41,9 +42,16 @@ interface AnimeRepository {
 
     suspend fun fetchAnimeEpisodes(malId: Int, page: Int): Result<EpisodePage>
 
-    suspend fun fetchLastAiredEpisodeNumber(malId: Int, today: LocalDate): Result<Int?>
+    suspend fun fetchEpisodesAiredBetween(
+        malId: Int,
+        after: LocalDate,
+        upTo: LocalDate,
+        startingFromEpisode: Int?
+    ): Result<List<EpisodeInfo>>
 
     suspend fun fetchWatchOrder(malId: Int): Result<List<SeasonData>>
 
     suspend fun fetchSeasonAnime(year: Int, season: AnimeSeason, page: Int): Result<SeasonalAnimePage>
+
+    suspend fun updateLastSeasonCheckDateForAll(date: LocalDate)
 }

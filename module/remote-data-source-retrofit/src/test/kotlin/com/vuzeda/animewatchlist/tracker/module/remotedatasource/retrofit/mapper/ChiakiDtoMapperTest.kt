@@ -2,6 +2,7 @@ package com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mappe
 
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.ChiakiWatchOrderEntryDto
+import java.time.LocalDate
 import org.junit.jupiter.api.Test
 
 class ChiakiDtoMapperTest {
@@ -144,6 +145,31 @@ class ChiakiDtoMapperTest {
         val result = listOf(dto(malId = 1, typeCode = 99, title = "Test")).toSeasonDataList()
 
         assertThat(result[0].type).isEqualTo("TV")
+    }
+
+    @Test
+    fun `maps startDate when present`() {
+        val date = LocalDate.of(2013, 10, 4)
+        val entry = ChiakiWatchOrderEntryDto(
+            malId = 16498, title = "AoT", typeCode = 1, episodeCount = 25,
+            score = null, imageUrl = null, startDate = date
+        )
+
+        val result = entry.toSeasonData()
+
+        assertThat(result.startDate).isEqualTo(date)
+    }
+
+    @Test
+    fun `maps null startDate`() {
+        val entry = ChiakiWatchOrderEntryDto(
+            malId = 100, title = "Test", typeCode = 1, episodeCount = null,
+            score = null, imageUrl = null, startDate = null
+        )
+
+        val result = entry.toSeasonData()
+
+        assertThat(result.startDate).isNull()
     }
 
     @Test

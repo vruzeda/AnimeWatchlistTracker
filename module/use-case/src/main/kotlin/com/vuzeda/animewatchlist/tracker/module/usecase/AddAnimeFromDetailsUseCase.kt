@@ -7,6 +7,8 @@ import com.vuzeda.animewatchlist.tracker.module.domain.SeasonData
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.repository.AnimeRepository
 import com.vuzeda.animewatchlist.tracker.module.repository.SeasonRepository
+import java.time.LocalDate
+import java.time.ZoneOffset
 import javax.inject.Inject
 import kotlin.time.Clock
 
@@ -18,6 +20,7 @@ class AddAnimeFromDetailsUseCase @Inject constructor(
 ) {
 
     suspend operator fun invoke(details: AnimeFullDetails, status: WatchStatus): Long {
+        val today = clock.todayUtc()
         val watchOrder = animeRepository.fetchWatchOrder(details.malId).getOrNull()
         val orderIndex = resolveOrderIndex(details.malId, watchOrder)
 
@@ -33,6 +36,7 @@ class AddAnimeFromDetailsUseCase @Inject constructor(
             airingStatus = details.airingStatus,
             orderIndex = orderIndex,
             status = status,
+            lastEpisodeCheckDate = today,
             isInWatchlist = true
         )
 
@@ -52,6 +56,7 @@ class AddAnimeFromDetailsUseCase @Inject constructor(
             imageUrl = firstSeasonDetails.imageUrl,
             synopsis = firstSeasonDetails.synopsis,
             genres = firstSeasonDetails.genres,
+            lastSeasonCheckDate = today,
             addedAt = clock.now().toEpochMilliseconds()
         )
         val allSeasons = buildAllSeasons(clickedSeason, watchOrder)
@@ -104,3 +109,8 @@ class AddAnimeFromDetailsUseCase @Inject constructor(
         return watchOrder.indexOfFirst { it.malId == malId }.coerceAtLeast(0)
     }
 }
+
+private fun Clock.todayUtc(): LocalDate =
+    java.time.Instant.ofEpochMilli(now().toEpochMilliseconds())
+        .atZone(ZoneOffset.UTC)
+        .toLocalDate()

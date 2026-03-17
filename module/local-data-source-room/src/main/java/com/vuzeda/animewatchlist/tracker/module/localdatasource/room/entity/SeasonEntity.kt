@@ -6,6 +6,7 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
+import java.time.LocalDate
 
 @Entity(
     tableName = "season",
@@ -35,6 +36,7 @@ data class SeasonEntity(
     val orderIndex: Int = 0,
     val airingStatus: String? = null,
     val lastCheckedAiredEpisodeCount: Int? = null,
+    val lastEpisodeCheckDate: LocalDate? = null,
     val isEpisodeNotificationsEnabled: Boolean = false,
     val isInWatchlist: Boolean = true
 )
@@ -55,6 +57,7 @@ fun SeasonEntity.toDomainModel(): Season = Season(
     orderIndex = orderIndex,
     airingStatus = airingStatus,
     lastCheckedAiredEpisodeCount = lastCheckedAiredEpisodeCount,
+    lastEpisodeCheckDate = lastEpisodeCheckDate,
     isEpisodeNotificationsEnabled = isEpisodeNotificationsEnabled,
     isInWatchlist = isInWatchlist
 )
@@ -75,6 +78,7 @@ fun Season.toEntity(): SeasonEntity = SeasonEntity(
     orderIndex = orderIndex,
     airingStatus = airingStatus,
     lastCheckedAiredEpisodeCount = lastCheckedAiredEpisodeCount,
+    lastEpisodeCheckDate = lastEpisodeCheckDate,
     isEpisodeNotificationsEnabled = isEpisodeNotificationsEnabled,
     isInWatchlist = isInWatchlist
 )

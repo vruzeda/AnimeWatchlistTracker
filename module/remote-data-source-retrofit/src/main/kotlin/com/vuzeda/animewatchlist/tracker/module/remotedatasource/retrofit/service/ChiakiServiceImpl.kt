@@ -5,6 +5,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 class ChiakiServiceImpl(
     private val okHttpClient: OkHttpClient
@@ -52,6 +55,9 @@ class ChiakiServiceImpl(
         )
         private val RELATED_PATTERN = Regex("""data-related='(\{[^']*\})'""")
         private val RELATED_ENTRY_PATTERN = Regex(""""(\d+)":"([^"]+)"""")
+        private val WO_META_PATTERN = Regex("""<span\s+class="wo_meta">\s*([^|<]+?)\s*\|""")
+        private val FULL_DATE_FORMATTER = DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.ENGLISH)
+        private val YEAR_PATTERN = Regex("""\d{4}""")
 
         private data class ParsedEntry(
             val dto: ChiakiWatchOrderEntryDto,
@@ -89,6 +95,9 @@ class ChiakiServiceImpl(
                     }
                 } ?: emptyMap()
 
+                val startDate = WO_META_PATTERN.find(rowHtml)?.groupValues?.get(1)
+                    ?.let { parseChiakiStartDate(it) }
+
                 parsedEntries += ParsedEntry(
                     dto = ChiakiWatchOrderEntryDto(
                         malId = malId,
@@ -99,6 +108,7 @@ class ChiakiServiceImpl(
                         score = score,
                         imageUrl = imageUrl,
                         isMainSeries = isMainSeries,
+                        startDate = startDate,
                     ),
                     relatedIds = relatedIds,
                 )
@@ -108,6 +118,21 @@ class ChiakiServiceImpl(
 
             val chain = findChain(filterToChainContaining, parsedEntries)
             return parsedEntries.filter { it.dto.malId in chain }.map { it.dto }
+        }
+
+        fun parseChiakiStartDate(dateRange: String): LocalDate? {
+            val startPart = dateRange.substringBefore(" – ").trim()
+            val endPart = dateRange.substringAfter(" – ", missingDelimiterValue = "").trim()
+            return try {
+                LocalDate.parse(startPart, FULL_DATE_FORMATTER)
+            } catch (_: Exception) {
+                val year = YEAR_PATTERN.find(endPart)?.value ?: return null
+                try {
+                    LocalDate.parse("$startPart, $year", FULL_DATE_FORMATTER)
+                } catch (_: Exception) {
+                    null
+                }
+            }
         }
 
         private fun findChain(startMalId: Int, entries: List<ParsedEntry>): Set<Int> {

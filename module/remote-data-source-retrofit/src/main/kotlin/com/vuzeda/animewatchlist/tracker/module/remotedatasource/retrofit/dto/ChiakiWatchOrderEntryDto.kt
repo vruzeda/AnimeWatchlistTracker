@@ -1,5 +1,7 @@
 package com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto
 
+import java.time.LocalDate
+
 data class ChiakiWatchOrderEntryDto(
     val malId: Int,
     val title: String,
@@ -8,5 +10,6 @@ data class ChiakiWatchOrderEntryDto(
     val episodeCount: Int?,
     val score: Double?,
     val imageUrl: String?,
-    var isMainSeries: Boolean = true
+    var isMainSeries: Boolean = true,
+    val startDate: LocalDate? = null
 )

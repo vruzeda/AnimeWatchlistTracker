@@ -3,12 +3,14 @@ package com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
+import java.time.LocalDate
 import org.junit.jupiter.api.Test
 
 class SeasonEntityTest {
 
     @Test
     fun `toDomainModel maps all fields correctly`() {
+        val checkDate = LocalDate.of(2026, 3, 15)
         val entity = SeasonEntity(
             id = 10L,
             animeId = 2L,
@@ -25,6 +27,7 @@ class SeasonEntityTest {
             orderIndex = 0,
             airingStatus = "Finished Airing",
             lastCheckedAiredEpisodeCount = 25,
+            lastEpisodeCheckDate = checkDate,
             isEpisodeNotificationsEnabled = true,
             isInWatchlist = false
         )
@@ -46,6 +49,7 @@ class SeasonEntityTest {
         assertThat(result.orderIndex).isEqualTo(0)
         assertThat(result.airingStatus).isEqualTo("Finished Airing")
         assertThat(result.lastCheckedAiredEpisodeCount).isEqualTo(25)
+        assertThat(result.lastEpisodeCheckDate).isEqualTo(checkDate)
         assertThat(result.isEpisodeNotificationsEnabled).isTrue()
         assertThat(result.isInWatchlist).isFalse()
     }
@@ -80,7 +84,8 @@ class SeasonEntityTest {
             episodeCount = null,
             score = null,
             airingStatus = null,
-            lastCheckedAiredEpisodeCount = null
+            lastCheckedAiredEpisodeCount = null,
+            lastEpisodeCheckDate = null
         )
 
         val result = entity.toDomainModel()
@@ -92,10 +97,12 @@ class SeasonEntityTest {
         assertThat(result.score).isNull()
         assertThat(result.airingStatus).isNull()
         assertThat(result.lastCheckedAiredEpisodeCount).isNull()
+        assertThat(result.lastEpisodeCheckDate).isNull()
     }
 
     @Test
     fun `toEntity maps Season to SeasonEntity`() {
+        val checkDate = LocalDate.of(2026, 3, 15)
         val season = Season(
             id = 7L,
             animeId = 3L,
@@ -112,6 +119,7 @@ class SeasonEntityTest {
             orderIndex = 1,
             airingStatus = "Finished Airing",
             lastCheckedAiredEpisodeCount = 10,
+            lastEpisodeCheckDate = checkDate,
             isEpisodeNotificationsEnabled = true,
             isInWatchlist = false
         )
@@ -133,6 +141,7 @@ class SeasonEntityTest {
         assertThat(result.orderIndex).isEqualTo(1)
         assertThat(result.airingStatus).isEqualTo("Finished Airing")
         assertThat(result.lastCheckedAiredEpisodeCount).isEqualTo(10)
+        assertThat(result.lastEpisodeCheckDate).isEqualTo(checkDate)
         assertThat(result.isEpisodeNotificationsEnabled).isTrue()
         assertThat(result.isInWatchlist).isFalse()
     }
