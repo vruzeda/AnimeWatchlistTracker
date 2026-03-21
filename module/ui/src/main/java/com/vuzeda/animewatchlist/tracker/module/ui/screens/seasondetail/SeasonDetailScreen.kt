@@ -32,7 +32,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -294,13 +296,18 @@ private fun SeasonDetailContent(
 
         if (season.streamingLinks.isNotEmpty()) {
             val context = LocalContext.current
+            var streamingExpanded by remember { mutableStateOf(false) }
+            val collapsedLimit = 3
+            val hasMore = season.streamingLinks.size > collapsedLimit
+            val visibleLinks = if (streamingExpanded || !hasMore) season.streamingLinks
+                               else season.streamingLinks.take(collapsedLimit)
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = stringResource(R.string.season_detail_section_streaming),
                 style = MaterialTheme.typography.titleMedium
             )
             Spacer(modifier = Modifier.height(8.dp))
-            season.streamingLinks.forEach { link ->
+            visibleLinks.forEach { link ->
                 OutlinedButton(
                     onClick = {
                         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(link.url)))
@@ -308,6 +315,17 @@ private fun SeasonDetailContent(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(link.name)
+                }
+            }
+            if (hasMore) {
+                OutlinedButton(
+                    onClick = { streamingExpanded = !streamingExpanded },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        if (streamingExpanded) stringResource(R.string.season_detail_streaming_show_less)
+                        else stringResource(R.string.season_detail_streaming_show_more, season.streamingLinks.size - collapsedLimit)
+                    )
                 }
             }
         }
