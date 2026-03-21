@@ -18,6 +18,7 @@ data class Season(
     val orderIndex: Int = 0,
     val airingStatus: String? = null,
     val broadcastInfo: String? = null,
+    val streamingLinks: List<StreamingInfo> = emptyList(),
     val lastCheckedAiredEpisodeCount: Int? = null,
     val lastEpisodeCheckDate: LocalDate? = null,
     val isEpisodeNotificationsEnabled: Boolean = false,

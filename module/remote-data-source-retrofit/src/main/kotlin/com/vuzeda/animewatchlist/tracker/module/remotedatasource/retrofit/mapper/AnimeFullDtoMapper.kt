@@ -3,6 +3,7 @@ package com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mappe
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.AnimeFullDataDto
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.module.domain.SequelInfo
+import com.vuzeda.animewatchlist.tracker.module.domain.StreamingInfo
 
 fun AnimeFullDataDto.toAnimeFullDetails(): AnimeFullDetails = AnimeFullDetails(
     malId = malId,
@@ -17,6 +18,7 @@ fun AnimeFullDataDto.toAnimeFullDetails(): AnimeFullDetails = AnimeFullDetails(
     genres = genres?.map { it.name } ?: emptyList(),
     airingStatus = status,
     broadcastInfo = broadcast?.string,
+    streamingLinks = streaming?.map { StreamingInfo(name = it.name, url = it.url) } ?: emptyList(),
     sequels = extractRelations("Sequel"),
     prequels = extractRelations("Prequel")
 )

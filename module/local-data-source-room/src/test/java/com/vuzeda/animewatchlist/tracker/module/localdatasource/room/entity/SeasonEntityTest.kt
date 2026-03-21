@@ -2,6 +2,7 @@ package com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity
 
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
+import com.vuzeda.animewatchlist.tracker.module.domain.StreamingInfo
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import java.time.LocalDate
 import org.junit.jupiter.api.Test
@@ -27,6 +28,7 @@ class SeasonEntityTest {
             orderIndex = 0,
             airingStatus = "Finished Airing",
             broadcastInfo = "Saturdays at 18:00 (JST)",
+            streamingLinks = "Crunchyroll\thttps://crunchyroll.com/fma\nNetflix\thttps://netflix.com/title/121",
             lastCheckedAiredEpisodeCount = 25,
             lastEpisodeCheckDate = checkDate,
             isEpisodeNotificationsEnabled = true,
@@ -50,6 +52,9 @@ class SeasonEntityTest {
         assertThat(result.orderIndex).isEqualTo(0)
         assertThat(result.airingStatus).isEqualTo("Finished Airing")
         assertThat(result.broadcastInfo).isEqualTo("Saturdays at 18:00 (JST)")
+        assertThat(result.streamingLinks).hasSize(2)
+        assertThat(result.streamingLinks[0]).isEqualTo(StreamingInfo("Crunchyroll", "https://crunchyroll.com/fma"))
+        assertThat(result.streamingLinks[1]).isEqualTo(StreamingInfo("Netflix", "https://netflix.com/title/121"))
         assertThat(result.lastCheckedAiredEpisodeCount).isEqualTo(25)
         assertThat(result.lastEpisodeCheckDate).isEqualTo(checkDate)
         assertThat(result.isEpisodeNotificationsEnabled).isTrue()
@@ -99,6 +104,7 @@ class SeasonEntityTest {
         assertThat(result.score).isNull()
         assertThat(result.airingStatus).isNull()
         assertThat(result.broadcastInfo).isNull()
+        assertThat(result.streamingLinks).isEmpty()
         assertThat(result.lastCheckedAiredEpisodeCount).isNull()
         assertThat(result.lastEpisodeCheckDate).isNull()
     }
@@ -122,6 +128,10 @@ class SeasonEntityTest {
             orderIndex = 1,
             airingStatus = "Finished Airing",
             broadcastInfo = "Saturdays at 18:00 (JST)",
+            streamingLinks = listOf(
+                StreamingInfo("Crunchyroll", "https://crunchyroll.com/fma"),
+                StreamingInfo("Netflix", "https://netflix.com/title/121")
+            ),
             lastCheckedAiredEpisodeCount = 10,
             lastEpisodeCheckDate = checkDate,
             isEpisodeNotificationsEnabled = true,
@@ -145,9 +155,24 @@ class SeasonEntityTest {
         assertThat(result.orderIndex).isEqualTo(1)
         assertThat(result.airingStatus).isEqualTo("Finished Airing")
         assertThat(result.broadcastInfo).isEqualTo("Saturdays at 18:00 (JST)")
+        assertThat(result.streamingLinks).isEqualTo("Crunchyroll\thttps://crunchyroll.com/fma\nNetflix\thttps://netflix.com/title/121")
         assertThat(result.lastCheckedAiredEpisodeCount).isEqualTo(10)
         assertThat(result.lastEpisodeCheckDate).isEqualTo(checkDate)
         assertThat(result.isEpisodeNotificationsEnabled).isTrue()
         assertThat(result.isInWatchlist).isFalse()
+    }
+
+    @Test
+    fun `toDomainModel returns empty streamingLinks for blank column`() {
+        val entity = SeasonEntity(animeId = 1L, malId = 100, title = "Test", streamingLinks = "")
+
+        assertThat(entity.toDomainModel().streamingLinks).isEmpty()
+    }
+
+    @Test
+    fun `toEntity serializes empty streamingLinks to blank string`() {
+        val season = Season(animeId = 1L, malId = 100, title = "Test", streamingLinks = emptyList())
+
+        assertThat(season.toEntity().streamingLinks).isEqualTo("")
     }
 }

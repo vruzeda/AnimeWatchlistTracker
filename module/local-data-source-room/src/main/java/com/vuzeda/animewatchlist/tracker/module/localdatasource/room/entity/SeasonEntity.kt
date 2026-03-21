@@ -5,6 +5,7 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
+import com.vuzeda.animewatchlist.tracker.module.domain.StreamingInfo
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import java.time.LocalDate
 
@@ -36,6 +37,7 @@ data class SeasonEntity(
     val orderIndex: Int = 0,
     val airingStatus: String? = null,
     val broadcastInfo: String? = null,
+    val streamingLinks: String = "",
     val lastCheckedAiredEpisodeCount: Int? = null,
     val lastEpisodeCheckDate: LocalDate? = null,
     val isEpisodeNotificationsEnabled: Boolean = false,
@@ -58,6 +60,10 @@ fun SeasonEntity.toDomainModel(): Season = Season(
     orderIndex = orderIndex,
     airingStatus = airingStatus,
     broadcastInfo = broadcastInfo,
+    streamingLinks = if (streamingLinks.isBlank()) emptyList() else streamingLinks.split("\n").mapNotNull { entry ->
+        val parts = entry.split("\t")
+        if (parts.size >= 2) StreamingInfo(name = parts[0], url = parts[1]) else null
+    },
     lastCheckedAiredEpisodeCount = lastCheckedAiredEpisodeCount,
     lastEpisodeCheckDate = lastEpisodeCheckDate,
     isEpisodeNotificationsEnabled = isEpisodeNotificationsEnabled,
@@ -80,6 +86,7 @@ fun Season.toEntity(): SeasonEntity = SeasonEntity(
     orderIndex = orderIndex,
     airingStatus = airingStatus,
     broadcastInfo = broadcastInfo,
+    streamingLinks = streamingLinks.joinToString("\n") { "${it.name}\t${it.url}" },
     lastCheckedAiredEpisodeCount = lastCheckedAiredEpisodeCount,
     lastEpisodeCheckDate = lastEpisodeCheckDate,
     isEpisodeNotificationsEnabled = isEpisodeNotificationsEnabled,

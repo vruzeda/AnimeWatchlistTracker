@@ -5,6 +5,7 @@ import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.An
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.AnimeImagesDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.AnimeRelationDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.BroadcastDto
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.StreamingDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.GenreDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.ImageUrlDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.RelatedEntryDto
@@ -45,6 +46,7 @@ class AnimeFullDtoMapperTest {
         assertThat(details.genres).containsExactly("Action", "Drama")
         assertThat(details.airingStatus).isEqualTo("Finished Airing")
         assertThat(details.broadcastInfo).isEqualTo("Saturdays at 18:00 (JST)")
+        assertThat(details.streamingLinks).isEmpty()
     }
 
     @Test
@@ -167,6 +169,40 @@ class AnimeFullDtoMapperTest {
         assertThat(details.genres).isEmpty()
         assertThat(details.airingStatus).isNull()
         assertThat(details.broadcastInfo).isNull()
+        assertThat(details.streamingLinks).isEmpty()
+    }
+
+    @Test
+    fun `maps streaming links when present`() {
+        val dto = AnimeFullDataDto(
+            malId = 100,
+            title = "Test",
+            streaming = listOf(
+                StreamingDto(name = "Crunchyroll", url = "https://crunchyroll.com/test"),
+                StreamingDto(name = "Netflix", url = "https://netflix.com/title/123")
+            ),
+            relations = null
+        )
+
+        val details = dto.toAnimeFullDetails()
+
+        assertThat(details.streamingLinks).hasSize(2)
+        assertThat(details.streamingLinks[0].name).isEqualTo("Crunchyroll")
+        assertThat(details.streamingLinks[0].url).isEqualTo("https://crunchyroll.com/test")
+        assertThat(details.streamingLinks[1].name).isEqualTo("Netflix")
+        assertThat(details.streamingLinks[1].url).isEqualTo("https://netflix.com/title/123")
+    }
+
+    @Test
+    fun `returns empty streamingLinks when streaming is null`() {
+        val dto = AnimeFullDataDto(
+            malId = 100,
+            title = "Test",
+            streaming = null,
+            relations = null
+        )
+
+        assertThat(dto.toAnimeFullDetails().streamingLinks).isEmpty()
     }
 
     @Test

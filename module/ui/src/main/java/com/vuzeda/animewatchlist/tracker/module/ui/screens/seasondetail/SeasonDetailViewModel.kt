@@ -139,7 +139,8 @@ class SeasonDetailViewModel @Inject constructor(
                         episodeCount = details.episodes,
                         score = details.score,
                         airingStatus = details.airingStatus,
-                        broadcastInfo = details.broadcastInfo
+                        broadcastInfo = details.broadcastInfo,
+                        streamingLinks = details.streamingLinks
                     )
                     loadEpisodes(details.malId, page = 1)
                     _uiState.value = SeasonDetailUiState.Success(

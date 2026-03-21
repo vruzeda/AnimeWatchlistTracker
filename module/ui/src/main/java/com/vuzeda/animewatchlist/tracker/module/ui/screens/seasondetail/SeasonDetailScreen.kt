@@ -40,6 +40,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -291,6 +294,26 @@ private fun SeasonDetailContent(
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(stringResource(R.string.season_detail_view_full_series))
+        }
+
+        if (season.streamingLinks.isNotEmpty()) {
+            val context = LocalContext.current
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = stringResource(R.string.season_detail_section_streaming),
+                style = MaterialTheme.typography.titleMedium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            season.streamingLinks.forEach { link ->
+                OutlinedButton(
+                    onClick = {
+                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(link.url)))
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(link.name)
+                }
+            }
         }
 
         if (state.isInWatchlist) {

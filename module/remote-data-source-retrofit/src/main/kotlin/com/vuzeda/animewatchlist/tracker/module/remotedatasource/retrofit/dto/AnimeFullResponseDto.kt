@@ -22,12 +22,19 @@ data class AnimeFullDataDto(
     @param:Json(name = "genres") val genres: List<GenreDto>? = null,
     @param:Json(name = "status") val status: String? = null,
     @param:Json(name = "broadcast") val broadcast: BroadcastDto? = null,
+    @param:Json(name = "streaming") val streaming: List<StreamingDto>? = null,
     @param:Json(name = "relations") val relations: List<AnimeRelationDto>? = null
 )
 
 @JsonClass(generateAdapter = true)
 data class BroadcastDto(
     @param:Json(name = "string") val string: String? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class StreamingDto(
+    @param:Json(name = "name") val name: String,
+    @param:Json(name = "url") val url: String
 )
 
 @JsonClass(generateAdapter = true)
