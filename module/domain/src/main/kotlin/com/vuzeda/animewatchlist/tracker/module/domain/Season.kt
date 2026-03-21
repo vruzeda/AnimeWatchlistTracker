@@ -17,6 +17,7 @@ data class Season(
     val score: Double? = null,
     val orderIndex: Int = 0,
     val airingStatus: String? = null,
+    val broadcastInfo: String? = null,
     val lastCheckedAiredEpisodeCount: Int? = null,
     val lastEpisodeCheckDate: LocalDate? = null,
     val isEpisodeNotificationsEnabled: Boolean = false,

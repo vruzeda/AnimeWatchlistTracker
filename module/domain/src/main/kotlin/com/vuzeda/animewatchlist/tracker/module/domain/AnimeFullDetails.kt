@@ -12,6 +12,7 @@ data class AnimeFullDetails(
     val synopsis: String? = null,
     val genres: List<String> = emptyList(),
     val airingStatus: String? = null,
+    val broadcastInfo: String? = null,
     val sequels: List<SequelInfo>,
     val prequels: List<SequelInfo> = emptyList()
 )

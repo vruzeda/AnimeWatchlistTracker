@@ -26,6 +26,7 @@ class SeasonEntityTest {
             score = 8.54,
             orderIndex = 0,
             airingStatus = "Finished Airing",
+            broadcastInfo = "Saturdays at 18:00 (JST)",
             lastCheckedAiredEpisodeCount = 25,
             lastEpisodeCheckDate = checkDate,
             isEpisodeNotificationsEnabled = true,
@@ -48,6 +49,7 @@ class SeasonEntityTest {
         assertThat(result.score).isEqualTo(8.54)
         assertThat(result.orderIndex).isEqualTo(0)
         assertThat(result.airingStatus).isEqualTo("Finished Airing")
+        assertThat(result.broadcastInfo).isEqualTo("Saturdays at 18:00 (JST)")
         assertThat(result.lastCheckedAiredEpisodeCount).isEqualTo(25)
         assertThat(result.lastEpisodeCheckDate).isEqualTo(checkDate)
         assertThat(result.isEpisodeNotificationsEnabled).isTrue()
@@ -96,6 +98,7 @@ class SeasonEntityTest {
         assertThat(result.episodeCount).isNull()
         assertThat(result.score).isNull()
         assertThat(result.airingStatus).isNull()
+        assertThat(result.broadcastInfo).isNull()
         assertThat(result.lastCheckedAiredEpisodeCount).isNull()
         assertThat(result.lastEpisodeCheckDate).isNull()
     }
@@ -118,6 +121,7 @@ class SeasonEntityTest {
             score = 8.5,
             orderIndex = 1,
             airingStatus = "Finished Airing",
+            broadcastInfo = "Saturdays at 18:00 (JST)",
             lastCheckedAiredEpisodeCount = 10,
             lastEpisodeCheckDate = checkDate,
             isEpisodeNotificationsEnabled = true,
@@ -140,6 +144,7 @@ class SeasonEntityTest {
         assertThat(result.score).isEqualTo(8.5)
         assertThat(result.orderIndex).isEqualTo(1)
         assertThat(result.airingStatus).isEqualTo("Finished Airing")
+        assertThat(result.broadcastInfo).isEqualTo("Saturdays at 18:00 (JST)")
         assertThat(result.lastCheckedAiredEpisodeCount).isEqualTo(10)
         assertThat(result.lastEpisodeCheckDate).isEqualTo(checkDate)
         assertThat(result.isEpisodeNotificationsEnabled).isTrue()

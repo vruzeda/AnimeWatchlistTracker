@@ -34,6 +34,7 @@ class AddAnimeFromDetailsUseCase @Inject constructor(
             episodeCount = details.episodes,
             score = details.score,
             airingStatus = details.airingStatus,
+            broadcastInfo = details.broadcastInfo,
             orderIndex = orderIndex,
             status = status,
             lastEpisodeCheckDate = today,

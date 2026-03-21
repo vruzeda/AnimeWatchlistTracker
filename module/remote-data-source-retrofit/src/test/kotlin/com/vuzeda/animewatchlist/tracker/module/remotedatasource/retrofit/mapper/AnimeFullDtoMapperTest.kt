@@ -4,6 +4,7 @@ import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.AnimeFullDataDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.AnimeImagesDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.AnimeRelationDto
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.BroadcastDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.GenreDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.ImageUrlDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.RelatedEntryDto
@@ -28,6 +29,7 @@ class AnimeFullDtoMapperTest {
             synopsis = "Humanity fights titans.",
             genres = listOf(GenreDto(name = "Action"), GenreDto(name = "Drama")),
             status = "Finished Airing",
+            broadcast = BroadcastDto(string = "Saturdays at 18:00 (JST)"),
             relations = null
         )
 
@@ -42,6 +44,7 @@ class AnimeFullDtoMapperTest {
         assertThat(details.synopsis).isEqualTo("Humanity fights titans.")
         assertThat(details.genres).containsExactly("Action", "Drama")
         assertThat(details.airingStatus).isEqualTo("Finished Airing")
+        assertThat(details.broadcastInfo).isEqualTo("Saturdays at 18:00 (JST)")
     }
 
     @Test
@@ -163,5 +166,42 @@ class AnimeFullDtoMapperTest {
         assertThat(details.synopsis).isNull()
         assertThat(details.genres).isEmpty()
         assertThat(details.airingStatus).isNull()
+        assertThat(details.broadcastInfo).isNull()
+    }
+
+    @Test
+    fun `maps broadcast string when present`() {
+        val dto = AnimeFullDataDto(
+            malId = 100,
+            title = "Test",
+            broadcast = BroadcastDto(string = "Sundays at 00:00 (JST)"),
+            relations = null
+        )
+
+        assertThat(dto.toAnimeFullDetails().broadcastInfo).isEqualTo("Sundays at 00:00 (JST)")
+    }
+
+    @Test
+    fun `returns null broadcastInfo when broadcast is null`() {
+        val dto = AnimeFullDataDto(
+            malId = 100,
+            title = "Test",
+            broadcast = null,
+            relations = null
+        )
+
+        assertThat(dto.toAnimeFullDetails().broadcastInfo).isNull()
+    }
+
+    @Test
+    fun `returns null broadcastInfo when broadcast string is null`() {
+        val dto = AnimeFullDataDto(
+            malId = 100,
+            title = "Test",
+            broadcast = BroadcastDto(string = null),
+            relations = null
+        )
+
+        assertThat(dto.toAnimeFullDetails().broadcastInfo).isNull()
     }
 }

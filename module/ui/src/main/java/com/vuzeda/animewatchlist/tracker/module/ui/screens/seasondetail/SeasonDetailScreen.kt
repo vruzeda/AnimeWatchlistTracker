@@ -420,6 +420,15 @@ private fun SeasonHeaderSection(
                 )
             }
 
+            val broadcastInfo = season.broadcastInfo
+            if (broadcastInfo != null) {
+                Text(
+                    text = stringResource(R.string.season_detail_broadcast_info, broadcastInfo),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
             Spacer(modifier = Modifier.height(4.dp))
             if (isInWatchlist) {
                 StatusChip(
