@@ -111,7 +111,7 @@ fun AppNavigation(
             composable<Route.Seasons> {
                 SeasonsScreenRoute(
                     onNavigateToDetailByMalId = { malId ->
-                        navController.navigate(Route.AnimeDetail(malId = malId))
+                        navController.navigate(Route.SeasonDetail(malId = malId))
                     }
                 )
             }
