@@ -1,0 +1,11 @@
+Anime Watchlist Tracker helps you manage your anime watching journey from start to finish.
+
+Features:
+• Browse and search anime from MyAnimeList via Jikan API
+• Add anime to your personal watchlist with custom watch status
+• Track watch order and season details for long-running series
+• View streaming links for each title in one place
+• See broadcast times in your local timezone
+• Expandable streaming link lists for titles with many sources
+
+Stay organised and never lose track of what to watch next.

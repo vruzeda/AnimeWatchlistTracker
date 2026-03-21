@@ -1,0 +1,64 @@
+lane :test do
+  gradle(task: "jacocoTestCoverageVerification")
+end
+
+lane :bump_version do |options|
+  path = "app/build.gradle.kts"
+  content = File.read(path)
+
+  current_code = content.match(/versionCode\s*=\s*(\d+)/)[1].to_i
+  content = content.sub(/versionCode\s*=\s*\d+/, "versionCode = #{current_code + 1}")
+
+  if options[:version_name]
+    content = content.sub(/versionName\s*=\s*"[^"]+"/, "versionName = \"#{options[:version_name]}\"")
+  end
+
+  File.write(path, content)
+end
+
+lane :build do
+  gradle(task: "bundle", flavor: "prod", build_type: "Release")
+  # Output: app/build/outputs/bundle/prodRelease/app-prod-release.aab
+end
+
+lane :deploy do |options|
+  track   = options[:track]   || "production"
+  rollout = options[:rollout] || "1.0"
+  upload_to_play_store(
+    track: track,
+    rollout: rollout,
+    aab: "app/build/outputs/bundle/prodRelease/app-prod-release.aab",
+    skip_upload_apk: true,
+    skip_upload_metadata: false,
+    skip_upload_changelogs: false,
+    skip_upload_images: true,
+    skip_upload_screenshots: true
+  )
+end
+
+lane :promote do |options|
+  from    = options[:from_track] || "internal"
+  to      = options[:to_track]   || "alpha"
+  rollout = options[:rollout]    || "1.0"
+  upload_to_play_store(
+    track: from,
+    track_promote_to: to,
+    rollout: rollout,
+    skip_upload_aab: true
+  )
+end
+
+lane :release do |options|
+  deploy_track = options[:deploy_track] || "production"
+  rollout      = options[:rollout]      || "1.0"
+
+  commit_message = options[:version_name] ? "Bump version" : "Bump version code"
+
+  test
+  bump_version(version_name: options[:version_name])
+  build
+  git_add(path: "app/build.gradle.kts")
+  git_commit(path: "app/build.gradle.kts", message: commit_message)
+  deploy(track: deploy_track, rollout: rollout)
+  push_to_git_remote
+end

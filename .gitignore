@@ -10,3 +10,14 @@ build/
 local.properties
 keystore.properties
 *.jks
+
+# Fastlane
+fastlane/play-store-key.json
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/
+fastlane/test_output/
+
+# Bundler
+.bundle/
+vendor/bundle/
