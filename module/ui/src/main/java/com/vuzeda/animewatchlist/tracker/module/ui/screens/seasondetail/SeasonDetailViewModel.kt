@@ -112,7 +112,10 @@ class SeasonDetailViewModel @Inject constructor(
                         }
                     }
                 } else {
-                    _uiState.value = SeasonDetailUiState.NotFound
+                    _uiState.update { current ->
+                        if (current is SeasonDetailUiState.Success && !current.isInWatchlist) current
+                        else SeasonDetailUiState.NotFound
+                    }
                 }
             }
         }
@@ -247,8 +250,10 @@ class SeasonDetailViewModel @Inject constructor(
         viewModelScope.launch {
             deleteSeasonUseCase(state.season)
             _uiState.update { current ->
-                if (current is SeasonDetailUiState.Success) current.copy(isDeleted = true)
-                else current
+                if (current is SeasonDetailUiState.Success) current.copy(
+                    isInWatchlist = false,
+                    isDeleteConfirmationVisible = false
+                ) else current
             }
         }
     }

@@ -18,7 +18,6 @@ sealed interface SeasonDetailUiState {
         val isLastSeason: Boolean = false,
         val isStatusSheetVisible: Boolean = false,
         val isDeleteConfirmationVisible: Boolean = false,
-        val isDeleted: Boolean = false,
         val isAddSheetVisible: Boolean = false,
         val isEpisodeNotificationsEnabled: Boolean = season.isEpisodeNotificationsEnabled,
         val snackbarEvent: SeasonDetailSnackbarEvent? = null,

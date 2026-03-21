@@ -109,7 +109,7 @@ class AnimeDetailViewModel @Inject constructor(
                     }
                 } else {
                     _uiState.update { current ->
-                        if (current is AnimeDetailUiState.Success) current.copy(isDeleted = true)
+                        if (current is AnimeDetailUiState.Success && !current.isInWatchlist) current
                         else AnimeDetailUiState.NotFound
                     }
                 }
@@ -334,8 +334,10 @@ class AnimeDetailViewModel @Inject constructor(
         viewModelScope.launch {
             deleteAnimeUseCase(state.anime.id)
             _uiState.update { current ->
-                if (current is AnimeDetailUiState.Success) current.copy(isDeleted = true)
-                else current
+                if (current is AnimeDetailUiState.Success) current.copy(
+                    isInWatchlist = false,
+                    isDeleteConfirmationVisible = false
+                ) else current
             }
         }
     }

@@ -306,7 +306,7 @@ class AnimeDetailViewModelTest {
     }
 
     @Test
-    fun `confirmDelete calls use case and sets isDeleted`() = runTest {
+    fun `confirmDelete calls use case and marks anime as not in watchlist`() = runTest {
         coEvery { deleteAnimeUseCase(1L) } returns Unit
 
         val viewModel = createViewModel()
@@ -319,7 +319,8 @@ class AnimeDetailViewModelTest {
             testDispatcher.scheduler.advanceUntilIdle()
 
             val deleted = expectMostRecentItem() as AnimeDetailUiState.Success
-            assertThat(deleted.isDeleted).isTrue()
+            assertThat(deleted.isInWatchlist).isFalse()
+            assertThat(deleted.isDeleteConfirmationVisible).isFalse()
             coVerify { deleteAnimeUseCase(1L) }
             cancelAndIgnoreRemainingEvents()
         }

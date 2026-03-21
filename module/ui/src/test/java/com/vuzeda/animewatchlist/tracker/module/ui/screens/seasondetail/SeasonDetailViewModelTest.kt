@@ -323,7 +323,7 @@ class SeasonDetailViewModelTest {
     }
 
     @Test
-    fun `confirmDelete calls delete use case and sets isDeleted`() = runTest {
+    fun `confirmDelete calls delete use case and marks season as not in watchlist`() = runTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
@@ -334,7 +334,8 @@ class SeasonDetailViewModelTest {
             testDispatcher.scheduler.advanceUntilIdle()
 
             val deleted = expectMostRecentItem() as SeasonDetailUiState.Success
-            assertThat(deleted.isDeleted).isTrue()
+            assertThat(deleted.isInWatchlist).isFalse()
+            assertThat(deleted.isDeleteConfirmationVisible).isFalse()
             coVerify { deleteSeasonUseCase(sampleSeason) }
             cancelAndIgnoreRemainingEvents()
         }

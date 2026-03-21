@@ -72,10 +72,6 @@ fun AnimeDetailScreenRoute(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    if (uiState is AnimeDetailUiState.Success && (uiState as AnimeDetailUiState.Success).isDeleted) {
-        LaunchedEffect(Unit) { onNavigateBack() }
-    }
-
     AnimeDetailScreen(
         uiState = uiState,
         onNavigateBack = onNavigateBack,

@@ -71,10 +71,6 @@ fun SeasonDetailScreenRoute(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    if (uiState is SeasonDetailUiState.Success && (uiState as SeasonDetailUiState.Success).isDeleted) {
-        LaunchedEffect(Unit) { onNavigateBack() }
-    }
-
     LaunchedEffect((uiState as? SeasonDetailUiState.Success)?.pendingNavigationMalId) {
         val malId = (uiState as? SeasonDetailUiState.Success)?.pendingNavigationMalId
         if (malId != null) {
