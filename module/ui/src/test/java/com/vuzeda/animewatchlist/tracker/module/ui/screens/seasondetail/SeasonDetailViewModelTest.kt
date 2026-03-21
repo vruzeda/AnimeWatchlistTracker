@@ -25,6 +25,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import java.time.ZoneId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -91,14 +92,18 @@ class SeasonDetailViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun createViewModel(seasonId: Long = 1L, malId: Int = 0): SeasonDetailViewModel {
+    private fun createViewModel(
+        seasonId: Long = 1L,
+        malId: Int = 0,
+        localZoneId: ZoneId = ZoneId.systemDefault()
+    ): SeasonDetailViewModel {
         val savedStateHandle = SavedStateHandle(
             mapOf(
                 "seasonId" to seasonId,
                 "malId" to malId
             )
         )
-        return SeasonDetailViewModel(
+        return object : SeasonDetailViewModel(
             savedStateHandle = savedStateHandle,
             observeSeasonByIdUseCase = observeSeasonByIdUseCase,
             observeSeasonsForAnimeUseCase = observeSeasonsForAnimeUseCase,
@@ -112,7 +117,9 @@ class SeasonDetailViewModelTest {
             findSeasonIdByMalIdUseCase = findSeasonIdByMalIdUseCase,
             toggleSeasonEpisodeNotificationsUseCase = toggleSeasonEpisodeNotificationsUseCase,
             observeTitleLanguageUseCase = observeTitleLanguageUseCase
-        )
+        ) {
+            override fun localZoneId(): ZoneId = localZoneId
+        }
     }
 
     @Test
@@ -513,6 +520,37 @@ class SeasonDetailViewModelTest {
             testDispatcher.scheduler.advanceUntilIdle()
 
             coVerify { updateSeasonStatusUseCase(sampleSeason, WatchStatus.COMPLETED) }
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `broadcastLocalTime is computed from structured broadcast fields`() = runTest {
+        val seasonWithBroadcast = sampleSeason.copy(
+            broadcastDay = "Saturdays",
+            broadcastTime = "18:00",
+            broadcastTimezone = "Asia/Tokyo"
+        )
+        seasonFlow.value = seasonWithBroadcast
+
+        val viewModel = createViewModel(localZoneId = ZoneId.of("UTC"))
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            val state = expectMostRecentItem() as SeasonDetailUiState.Success
+            assertThat(state.broadcastLocalTime).isEqualTo("Saturday at 09:00 (UTC)")
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `broadcastLocalTime is null when broadcast fields are missing`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            val state = expectMostRecentItem() as SeasonDetailUiState.Success
+            assertThat(state.broadcastLocalTime).isNull()
             cancelAndIgnoreRemainingEvents()
         }
     }

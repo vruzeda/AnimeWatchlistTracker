@@ -103,6 +103,11 @@
     <string name="season_detail_view_full_series">Ver série completa</string>
     <string name="season_detail_episode_notifications_enabled">Notificações de episódios ativas</string>
     <string name="season_detail_episode_notifications_disabled">Notificações de episódios desativadas</string>
+    <string name="season_detail_broadcast_info">Transmissão: %1$s</string>
+    <string name="season_detail_broadcast_local_time">Horário local: %1$s</string>
+    <string name="season_detail_section_streaming">Disponível em</string>
+    <string name="season_detail_streaming_show_more">Mostrar mais %1$d</string>
+    <string name="season_detail_streaming_show_less">Mostrar menos</string>
 
     <!-- SeasonsScreen -->
     <string name="seasons_title">Temporadas</string>

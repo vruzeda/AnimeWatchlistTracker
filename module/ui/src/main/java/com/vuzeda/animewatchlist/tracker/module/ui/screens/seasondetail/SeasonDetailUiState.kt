@@ -20,6 +20,7 @@ sealed interface SeasonDetailUiState {
         val isDeleteConfirmationVisible: Boolean = false,
         val isAddSheetVisible: Boolean = false,
         val isEpisodeNotificationsEnabled: Boolean = season.isEpisodeNotificationsEnabled,
+        val broadcastLocalTime: String? = null,
         val snackbarEvent: SeasonDetailSnackbarEvent? = null,
         val pendingNavigationMalId: Int? = null
     ) : SeasonDetailUiState

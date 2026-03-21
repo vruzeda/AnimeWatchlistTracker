@@ -24,10 +24,17 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.DayOfWeek
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
-class SeasonDetailViewModel @Inject constructor(
+open class SeasonDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val observeSeasonByIdUseCase: ObserveSeasonByIdUseCase,
     private val observeSeasonsForAnimeUseCase: ObserveSeasonsForAnimeUseCase,
@@ -106,7 +113,8 @@ class SeasonDetailViewModel @Inject constructor(
                                 SeasonDetailUiState.Success(
                                     season = season,
                                     isInWatchlist = season.isInWatchlist,
-                                    isLoadingEpisodes = true
+                                    isLoadingEpisodes = true,
+                                    broadcastLocalTime = computeBroadcastLocalTime(season)
                                 )
                             }
                         }
@@ -143,13 +151,17 @@ class SeasonDetailViewModel @Inject constructor(
                         score = details.score,
                         airingStatus = details.airingStatus,
                         broadcastInfo = details.broadcastInfo,
+                        broadcastDay = details.broadcastDay,
+                        broadcastTime = details.broadcastTime,
+                        broadcastTimezone = details.broadcastTimezone,
                         streamingLinks = details.streamingLinks
                     )
                     loadEpisodes(details.malId, page = 1)
                     _uiState.value = SeasonDetailUiState.Success(
                         season = season,
                         isInWatchlist = false,
-                        isLoadingEpisodes = true
+                        isLoadingEpisodes = true,
+                        broadcastLocalTime = computeBroadcastLocalTime(season)
                     )
                 }
                 .onFailure {
@@ -360,6 +372,35 @@ class SeasonDetailViewModel @Inject constructor(
         }
     }
 
+    protected open fun localZoneId(): ZoneId = ZoneId.systemDefault()
+
+    private fun computeBroadcastLocalTime(season: Season): String? {
+        val day = season.broadcastDay ?: return null
+        val time = season.broadcastTime ?: return null
+        val timezone = season.broadcastTimezone ?: return null
+        return try {
+            val sourceZone = ZoneId.of(timezone)
+            val localZone = localZoneId()
+            val broadcastTime = LocalTime.parse(time, DateTimeFormatter.ofPattern("HH:mm"))
+            val dayOfWeek = DayOfWeek.entries.firstOrNull { dow ->
+                day.lowercase().startsWith(dow.getDisplayName(TextStyle.FULL, Locale.ENGLISH).lowercase())
+            } ?: return null
+            val reference = ZonedDateTime.now(sourceZone)
+                .with(dayOfWeek)
+                .withHour(broadcastTime.hour)
+                .withMinute(broadcastTime.minute)
+                .withSecond(0)
+                .withNano(0)
+            val local = reference.withZoneSameInstant(localZone)
+            val localDay = local.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())
+            val localTime = local.format(DateTimeFormatter.ofPattern("HH:mm"))
+            val zoneName = localZone.getDisplayName(TextStyle.SHORT_STANDALONE, Locale.getDefault())
+            "$localDay at $localTime ($zoneName)"
+        } catch (_: Exception) {
+            null
+        }
+    }
+
     private fun observeSeason(seasonId: Long) {
         viewModelScope.launch {
             observeSeasonByIdUseCase(seasonId).collect { season ->
@@ -376,7 +417,8 @@ class SeasonDetailViewModel @Inject constructor(
                                 loadEpisodes(season.malId, page = 1)
                                 SeasonDetailUiState.Success(
                                     season = season,
-                                    isLoadingEpisodes = true
+                                    isLoadingEpisodes = true,
+                                    broadcastLocalTime = computeBroadcastLocalTime(season)
                                 )
                             }
                         }

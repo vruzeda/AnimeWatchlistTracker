@@ -28,6 +28,9 @@ class SeasonEntityTest {
             orderIndex = 0,
             airingStatus = "Finished Airing",
             broadcastInfo = "Saturdays at 18:00 (JST)",
+            broadcastDay = "Saturdays",
+            broadcastTime = "18:00",
+            broadcastTimezone = "Asia/Tokyo",
             streamingLinks = "Crunchyroll\thttps://crunchyroll.com/fma\nNetflix\thttps://netflix.com/title/121",
             lastCheckedAiredEpisodeCount = 25,
             lastEpisodeCheckDate = checkDate,
@@ -52,6 +55,9 @@ class SeasonEntityTest {
         assertThat(result.orderIndex).isEqualTo(0)
         assertThat(result.airingStatus).isEqualTo("Finished Airing")
         assertThat(result.broadcastInfo).isEqualTo("Saturdays at 18:00 (JST)")
+        assertThat(result.broadcastDay).isEqualTo("Saturdays")
+        assertThat(result.broadcastTime).isEqualTo("18:00")
+        assertThat(result.broadcastTimezone).isEqualTo("Asia/Tokyo")
         assertThat(result.streamingLinks).hasSize(2)
         assertThat(result.streamingLinks[0]).isEqualTo(StreamingInfo("Crunchyroll", "https://crunchyroll.com/fma"))
         assertThat(result.streamingLinks[1]).isEqualTo(StreamingInfo("Netflix", "https://netflix.com/title/121"))
@@ -104,6 +110,9 @@ class SeasonEntityTest {
         assertThat(result.score).isNull()
         assertThat(result.airingStatus).isNull()
         assertThat(result.broadcastInfo).isNull()
+        assertThat(result.broadcastDay).isNull()
+        assertThat(result.broadcastTime).isNull()
+        assertThat(result.broadcastTimezone).isNull()
         assertThat(result.streamingLinks).isEmpty()
         assertThat(result.lastCheckedAiredEpisodeCount).isNull()
         assertThat(result.lastEpisodeCheckDate).isNull()
@@ -128,6 +137,9 @@ class SeasonEntityTest {
             orderIndex = 1,
             airingStatus = "Finished Airing",
             broadcastInfo = "Saturdays at 18:00 (JST)",
+            broadcastDay = "Saturdays",
+            broadcastTime = "18:00",
+            broadcastTimezone = "Asia/Tokyo",
             streamingLinks = listOf(
                 StreamingInfo("Crunchyroll", "https://crunchyroll.com/fma"),
                 StreamingInfo("Netflix", "https://netflix.com/title/121")
@@ -155,6 +167,9 @@ class SeasonEntityTest {
         assertThat(result.orderIndex).isEqualTo(1)
         assertThat(result.airingStatus).isEqualTo("Finished Airing")
         assertThat(result.broadcastInfo).isEqualTo("Saturdays at 18:00 (JST)")
+        assertThat(result.broadcastDay).isEqualTo("Saturdays")
+        assertThat(result.broadcastTime).isEqualTo("18:00")
+        assertThat(result.broadcastTimezone).isEqualTo("Asia/Tokyo")
         assertThat(result.streamingLinks).isEqualTo("Crunchyroll\thttps://crunchyroll.com/fma\nNetflix\thttps://netflix.com/title/121")
         assertThat(result.lastCheckedAiredEpisodeCount).isEqualTo(10)
         assertThat(result.lastEpisodeCheckDate).isEqualTo(checkDate)

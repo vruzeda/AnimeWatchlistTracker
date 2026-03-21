@@ -28,7 +28,10 @@ data class AnimeFullDataDto(
 
 @JsonClass(generateAdapter = true)
 data class BroadcastDto(
-    @param:Json(name = "string") val string: String? = null
+    @param:Json(name = "string") val string: String? = null,
+    @param:Json(name = "day") val day: String? = null,
+    @param:Json(name = "time") val time: String? = null,
+    @param:Json(name = "timezone") val timezone: String? = null
 )
 
 @JsonClass(generateAdapter = true)

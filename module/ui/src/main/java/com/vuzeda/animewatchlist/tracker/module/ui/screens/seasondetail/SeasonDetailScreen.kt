@@ -281,6 +281,7 @@ private fun SeasonDetailContent(
             season = season,
             titleLanguage = state.titleLanguage,
             isInWatchlist = state.isInWatchlist,
+            broadcastLocalTime = state.broadcastLocalTime,
             onStatusChipClick = onStatusChipClick,
             onAddToWatchlistClick = onAddToWatchlistClick
         )
@@ -395,6 +396,7 @@ private fun SeasonHeaderSection(
     season: Season,
     titleLanguage: TitleLanguage,
     isInWatchlist: Boolean,
+    broadcastLocalTime: String?,
     onStatusChipClick: () -> Unit,
     onAddToWatchlistClick: () -> Unit
 ) {
@@ -461,6 +463,14 @@ private fun SeasonHeaderSection(
             if (broadcastInfo != null) {
                 Text(
                     text = stringResource(R.string.season_detail_broadcast_info, broadcastInfo),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            if (broadcastLocalTime != null) {
+                Text(
+                    text = stringResource(R.string.season_detail_broadcast_local_time, broadcastLocalTime),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

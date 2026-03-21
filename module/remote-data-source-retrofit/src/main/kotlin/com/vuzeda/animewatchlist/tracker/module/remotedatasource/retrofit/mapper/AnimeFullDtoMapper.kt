@@ -18,6 +18,9 @@ fun AnimeFullDataDto.toAnimeFullDetails(): AnimeFullDetails = AnimeFullDetails(
     genres = genres?.map { it.name } ?: emptyList(),
     airingStatus = status,
     broadcastInfo = broadcast?.string,
+    broadcastDay = broadcast?.day,
+    broadcastTime = broadcast?.time,
+    broadcastTimezone = broadcast?.timezone,
     streamingLinks = streaming?.map { StreamingInfo(name = it.name, url = it.url) } ?: emptyList(),
     sequels = extractRelations("Sequel"),
     prequels = extractRelations("Prequel")

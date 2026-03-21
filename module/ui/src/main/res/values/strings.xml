@@ -98,6 +98,7 @@
     <string name="season_detail_load_more_episodes">Load more episodes</string>
     <string name="season_detail_airing_status">Status: %1$s</string>
     <string name="season_detail_broadcast_info">Broadcast: %1$s</string>
+    <string name="season_detail_broadcast_local_time">Local time: %1$s</string>
     <string name="season_detail_section_streaming">Available on</string>
     <string name="season_detail_streaming_show_more">Show %1$d more</string>
     <string name="season_detail_streaming_show_less">Show less</string>

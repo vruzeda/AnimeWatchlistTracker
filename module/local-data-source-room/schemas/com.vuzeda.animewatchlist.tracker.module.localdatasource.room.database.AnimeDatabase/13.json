@@ -1,0 +1,247 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 13,
+    "identityHash": "ad02d18663634112d9764e502b734e03",
+    "entities": [
+      {
+        "tableName": "anime",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, `titleEnglish` TEXT, `titleJapanese` TEXT, `imageUrl` TEXT, `synopsis` TEXT, `genres` TEXT NOT NULL, `userRating` INTEGER, `notificationType` TEXT NOT NULL, `lastSeasonCheckDate` TEXT, `addedAt` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "titleEnglish",
+            "columnName": "titleEnglish",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "titleJapanese",
+            "columnName": "titleJapanese",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "imageUrl",
+            "columnName": "imageUrl",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "synopsis",
+            "columnName": "synopsis",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "genres",
+            "columnName": "genres",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "userRating",
+            "columnName": "userRating",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "notificationType",
+            "columnName": "notificationType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSeasonCheckDate",
+            "columnName": "lastSeasonCheckDate",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "addedAt",
+            "columnName": "addedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "season",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `animeId` INTEGER NOT NULL, `malId` INTEGER NOT NULL, `title` TEXT NOT NULL, `titleEnglish` TEXT, `titleJapanese` TEXT, `imageUrl` TEXT, `type` TEXT NOT NULL, `episodeCount` INTEGER, `currentEpisode` INTEGER NOT NULL, `status` TEXT NOT NULL, `score` REAL, `orderIndex` INTEGER NOT NULL, `airingStatus` TEXT, `broadcastInfo` TEXT, `broadcastDay` TEXT, `broadcastTime` TEXT, `broadcastTimezone` TEXT, `streamingLinks` TEXT NOT NULL, `lastCheckedAiredEpisodeCount` INTEGER, `lastEpisodeCheckDate` TEXT, `isEpisodeNotificationsEnabled` INTEGER NOT NULL, `isInWatchlist` INTEGER NOT NULL, FOREIGN KEY(`animeId`) REFERENCES `anime`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "animeId",
+            "columnName": "animeId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "malId",
+            "columnName": "malId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "titleEnglish",
+            "columnName": "titleEnglish",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "titleJapanese",
+            "columnName": "titleJapanese",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "imageUrl",
+            "columnName": "imageUrl",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "episodeCount",
+            "columnName": "episodeCount",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "currentEpisode",
+            "columnName": "currentEpisode",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "score",
+            "columnName": "score",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "orderIndex",
+            "columnName": "orderIndex",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "airingStatus",
+            "columnName": "airingStatus",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "broadcastInfo",
+            "columnName": "broadcastInfo",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "broadcastDay",
+            "columnName": "broadcastDay",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "broadcastTime",
+            "columnName": "broadcastTime",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "broadcastTimezone",
+            "columnName": "broadcastTimezone",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "streamingLinks",
+            "columnName": "streamingLinks",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastCheckedAiredEpisodeCount",
+            "columnName": "lastCheckedAiredEpisodeCount",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "lastEpisodeCheckDate",
+            "columnName": "lastEpisodeCheckDate",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "isEpisodeNotificationsEnabled",
+            "columnName": "isEpisodeNotificationsEnabled",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isInWatchlist",
+            "columnName": "isInWatchlist",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_season_animeId",
+            "unique": false,
+            "columnNames": [
+              "animeId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_season_animeId` ON `${TABLE_NAME}` (`animeId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "anime",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "animeId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ad02d18663634112d9764e502b734e03')"
+    ]
+  }
+}

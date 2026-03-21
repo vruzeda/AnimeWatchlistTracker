@@ -30,7 +30,12 @@ class AnimeFullDtoMapperTest {
             synopsis = "Humanity fights titans.",
             genres = listOf(GenreDto(name = "Action"), GenreDto(name = "Drama")),
             status = "Finished Airing",
-            broadcast = BroadcastDto(string = "Saturdays at 18:00 (JST)"),
+            broadcast = BroadcastDto(
+                string = "Saturdays at 18:00 (JST)",
+                day = "Saturdays",
+                time = "18:00",
+                timezone = "Asia/Tokyo"
+            ),
             relations = null
         )
 
@@ -46,6 +51,9 @@ class AnimeFullDtoMapperTest {
         assertThat(details.genres).containsExactly("Action", "Drama")
         assertThat(details.airingStatus).isEqualTo("Finished Airing")
         assertThat(details.broadcastInfo).isEqualTo("Saturdays at 18:00 (JST)")
+        assertThat(details.broadcastDay).isEqualTo("Saturdays")
+        assertThat(details.broadcastTime).isEqualTo("18:00")
+        assertThat(details.broadcastTimezone).isEqualTo("Asia/Tokyo")
         assertThat(details.streamingLinks).isEmpty()
     }
 
@@ -169,6 +177,9 @@ class AnimeFullDtoMapperTest {
         assertThat(details.genres).isEmpty()
         assertThat(details.airingStatus).isNull()
         assertThat(details.broadcastInfo).isNull()
+        assertThat(details.broadcastDay).isNull()
+        assertThat(details.broadcastTime).isNull()
+        assertThat(details.broadcastTimezone).isNull()
         assertThat(details.streamingLinks).isEmpty()
     }
 
@@ -215,6 +226,27 @@ class AnimeFullDtoMapperTest {
         )
 
         assertThat(dto.toAnimeFullDetails().broadcastInfo).isEqualTo("Sundays at 00:00 (JST)")
+    }
+
+    @Test
+    fun `maps structured broadcast fields when present`() {
+        val dto = AnimeFullDataDto(
+            malId = 100,
+            title = "Test",
+            broadcast = BroadcastDto(
+                string = "Sundays at 00:00 (JST)",
+                day = "Sundays",
+                time = "00:00",
+                timezone = "Asia/Tokyo"
+            ),
+            relations = null
+        )
+
+        val details = dto.toAnimeFullDetails()
+
+        assertThat(details.broadcastDay).isEqualTo("Sundays")
+        assertThat(details.broadcastTime).isEqualTo("00:00")
+        assertThat(details.broadcastTimezone).isEqualTo("Asia/Tokyo")
     }
 
     @Test
