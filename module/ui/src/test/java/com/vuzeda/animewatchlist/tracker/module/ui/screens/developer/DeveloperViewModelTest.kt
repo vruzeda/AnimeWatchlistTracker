@@ -2,8 +2,10 @@ package com.vuzeda.animewatchlist.tracker.module.ui.screens.developer
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveIsNotificationDebugInfoEnabledUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveLastAnimeUpdateRunUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetIsDeveloperOptionsEnabledUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.SetIsNotificationDebugInfoEnabledUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.TriggerAnimeUpdateUseCase
 import io.mockk.coVerify
 import io.mockk.every
@@ -28,11 +30,14 @@ class DeveloperViewModelTest {
     private val observeLastAnimeUpdateRunUseCase: ObserveLastAnimeUpdateRunUseCase = mockk()
     private val triggerAnimeUpdateUseCase: TriggerAnimeUpdateUseCase = mockk(relaxUnitFun = true)
     private val setIsDeveloperOptionsEnabledUseCase: SetIsDeveloperOptionsEnabledUseCase = mockk(relaxUnitFun = true)
+    private val observeIsNotificationDebugInfoEnabledUseCase: ObserveIsNotificationDebugInfoEnabledUseCase = mockk()
+    private val setIsNotificationDebugInfoEnabledUseCase: SetIsNotificationDebugInfoEnabledUseCase = mockk(relaxUnitFun = true)
 
     @BeforeEach
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         every { observeLastAnimeUpdateRunUseCase() } returns flowOf(null)
+        every { observeIsNotificationDebugInfoEnabledUseCase() } returns flowOf(false)
     }
 
     @AfterEach
@@ -43,7 +48,9 @@ class DeveloperViewModelTest {
     private fun createViewModel() = DeveloperViewModel(
         observeLastAnimeUpdateRunUseCase,
         triggerAnimeUpdateUseCase,
-        setIsDeveloperOptionsEnabledUseCase
+        setIsDeveloperOptionsEnabledUseCase,
+        observeIsNotificationDebugInfoEnabledUseCase,
+        setIsNotificationDebugInfoEnabledUseCase
     )
 
     @Test
@@ -89,5 +96,60 @@ class DeveloperViewModelTest {
         testDispatcher.scheduler.advanceUntilIdle()
 
         coVerify(exactly = 1) { setIsDeveloperOptionsEnabledUseCase(false) }
+    }
+
+    @Test
+    fun `initial state has notification debug info disabled`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            val initial = awaitItem()
+            assertThat(initial.isNotificationDebugInfoEnabled).isFalse()
+        }
+    }
+
+    @Test
+    fun `updates isNotificationDebugInfoEnabled when use case emits true`() = runTest {
+        every { observeIsNotificationDebugInfoEnabledUseCase() } returns flowOf(true)
+
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            val updated = awaitItem()
+            assertThat(updated.isNotificationDebugInfoEnabled).isTrue()
+        }
+    }
+
+    @Test
+    fun `toggleNotificationDebugInfo enables debug info when currently disabled`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            awaitItem()
+            cancelAndIgnoreRemainingEvents()
+        }
+        viewModel.toggleNotificationDebugInfo()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        coVerify(exactly = 1) { setIsNotificationDebugInfoEnabledUseCase(true) }
+    }
+
+    @Test
+    fun `toggleNotificationDebugInfo disables debug info when currently enabled`() = runTest {
+        every { observeIsNotificationDebugInfoEnabledUseCase() } returns flowOf(true)
+
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            awaitItem()
+            awaitItem()
+            cancelAndIgnoreRemainingEvents()
+        }
+        viewModel.toggleNotificationDebugInfo()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        coVerify(exactly = 1) { setIsNotificationDebugInfoEnabledUseCase(false) }
     }
 }

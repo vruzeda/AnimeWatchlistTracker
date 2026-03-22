@@ -402,6 +402,23 @@ private fun AnimeDetailContent(
                 Spacer(modifier = Modifier.height(8.dp))
             }
         }
+
+        if (state.isInWatchlist && state.isNotificationDebugInfoEnabled) {
+            item(key = "debug_info") {
+                Text(
+                    text = stringResource(
+                        R.string.developer_last_season_check,
+                        state.anime.lastSeasonCheckDate?.toString()
+                            ?: stringResource(R.string.developer_value_never)
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp)
+                )
+            }
+        }
     }
 }
 

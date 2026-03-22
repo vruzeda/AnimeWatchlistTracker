@@ -145,6 +145,12 @@
     <string name="developer_last_update_run_never">Never</string>
     <string name="developer_trigger_update">Trigger update check now</string>
     <string name="developer_disable_options">Disable developer options</string>
+    <string name="developer_notification_debug_info">Debug notification info</string>
+    <string name="developer_last_season_check">Last season check: %1$s</string>
+    <string name="developer_last_episode_check">Last episode check: %1$s</string>
+    <string name="developer_last_checked_aired_episodes">Aired episode count: %1$s</string>
+    <string name="developer_value_never">Never</string>
+    <string name="developer_value_none">None</string>
     <string name="settings_version">Version %1$s (%2$d)</string>
     <string name="settings_developer_options_enabled">Developer options enabled</string>
     <plurals name="settings_developer_options_countdown">

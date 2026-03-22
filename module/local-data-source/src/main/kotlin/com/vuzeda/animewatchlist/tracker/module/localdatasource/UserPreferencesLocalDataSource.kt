@@ -9,4 +9,6 @@ interface UserPreferencesLocalDataSource {
     suspend fun setHomeViewMode(mode: String)
     fun observeIsDeveloperOptionsEnabled(): Flow<Boolean>
     suspend fun setIsDeveloperOptionsEnabled(enabled: Boolean)
+    fun observeIsNotificationDebugInfoEnabled(): Flow<Boolean>
+    suspend fun setIsNotificationDebugInfoEnabled(enabled: Boolean)
 }

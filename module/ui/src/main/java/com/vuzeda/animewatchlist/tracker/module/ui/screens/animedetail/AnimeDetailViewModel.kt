@@ -13,6 +13,7 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.DeleteAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FindAnimeBySeasonMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveAnimeByIdUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSeasonsForAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveIsNotificationDebugInfoEnabledUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.RefreshAnimeSeasonsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.RefreshSeasonDataUseCase
@@ -46,7 +47,8 @@ class AnimeDetailViewModel @Inject constructor(
     private val findAnimeBySeasonMalIdUseCase: FindAnimeBySeasonMalIdUseCase,
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase,
     private val refreshAnimeSeasonsUseCase: RefreshAnimeSeasonsUseCase,
-    private val refreshSeasonDataUseCase: RefreshSeasonDataUseCase
+    private val refreshSeasonDataUseCase: RefreshSeasonDataUseCase,
+    private val observeIsNotificationDebugInfoEnabledUseCase: ObserveIsNotificationDebugInfoEnabledUseCase
 ) : ViewModel() {
 
     private val animeId: Long = checkNotNull(savedStateHandle["animeId"])
@@ -59,9 +61,11 @@ class AnimeDetailViewModel @Inject constructor(
 
     private var resolvedAnime: Anime? = null
     private var resolvedSeasons: List<Season> = emptyList()
+    private var latestIsNotificationDebugInfoEnabled: Boolean = false
 
     init {
         observeTitleLanguage()
+        observeNotificationDebugInfo()
         if (animeId > 0) {
             observeAnime(animeId)
         } else if (malId > 0) {
@@ -77,6 +81,20 @@ class AnimeDetailViewModel @Inject constructor(
                 _uiState.update { state ->
                     when (state) {
                         is AnimeDetailUiState.Success -> state.copy(titleLanguage = titleLanguage)
+                        else -> state
+                    }
+                }
+            }
+        }
+    }
+
+    private fun observeNotificationDebugInfo() {
+        viewModelScope.launch {
+            observeIsNotificationDebugInfoEnabledUseCase().collect { enabled ->
+                latestIsNotificationDebugInfoEnabled = enabled
+                _uiState.update { state ->
+                    when (state) {
+                        is AnimeDetailUiState.Success -> state.copy(isNotificationDebugInfoEnabled = enabled)
                         else -> state
                     }
                 }
@@ -105,7 +123,8 @@ class AnimeDetailViewModel @Inject constructor(
                             else -> AnimeDetailUiState.Success(
                                 anime = anime,
                                 seasons = seasons,
-                                isInWatchlist = true
+                                isInWatchlist = true,
+                                isNotificationDebugInfoEnabled = latestIsNotificationDebugInfoEnabled
                             )
                         }
                     }
@@ -172,13 +191,14 @@ class AnimeDetailViewModel @Inject constructor(
                                 anime = anime,
                                 seasons = seasons,
                                 isRefreshing = false
-                            ) else AnimeDetailUiState.Success(anime = anime, seasons = seasons, isInWatchlist = false)
+                            ) else AnimeDetailUiState.Success(anime = anime, seasons = seasons, isInWatchlist = false, isNotificationDebugInfoEnabled = latestIsNotificationDebugInfoEnabled)
                         }
                     } else {
                         _uiState.value = AnimeDetailUiState.Success(
                             anime = anime,
                             seasons = seasons,
-                            isInWatchlist = false
+                            isInWatchlist = false,
+                            isNotificationDebugInfoEnabled = latestIsNotificationDebugInfoEnabled
                         )
                     }
                 }

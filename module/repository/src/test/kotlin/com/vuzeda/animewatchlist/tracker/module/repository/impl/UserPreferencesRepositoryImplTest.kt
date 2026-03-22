@@ -128,4 +128,33 @@ class UserPreferencesRepositoryImplTest {
 
         coVerify { dataSource.setIsDeveloperOptionsEnabled(true) }
     }
+
+    @Test
+    fun `observeIsNotificationDebugInfoEnabled returns true when data source emits true`() = runTest {
+        every { dataSource.observeIsNotificationDebugInfoEnabled() } returns flowOf(true)
+
+        repository.observeIsNotificationDebugInfoEnabled().test {
+            assertThat(awaitItem()).isTrue()
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `observeIsNotificationDebugInfoEnabled returns false when data source emits false`() = runTest {
+        every { dataSource.observeIsNotificationDebugInfoEnabled() } returns flowOf(false)
+
+        repository.observeIsNotificationDebugInfoEnabled().test {
+            assertThat(awaitItem()).isFalse()
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `setIsNotificationDebugInfoEnabled delegates to data source`() = runTest {
+        coEvery { dataSource.setIsNotificationDebugInfoEnabled(any()) } returns Unit
+
+        repository.setIsNotificationDebugInfoEnabled(true)
+
+        coVerify { dataSource.setIsNotificationDebugInfoEnabled(true) }
+    }
 }

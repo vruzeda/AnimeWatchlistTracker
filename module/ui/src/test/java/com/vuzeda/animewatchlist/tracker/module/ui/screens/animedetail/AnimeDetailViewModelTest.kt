@@ -16,6 +16,7 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.DeleteAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FindAnimeBySeasonMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveAnimeByIdUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSeasonsForAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveIsNotificationDebugInfoEnabledUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.RefreshAnimeSeasonsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.RefreshSeasonDataUseCase
@@ -56,6 +57,7 @@ class AnimeDetailViewModelTest {
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
     private val refreshAnimeSeasonsUseCase: RefreshAnimeSeasonsUseCase = mockk(relaxed = true)
     private val refreshSeasonDataUseCase: RefreshSeasonDataUseCase = mockk(relaxed = true)
+    private val observeIsNotificationDebugInfoEnabledUseCase: ObserveIsNotificationDebugInfoEnabledUseCase = mockk()
 
     private val sampleAnime = Anime(
         id = 1L,
@@ -80,6 +82,7 @@ class AnimeDetailViewModelTest {
         every { observeAnimeByIdUseCase(1L) } returns animeFlow
         every { observeSeasonsForAnimeUseCase(1L) } returns seasonsFlow
         every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
+        every { observeIsNotificationDebugInfoEnabledUseCase() } returns flowOf(false)
     }
 
     @AfterEach
@@ -108,7 +111,8 @@ class AnimeDetailViewModelTest {
             findAnimeBySeasonMalIdUseCase = findAnimeBySeasonMalIdUseCase,
             observeTitleLanguageUseCase = observeTitleLanguageUseCase,
             refreshAnimeSeasonsUseCase = refreshAnimeSeasonsUseCase,
-            refreshSeasonDataUseCase = refreshSeasonDataUseCase
+            refreshSeasonDataUseCase = refreshSeasonDataUseCase,
+            observeIsNotificationDebugInfoEnabledUseCase = observeIsNotificationDebugInfoEnabledUseCase
         )
     }
 
@@ -654,6 +658,21 @@ class AnimeDetailViewModelTest {
             testDispatcher.scheduler.advanceUntilIdle()
 
             coVerify { addAnimeUseCase(any(), match { it.size == 1 }, WatchStatus.WATCHING) }
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `isNotificationDebugInfoEnabled propagates from use case to state`() = runTest {
+        every { observeIsNotificationDebugInfoEnabledUseCase() } returns flowOf(true)
+
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val state = expectMostRecentItem() as AnimeDetailUiState.Success
+            assertThat(state.isNotificationDebugInfoEnabled).isTrue()
             cancelAndIgnoreRemainingEvents()
         }
     }

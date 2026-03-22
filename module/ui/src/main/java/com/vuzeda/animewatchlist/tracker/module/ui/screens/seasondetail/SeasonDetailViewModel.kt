@@ -14,6 +14,7 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FindSeasonIdByMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSeasonByIdUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSeasonsForAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveIsNotificationDebugInfoEnabledUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.RefreshSeasonDataUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ToggleSeasonEpisodeNotificationsUseCase
@@ -50,7 +51,8 @@ open class SeasonDetailViewModel @Inject constructor(
     private val findSeasonIdByMalIdUseCase: FindSeasonIdByMalIdUseCase,
     private val toggleSeasonEpisodeNotificationsUseCase: ToggleSeasonEpisodeNotificationsUseCase,
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase,
-    private val refreshSeasonDataUseCase: RefreshSeasonDataUseCase
+    private val refreshSeasonDataUseCase: RefreshSeasonDataUseCase,
+    private val observeIsNotificationDebugInfoEnabledUseCase: ObserveIsNotificationDebugInfoEnabledUseCase
 ) : ViewModel() {
 
     private val seasonId: Long = checkNotNull(savedStateHandle["seasonId"])
@@ -58,12 +60,14 @@ open class SeasonDetailViewModel @Inject constructor(
 
     private var pendingDetails: AnimeFullDetails? = null
     private var observingSiblingsForAnimeId: Long = -1L
+    private var latestIsNotificationDebugInfoEnabled: Boolean = false
 
     private val _uiState = MutableStateFlow<SeasonDetailUiState>(SeasonDetailUiState.Loading)
     val uiState: StateFlow<SeasonDetailUiState> = _uiState.asStateFlow()
 
     init {
         observeTitleLanguage()
+        observeNotificationDebugInfo()
         if (seasonId > 0) {
             observeSeason()
         } else if (malId > 0) {
@@ -100,6 +104,20 @@ open class SeasonDetailViewModel @Inject constructor(
         }
     }
 
+    private fun observeNotificationDebugInfo() {
+        viewModelScope.launch {
+            observeIsNotificationDebugInfoEnabledUseCase().collect { enabled ->
+                latestIsNotificationDebugInfoEnabled = enabled
+                _uiState.update { state ->
+                    when (state) {
+                        is SeasonDetailUiState.Success -> state.copy(isNotificationDebugInfoEnabled = enabled)
+                        else -> state
+                    }
+                }
+            }
+        }
+    }
+
     private fun observeSeason() {
         viewModelScope.launch {
             observeSeasonByIdUseCase(seasonId).collect { season ->
@@ -117,7 +135,8 @@ open class SeasonDetailViewModel @Inject constructor(
                                     season = season,
                                     isInWatchlist = season.isInWatchlist,
                                     isLoadingEpisodes = true,
-                                    broadcastLocalTime = computeBroadcastLocalTime(season)
+                                    broadcastLocalTime = computeBroadcastLocalTime(season),
+                                    isNotificationDebugInfoEnabled = latestIsNotificationDebugInfoEnabled
                                 )
                             }
                         }
@@ -177,7 +196,8 @@ open class SeasonDetailViewModel @Inject constructor(
                                 season = season,
                                 isInWatchlist = false,
                                 isLoadingEpisodes = true,
-                                broadcastLocalTime = computeBroadcastLocalTime(season)
+                                broadcastLocalTime = computeBroadcastLocalTime(season),
+                                isNotificationDebugInfoEnabled = latestIsNotificationDebugInfoEnabled
                             )
                         }
                     } else {
@@ -185,7 +205,8 @@ open class SeasonDetailViewModel @Inject constructor(
                             season = season,
                             isInWatchlist = false,
                             isLoadingEpisodes = true,
-                            broadcastLocalTime = computeBroadcastLocalTime(season)
+                            broadcastLocalTime = computeBroadcastLocalTime(season),
+                            isNotificationDebugInfoEnabled = latestIsNotificationDebugInfoEnabled
                         )
                     }
                 }
@@ -461,7 +482,8 @@ open class SeasonDetailViewModel @Inject constructor(
                                 SeasonDetailUiState.Success(
                                     season = season,
                                     isLoadingEpisodes = true,
-                                    broadcastLocalTime = computeBroadcastLocalTime(season)
+                                    broadcastLocalTime = computeBroadcastLocalTime(season),
+                                    isNotificationDebugInfoEnabled = latestIsNotificationDebugInfoEnabled
                                 )
                             }
                         }

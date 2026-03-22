@@ -17,4 +17,8 @@ interface UserPreferencesRepository {
     fun observeIsDeveloperOptionsEnabled(): Flow<Boolean>
 
     suspend fun setIsDeveloperOptionsEnabled(enabled: Boolean)
+
+    fun observeIsNotificationDebugInfoEnabled(): Flow<Boolean>
+
+    suspend fun setIsNotificationDebugInfoEnabled(enabled: Boolean)
 }

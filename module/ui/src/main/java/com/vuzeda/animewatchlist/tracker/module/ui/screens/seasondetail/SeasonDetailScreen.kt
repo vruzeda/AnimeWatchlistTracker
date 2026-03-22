@@ -397,6 +397,33 @@ private fun SeasonDetailContent(
                 }
             }
         }
+
+        if (state.isInWatchlist && state.isNotificationDebugInfoEnabled) {
+            Text(
+                text = stringResource(
+                    R.string.developer_last_checked_aired_episodes,
+                    state.season.lastCheckedAiredEpisodeCount?.toString()
+                        ?: stringResource(R.string.developer_value_none)
+                ),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+            )
+            Text(
+                text = stringResource(
+                    R.string.developer_last_episode_check,
+                    state.season.lastEpisodeCheckDate?.toString()
+                        ?: stringResource(R.string.developer_value_never)
+                ),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
+            )
+        }
     }
 }
 

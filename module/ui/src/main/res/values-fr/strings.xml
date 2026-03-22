@@ -145,4 +145,10 @@
     <string name="developer_last_update_run_never">Jamais</string>
     <string name="developer_trigger_update">Déclencher la vérification maintenant</string>
     <string name="developer_disable_options">Désactiver les options développeur</string>
+    <string name="developer_notification_debug_info">Débogage des notifications</string>
+    <string name="developer_last_season_check">Dernière vérification de saison : %1$s</string>
+    <string name="developer_last_episode_check">Dernière vérification d\'épisode : %1$s</string>
+    <string name="developer_last_checked_aired_episodes">Épisodes diffusés vérifiés : %1$s</string>
+    <string name="developer_value_never">Jamais</string>
+    <string name="developer_value_none">Aucun</string>
 </resources>

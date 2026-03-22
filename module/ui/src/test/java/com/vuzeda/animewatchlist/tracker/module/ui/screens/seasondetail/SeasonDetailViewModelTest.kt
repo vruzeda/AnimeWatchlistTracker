@@ -17,6 +17,7 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FindSeasonIdByMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSeasonByIdUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSeasonsForAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveIsNotificationDebugInfoEnabledUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.RefreshSeasonDataUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ToggleSeasonEpisodeNotificationsUseCase
@@ -56,6 +57,7 @@ class SeasonDetailViewModelTest {
     private val toggleSeasonEpisodeNotificationsUseCase: ToggleSeasonEpisodeNotificationsUseCase = mockk(relaxed = true)
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
     private val refreshSeasonDataUseCase: RefreshSeasonDataUseCase = mockk(relaxed = true)
+    private val observeIsNotificationDebugInfoEnabledUseCase: ObserveIsNotificationDebugInfoEnabledUseCase = mockk()
 
     private val sampleSeason = Season(
         id = 1L,
@@ -82,6 +84,7 @@ class SeasonDetailViewModelTest {
         seasonFlow = MutableStateFlow(sampleSeason)
         every { observeSeasonByIdUseCase(1L) } returns seasonFlow
         every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
+        every { observeIsNotificationDebugInfoEnabledUseCase() } returns flowOf(false)
         every { observeSeasonsForAnimeUseCase(any()) } returns flowOf(listOf(sampleSeason))
         coEvery { findSeasonIdByMalIdUseCase(any()) } returns null
         coEvery { fetchEpisodesUseCase(malId = 16498, page = 1) } returns Result.success(
@@ -119,7 +122,8 @@ class SeasonDetailViewModelTest {
             findSeasonIdByMalIdUseCase = findSeasonIdByMalIdUseCase,
             toggleSeasonEpisodeNotificationsUseCase = toggleSeasonEpisodeNotificationsUseCase,
             observeTitleLanguageUseCase = observeTitleLanguageUseCase,
-            refreshSeasonDataUseCase = refreshSeasonDataUseCase
+            refreshSeasonDataUseCase = refreshSeasonDataUseCase,
+            observeIsNotificationDebugInfoEnabledUseCase = observeIsNotificationDebugInfoEnabledUseCase
         ) {
             override fun localZoneId(): ZoneId = localZoneId
         }
@@ -635,6 +639,21 @@ class SeasonDetailViewModelTest {
 
             val updated = awaitItem() as SeasonDetailUiState.Success
             assertThat(updated.pendingNavigationMalId).isEqualTo(16498)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `isNotificationDebugInfoEnabled propagates from use case to state`() = runTest {
+        every { observeIsNotificationDebugInfoEnabledUseCase() } returns flowOf(true)
+
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val state = expectMostRecentItem() as SeasonDetailUiState.Success
+            assertThat(state.isNotificationDebugInfoEnabled).isTrue()
             cancelAndIgnoreRemainingEvents()
         }
     }

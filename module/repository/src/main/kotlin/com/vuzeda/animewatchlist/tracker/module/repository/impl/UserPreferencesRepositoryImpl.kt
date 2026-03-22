@@ -36,4 +36,11 @@ class UserPreferencesRepositoryImpl @Inject constructor(
     override suspend fun setIsDeveloperOptionsEnabled(enabled: Boolean) {
         dataSource.setIsDeveloperOptionsEnabled(enabled)
     }
+
+    override fun observeIsNotificationDebugInfoEnabled(): Flow<Boolean> =
+        dataSource.observeIsNotificationDebugInfoEnabled()
+
+    override suspend fun setIsNotificationDebugInfoEnabled(enabled: Boolean) {
+        dataSource.setIsNotificationDebugInfoEnabled(enabled)
+    }
 }
