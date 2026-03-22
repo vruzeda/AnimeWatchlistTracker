@@ -3,7 +3,9 @@ package com.vuzeda.animewatchlist.tracker.module.ui.screens.developer
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveLastAnimeUpdateRunUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.SetIsDeveloperOptionsEnabledUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.TriggerAnimeUpdateUseCase
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -25,6 +27,7 @@ class DeveloperViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private val observeLastAnimeUpdateRunUseCase: ObserveLastAnimeUpdateRunUseCase = mockk()
     private val triggerAnimeUpdateUseCase: TriggerAnimeUpdateUseCase = mockk(relaxUnitFun = true)
+    private val setIsDeveloperOptionsEnabledUseCase: SetIsDeveloperOptionsEnabledUseCase = mockk(relaxUnitFun = true)
 
     @BeforeEach
     fun setup() {
@@ -39,7 +42,8 @@ class DeveloperViewModelTest {
 
     private fun createViewModel() = DeveloperViewModel(
         observeLastAnimeUpdateRunUseCase,
-        triggerAnimeUpdateUseCase
+        triggerAnimeUpdateUseCase,
+        setIsDeveloperOptionsEnabledUseCase
     )
 
     @Test
@@ -75,5 +79,15 @@ class DeveloperViewModelTest {
         testDispatcher.scheduler.advanceUntilIdle()
 
         verify(exactly = 1) { triggerAnimeUpdateUseCase() }
+    }
+
+    @Test
+    fun `disableDeveloperOptions persists disabled state`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.disableDeveloperOptions()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        coVerify(exactly = 1) { setIsDeveloperOptionsEnabledUseCase(false) }
     }
 }

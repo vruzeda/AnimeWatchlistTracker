@@ -13,4 +13,8 @@ interface UserPreferencesRepository {
     fun observeHomeViewMode(): Flow<HomeViewMode>
 
     suspend fun setHomeViewMode(mode: HomeViewMode)
+
+    fun observeIsDeveloperOptionsEnabled(): Flow<Boolean>
+
+    suspend fun setIsDeveloperOptionsEnabled(enabled: Boolean)
 }

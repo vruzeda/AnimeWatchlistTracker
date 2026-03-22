@@ -6,8 +6,10 @@ import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.usecase.DeleteAllDataUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveHomeViewModeUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveIsDeveloperOptionsEnabledUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetHomeViewModeUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.SetIsDeveloperOptionsEnabledUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetTitleLanguageUseCase
 import io.mockk.coVerify
 import io.mockk.every
@@ -32,12 +34,15 @@ class SettingsViewModelTest {
     private val setTitleLanguageUseCase: SetTitleLanguageUseCase = mockk(relaxUnitFun = true)
     private val observeHomeViewModeUseCase: ObserveHomeViewModeUseCase = mockk()
     private val setHomeViewModeUseCase: SetHomeViewModeUseCase = mockk(relaxUnitFun = true)
+    private val observeIsDeveloperOptionsEnabledUseCase: ObserveIsDeveloperOptionsEnabledUseCase = mockk()
+    private val setIsDeveloperOptionsEnabledUseCase: SetIsDeveloperOptionsEnabledUseCase = mockk(relaxUnitFun = true)
 
     @BeforeEach
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
         every { observeHomeViewModeUseCase() } returns flowOf(HomeViewMode.ANIME)
+        every { observeIsDeveloperOptionsEnabledUseCase() } returns flowOf(false)
     }
 
     @AfterEach
@@ -50,7 +55,9 @@ class SettingsViewModelTest {
         observeTitleLanguageUseCase,
         setTitleLanguageUseCase,
         observeHomeViewModeUseCase,
-        setHomeViewModeUseCase
+        setHomeViewModeUseCase,
+        observeIsDeveloperOptionsEnabledUseCase,
+        setIsDeveloperOptionsEnabledUseCase
     )
 
     @Test
@@ -209,6 +216,38 @@ class SettingsViewModelTest {
             val enabled = awaitItem()
             assertThat(enabled.developerTapCount).isEqualTo(5)
             assertThat(enabled.isDeveloperOptionsEnabled).isTrue()
+        }
+    }
+
+    @Test
+    fun `onVersionTap persists developer options enabled after 5 taps`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            repeat(5) {
+                viewModel.onVersionTap()
+                awaitItem()
+            }
+            cancelAndIgnoreRemainingEvents()
+        }
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        coVerify(exactly = 1) { setIsDeveloperOptionsEnabledUseCase(true) }
+    }
+
+    @Test
+    fun `initial developer options state is loaded from persisted preference`() = runTest {
+        every { observeIsDeveloperOptionsEnabledUseCase() } returns flowOf(true)
+
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            val updated = awaitItem()
+            assertThat(updated.isDeveloperOptionsEnabled).isTrue()
         }
     }
 

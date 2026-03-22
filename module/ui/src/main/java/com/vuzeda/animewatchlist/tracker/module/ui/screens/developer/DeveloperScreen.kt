@@ -38,7 +38,11 @@ fun DeveloperScreenRoute(
     DeveloperScreen(
         uiState = uiState,
         onNavigateBack = onNavigateBack,
-        onTriggerAnimeUpdate = viewModel::triggerAnimeUpdate
+        onTriggerAnimeUpdate = viewModel::triggerAnimeUpdate,
+        onDisableDeveloperOptions = {
+            viewModel.disableDeveloperOptions()
+            onNavigateBack()
+        }
     )
 }
 
@@ -47,7 +51,8 @@ fun DeveloperScreenRoute(
 fun DeveloperScreen(
     uiState: DeveloperUiState,
     onNavigateBack: () -> Unit,
-    onTriggerAnimeUpdate: () -> Unit
+    onTriggerAnimeUpdate: () -> Unit,
+    onDisableDeveloperOptions: () -> Unit
 ) {
     val formatter = remember {
         DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).withZone(ZoneId.systemDefault())
@@ -71,6 +76,19 @@ fun DeveloperScreen(
                 },
                 windowInsets = WindowInsets(0, 0, 0, 0)
             )
+
+            TextButton(
+                onClick = onDisableDeveloperOptions,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.developer_disable_options),
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.weight(1f)
+                )
+            }
 
             Text(
                 text = stringResource(R.string.developer_last_update_run),

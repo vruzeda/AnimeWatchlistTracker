@@ -3,6 +3,7 @@ package com.vuzeda.animewatchlist.tracker.module.ui.screens.developer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveLastAnimeUpdateRunUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.SetIsDeveloperOptionsEnabledUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.TriggerAnimeUpdateUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,7 +16,8 @@ import javax.inject.Inject
 @HiltViewModel
 class DeveloperViewModel @Inject constructor(
     private val observeLastAnimeUpdateRunUseCase: ObserveLastAnimeUpdateRunUseCase,
-    private val triggerAnimeUpdateUseCase: TriggerAnimeUpdateUseCase
+    private val triggerAnimeUpdateUseCase: TriggerAnimeUpdateUseCase,
+    private val setIsDeveloperOptionsEnabledUseCase: SetIsDeveloperOptionsEnabledUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DeveloperUiState())
@@ -30,4 +32,8 @@ class DeveloperViewModel @Inject constructor(
     }
 
     fun triggerAnimeUpdate() = triggerAnimeUpdateUseCase()
+
+    fun disableDeveloperOptions() {
+        viewModelScope.launch { setIsDeveloperOptionsEnabledUseCase(false) }
+    }
 }

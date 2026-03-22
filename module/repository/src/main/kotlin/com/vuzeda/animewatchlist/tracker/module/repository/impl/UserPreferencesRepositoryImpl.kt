@@ -29,4 +29,11 @@ class UserPreferencesRepositoryImpl @Inject constructor(
     override suspend fun setHomeViewMode(mode: HomeViewMode) {
         dataSource.setHomeViewMode(mode.name)
     }
+
+    override fun observeIsDeveloperOptionsEnabled(): Flow<Boolean> =
+        dataSource.observeIsDeveloperOptionsEnabled()
+
+    override suspend fun setIsDeveloperOptionsEnabled(enabled: Boolean) {
+        dataSource.setIsDeveloperOptionsEnabled(enabled)
+    }
 }

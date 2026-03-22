@@ -144,4 +144,5 @@
     <string name="developer_last_update_run">Dernière vérification des mises à jour</string>
     <string name="developer_last_update_run_never">Jamais</string>
     <string name="developer_trigger_update">Déclencher la vérification maintenant</string>
+    <string name="developer_disable_options">Désactiver les options développeur</string>
 </resources>

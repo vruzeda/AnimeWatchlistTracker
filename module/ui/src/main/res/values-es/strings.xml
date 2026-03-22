@@ -144,4 +144,5 @@
     <string name="developer_last_update_run">Última comprobación de actualizaciones</string>
     <string name="developer_last_update_run_never">Nunca</string>
     <string name="developer_trigger_update">Activar comprobación de actualizaciones ahora</string>
+    <string name="developer_disable_options">Desactivar opciones de desarrollador</string>
 </resources>

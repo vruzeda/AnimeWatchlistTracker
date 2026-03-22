@@ -6,8 +6,10 @@ import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.usecase.DeleteAllDataUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveHomeViewModeUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveIsDeveloperOptionsEnabledUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetHomeViewModeUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.SetIsDeveloperOptionsEnabledUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetTitleLanguageUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,7 +25,9 @@ class SettingsViewModel @Inject constructor(
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase,
     private val setTitleLanguageUseCase: SetTitleLanguageUseCase,
     private val observeHomeViewModeUseCase: ObserveHomeViewModeUseCase,
-    private val setHomeViewModeUseCase: SetHomeViewModeUseCase
+    private val setHomeViewModeUseCase: SetHomeViewModeUseCase,
+    private val observeIsDeveloperOptionsEnabledUseCase: ObserveIsDeveloperOptionsEnabledUseCase,
+    private val setIsDeveloperOptionsEnabledUseCase: SetIsDeveloperOptionsEnabledUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -38,6 +42,11 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             observeHomeViewModeUseCase().collect { viewMode ->
                 _uiState.update { it.copy(homeViewMode = viewMode) }
+            }
+        }
+        viewModelScope.launch {
+            observeIsDeveloperOptionsEnabledUseCase().collect { enabled ->
+                _uiState.update { it.copy(isDeveloperOptionsEnabled = enabled) }
             }
         }
     }
@@ -83,6 +92,9 @@ class SettingsViewModel @Inject constructor(
                 developerTapCount = newCount,
                 isDeveloperOptionsEnabled = newCount >= 5
             )
+        }
+        if (newCount >= 5) {
+            viewModelScope.launch { setIsDeveloperOptionsEnabledUseCase(true) }
         }
     }
 }

@@ -99,4 +99,33 @@ class UserPreferencesRepositoryImplTest {
 
         coVerify { dataSource.setHomeViewMode("SEASON") }
     }
+
+    @Test
+    fun `observeIsDeveloperOptionsEnabled returns true when data source emits true`() = runTest {
+        every { dataSource.observeIsDeveloperOptionsEnabled() } returns flowOf(true)
+
+        repository.observeIsDeveloperOptionsEnabled().test {
+            assertThat(awaitItem()).isTrue()
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `observeIsDeveloperOptionsEnabled returns false when data source emits false`() = runTest {
+        every { dataSource.observeIsDeveloperOptionsEnabled() } returns flowOf(false)
+
+        repository.observeIsDeveloperOptionsEnabled().test {
+            assertThat(awaitItem()).isFalse()
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `setIsDeveloperOptionsEnabled delegates to data source`() = runTest {
+        coEvery { dataSource.setIsDeveloperOptionsEnabled(any()) } returns Unit
+
+        repository.setIsDeveloperOptionsEnabled(true)
+
+        coVerify { dataSource.setIsDeveloperOptionsEnabled(true) }
+    }
 }

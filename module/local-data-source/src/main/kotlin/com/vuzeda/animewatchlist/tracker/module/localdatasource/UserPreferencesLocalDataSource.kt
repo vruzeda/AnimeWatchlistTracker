@@ -7,4 +7,6 @@ interface UserPreferencesLocalDataSource {
     suspend fun setTitleLanguage(language: String)
     fun observeHomeViewMode(): Flow<String>
     suspend fun setHomeViewMode(mode: String)
+    fun observeIsDeveloperOptionsEnabled(): Flow<Boolean>
+    suspend fun setIsDeveloperOptionsEnabled(enabled: Boolean)
 }
