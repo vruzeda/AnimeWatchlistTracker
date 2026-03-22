@@ -165,4 +165,68 @@ class SettingsViewModelTest {
             assertThat(updated.homeViewMode).isEqualTo(HomeViewMode.SEASON)
         }
     }
+
+    @Test
+    fun `initial state has developer options disabled with zero tap count`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            val initial = awaitItem()
+            assertThat(initial.developerTapCount).isEqualTo(0)
+            assertThat(initial.isDeveloperOptionsEnabled).isFalse()
+        }
+    }
+
+    @Test
+    fun `onVersionTap increments tap count`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            viewModel.onVersionTap()
+
+            val updated = awaitItem()
+            assertThat(updated.developerTapCount).isEqualTo(1)
+            assertThat(updated.isDeveloperOptionsEnabled).isFalse()
+        }
+    }
+
+    @Test
+    fun `onVersionTap enables developer options after 5 taps`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            repeat(4) {
+                viewModel.onVersionTap()
+                awaitItem()
+            }
+
+            viewModel.onVersionTap()
+
+            val enabled = awaitItem()
+            assertThat(enabled.developerTapCount).isEqualTo(5)
+            assertThat(enabled.isDeveloperOptionsEnabled).isTrue()
+        }
+    }
+
+    @Test
+    fun `onVersionTap does nothing when developer options already enabled`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            repeat(5) {
+                viewModel.onVersionTap()
+                awaitItem()
+            }
+
+            viewModel.onVersionTap()
+
+            expectNoEvents()
+        }
+    }
 }

@@ -73,4 +73,16 @@ class SettingsViewModel @Inject constructor(
     fun clearDataDeletedFlag() {
         _uiState.update { it.copy(isDataDeleted = false) }
     }
+
+    fun onVersionTap() {
+        val current = _uiState.value
+        if (current.isDeveloperOptionsEnabled) return
+        val newCount = current.developerTapCount + 1
+        _uiState.update {
+            it.copy(
+                developerTapCount = newCount,
+                isDeveloperOptionsEnabled = newCount >= 5
+            )
+        }
+    }
 }

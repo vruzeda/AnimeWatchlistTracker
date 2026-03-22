@@ -29,7 +29,11 @@ class MockMainActivity : ComponentActivity() {
 
         setContent {
             AnimeWatchlistTrackerTheme {
-                AppNavigation(modifier = Modifier.fillMaxSize())
+                AppNavigation(
+                    modifier = Modifier.fillMaxSize(),
+                    versionName = BuildConfig.VERSION_NAME,
+                    versionCode = BuildConfig.VERSION_CODE
+                )
             }
         }
     }

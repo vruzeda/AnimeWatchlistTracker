@@ -27,7 +27,9 @@ class MainActivity : ComponentActivity() {
             AnimeWatchlistTrackerTheme {
                 AppNavigation(
                     modifier = Modifier.fillMaxSize(),
-                    seasonMalId = seasonMalId
+                    seasonMalId = seasonMalId,
+                    versionName = BuildConfig.VERSION_NAME,
+                    versionCode = BuildConfig.VERSION_CODE
                 )
             }
         }

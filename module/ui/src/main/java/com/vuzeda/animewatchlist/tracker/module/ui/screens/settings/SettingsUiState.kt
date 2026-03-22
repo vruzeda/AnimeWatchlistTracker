@@ -7,5 +7,7 @@ data class SettingsUiState(
     val titleLanguage: TitleLanguage = TitleLanguage.DEFAULT,
     val homeViewMode: HomeViewMode = HomeViewMode.ANIME,
     val isDeleteConfirmationVisible: Boolean = false,
-    val isDataDeleted: Boolean = false
+    val isDataDeleted: Boolean = false,
+    val developerTapCount: Int = 0,
+    val isDeveloperOptionsEnabled: Boolean = false
 )

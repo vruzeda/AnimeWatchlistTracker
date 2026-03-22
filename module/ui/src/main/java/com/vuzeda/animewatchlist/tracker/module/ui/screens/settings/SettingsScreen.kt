@@ -1,5 +1,8 @@
 package com.vuzeda.animewatchlist.tracker.module.ui.screens.settings
 
+import android.widget.Toast
+import androidx.annotation.StringRes
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,15 +29,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.annotation.StringRes
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.ConfirmationDialog
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
-import com.vuzeda.animewatchlist.tracker.module.ui.BuildConfig
 import com.vuzeda.animewatchlist.tracker.module.ui.R
 
 private enum class TitleLanguageOption(
@@ -57,7 +59,9 @@ private enum class HomeViewModeOption(
 @Composable
 fun SettingsScreenRoute(
     viewModel: SettingsViewModel = hiltViewModel(),
-    onDeveloperClick: () -> Unit = {}
+    onDeveloperClick: () -> Unit = {},
+    versionName: String = "",
+    versionCode: Int = 0
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     SettingsScreen(
@@ -68,7 +72,10 @@ fun SettingsScreenRoute(
         onConfirmDelete = viewModel::confirmDeleteAllData,
         onDismissDelete = viewModel::dismissDeleteConfirmation,
         onDataDeletedShown = viewModel::clearDataDeletedFlag,
-        onDeveloperClick = onDeveloperClick
+        onDeveloperClick = onDeveloperClick,
+        versionName = versionName,
+        versionCode = versionCode,
+        onVersionTap = viewModel::onVersionTap
     )
 }
 
@@ -82,15 +89,36 @@ fun SettingsScreen(
     onConfirmDelete: () -> Unit,
     onDismissDelete: () -> Unit,
     onDataDeletedShown: () -> Unit,
-    onDeveloperClick: () -> Unit = {}
+    onDeveloperClick: () -> Unit = {},
+    versionName: String = "",
+    versionCode: Int = 0,
+    onVersionTap: () -> Unit = {}
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val dataDeletedMessage = stringResource(R.string.settings_data_deleted)
+    val context = LocalContext.current
+    val developerOptionsEnabledMessage = stringResource(R.string.settings_developer_options_enabled)
 
     LaunchedEffect(uiState.isDataDeleted) {
         if (uiState.isDataDeleted) {
             snackbarHostState.showSnackbar(dataDeletedMessage)
             onDataDeletedShown()
+        }
+    }
+
+    LaunchedEffect(uiState.developerTapCount) {
+        val count = uiState.developerTapCount
+        when {
+            count >= 5 -> Toast.makeText(context, developerOptionsEnabledMessage, Toast.LENGTH_SHORT).show()
+            count >= 3 -> {
+                val remaining = 5 - count
+                val message = context.resources.getQuantityString(
+                    R.plurals.settings_developer_options_countdown,
+                    remaining,
+                    remaining
+                )
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -185,7 +213,7 @@ fun SettingsScreen(
                 )
             }
 
-            if (BuildConfig.DEBUG) {
+            if (uiState.isDeveloperOptionsEnabled) {
                 Spacer(modifier = Modifier.height(8.dp))
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                 Spacer(modifier = Modifier.height(8.dp))
@@ -202,6 +230,18 @@ fun SettingsScreen(
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Text(
+                text = stringResource(R.string.settings_version, versionName, versionCode),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onVersionTap)
+                    .padding(horizontal = 16.dp, vertical = 16.dp)
+            )
         }
 
         if (uiState.isDeleteConfirmationVisible) {

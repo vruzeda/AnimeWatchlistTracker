@@ -51,7 +51,9 @@ private val BottomNavItems = listOf(
 @Composable
 fun AppNavigation(
     modifier: Modifier = Modifier,
-    seasonMalId: Int = 0
+    seasonMalId: Int = 0,
+    versionName: String = "",
+    versionCode: Int = 0
 ) {
     val navController = rememberNavController()
 
@@ -118,7 +120,9 @@ fun AppNavigation(
 
             composable<Route.Settings> {
                 SettingsScreenRoute(
-                    onDeveloperClick = { navController.navigate(Route.Developer) }
+                    onDeveloperClick = { navController.navigate(Route.Developer) },
+                    versionName = versionName,
+                    versionCode = versionCode
                 )
             }
 
