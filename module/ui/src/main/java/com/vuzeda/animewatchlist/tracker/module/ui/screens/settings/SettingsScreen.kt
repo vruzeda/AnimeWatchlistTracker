@@ -26,7 +26,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -98,6 +100,7 @@ fun SettingsScreen(
     val dataDeletedMessage = stringResource(R.string.settings_data_deleted)
     val context = LocalContext.current
     val developerOptionsEnabledMessage = stringResource(R.string.settings_developer_options_enabled)
+    var activeToast by remember { mutableStateOf<Toast?>(null) }
 
     LaunchedEffect(uiState.isDataDeleted) {
         if (uiState.isDataDeleted) {
@@ -109,7 +112,7 @@ fun SettingsScreen(
     LaunchedEffect(uiState.developerTapCount) {
         val count = uiState.developerTapCount
         when {
-            count >= 5 -> Toast.makeText(context, developerOptionsEnabledMessage, Toast.LENGTH_SHORT).show()
+            count >= 5 -> Toast.makeText(context, developerOptionsEnabledMessage, Toast.LENGTH_SHORT)
             count >= 3 -> {
                 val remaining = 5 - count
                 val message = context.resources.getQuantityString(
@@ -117,8 +120,13 @@ fun SettingsScreen(
                     remaining,
                     remaining
                 )
-                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, message, Toast.LENGTH_SHORT)
             }
+            else -> null
+        }?.also { toast ->
+            activeToast?.cancel()
+            activeToast = toast
+            toast.show()
         }
     }
 
