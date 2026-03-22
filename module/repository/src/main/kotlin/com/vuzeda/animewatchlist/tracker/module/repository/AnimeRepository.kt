@@ -11,8 +11,9 @@ import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonData
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonalAnimePage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
-import java.time.LocalDate
 import kotlinx.coroutines.flow.Flow
+import java.time.LocalDate
+import kotlin.time.Instant
 
 interface AnimeRepository {
 
@@ -54,4 +55,12 @@ interface AnimeRepository {
     suspend fun fetchSeasonAnime(year: Int, season: AnimeSeason, page: Int): Result<SeasonalAnimePage>
 
     suspend fun updateLastSeasonCheckDate(animeId: Long, date: LocalDate)
+
+    fun schedulePeriodicAnimeUpdate()
+
+    fun scheduleImmediateAnimeUpdate()
+
+    fun observeLastAnimeUpdateRun(): Flow<Instant?>
+
+    suspend fun recordAnimeUpdateRun()
 }

@@ -2,8 +2,8 @@ package com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mappe
 
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.ChiakiWatchOrderEntryDto
-import java.time.LocalDate
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 class ChiakiDtoMapperTest {
 

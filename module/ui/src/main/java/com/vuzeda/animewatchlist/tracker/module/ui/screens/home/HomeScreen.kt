@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
@@ -29,14 +28,14 @@ import com.vuzeda.animewatchlist.tracker.module.designsystem.component.NestedFil
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.SortMenuButton
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusChip
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusCompleted
-import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
-import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
-import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
-import com.vuzeda.animewatchlist.tracker.module.ui.R
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusDropped
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusOnHold
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusPlanToWatch
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusWatching
+import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
+import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
+import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
+import com.vuzeda.animewatchlist.tracker.module.ui.R
 
 private const val GROUP_STATUS = 0
 private const val GROUP_NOTIFICATION = 1

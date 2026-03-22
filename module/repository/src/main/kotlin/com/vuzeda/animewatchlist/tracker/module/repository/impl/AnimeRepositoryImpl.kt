@@ -16,16 +16,22 @@ import com.vuzeda.animewatchlist.tracker.module.remotedatasource.AnimeRemoteData
 import com.vuzeda.animewatchlist.tracker.module.repository.AnimeRepository
 import com.vuzeda.animewatchlist.tracker.module.repository.SeasonRepository
 import com.vuzeda.animewatchlist.tracker.module.repository.TransactionRunner
-import java.time.LocalDate
+import com.vuzeda.animewatchlist.tracker.module.scheduler.AnimeUpdateScheduler
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import java.time.LocalDate
 import javax.inject.Inject
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 class AnimeRepositoryImpl @Inject constructor(
     private val animeLocalDataSource: AnimeLocalDataSource,
     private val animeRemoteDataSource: AnimeRemoteDataSource,
+    private val animeUpdateScheduler: AnimeUpdateScheduler,
     private val seasonRepository: SeasonRepository,
-    private val transactionRunner: TransactionRunner
+    private val transactionRunner: TransactionRunner,
+    private val clock: Clock = Clock.System
 ) : AnimeRepository {
 
     override fun observeAll(): Flow<List<Anime>> = combine(
@@ -134,5 +140,18 @@ class AnimeRepositoryImpl @Inject constructor(
 
     override suspend fun updateLastSeasonCheckDate(animeId: Long, date: LocalDate) {
         animeLocalDataSource.updateLastSeasonCheckDate(animeId = animeId, date = date)
+    }
+
+    override fun schedulePeriodicAnimeUpdate() = animeUpdateScheduler.schedulePeriodicUpdate()
+
+    override fun scheduleImmediateAnimeUpdate() = animeUpdateScheduler.scheduleImmediateUpdate()
+
+    override fun observeLastAnimeUpdateRun(): Flow<Instant?> =
+        animeLocalDataSource.observeLastAnimeUpdateRun().map { ms ->
+            ms?.let { Instant.fromEpochMilliseconds(it) }
+        }
+
+    override suspend fun recordAnimeUpdateRun() {
+        animeLocalDataSource.setLastAnimeUpdateRun(clock.now().toEpochMilliseconds())
     }
 }

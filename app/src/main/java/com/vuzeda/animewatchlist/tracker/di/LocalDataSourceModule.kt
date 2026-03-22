@@ -3,19 +3,17 @@ package com.vuzeda.animewatchlist.tracker.di
 import android.content.Context
 import androidx.room.Room
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.AnimeLocalDataSource
-import com.vuzeda.animewatchlist.tracker.module.localdatasource.SchedulerLocalDataSource
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.SeasonLocalDataSource
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database.AnimeDatabase
-import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database.MIGRATION_6_7
-import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database.MIGRATION_7_8
-import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database.MIGRATION_8_9
-import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database.MIGRATION_9_10
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database.MIGRATION_10_11
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database.MIGRATION_11_12
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database.MIGRATION_12_13
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database.MIGRATION_13_14
+import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database.MIGRATION_6_7
+import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database.MIGRATION_7_8
+import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database.MIGRATION_8_9
+import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database.MIGRATION_9_10
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database.RoomTransactionRunner
-import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.scheduler.SchedulerLocalDataSourceImpl
 import com.vuzeda.animewatchlist.tracker.module.repository.TransactionRunner
 import dagger.Module
 import dagger.Provides
@@ -48,11 +46,6 @@ object LocalDataSourceModule {
     @Singleton
     fun provideSeasonLocalDataSource(database: AnimeDatabase): SeasonLocalDataSource =
         database.seasonDao()
-
-    @Provides
-    @Singleton
-    fun provideSchedulerLocalDataSource(database: AnimeDatabase): SchedulerLocalDataSource =
-        SchedulerLocalDataSourceImpl(database.schedulerStateDao())
 
     @Provides
     @Singleton

@@ -9,11 +9,12 @@ import com.vuzeda.animewatchlist.tracker.module.domain.Anime
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.AnimeLocalDataSource
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.AnimeEntity
+import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.AnimeUpdateSchedulerStateEntity
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.toDomainModel
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.toEntity
-import java.time.LocalDate
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.time.LocalDate
 
 @Dao
 abstract class AnimeRoomDao : AnimeLocalDataSource {
@@ -65,4 +66,14 @@ abstract class AnimeRoomDao : AnimeLocalDataSource {
 
     @Query("UPDATE anime SET lastSeasonCheckDate = :date WHERE id = :animeId")
     override abstract suspend fun updateLastSeasonCheckDate(animeId: Long, date: LocalDate)
+
+    @Query("SELECT lastAnimeUpdateRunAt FROM scheduler_state WHERE id = 1")
+    override abstract fun observeLastAnimeUpdateRun(): Flow<Long?>
+
+    override suspend fun setLastAnimeUpdateRun(epochMillis: Long) {
+        upsertAnimeUpdateSchedulerState(AnimeUpdateSchedulerStateEntity(lastAnimeUpdateRunAt = epochMillis))
+    }
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    protected abstract suspend fun upsertAnimeUpdateSchedulerState(entity: AnimeUpdateSchedulerStateEntity)
 }

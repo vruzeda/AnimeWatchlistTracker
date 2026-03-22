@@ -1,5 +1,6 @@
 package com.vuzeda.animewatchlist.tracker.module.usecase
 
+import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.repository.SeasonRepository
 import io.mockk.coJustRun
@@ -8,7 +9,6 @@ import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
-import com.google.common.truth.Truth.assertThat
 
 class UpdateSeasonProgressUseCaseTest {
 

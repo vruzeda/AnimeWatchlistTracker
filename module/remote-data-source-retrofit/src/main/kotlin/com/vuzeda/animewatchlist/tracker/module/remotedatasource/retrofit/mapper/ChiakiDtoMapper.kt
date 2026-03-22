@@ -1,7 +1,7 @@
 package com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mapper
 
-import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.ChiakiWatchOrderEntryDto
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonData
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.ChiakiWatchOrderEntryDto
 
 private val TYPE_CODE_TO_STRING = mapOf(
     1 to "TV",

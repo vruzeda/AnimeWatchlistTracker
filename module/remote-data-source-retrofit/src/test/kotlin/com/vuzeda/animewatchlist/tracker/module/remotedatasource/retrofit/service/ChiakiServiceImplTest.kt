@@ -1,8 +1,8 @@
 package com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service
 
 import com.google.common.truth.Truth.assertThat
-import java.time.LocalDate
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 class ChiakiServiceImplTest {
 

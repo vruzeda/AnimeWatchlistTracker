@@ -1,7 +1,5 @@
 package com.vuzeda.animewatchlist.tracker.di
 
-import com.vuzeda.animewatchlist.tracker.module.repository.SchedulerRepository
-import com.vuzeda.animewatchlist.tracker.module.repository.impl.SchedulerRepositoryImpl
 import com.vuzeda.animewatchlist.tracker.module.scheduler.AnimeUpdateScheduler
 import com.vuzeda.animewatchlist.tracker.module.scheduler.work.AnimeUpdateWorkerScheduler
 import dagger.Binds

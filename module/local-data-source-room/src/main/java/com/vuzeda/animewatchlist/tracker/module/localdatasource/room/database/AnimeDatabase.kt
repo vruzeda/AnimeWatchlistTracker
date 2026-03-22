@@ -4,14 +4,13 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.dao.AnimeRoomDao
-import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.dao.SchedulerStateDao
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.dao.SeasonRoomDao
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.AnimeEntity
-import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.SchedulerStateEntity
+import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.AnimeUpdateSchedulerStateEntity
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.SeasonEntity
 
 @Database(
-    entities = [AnimeEntity::class, SeasonEntity::class, SchedulerStateEntity::class],
+    entities = [AnimeEntity::class, SeasonEntity::class, AnimeUpdateSchedulerStateEntity::class],
     version = 14,
     exportSchema = true
 )
@@ -19,5 +18,4 @@ import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.Seas
 abstract class AnimeDatabase : RoomDatabase() {
     abstract fun animeDao(): AnimeRoomDao
     abstract fun seasonDao(): SeasonRoomDao
-    abstract fun schedulerStateDao(): SchedulerStateDao
 }

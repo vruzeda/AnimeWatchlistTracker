@@ -5,10 +5,10 @@ import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.An
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.AnimeImagesDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.AnimeRelationDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.BroadcastDto
-import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.StreamingDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.GenreDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.ImageUrlDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.RelatedEntryDto
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.StreamingDto
 import org.junit.jupiter.api.Test
 
 class AnimeFullDtoMapperTest {

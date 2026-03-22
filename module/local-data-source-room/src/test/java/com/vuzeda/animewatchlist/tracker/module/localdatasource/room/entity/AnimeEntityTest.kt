@@ -4,8 +4,8 @@ import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.domain.Anime
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
-import java.time.LocalDate
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 class AnimeEntityTest {
 

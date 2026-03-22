@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity(tableName = "scheduler_state")
-data class SchedulerStateEntity(
+data class AnimeUpdateSchedulerStateEntity(
     @PrimaryKey val id: Int = 1,
     val lastAnimeUpdateRunAt: Long?
 )

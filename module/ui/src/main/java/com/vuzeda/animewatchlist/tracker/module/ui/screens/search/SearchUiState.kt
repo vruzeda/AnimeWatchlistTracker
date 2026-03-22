@@ -3,7 +3,6 @@ package com.vuzeda.animewatchlist.tracker.module.ui.screens.search
 import androidx.annotation.StringRes
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
-import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.ui.R
 
 enum class SearchSortOption(@param:StringRes val displayLabelRes: Int, val defaultAscending: Boolean) {

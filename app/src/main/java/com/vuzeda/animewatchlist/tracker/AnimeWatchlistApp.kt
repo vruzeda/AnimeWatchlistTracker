@@ -4,7 +4,7 @@ import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import com.vuzeda.animewatchlist.tracker.module.notification.android.NotificationHelper
-import com.vuzeda.animewatchlist.tracker.module.repository.SchedulerRepository
+import com.vuzeda.animewatchlist.tracker.module.repository.AnimeRepository
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
@@ -18,7 +18,7 @@ class AnimeWatchlistApp : Application(), Configuration.Provider {
     lateinit var notificationHelper: NotificationHelper
 
     @Inject
-    lateinit var schedulerRepository: SchedulerRepository
+    lateinit var animeRepository: AnimeRepository
 
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
@@ -28,6 +28,6 @@ class AnimeWatchlistApp : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
         notificationHelper.createNotificationChannel()
-        schedulerRepository.schedulePeriodicAnimeUpdate()
+        animeRepository.schedulePeriodicAnimeUpdate()
     }
 }

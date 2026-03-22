@@ -2,8 +2,8 @@ package com.vuzeda.animewatchlist.tracker.module.localdatasource
 
 import com.vuzeda.animewatchlist.tracker.module.domain.Anime
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
-import java.time.LocalDate
 import kotlinx.coroutines.flow.Flow
+import java.time.LocalDate
 
 interface AnimeLocalDataSource {
     fun observeAll(): Flow<List<Anime>>
@@ -16,4 +16,6 @@ interface AnimeLocalDataSource {
     suspend fun getNotificationEnabledAnime(): List<Anime>
     suspend fun updateNotificationType(id: Long, notificationType: NotificationType)
     suspend fun updateLastSeasonCheckDate(animeId: Long, date: LocalDate)
+    fun observeLastAnimeUpdateRun(): Flow<Long?>
+    suspend fun setLastAnimeUpdateRun(epochMillis: Long)
 }

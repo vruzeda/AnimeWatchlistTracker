@@ -1,8 +1,8 @@
 package com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database
 
 import com.google.common.truth.Truth.assertThat
-import java.time.LocalDate
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 class ConvertersTest {
 

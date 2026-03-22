@@ -1,5 +1,7 @@
 package com.vuzeda.animewatchlist.tracker.module.ui.screens.seasondetail
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,20 +44,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.stringResource
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.ConfirmationDialog
-import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusChip
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.EmptyStateMessage
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.EpisodeListItem
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.EpisodeStepper
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.NotificationButton
+import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusChip
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusOption
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusSelectionSheet
 import com.vuzeda.animewatchlist.tracker.module.domain.Season

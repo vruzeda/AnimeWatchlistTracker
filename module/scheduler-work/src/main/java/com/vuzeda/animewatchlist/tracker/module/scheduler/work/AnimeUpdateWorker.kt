@@ -15,8 +15,8 @@ import dagger.assisted.AssistedInject
 class AnimeUpdateWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
+    private val animeUpdateNotifier: AnimeUpdateNotifier,
     private val checkAnimeUpdatesUseCase: CheckAnimeUpdatesUseCase,
-    private val notifier: AnimeUpdateNotifier,
     private val recordAnimeUpdateRunUseCase: RecordAnimeUpdateRunUseCase
 ) : CoroutineWorker(appContext, workerParams) {
 
@@ -24,7 +24,7 @@ class AnimeUpdateWorker @AssistedInject constructor(
         return try {
             val updates = checkAnimeUpdatesUseCase()
             for (update in updates) {
-                notifier.showUpdateNotification(update)
+                animeUpdateNotifier.showUpdateNotification(update)
             }
             recordAnimeUpdateRunUseCase()
             Result.success()

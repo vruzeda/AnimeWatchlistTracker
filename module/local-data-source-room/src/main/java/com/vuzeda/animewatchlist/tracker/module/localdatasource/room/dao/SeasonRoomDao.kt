@@ -10,9 +10,9 @@ import com.vuzeda.animewatchlist.tracker.module.localdatasource.SeasonLocalDataS
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.SeasonEntity
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.toDomainModel
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.toEntity
-import java.time.LocalDate
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.time.LocalDate
 
 @Dao
 abstract class SeasonRoomDao : SeasonLocalDataSource {
