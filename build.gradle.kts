@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.android.library) apply false
@@ -9,6 +11,12 @@ plugins {
 }
 
 subprojects {
+    tasks.withType<KotlinCompile>().configureEach {
+        compilerOptions {
+            freeCompilerArgs.add("-Xannotation-default-target=param-property")
+        }
+    }
+
     pluginManager.withPlugin("jacoco") {
         afterEvaluate {
             val verificationTask = tasks.findByName("jacocoTestCoverageVerification")

@@ -5,7 +5,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.ui.R
 
-enum class SearchSortOption(@param:StringRes val displayLabelRes: Int, val defaultAscending: Boolean) {
+enum class SearchSortOption(@StringRes val displayLabelRes: Int, val defaultAscending: Boolean) {
     ALPHABETICAL(R.string.sort_alphabetical, true),
     DEFAULT(R.string.sort_relevance, true),
     SCORE(R.string.sort_score, false)
@@ -16,7 +16,7 @@ data class SearchSortState(
     val isAscending: Boolean = SearchSortOption.DEFAULT.defaultAscending
 )
 
-enum class SearchFilter(@param:StringRes val displayLabelRes: Int) {
+enum class SearchFilter(@StringRes val displayLabelRes: Int) {
     ALL(R.string.filter_all)
 }
 

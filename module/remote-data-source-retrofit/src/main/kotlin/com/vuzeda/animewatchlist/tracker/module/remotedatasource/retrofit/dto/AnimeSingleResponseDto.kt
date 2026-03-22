@@ -5,5 +5,5 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class AnimeSingleResponseDto(
-    @param:Json(name = "data") val data: AnimeDataDto
+    @Json(name = "data") val data: AnimeDataDto
 )

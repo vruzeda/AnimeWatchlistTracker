@@ -35,7 +35,7 @@ import com.vuzeda.animewatchlist.tracker.module.ui.screens.settings.SettingsScre
 import kotlin.reflect.KClass
 
 private data class BottomNavItem(
-    @param:StringRes val labelRes: Int,
+    @StringRes val labelRes: Int,
     val icon: ImageVector,
     val route: Route,
     val routeClass: KClass<out Route>

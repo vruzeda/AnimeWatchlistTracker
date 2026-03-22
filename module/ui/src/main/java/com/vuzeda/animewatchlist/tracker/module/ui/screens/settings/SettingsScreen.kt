@@ -43,7 +43,7 @@ import com.vuzeda.animewatchlist.tracker.module.ui.R
 
 private enum class TitleLanguageOption(
     val language: TitleLanguage,
-    @param:StringRes val labelRes: Int
+    @StringRes val labelRes: Int
 ) {
     DEFAULT(TitleLanguage.DEFAULT, R.string.settings_title_language_default),
     ENGLISH(TitleLanguage.ENGLISH, R.string.settings_title_language_english),
@@ -52,7 +52,7 @@ private enum class TitleLanguageOption(
 
 private enum class HomeViewModeOption(
     val mode: HomeViewMode,
-    @param:StringRes val labelRes: Int
+    @StringRes val labelRes: Int
 ) {
     ANIME(HomeViewMode.ANIME, R.string.settings_home_view_mode_anime),
     SEASON(HomeViewMode.SEASON, R.string.settings_home_view_mode_season)

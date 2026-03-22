@@ -6,7 +6,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.ui.R
 
-enum class SeasonsSortOption(@param:StringRes val displayLabelRes: Int, val defaultAscending: Boolean) {
+enum class SeasonsSortOption(@StringRes val displayLabelRes: Int, val defaultAscending: Boolean) {
     DEFAULT(R.string.seasons_sort_default, true),
     ALPHABETICAL(R.string.sort_alphabetical, true),
     SCORE(R.string.sort_score, false)
