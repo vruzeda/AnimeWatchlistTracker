@@ -24,7 +24,7 @@ class NotificationHelper @Inject constructor(
     @NotificationLaunchActivity private val launchActivityClass: Class<*>
 ) : AnimeUpdateNotifier {
 
-    fun createNotificationChannel() {
+    override fun createNotificationChannel() {
         val channel = NotificationChannel(
             CHANNEL_ID,
             CHANNEL_NAME,

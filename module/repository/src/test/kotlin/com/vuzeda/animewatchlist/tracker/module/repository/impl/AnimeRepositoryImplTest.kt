@@ -13,6 +13,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonalAnimePage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.AnimeLocalDataSource
+import com.vuzeda.animewatchlist.tracker.module.notification.AnimeUpdateNotifier
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.AnimeRemoteDataSource
 import com.vuzeda.animewatchlist.tracker.module.repository.SeasonRepository
 import com.vuzeda.animewatchlist.tracker.module.repository.TransactionRunner
@@ -33,6 +34,7 @@ class AnimeRepositoryImplTest {
 
     private val animeLocalDataSource: AnimeLocalDataSource = mockk()
     private val animeRemoteDataSource: AnimeRemoteDataSource = mockk(relaxed = true)
+    private val animeUpdateNotifier: AnimeUpdateNotifier = mockk(relaxUnitFun = true)
     private val animeUpdateScheduler: AnimeUpdateScheduler = mockk(relaxUnitFun = true)
     private val seasonRepository: SeasonRepository = mockk(relaxed = true)
     private val transactionRunner = object : TransactionRunner {
@@ -45,6 +47,7 @@ class AnimeRepositoryImplTest {
     private val repository = AnimeRepositoryImpl(
         animeLocalDataSource,
         animeRemoteDataSource,
+        animeUpdateNotifier,
         animeUpdateScheduler,
         seasonRepository,
         transactionRunner,

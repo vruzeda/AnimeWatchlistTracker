@@ -3,8 +3,7 @@ package com.vuzeda.animewatchlist.tracker
 import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
-import com.vuzeda.animewatchlist.tracker.module.notification.android.NotificationHelper
-import com.vuzeda.animewatchlist.tracker.module.repository.AnimeRepository
+import com.vuzeda.animewatchlist.tracker.module.usecase.ConfigureAnimeUpdateNotificationUseCase
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
@@ -15,10 +14,7 @@ class AnimeWatchlistApp : Application(), Configuration.Provider {
     lateinit var workerFactory: HiltWorkerFactory
 
     @Inject
-    lateinit var notificationHelper: NotificationHelper
-
-    @Inject
-    lateinit var animeRepository: AnimeRepository
+    lateinit var configureAnimeUpdateNotificationUseCase: ConfigureAnimeUpdateNotificationUseCase
 
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
@@ -27,7 +23,6 @@ class AnimeWatchlistApp : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
-        notificationHelper.createNotificationChannel()
-        animeRepository.schedulePeriodicAnimeUpdate()
+        configureAnimeUpdateNotificationUseCase()
     }
 }

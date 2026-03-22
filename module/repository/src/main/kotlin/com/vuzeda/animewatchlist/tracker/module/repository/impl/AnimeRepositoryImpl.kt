@@ -12,6 +12,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.SeasonData
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonalAnimePage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.AnimeLocalDataSource
+import com.vuzeda.animewatchlist.tracker.module.notification.AnimeUpdateNotifier
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.AnimeRemoteDataSource
 import com.vuzeda.animewatchlist.tracker.module.repository.AnimeRepository
 import com.vuzeda.animewatchlist.tracker.module.repository.SeasonRepository
@@ -28,6 +29,7 @@ import kotlin.time.Instant
 class AnimeRepositoryImpl @Inject constructor(
     private val animeLocalDataSource: AnimeLocalDataSource,
     private val animeRemoteDataSource: AnimeRemoteDataSource,
+    private val animeUpdateNotifier: AnimeUpdateNotifier,
     private val animeUpdateScheduler: AnimeUpdateScheduler,
     private val seasonRepository: SeasonRepository,
     private val transactionRunner: TransactionRunner,
@@ -140,6 +142,11 @@ class AnimeRepositoryImpl @Inject constructor(
 
     override suspend fun updateLastSeasonCheckDate(animeId: Long, date: LocalDate) {
         animeLocalDataSource.updateLastSeasonCheckDate(animeId = animeId, date = date)
+    }
+
+    override fun configureAnimeUpdateNotification() {
+        animeUpdateNotifier.createNotificationChannel()
+        animeUpdateScheduler.schedulePeriodicUpdate()
     }
 
     override fun schedulePeriodicAnimeUpdate() = animeUpdateScheduler.schedulePeriodicUpdate()
