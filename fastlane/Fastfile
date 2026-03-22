@@ -1,9 +1,11 @@
+desc "Run unit tests and verify branch coverage (≥80%)"
 lane :test do
   gradle(task: "jacocoTestCoverageVerification")
 end
 
+desc "Increment versionCode and optionally set versionName. Options: version_name (String)"
 lane :bump_version do |options|
-  path = "app/build.gradle.kts"
+  path = "../app/build.gradle.kts"
   content = File.read(path)
 
   current_code = content.match(/versionCode\s*=\s*(\d+)/)[1].to_i
@@ -16,11 +18,13 @@ lane :bump_version do |options|
   File.write(path, content)
 end
 
+desc "Build the production release AAB"
 lane :build do
   gradle(task: "bundle", flavor: "prod", build_type: "Release")
   # Output: app/build/outputs/bundle/prodRelease/app-prod-release.aab
 end
 
+desc "Upload the production AAB and metadata to Google Play. Options: track (default: production), rollout (default: 1.0)"
 lane :deploy do |options|
   track   = options[:track]   || "production"
   rollout = options[:rollout] || "1.0"
@@ -36,6 +40,7 @@ lane :deploy do |options|
   )
 end
 
+desc "Promote a release between tracks. Options: from_track (default: internal), to_track (default: alpha), rollout (default: 1.0)"
 lane :promote do |options|
   from    = options[:from_track] || "internal"
   to      = options[:to_track]   || "alpha"
@@ -48,6 +53,7 @@ lane :promote do |options|
   )
 end
 
+desc "Deploy to Google Play and push to remote. Options: deploy_track (default: production), rollout (default: 1.0), version_name (optional)"
 lane :release do |options|
   deploy_track = options[:deploy_track] || "production"
   rollout      = options[:rollout]      || "1.0"
@@ -57,7 +63,6 @@ lane :release do |options|
   test
   bump_version(version_name: options[:version_name])
   build
-  git_add(path: "app/build.gradle.kts")
   git_commit(path: "app/build.gradle.kts", message: commit_message)
   deploy(track: deploy_track, rollout: rollout)
   push_to_git_remote

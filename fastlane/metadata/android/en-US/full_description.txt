@@ -1,11 +1,22 @@
-Anime Watchlist Tracker helps you manage your anime watching journey from start to finish.
+Keep track of every anime you're watching, planning to watch, or have completed — all from a single, lightweight app.
 
-Features:
-• Browse and search anime from MyAnimeList via Jikan API
-• Add anime to your personal watchlist with custom watch status
-• Track watch order and season details for long-running series
-• View streaming links for each title in one place
-• See broadcast times in your local timezone
-• Expandable streaming link lists for titles with many sources
+Anime Watchlist Tracker is a personal anime management app built for fans who want a fast, private, and straightforward way to organize their anime library. No account required, no ads, no data collection.
 
-Stay organised and never lose track of what to watch next.
+FEATURES
+
+• Organize anime by status: Watching, Completed, Plan to Watch, On Hold, or Dropped
+• Track your episode progress with quick +/− controls
+• Rate anime on a 1–10 star scale with tap or swipe
+• Search the MyAnimeList catalog to discover new shows and add them to your list
+• View anime details including synopsis, genres, cover art, and MAL score
+• Sort your list by title, score, progress, rating, or date added — ascending or descending
+• Filter search results by watchlist status
+• Enable per-anime notifications to get alerts when new episodes or sequels are detected
+• Offline-first — your entire watchlist is stored locally on your device
+• Material You theming — adapts to your wallpaper on Android 12+
+
+PRIVACY
+
+Your data stays on your device. The app makes network requests only to search for anime and check for updates — no personal information is ever collected or shared. See our full privacy policy for details.
+
+Anime data is provided by the Jikan API, an unofficial open-source API for MyAnimeList.

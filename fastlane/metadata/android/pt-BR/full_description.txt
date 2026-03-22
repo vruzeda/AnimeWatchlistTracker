@@ -1,0 +1,22 @@
+Acompanhe cada anime que você está assistindo, planeja assistir ou já completou — tudo em um app leve e simples.
+
+Anime Watchlist Tracker é um app pessoal de gerenciamento de anime feito para fãs que querem uma forma rápida, privada e direta de organizar sua biblioteca. Sem conta, sem anúncios, sem coleta de dados.
+
+RECURSOS
+
+• Organize anime por status: Assistindo, Completo, Planejado, Em Pausa ou Abandonado
+• Registre seu progresso de episódios com controles rápidos +/−
+• Avalie anime em uma escala de 1 a 10 estrelas com toque ou deslize
+• Pesquise no catálogo do MyAnimeList para descobrir novas séries e adicioná-las à sua lista
+• Veja detalhes do anime: sinopse, gêneros, arte da capa e pontuação MAL
+• Ordene sua lista por título, pontuação, progresso, avaliação ou data de adição — crescente ou decrescente
+• Filtre os resultados de pesquisa por status na sua lista
+• Ative notificações por anime para receber alertas de novos episódios ou continuações
+• Offline primeiro — sua lista é armazenada localmente no seu dispositivo
+• Tema Material You — se adapta ao seu papel de parede no Android 12+
+
+PRIVACIDADE
+
+Seus dados ficam no seu dispositivo. O app faz requisições de rede apenas para pesquisar anime e verificar atualizações — nenhuma informação pessoal é coletada ou compartilhada. Consulte nossa política de privacidade completa para mais detalhes.
+
+Os dados de anime são fornecidos pela API Jikan, uma API open source não oficial do MyAnimeList.
