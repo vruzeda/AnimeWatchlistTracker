@@ -139,7 +139,7 @@ class CheckAnimeUpdatesUseCaseTest {
     }
 
     @Test
-    fun `initializes lastEpisodeCheckDate to today when no episodes have aired dates on first run`() = runTest {
+    fun `initializes lastEpisodeCheckDate to fast past when no episodes have aired dates on first run`() = runTest {
         val firstRunSeason = sampleSeason.copy(lastEpisodeCheckDate = null)
         coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
         coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(firstRunSeason)
@@ -150,11 +150,11 @@ class CheckAnimeUpdatesUseCaseTest {
 
         useCase()
 
-        coVerify { seasonRepository.updateLastEpisodeCheckDate(10L, fixedDate) }
+        coVerify { seasonRepository.updateLastEpisodeCheckDate(10L, LocalDate.MIN) }
     }
 
     @Test
-    fun `initializes lastEpisodeCheckDate to today on first run when no episodes found`() = runTest {
+    fun `initializes lastEpisodeCheckDate to far past on first run when no episodes found`() = runTest {
         val firstRunSeason = sampleSeason.copy(lastEpisodeCheckDate = null)
         coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
         coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(firstRunSeason)
@@ -165,7 +165,7 @@ class CheckAnimeUpdatesUseCaseTest {
 
         useCase()
 
-        coVerify { seasonRepository.updateLastEpisodeCheckDate(10L, fixedDate) }
+        coVerify { seasonRepository.updateLastEpisodeCheckDate(10L, LocalDate.MIN) }
     }
 
     @Test

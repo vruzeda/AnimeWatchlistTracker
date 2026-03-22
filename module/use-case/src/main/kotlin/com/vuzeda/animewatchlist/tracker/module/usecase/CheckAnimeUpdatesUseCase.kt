@@ -93,7 +93,7 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
         val lastAiredDate = episodes.mapNotNull { parseLocalDate(it.aired) }.maxOrNull()
         when {
             lastAiredDate != null -> seasonRepository.updateLastEpisodeCheckDate(season.id, lastAiredDate)
-            isFirstRun -> seasonRepository.updateLastEpisodeCheckDate(season.id, today)
+            isFirstRun -> seasonRepository.updateLastEpisodeCheckDate(season.id, LocalDate.MIN)
         }
 
         if (isFirstRun) return null
