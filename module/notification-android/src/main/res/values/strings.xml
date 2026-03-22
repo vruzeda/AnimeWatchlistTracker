@@ -1,0 +1,6 @@
+<resources>
+    <plurals name="new_episodes_aired">
+        <item quantity="one">%d new episode aired!</item>
+        <item quantity="other">%d new episodes aired!</item>
+    </plurals>
+</resources>

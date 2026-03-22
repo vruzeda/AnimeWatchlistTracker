@@ -19,6 +19,7 @@ dependencies {
     implementation(project(":module:remote-data-source"))
     implementation(project(":module:local-data-source"))
     implementation(project(":module:domain"))
+    implementation(project(":module:scheduler"))
 
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.javax.inject)

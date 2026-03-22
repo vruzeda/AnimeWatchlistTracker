@@ -1,4 +1,4 @@
-package com.vuzeda.animewatchlist.tracker.notification
+package com.vuzeda.animewatchlist.tracker.module.notification.android
 
 import android.Manifest
 import android.app.NotificationChannel
@@ -12,17 +12,16 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.TaskStackBuilder
 import androidx.core.content.ContextCompat
-import com.vuzeda.animewatchlist.tracker.MainActivity
-import com.vuzeda.animewatchlist.tracker.R
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdate
-import com.vuzeda.animewatchlist.tracker.module.ui.notification.AnimeUpdateNotifier
+import com.vuzeda.animewatchlist.tracker.module.notification.AnimeUpdateNotifier
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class NotificationHelper @Inject constructor(
-    @param:ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    @NotificationLaunchActivity private val launchActivityClass: Class<*>
 ) : AnimeUpdateNotifier {
 
     fun createNotificationChannel() {
@@ -73,14 +72,14 @@ class NotificationHelper @Inject constructor(
         }
         val contentIntent = TaskStackBuilder.create(context).run {
             addNextIntentWithParentStack(
-                Intent(context, MainActivity::class.java)
-                    .putExtra(MainActivity.EXTRA_SEASON_MAL_ID, seasonMalId)
+                Intent(context, launchActivityClass)
+                    .putExtra(EXTRA_SEASON_MAL_ID, seasonMalId)
             )
             getPendingIntent(notificationId, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         }
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(anime.title)
             .setContentText(text)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -92,7 +91,7 @@ class NotificationHelper @Inject constructor(
         notificationManager.notify(notificationId, notification)
 
         val summary = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(anime.title)
             .setGroup(groupKey)
             .setGroupSummary(true)
@@ -103,6 +102,7 @@ class NotificationHelper @Inject constructor(
     }
 
     companion object {
+        const val EXTRA_SEASON_MAL_ID = "extra_season_mal_id"
         const val CHANNEL_ID = "anime_updates"
         const val CHANNEL_NAME = "Anime Updates"
         const val CHANNEL_DESCRIPTION = "Notifications for new episodes and seasons"

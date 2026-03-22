@@ -141,6 +141,7 @@
     <string name="settings_delete_dialog_dismiss">Cancelar</string>
     <string name="settings_data_deleted">Todos os dados excluídos</string>
     <string name="developer_title">Desenvolvedor</string>
-    <string name="developer_test_episode_notification">Testar notificação de episódio</string>
-    <string name="developer_test_season_notification">Testar notificação de temporada</string>
+    <string name="developer_last_update_run">Última verificação de atualizações</string>
+    <string name="developer_last_update_run_never">Nunca</string>
+    <string name="developer_trigger_update">Disparar verificação agora</string>
 </resources>

@@ -95,6 +95,10 @@ dependencies {
     implementation(project(":module:local-data-source-room"))
     implementation(project(":module:remote-data-source"))
     implementation(project(":module:remote-data-source-retrofit"))
+    implementation(project(":module:notification"))
+    implementation(project(":module:notification-android"))
+    implementation(project(":module:scheduler"))
+    implementation(project(":module:scheduler-work"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

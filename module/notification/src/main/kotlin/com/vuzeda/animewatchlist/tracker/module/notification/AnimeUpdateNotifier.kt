@@ -1,4 +1,4 @@
-package com.vuzeda.animewatchlist.tracker.module.ui.notification
+package com.vuzeda.animewatchlist.tracker.module.notification
 
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdate
 

@@ -11,6 +11,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
+import com.vuzeda.animewatchlist.tracker.module.notification.android.NotificationHelper
 import com.vuzeda.animewatchlist.tracker.module.ui.navigation.AppNavigation
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -21,7 +22,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        seasonMalId = intent.getIntExtra(EXTRA_SEASON_MAL_ID, 0)
+        seasonMalId = intent.getIntExtra(NotificationHelper.EXTRA_SEASON_MAL_ID, 0)
         enableEdgeToEdge()
         setContent {
             AnimeWatchlistTrackerTheme {
@@ -38,10 +39,6 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        seasonMalId = intent.getIntExtra(EXTRA_SEASON_MAL_ID, 0)
-    }
-
-    companion object {
-        const val EXTRA_SEASON_MAL_ID = "extra_season_mal_id"
+        seasonMalId = intent.getIntExtra(NotificationHelper.EXTRA_SEASON_MAL_ID, 0)
     }
 }

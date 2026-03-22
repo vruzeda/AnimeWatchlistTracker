@@ -1,12 +1,13 @@
-package com.vuzeda.animewatchlist.tracker.worker
+package com.vuzeda.animewatchlist.tracker.module.scheduler.work
 
 import android.content.Context
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.vuzeda.animewatchlist.tracker.module.domain.DataError
+import com.vuzeda.animewatchlist.tracker.module.notification.AnimeUpdateNotifier
 import com.vuzeda.animewatchlist.tracker.module.usecase.CheckAnimeUpdatesUseCase
-import com.vuzeda.animewatchlist.tracker.notification.NotificationHelper
+import com.vuzeda.animewatchlist.tracker.module.usecase.RecordAnimeUpdateRunUseCase
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 
@@ -15,15 +16,17 @@ class AnimeUpdateWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
     private val checkAnimeUpdatesUseCase: CheckAnimeUpdatesUseCase,
-    private val notificationHelper: NotificationHelper
+    private val notifier: AnimeUpdateNotifier,
+    private val recordAnimeUpdateRunUseCase: RecordAnimeUpdateRunUseCase
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
         return try {
             val updates = checkAnimeUpdatesUseCase()
             for (update in updates) {
-                notificationHelper.showUpdateNotification(update)
+                notifier.showUpdateNotification(update)
             }
+            recordAnimeUpdateRunUseCase()
             Result.success()
         } catch (e: Exception) {
             when (e) {
@@ -35,5 +38,6 @@ class AnimeUpdateWorker @AssistedInject constructor(
 
     companion object {
         const val WORK_NAME = "anime_update_check"
+        const val WORK_NAME_IMMEDIATE = "anime_update_check_immediate"
     }
 }

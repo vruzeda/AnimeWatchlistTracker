@@ -1,7 +1,3 @@
 <resources>
-    <string name="app_name">Anime Watchlist Tracker</string>
-    <plurals name="new_episodes_aired">
-        <item quantity="one">%d new episode aired!</item>
-        <item quantity="other">%d new episodes aired!</item>
-    </plurals>
+    <string name="app_name" translatable="false">Anime Watchlist Tracker</string>
 </resources>

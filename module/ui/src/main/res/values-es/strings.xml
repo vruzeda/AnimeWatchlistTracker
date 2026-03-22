@@ -141,6 +141,7 @@
     <string name="settings_delete_dialog_dismiss">Cancelar</string>
     <string name="settings_data_deleted">Todos los datos eliminados</string>
     <string name="developer_title">Desarrollador</string>
-    <string name="developer_test_episode_notification">Probar notificación de episodio</string>
-    <string name="developer_test_season_notification">Probar notificación de temporada</string>
+    <string name="developer_last_update_run">Última comprobación de actualizaciones</string>
+    <string name="developer_last_update_run_never">Nunca</string>
+    <string name="developer_trigger_update">Activar comprobación de actualizaciones ahora</string>
 </resources>
