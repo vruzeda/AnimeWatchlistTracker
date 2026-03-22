@@ -66,7 +66,7 @@ class SeasonRepositoryImpl @Inject constructor(
     override suspend fun getSeasonsWithEpisodeNotifications(): List<Season> =
         seasonLocalDataSource.getSeasonsWithEpisodeNotifications()
 
-    override suspend fun updateLastEpisodeCheckDateForAll(date: LocalDate) {
-        seasonLocalDataSource.updateLastEpisodeCheckDateForAll(date)
+    override suspend fun updateLastEpisodeCheckDate(seasonId: Long, date: LocalDate) {
+        seasonLocalDataSource.updateLastEpisodeCheckDate(seasonId = seasonId, date = date)
     }
 }

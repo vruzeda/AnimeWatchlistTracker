@@ -15,5 +15,5 @@ interface AnimeLocalDataSource {
     suspend fun getById(id: Long): Anime?
     suspend fun getNotificationEnabledAnime(): List<Anime>
     suspend fun updateNotificationType(id: Long, notificationType: NotificationType)
-    suspend fun updateLastSeasonCheckDateForAll(date: LocalDate)
+    suspend fun updateLastSeasonCheckDate(animeId: Long, date: LocalDate)
 }

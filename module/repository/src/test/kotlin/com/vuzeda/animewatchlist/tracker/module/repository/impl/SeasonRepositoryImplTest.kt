@@ -216,12 +216,12 @@ class SeasonRepositoryImplTest {
     }
 
     @Test
-    fun `updateLastEpisodeCheckDateForAll delegates to data source`() = runTest {
+    fun `updateLastEpisodeCheckDate delegates to data source`() = runTest {
         val date = LocalDate.of(2026, 3, 15)
-        coEvery { seasonLocalDataSource.updateLastEpisodeCheckDateForAll(date) } returns Unit
+        coEvery { seasonLocalDataSource.updateLastEpisodeCheckDate(1L, date) } returns Unit
 
-        repository.updateLastEpisodeCheckDateForAll(date)
+        repository.updateLastEpisodeCheckDate(1L, date)
 
-        coVerify { seasonLocalDataSource.updateLastEpisodeCheckDateForAll(date) }
+        coVerify { seasonLocalDataSource.updateLastEpisodeCheckDate(1L, date) }
     }
 }

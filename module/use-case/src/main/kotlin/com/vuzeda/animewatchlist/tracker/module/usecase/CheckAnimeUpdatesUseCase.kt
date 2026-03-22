@@ -69,13 +69,11 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
             )
         }
 
-        seasonRepository.updateLastEpisodeCheckDateForAll(today)
-        animeRepository.updateLastSeasonCheckDateForAll(today)
-
         return updates
     }
 
     private suspend fun checkNewEpisodes(season: Season, today: LocalDate): Int? {
+        val isFirstRun = season.lastEpisodeCheckDate == null
         val after = season.lastEpisodeCheckDate ?: LocalDate.MIN
         val episodes = animeRepository.fetchEpisodesAiredBetween(
             malId = season.malId,
@@ -92,7 +90,13 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
             )
         }
 
-        if (season.lastEpisodeCheckDate == null) return null
+        val lastAiredDate = episodes.mapNotNull { parseLocalDate(it.aired) }.maxOrNull()
+        when {
+            lastAiredDate != null -> seasonRepository.updateLastEpisodeCheckDate(season.id, lastAiredDate)
+            isFirstRun -> seasonRepository.updateLastEpisodeCheckDate(season.id, today)
+        }
+
+        if (isFirstRun) return null
 
         return if (episodes.isNotEmpty()) episodes.size else null
     }
@@ -108,14 +112,24 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
 
         val knownMalIds = seasons.map { it.malId }.toSet()
 
+        if (anime.lastSeasonCheckDate == null) {
+            val lastKnownStartDate = watchOrder
+                .filter { it.malId in knownMalIds }
+                .mapNotNull { it.startDate }
+                .filter { !it.isAfter(today) }
+                .maxOrNull()
+            animeRepository.updateLastSeasonCheckDate(anime.id, lastKnownStartDate ?: today)
+            return null
+        }
+
         for (entry in watchOrder) {
             if (entry.malId in knownMalIds) continue
 
             val startDate = entry.startDate ?: continue
-            if (anime.lastSeasonCheckDate == null) continue
             if (!startDate.isAfter(anime.lastSeasonCheckDate)) continue
             if (startDate.isAfter(today)) continue
 
+            animeRepository.updateLastSeasonCheckDate(anime.id, startDate)
             return AnimeUpdate.NewSeason(
                 anime = anime,
                 sequelMalId = entry.malId,
@@ -130,3 +144,12 @@ private fun Clock.todayUtc(): LocalDate =
     java.time.Instant.ofEpochMilli(now().toEpochMilliseconds())
         .atZone(ZoneOffset.UTC)
         .toLocalDate()
+
+private fun parseLocalDate(aired: String?): LocalDate? {
+    if (aired == null) return null
+    return try {
+        LocalDate.parse(aired.take(10))
+    } catch (_: Exception) {
+        null
+    }
+}

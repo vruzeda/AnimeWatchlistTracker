@@ -53,5 +53,5 @@ interface AnimeRepository {
 
     suspend fun fetchSeasonAnime(year: Int, season: AnimeSeason, page: Int): Result<SeasonalAnimePage>
 
-    suspend fun updateLastSeasonCheckDateForAll(date: LocalDate)
+    suspend fun updateLastSeasonCheckDate(animeId: Long, date: LocalDate)
 }

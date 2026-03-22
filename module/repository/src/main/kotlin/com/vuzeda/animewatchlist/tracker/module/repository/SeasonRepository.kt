@@ -35,5 +35,5 @@ interface SeasonRepository {
 
     suspend fun getSeasonsWithEpisodeNotifications(): List<Season>
 
-    suspend fun updateLastEpisodeCheckDateForAll(date: LocalDate)
+    suspend fun updateLastEpisodeCheckDate(seasonId: Long, date: LocalDate)
 }
