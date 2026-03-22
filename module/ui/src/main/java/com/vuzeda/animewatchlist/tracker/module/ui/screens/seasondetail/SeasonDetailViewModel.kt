@@ -136,10 +136,13 @@ open class SeasonDetailViewModel @Inject constructor(
         }
     }
 
-    private fun loadFromApi() {
+    private fun loadFromApi(isRefresh: Boolean = false) {
         viewModelScope.launch {
             val existingSeasonId = findSeasonIdByMalIdUseCase(malId)
             if (existingSeasonId != null) {
+                if (isRefresh) {
+                    _uiState.update { if (it is SeasonDetailUiState.Success) it.copy(isRefreshing = false) else it }
+                }
                 observeSeason(existingSeasonId)
                 return@launch
             }
@@ -164,16 +167,49 @@ open class SeasonDetailViewModel @Inject constructor(
                         streamingLinks = details.streamingLinks
                     )
                     loadEpisodes(details.malId, page = 1)
-                    _uiState.value = SeasonDetailUiState.Success(
-                        season = season,
-                        isInWatchlist = false,
-                        isLoadingEpisodes = true,
-                        broadcastLocalTime = computeBroadcastLocalTime(season)
-                    )
+                    if (isRefresh) {
+                        _uiState.update { state ->
+                            if (state is SeasonDetailUiState.Success) state.copy(
+                                season = season,
+                                isRefreshing = false,
+                                broadcastLocalTime = computeBroadcastLocalTime(season)
+                            ) else SeasonDetailUiState.Success(
+                                season = season,
+                                isInWatchlist = false,
+                                isLoadingEpisodes = true,
+                                broadcastLocalTime = computeBroadcastLocalTime(season)
+                            )
+                        }
+                    } else {
+                        _uiState.value = SeasonDetailUiState.Success(
+                            season = season,
+                            isInWatchlist = false,
+                            isLoadingEpisodes = true,
+                            broadcastLocalTime = computeBroadcastLocalTime(season)
+                        )
+                    }
                 }
                 .onFailure {
-                    _uiState.value = SeasonDetailUiState.NotFound
+                    if (isRefresh) {
+                        _uiState.update { if (it is SeasonDetailUiState.Success) it.copy(isRefreshing = false) else it }
+                    } else {
+                        _uiState.value = SeasonDetailUiState.NotFound
+                    }
                 }
+        }
+    }
+
+    fun refresh() {
+        if (_uiState.value !is SeasonDetailUiState.Success) return
+        _uiState.update { if (it is SeasonDetailUiState.Success) it.copy(isRefreshing = true) else it }
+        if (seasonId > 0) {
+            viewModelScope.launch {
+                val season = observeSeasonByIdUseCase(seasonId).first()
+                if (season != null) runCatching { refreshSeasonDataUseCase(season) }
+                _uiState.update { if (it is SeasonDetailUiState.Success) it.copy(isRefreshing = false) else it }
+            }
+        } else if (malId > 0) {
+            loadFromApi(isRefresh = true)
         }
     }
 

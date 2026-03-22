@@ -25,6 +25,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -78,7 +79,8 @@ fun SeasonsScreenRoute(
         onConfirmRemove = viewModel::confirmRemoveFromWatchlist,
         onDismissRemoveConfirmation = viewModel::dismissDeleteConfirmation,
         onLoadMore = viewModel::loadMore,
-        onSnackbarDismissed = viewModel::clearSnackbar
+        onSnackbarDismissed = viewModel::clearSnackbar,
+        onRefresh = viewModel::refresh
     )
 }
 
@@ -97,7 +99,8 @@ fun SeasonsScreen(
     onConfirmRemove: () -> Unit,
     onDismissRemoveConfirmation: () -> Unit,
     onLoadMore: () -> Unit,
-    onSnackbarDismissed: () -> Unit
+    onSnackbarDismissed: () -> Unit,
+    onRefresh: () -> Unit = {}
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -170,71 +173,77 @@ fun SeasonsScreen(
                     )
                 }
                 else -> {
-                    LazyColumn(
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    PullToRefreshBox(
+                        isRefreshing = uiState.isRefreshing,
+                        onRefresh = onRefresh,
+                        modifier = Modifier.fillMaxSize()
                     ) {
-                        items(
-                            items = uiState.displayedAnimeList,
-                            key = { it.malId }
-                        ) { result ->
-                            val isAdded = result.malId in uiState.addedMalIds
-                            val isResolving = uiState.resolvingMalId == result.malId
-                            val displayTitle = resolveDisplayTitle(
-                                title = result.title,
-                                titleEnglish = result.titleEnglish,
-                                titleJapanese = result.titleJapanese,
-                                language = uiState.titleLanguage
-                            )
-                            AnimeCard(
-                                title = displayTitle,
-                                imageUrl = result.imageUrl,
-                                onClick = { onResultClick(result) },
-                                score = result.score,
-                                episodeText = result.episodeCount?.let {
-                                    stringResource(R.string.seasons_episode_count, it)
-                                },
-                                genresText = result.genres.takeIf { it.isNotEmpty() }?.joinToString(", "),
-                                trailingContent = {
-                                    if (isResolving) {
-                                        CircularProgressIndicator(
-                                            modifier = Modifier.size(24.dp),
-                                            strokeWidth = 2.dp
-                                        )
-                                    } else if (isAdded) {
-                                        IconButton(onClick = { onRemoveClick(result) }) {
-                                            Icon(
-                                                imageVector = Icons.Default.Check,
-                                                contentDescription = stringResource(R.string.cd_already_in_watchlist),
-                                                tint = MaterialTheme.colorScheme.primary
+                        LazyColumn(
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(
+                                items = uiState.displayedAnimeList,
+                                key = { it.malId }
+                            ) { result ->
+                                val isAdded = result.malId in uiState.addedMalIds
+                                val isResolving = uiState.resolvingMalId == result.malId
+                                val displayTitle = resolveDisplayTitle(
+                                    title = result.title,
+                                    titleEnglish = result.titleEnglish,
+                                    titleJapanese = result.titleJapanese,
+                                    language = uiState.titleLanguage
+                                )
+                                AnimeCard(
+                                    title = displayTitle,
+                                    imageUrl = result.imageUrl,
+                                    onClick = { onResultClick(result) },
+                                    score = result.score,
+                                    episodeText = result.episodeCount?.let {
+                                        stringResource(R.string.seasons_episode_count, it)
+                                    },
+                                    genresText = result.genres.takeIf { it.isNotEmpty() }?.joinToString(", "),
+                                    trailingContent = {
+                                        if (isResolving) {
+                                            CircularProgressIndicator(
+                                                modifier = Modifier.size(24.dp),
+                                                strokeWidth = 2.dp
                                             )
-                                        }
-                                    } else {
-                                        IconButton(onClick = { onAddClick(result) }) {
-                                            Icon(
-                                                imageVector = Icons.Default.Add,
-                                                contentDescription = stringResource(R.string.cd_add_to_watchlist),
-                                                tint = MaterialTheme.colorScheme.primary
-                                            )
+                                        } else if (isAdded) {
+                                            IconButton(onClick = { onRemoveClick(result) }) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Check,
+                                                    contentDescription = stringResource(R.string.cd_already_in_watchlist),
+                                                    tint = MaterialTheme.colorScheme.primary
+                                                )
+                                            }
+                                        } else {
+                                            IconButton(onClick = { onAddClick(result) }) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Add,
+                                                    contentDescription = stringResource(R.string.cd_add_to_watchlist),
+                                                    tint = MaterialTheme.colorScheme.primary
+                                                )
+                                            }
                                         }
                                     }
-                                }
-                            )
-                        }
+                                )
+                            }
 
-                        if (uiState.hasNextPage) {
-                            item(key = "load_more") {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 8.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    if (uiState.isLoadingMore) {
-                                        CircularProgressIndicator(modifier = Modifier.size(32.dp))
-                                    } else {
-                                        OutlinedButton(onClick = onLoadMore) {
-                                            Text(stringResource(R.string.seasons_load_more))
+                            if (uiState.hasNextPage) {
+                                item(key = "load_more") {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 8.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        if (uiState.isLoadingMore) {
+                                            CircularProgressIndicator(modifier = Modifier.size(32.dp))
+                                        } else {
+                                            OutlinedButton(onClick = onLoadMore) {
+                                                Text(stringResource(R.string.seasons_load_more))
+                                            }
                                         }
                                     }
                                 }

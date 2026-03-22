@@ -129,10 +129,13 @@ class AnimeDetailViewModel @Inject constructor(
         }
     }
 
-    private fun resolveFromApi() {
+    private fun resolveFromApi(isRefresh: Boolean = false) {
         viewModelScope.launch {
             val existingAnimeId = findAnimeBySeasonMalIdUseCase(malId)
             if (existingAnimeId != null) {
+                if (isRefresh) {
+                    _uiState.update { if (it is AnimeDetailUiState.Success) it.copy(isRefreshing = false) else it }
+                }
                 observeAnime(existingAnimeId)
                 return@launch
             }
@@ -164,15 +167,44 @@ class AnimeDetailViewModel @Inject constructor(
                     }
                     resolvedAnime = anime
                     resolvedSeasons = seasons
-                    _uiState.value = AnimeDetailUiState.Success(
-                        anime = anime,
-                        seasons = seasons,
-                        isInWatchlist = false
-                    )
+                    if (isRefresh) {
+                        _uiState.update { state ->
+                            if (state is AnimeDetailUiState.Success) state.copy(
+                                anime = anime,
+                                seasons = seasons,
+                                isRefreshing = false
+                            ) else AnimeDetailUiState.Success(anime = anime, seasons = seasons, isInWatchlist = false)
+                        }
+                    } else {
+                        _uiState.value = AnimeDetailUiState.Success(
+                            anime = anime,
+                            seasons = seasons,
+                            isInWatchlist = false
+                        )
+                    }
                 }
                 .onFailure {
-                    _uiState.value = AnimeDetailUiState.NotFound
+                    if (isRefresh) {
+                        _uiState.update { if (it is AnimeDetailUiState.Success) it.copy(isRefreshing = false) else it }
+                    } else {
+                        _uiState.value = AnimeDetailUiState.NotFound
+                    }
                 }
+        }
+    }
+
+    fun refresh() {
+        if (_uiState.value !is AnimeDetailUiState.Success) return
+        _uiState.update { if (it is AnimeDetailUiState.Success) it.copy(isRefreshing = true) else it }
+        if (animeId > 0) {
+            viewModelScope.launch {
+                runCatching { refreshAnimeSeasonsUseCase(animeId) }
+                val seasons = observeSeasonsForAnimeUseCase(animeId).first()
+                seasons.forEach { season -> runCatching { refreshSeasonDataUseCase(season) } }
+                _uiState.update { if (it is AnimeDetailUiState.Success) it.copy(isRefreshing = false) else it }
+            }
+        } else if (malId > 0) {
+            resolveFromApi(isRefresh = true)
         }
     }
 

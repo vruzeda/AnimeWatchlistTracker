@@ -98,6 +98,24 @@ class SearchViewModel @Inject constructor(
         }
     }
 
+    fun refresh() {
+        if (!_uiState.value.hasSearched) return
+        val query = _uiState.value.query.trim()
+        if (query.isBlank()) return
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isRefreshing = true, errorMessage = null) }
+            searchAnimeUseCase(query)
+                .onSuccess { results ->
+                    _rawResults.value = results
+                    _uiState.update { it.copy(results = results, isRefreshing = false) }
+                }
+                .onFailure { error ->
+                    _uiState.update { it.copy(isRefreshing = false, errorMessage = error.message) }
+                }
+        }
+    }
+
     fun selectSort(option: SearchSortOption) {
         _sortState.update { current ->
             val isAscending = if (option == current.option) !current.isAscending else option.defaultAscending

@@ -572,6 +572,58 @@ class SeasonDetailViewModelTest {
     }
 
     @Test
+    fun `refresh calls refreshSeasonDataUseCase for local season and clears isRefreshing`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.refresh()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val refreshed = expectMostRecentItem() as SeasonDetailUiState.Success
+            assertThat(refreshed.isRefreshing).isFalse()
+            coVerify(atLeast = 2) { refreshSeasonDataUseCase(sampleSeason) }
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `refresh re-fetches from API for remote season and updates state`() = runTest {
+        val details = AnimeFullDetails(
+            malId = 16498,
+            title = "Attack on Titan",
+            type = "TV",
+            episodes = 25,
+            score = 8.7,
+            airingStatus = "Finished Airing",
+            sequels = emptyList()
+        )
+        coEvery { findSeasonIdByMalIdUseCase(16498) } returns null
+        coEvery { fetchSeasonDetailUseCase(16498) } returns Result.success(details)
+        coEvery { fetchEpisodesUseCase(malId = 16498, page = 1) } returns Result.success(
+            EpisodePage(episodes = sampleEpisodes, hasNextPage = false, nextPage = 1)
+        )
+
+        val viewModel = createViewModel(seasonId = 0L, malId = 16498)
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            val initial = expectMostRecentItem() as SeasonDetailUiState.Success
+            assertThat(initial.isInWatchlist).isFalse()
+
+            viewModel.refresh()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val refreshed = expectMostRecentItem() as SeasonDetailUiState.Success
+            assertThat(refreshed.isRefreshing).isFalse()
+            assertThat(refreshed.season.title).isEqualTo("Attack on Titan")
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `navigateToAnimeDetail sets pendingNavigationMalId`() = runTest {
         val viewModel = createViewModel()
 

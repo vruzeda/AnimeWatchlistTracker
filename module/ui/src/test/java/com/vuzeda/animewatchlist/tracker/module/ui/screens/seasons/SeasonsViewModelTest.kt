@@ -433,6 +433,24 @@ class SeasonsViewModelTest {
     }
 
     @Test
+    fun `refresh reloads current season without showing full loading state`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.refresh()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val refreshed = expectMostRecentItem()
+            assertThat(refreshed.isRefreshing).isFalse()
+            assertThat(refreshed.isLoading).isFalse()
+            assertThat(refreshed.animeList).hasSize(2)
+        }
+    }
+
+    @Test
     fun `seasonFromMonth maps months correctly`() {
         assertThat(SeasonsViewModel.seasonFromMonth(1)).isEqualTo(AnimeSeason.WINTER)
         assertThat(SeasonsViewModel.seasonFromMonth(3)).isEqualTo(AnimeSeason.WINTER)

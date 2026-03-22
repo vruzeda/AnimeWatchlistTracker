@@ -23,7 +23,8 @@ sealed interface AnimeDetailUiState {
         val pendingAddSeason: Season? = null,
         val isNotificationTypeSheetVisible: Boolean = false,
         val isDeleteConfirmationVisible: Boolean = false,
-        val snackbarEvent: AnimeDetailSnackbarEvent? = null
+        val snackbarEvent: AnimeDetailSnackbarEvent? = null,
+        val isRefreshing: Boolean = false
     ) : AnimeDetailUiState {
         val isNotificationsEnabled: Boolean get() = notificationType != NotificationType.NONE
     }

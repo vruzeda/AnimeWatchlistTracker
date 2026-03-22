@@ -22,7 +22,8 @@ sealed interface SeasonDetailUiState {
         val isEpisodeNotificationsEnabled: Boolean = season.isEpisodeNotificationsEnabled,
         val broadcastLocalTime: String? = null,
         val snackbarEvent: SeasonDetailSnackbarEvent? = null,
-        val pendingNavigationMalId: Int? = null
+        val pendingNavigationMalId: Int? = null,
+        val isRefreshing: Boolean = false
     ) : SeasonDetailUiState
 }
 

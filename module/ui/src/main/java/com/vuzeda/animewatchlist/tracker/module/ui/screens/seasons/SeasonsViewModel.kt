@@ -82,6 +82,31 @@ class SeasonsViewModel @Inject constructor(
         loadSeason(year = currentYear, season = currentSeason)
     }
 
+    fun refresh() {
+        val state = _uiState.value
+        _rawAnimeList.value = emptyList()
+        _uiState.update {
+            it.copy(animeList = emptyList(), hasNextPage = false, currentPage = 1, errorMessage = null, isRefreshing = true)
+        }
+        viewModelScope.launch {
+            getSeasonAnimeUseCase(year = state.selectedYear, season = state.selectedSeason, page = 1)
+                .onSuccess { page ->
+                    _rawAnimeList.value = page.results
+                    _uiState.update {
+                        it.copy(
+                            animeList = page.results,
+                            hasNextPage = page.hasNextPage,
+                            currentPage = page.currentPage,
+                            isRefreshing = false
+                        )
+                    }
+                }
+                .onFailure { error ->
+                    _uiState.update { it.copy(isRefreshing = false, errorMessage = error.message) }
+                }
+        }
+    }
+
     fun selectSort(option: SeasonsSortOption) {
         _sortState.update { current ->
             val isAscending = if (option == current.option) !current.isAscending else option.defaultAscending

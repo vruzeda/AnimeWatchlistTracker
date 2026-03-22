@@ -30,6 +30,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -95,7 +96,8 @@ fun AnimeDetailScreenRoute(
         onAddSeasonStatusSelected = viewModel::confirmAddSeason,
         onDismissAddSeasonSheet = viewModel::dismissAddSeasonSheet,
         onSnackbarDismissed = viewModel::clearSnackbar,
-        onNotificationPermissionDenied = viewModel::notifyPermissionDenied
+        onNotificationPermissionDenied = viewModel::notifyPermissionDenied,
+        onRefresh = viewModel::refresh
     )
 }
 
@@ -124,7 +126,8 @@ fun AnimeDetailScreen(
     onAddSeasonStatusSelected: (WatchStatus) -> Unit,
     onDismissAddSeasonSheet: () -> Unit,
     onSnackbarDismissed: () -> Unit,
-    onNotificationPermissionDenied: () -> Unit
+    onNotificationPermissionDenied: () -> Unit,
+    onRefresh: () -> Unit = {}
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -190,14 +193,20 @@ fun AnimeDetailScreen(
                     )
                 }
                 is AnimeDetailUiState.Success -> {
-                    AnimeDetailContent(
-                        state = uiState,
-                        onStatusChipClick = onStatusChipClick,
-                        onRatingChanged = onRatingChanged,
-                        onAddToWatchlistClick = onAddToWatchlistClick,
-                        onSeasonClick = onSeasonClick,
-                        onSeasonAddClick = onSeasonAddClick
-                    )
+                    PullToRefreshBox(
+                        isRefreshing = uiState.isRefreshing,
+                        onRefresh = onRefresh,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        AnimeDetailContent(
+                            state = uiState,
+                            onStatusChipClick = onStatusChipClick,
+                            onRatingChanged = onRatingChanged,
+                            onAddToWatchlistClick = onAddToWatchlistClick,
+                            onSeasonClick = onSeasonClick,
+                            onSeasonAddClick = onSeasonAddClick
+                        )
+                    }
 
                     val animeDisplayTitle = resolveDisplayTitle(
                         title = uiState.anime.title,

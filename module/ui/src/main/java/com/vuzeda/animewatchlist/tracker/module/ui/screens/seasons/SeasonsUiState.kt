@@ -44,7 +44,8 @@ data class SeasonsUiState(
     val snackbarMessage: String? = null,
     val pendingNavigationMalId: Int? = null,
     val addedMalIds: Set<Int> = emptySet(),
-    val resolvingMalId: Int? = null
+    val resolvingMalId: Int? = null,
+    val isRefreshing: Boolean = false
 ) {
 
     val isNextSeasonEnabled: Boolean

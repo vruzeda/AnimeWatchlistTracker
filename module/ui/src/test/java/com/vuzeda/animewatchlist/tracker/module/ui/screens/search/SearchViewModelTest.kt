@@ -370,6 +370,39 @@ class SearchViewModelTest {
     }
 
     @Test
+    fun `refresh re-runs search and updates results`() = runTest {
+        coEvery { searchAnimeUseCase("one punch") } returns Result.success(listOf(sampleResult))
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            viewModel.updateQuery("one punch")
+            awaitItem()
+            viewModel.search()
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.refresh()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val refreshed = expectMostRecentItem()
+            assertThat(refreshed.isRefreshing).isFalse()
+            assertThat(refreshed.results).hasSize(1)
+        }
+    }
+
+    @Test
+    fun `refresh does nothing when hasSearched is false`() = runTest {
+        viewModel.uiState.test {
+            awaitItem()
+
+            viewModel.refresh()
+
+            expectNoEvents()
+        }
+    }
+
+    @Test
     fun `confirmRemoveFromWatchlist deletes anime`() = runTest {
         coEvery { removeAnimeByMalIdUseCase(21) } returns setOf(21, 22)
         watchlistMalIdsFlow.value = setOf(21)

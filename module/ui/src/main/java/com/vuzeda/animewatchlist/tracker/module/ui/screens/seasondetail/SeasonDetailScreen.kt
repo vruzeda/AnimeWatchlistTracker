@@ -29,6 +29,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -98,7 +99,8 @@ fun SeasonDetailScreenRoute(
         onToggleEpisodeNotifications = viewModel::toggleEpisodeNotifications,
         onViewFullSeriesClick = viewModel::navigateToAnimeDetail,
         onSnackbarDismissed = viewModel::clearSnackbar,
-        onNotificationPermissionDenied = viewModel::notifyPermissionDenied
+        onNotificationPermissionDenied = viewModel::notifyPermissionDenied,
+        onRefresh = viewModel::refresh
     )
 }
 
@@ -121,7 +123,8 @@ fun SeasonDetailScreen(
     onToggleEpisodeNotifications: () -> Unit,
     onViewFullSeriesClick: () -> Unit,
     onSnackbarDismissed: () -> Unit,
-    onNotificationPermissionDenied: () -> Unit
+    onNotificationPermissionDenied: () -> Unit,
+    onRefresh: () -> Unit = {}
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -187,14 +190,20 @@ fun SeasonDetailScreen(
                     )
                 }
                 is SeasonDetailUiState.Success -> {
-                    SeasonDetailContent(
-                        state = uiState,
-                        onStatusChipClick = onStatusChipClick,
-                        onEpisodeProgressChanged = onEpisodeProgressChanged,
-                        onLoadMoreEpisodes = onLoadMoreEpisodes,
-                        onAddToWatchlistClick = onAddToWatchlistClick,
-                        onViewFullSeriesClick = onViewFullSeriesClick
-                    )
+                    PullToRefreshBox(
+                        isRefreshing = uiState.isRefreshing,
+                        onRefresh = onRefresh,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        SeasonDetailContent(
+                            state = uiState,
+                            onStatusChipClick = onStatusChipClick,
+                            onEpisodeProgressChanged = onEpisodeProgressChanged,
+                            onLoadMoreEpisodes = onLoadMoreEpisodes,
+                            onAddToWatchlistClick = onAddToWatchlistClick,
+                            onViewFullSeriesClick = onViewFullSeriesClick
+                        )
+                    }
 
                     if (uiState.isStatusSheetVisible) {
                         val statusOptions = WatchStatus.entries.map {
