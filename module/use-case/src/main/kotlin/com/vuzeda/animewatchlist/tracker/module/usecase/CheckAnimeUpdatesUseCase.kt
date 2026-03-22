@@ -36,14 +36,7 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
             if (shouldCheckEpisodes) {
                 for (season in seasons.filter { it.isInWatchlist }) {
                     checkedSeasonIds += season.id
-                    val newCount = checkNewEpisodes(season, today)
-                    if (newCount != null) {
-                        updates += AnimeUpdate.NewEpisodes(
-                            anime = anime,
-                            season = season,
-                            newEpisodeCount = newCount
-                        )
-                    }
+                    checkNewEpisodes(anime, season, today)?.let { updates += it }
                 }
             }
 
@@ -56,23 +49,24 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
         val perSeasonNotified = seasonRepository.getSeasonsWithEpisodeNotifications()
         for (season in perSeasonNotified) {
             if (season.id in checkedSeasonIds) continue
+
             var anime = animeCache[season.animeId]
             if (anime == null) {
                 anime = animeRepository.getAnimeById(season.animeId) ?: continue
                 animeCache[season.animeId] = anime
             }
-            val newCount = checkNewEpisodes(season, today) ?: continue
-            updates += AnimeUpdate.NewEpisodes(
-                anime = anime,
-                season = season,
-                newEpisodeCount = newCount
-            )
+
+            checkNewEpisodes(anime, season, today)?.let { updates += it }
         }
 
         return updates
     }
 
-    private suspend fun checkNewEpisodes(season: Season, today: LocalDate): Int? {
+    private suspend fun checkNewEpisodes(
+        anime: Anime,
+        season: Season,
+        today: LocalDate
+    ): AnimeUpdate.NewEpisodes? {
         val isFirstRun = season.lastEpisodeCheckDate == null
         val after = season.lastEpisodeCheckDate ?: LocalDate.MIN
         val episodes = animeRepository.fetchEpisodesAiredBetween(
@@ -98,7 +92,13 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
 
         if (isFirstRun) return null
 
-        return if (episodes.isNotEmpty()) episodes.size else null
+        if (episodes.isEmpty()) return null
+
+        return AnimeUpdate.NewEpisodes(
+            anime = anime,
+            season = season,
+            newEpisodeCount = episodes.size
+        )
     }
 
     private suspend fun checkNewSeasons(
