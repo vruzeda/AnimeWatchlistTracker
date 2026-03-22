@@ -21,6 +21,7 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.ResolveAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ToggleAnimeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.RefreshAnimeSeasonsUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.RefreshSeasonDataUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonStatusUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -54,6 +55,7 @@ class AnimeDetailViewModelTest {
     private val findAnimeBySeasonMalIdUseCase: FindAnimeBySeasonMalIdUseCase = mockk()
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
     private val refreshAnimeSeasonsUseCase: RefreshAnimeSeasonsUseCase = mockk(relaxed = true)
+    private val refreshSeasonDataUseCase: RefreshSeasonDataUseCase = mockk(relaxed = true)
 
     private val sampleAnime = Anime(
         id = 1L,
@@ -105,7 +107,8 @@ class AnimeDetailViewModelTest {
             addSeasonToWatchlistUseCase = addSeasonToWatchlistUseCase,
             findAnimeBySeasonMalIdUseCase = findAnimeBySeasonMalIdUseCase,
             observeTitleLanguageUseCase = observeTitleLanguageUseCase,
-            refreshAnimeSeasonsUseCase = refreshAnimeSeasonsUseCase
+            refreshAnimeSeasonsUseCase = refreshAnimeSeasonsUseCase,
+            refreshSeasonDataUseCase = refreshSeasonDataUseCase
         )
     }
 
@@ -121,6 +124,20 @@ class AnimeDetailViewModelTest {
             assertThat(success.anime.title).isEqualTo("Attack on Titan")
             assertThat(success.seasons).hasSize(2)
             assertThat(success.isInWatchlist).isTrue()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `triggers background refresh for each season on load from DB`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            coVerify { refreshSeasonDataUseCase(sampleSeasons[0]) }
+            coVerify { refreshSeasonDataUseCase(sampleSeasons[1]) }
             cancelAndIgnoreRemainingEvents()
         }
     }

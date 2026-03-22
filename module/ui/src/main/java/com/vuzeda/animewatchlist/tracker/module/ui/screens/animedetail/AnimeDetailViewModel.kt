@@ -18,6 +18,7 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.ResolveAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ToggleAnimeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.RefreshAnimeSeasonsUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.RefreshSeasonDataUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonStatusUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -26,6 +27,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -44,7 +46,8 @@ class AnimeDetailViewModel @Inject constructor(
     private val addSeasonToWatchlistUseCase: AddSeasonToWatchlistUseCase,
     private val findAnimeBySeasonMalIdUseCase: FindAnimeBySeasonMalIdUseCase,
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase,
-    private val refreshAnimeSeasonsUseCase: RefreshAnimeSeasonsUseCase
+    private val refreshAnimeSeasonsUseCase: RefreshAnimeSeasonsUseCase,
+    private val refreshSeasonDataUseCase: RefreshSeasonDataUseCase
 ) : ViewModel() {
 
     private val animeId: Long = checkNotNull(savedStateHandle["animeId"])
@@ -117,6 +120,12 @@ class AnimeDetailViewModel @Inject constructor(
         }
         viewModelScope.launch {
             runCatching { refreshAnimeSeasonsUseCase(id) }
+        }
+        viewModelScope.launch {
+            val seasons = observeSeasonsForAnimeUseCase(id).first()
+            seasons.forEach { season ->
+                launch { runCatching { refreshSeasonDataUseCase(season) } }
+            }
         }
     }
 

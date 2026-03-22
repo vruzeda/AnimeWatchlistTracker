@@ -18,6 +18,7 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.FindSeasonIdByMalIdUseCa
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSeasonByIdUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSeasonsForAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.RefreshSeasonDataUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ToggleSeasonEpisodeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonProgressUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonStatusUseCase
@@ -54,6 +55,7 @@ class SeasonDetailViewModelTest {
     private val findSeasonIdByMalIdUseCase: FindSeasonIdByMalIdUseCase = mockk()
     private val toggleSeasonEpisodeNotificationsUseCase: ToggleSeasonEpisodeNotificationsUseCase = mockk(relaxed = true)
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
+    private val refreshSeasonDataUseCase: RefreshSeasonDataUseCase = mockk(relaxed = true)
 
     private val sampleSeason = Season(
         id = 1L,
@@ -116,7 +118,8 @@ class SeasonDetailViewModelTest {
             addAnimeFromDetailsUseCase = addAnimeFromDetailsUseCase,
             findSeasonIdByMalIdUseCase = findSeasonIdByMalIdUseCase,
             toggleSeasonEpisodeNotificationsUseCase = toggleSeasonEpisodeNotificationsUseCase,
-            observeTitleLanguageUseCase = observeTitleLanguageUseCase
+            observeTitleLanguageUseCase = observeTitleLanguageUseCase,
+            refreshSeasonDataUseCase = refreshSeasonDataUseCase
         ) {
             override fun localZoneId(): ZoneId = localZoneId
         }
@@ -551,6 +554,19 @@ class SeasonDetailViewModelTest {
             testDispatcher.scheduler.advanceUntilIdle()
             val state = expectMostRecentItem() as SeasonDetailUiState.Success
             assertThat(state.broadcastLocalTime).isNull()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `triggers background refresh of season data from API on load from DB`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            coVerify { refreshSeasonDataUseCase(sampleSeason) }
             cancelAndIgnoreRemainingEvents()
         }
     }

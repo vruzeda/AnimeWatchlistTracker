@@ -15,6 +15,7 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.FindSeasonIdByMalIdUseCa
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSeasonByIdUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSeasonsForAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.RefreshSeasonDataUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ToggleSeasonEpisodeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonProgressUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonStatusUseCase
@@ -22,6 +23,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
@@ -47,7 +49,8 @@ open class SeasonDetailViewModel @Inject constructor(
     private val addAnimeFromDetailsUseCase: AddAnimeFromDetailsUseCase,
     private val findSeasonIdByMalIdUseCase: FindSeasonIdByMalIdUseCase,
     private val toggleSeasonEpisodeNotificationsUseCase: ToggleSeasonEpisodeNotificationsUseCase,
-    private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase
+    private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase,
+    private val refreshSeasonDataUseCase: RefreshSeasonDataUseCase
 ) : ViewModel() {
 
     private val seasonId: Long = checkNotNull(savedStateHandle["seasonId"])
@@ -126,6 +129,10 @@ open class SeasonDetailViewModel @Inject constructor(
                     }
                 }
             }
+        }
+        viewModelScope.launch {
+            val season = observeSeasonByIdUseCase(seasonId).first() ?: return@launch
+            runCatching { refreshSeasonDataUseCase(season) }
         }
     }
 
@@ -427,6 +434,10 @@ open class SeasonDetailViewModel @Inject constructor(
                     _uiState.value = SeasonDetailUiState.NotFound
                 }
             }
+        }
+        viewModelScope.launch {
+            val season = observeSeasonByIdUseCase(seasonId).first() ?: return@launch
+            runCatching { refreshSeasonDataUseCase(season) }
         }
     }
 }
