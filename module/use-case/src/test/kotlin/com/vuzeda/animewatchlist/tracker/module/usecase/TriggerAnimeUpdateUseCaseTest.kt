@@ -1,13 +1,13 @@
 package com.vuzeda.animewatchlist.tracker.module.usecase
 
-import com.vuzeda.animewatchlist.tracker.module.repository.SchedulerRepository
+import com.vuzeda.animewatchlist.tracker.module.repository.AnimeRepository
 import io.mockk.mockk
 import io.mockk.verify
 import org.junit.jupiter.api.Test
 
 class TriggerAnimeUpdateUseCaseTest {
 
-    private val repository = mockk<SchedulerRepository>(relaxUnitFun = true)
+    private val repository = mockk<AnimeRepository>(relaxUnitFun = true)
     private val useCase = TriggerAnimeUpdateUseCase(repository)
 
     @Test

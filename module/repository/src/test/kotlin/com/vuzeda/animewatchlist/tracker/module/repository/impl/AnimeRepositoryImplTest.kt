@@ -16,24 +16,40 @@ import com.vuzeda.animewatchlist.tracker.module.localdatasource.AnimeLocalDataSo
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.AnimeRemoteDataSource
 import com.vuzeda.animewatchlist.tracker.module.repository.SeasonRepository
 import com.vuzeda.animewatchlist.tracker.module.repository.TransactionRunner
+import com.vuzeda.animewatchlist.tracker.module.scheduler.AnimeUpdateScheduler
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 class AnimeRepositoryImplTest {
 
     private val animeLocalDataSource: AnimeLocalDataSource = mockk()
     private val animeRemoteDataSource: AnimeRemoteDataSource = mockk(relaxed = true)
+    private val animeUpdateScheduler: AnimeUpdateScheduler = mockk(relaxUnitFun = true)
     private val seasonRepository: SeasonRepository = mockk(relaxed = true)
     private val transactionRunner = object : TransactionRunner {
         override suspend fun <T> runInTransaction(block: suspend () -> T): T = block()
     }
-    private val repository = AnimeRepositoryImpl(animeLocalDataSource, animeRemoteDataSource, seasonRepository, transactionRunner)
+    private val fixedInstant = Instant.fromEpochMilliseconds(1_700_000_000_000L)
+    private val clock: Clock = mockk {
+        every { now() } returns fixedInstant
+    }
+    private val repository = AnimeRepositoryImpl(
+        animeLocalDataSource,
+        animeRemoteDataSource,
+        animeUpdateScheduler,
+        seasonRepository,
+        transactionRunner,
+        clock
+    )
 
     private val sampleAnime = Anime(
         id = 1L,
@@ -91,7 +107,12 @@ class AnimeRepositoryImplTest {
             id = 2L, orderIndex = 1, status = WatchStatus.COMPLETED, isInWatchlist = false
         )
         every { animeLocalDataSource.observeAll() } returns flowOf(listOf(sampleAnime))
-        every { seasonRepository.observeAllSeasons() } returns flowOf(listOf(sampleSeason, nonWatchlistSeason))
+        every { seasonRepository.observeAllSeasons() } returns flowOf(
+            listOf(
+                sampleSeason,
+                nonWatchlistSeason
+            )
+        )
 
         repository.observeAll().test {
             val result = awaitItem()
@@ -117,17 +138,18 @@ class AnimeRepositoryImplTest {
     }
 
     @Test
-    fun `observeByStatus excludes anime whose most recent season has a different status`() = runTest {
-        every { animeLocalDataSource.observeAll() } returns flowOf(listOf(sampleAnime))
-        every { seasonRepository.observeAllSeasons() } returns flowOf(listOf(sampleSeason))
+    fun `observeByStatus excludes anime whose most recent season has a different status`() =
+        runTest {
+            every { animeLocalDataSource.observeAll() } returns flowOf(listOf(sampleAnime))
+            every { seasonRepository.observeAllSeasons() } returns flowOf(listOf(sampleSeason))
 
-        repository.observeByStatus(WatchStatus.COMPLETED).test {
-            val result = awaitItem()
+            repository.observeByStatus(WatchStatus.COMPLETED).test {
+                val result = awaitItem()
 
-            assertThat(result).isEmpty()
-            awaitComplete()
+                assertThat(result).isEmpty()
+                awaitComplete()
+            }
         }
-    }
 
     @Test
     fun `observeById derives status from most recent season`() = runTest {
@@ -213,11 +235,21 @@ class AnimeRepositoryImplTest {
 
     @Test
     fun `updateNotificationType delegates to data source`() = runTest {
-        coEvery { animeLocalDataSource.updateNotificationType(id = 1L, notificationType = NotificationType.BOTH) } returns Unit
+        coEvery {
+            animeLocalDataSource.updateNotificationType(
+                id = 1L,
+                notificationType = NotificationType.BOTH
+            )
+        } returns Unit
 
         repository.updateNotificationType(id = 1L, notificationType = NotificationType.BOTH)
 
-        coVerify { animeLocalDataSource.updateNotificationType(id = 1L, notificationType = NotificationType.BOTH) }
+        coVerify {
+            animeLocalDataSource.updateNotificationType(
+                id = 1L,
+                notificationType = NotificationType.BOTH
+            )
+        }
     }
 
     @Test
@@ -252,7 +284,13 @@ class AnimeRepositoryImplTest {
 
     @Test
     fun `fetchAnimeFullById delegates to remote data source`() = runTest {
-        val details = AnimeFullDetails(malId = 21, title = "One Punch Man", type = "TV", episodes = 12, sequels = emptyList())
+        val details = AnimeFullDetails(
+            malId = 21,
+            title = "One Punch Man",
+            type = "TV",
+            episodes = 12,
+            sequels = emptyList()
+        )
         val expected = Result.success(details)
         coEvery { animeRemoteDataSource.fetchAnimeFullById(21) } returns expected
 
@@ -276,8 +314,25 @@ class AnimeRepositoryImplTest {
     fun `fetchEpisodesAiredBetween delegates to remote data source`() = runTest {
         val after = LocalDate.of(2026, 3, 14)
         val upTo = LocalDate.of(2026, 3, 15)
-        val expected = Result.success(listOf(EpisodeInfo(number = 13, title = null, aired = "2026-03-15", isFiller = false, isRecap = false)))
-        coEvery { animeRemoteDataSource.fetchEpisodesAiredBetween(100, after, upTo, 12) } returns expected
+        val expected = Result.success(
+            listOf(
+                EpisodeInfo(
+                    number = 13,
+                    title = null,
+                    aired = "2026-03-15",
+                    isFiller = false,
+                    isRecap = false
+                )
+            )
+        )
+        coEvery {
+            animeRemoteDataSource.fetchEpisodesAiredBetween(
+                100,
+                after,
+                upTo,
+                12
+            )
+        } returns expected
 
         val result = repository.fetchEpisodesAiredBetween(100, after, upTo, 12)
 
@@ -296,7 +351,8 @@ class AnimeRepositoryImplTest {
 
     @Test
     fun `fetchWatchOrder delegates to remote data source`() = runTest {
-        val expected = Result.success(emptyList<com.vuzeda.animewatchlist.tracker.module.domain.SeasonData>())
+        val expected =
+            Result.success(emptyList<com.vuzeda.animewatchlist.tracker.module.domain.SeasonData>())
         coEvery { animeRemoteDataSource.fetchWatchOrder(100) } returns expected
 
         val result = repository.fetchWatchOrder(100)
@@ -308,10 +364,60 @@ class AnimeRepositoryImplTest {
     fun `fetchSeasonAnime delegates to remote data source`() = runTest {
         val page = SeasonalAnimePage(results = emptyList(), hasNextPage = false, currentPage = 1)
         val expected = Result.success(page)
-        coEvery { animeRemoteDataSource.fetchSeasonAnime(year = 2026, season = AnimeSeason.WINTER, page = 1) } returns expected
+        coEvery {
+            animeRemoteDataSource.fetchSeasonAnime(
+                year = 2026,
+                season = AnimeSeason.WINTER,
+                page = 1
+            )
+        } returns expected
 
         val result = repository.fetchSeasonAnime(year = 2026, season = AnimeSeason.WINTER, page = 1)
 
         assertThat(result).isEqualTo(expected)
+    }
+
+    @Test
+    fun `schedulePeriodicAnimeUpdate delegates to Scheduler`() {
+        repository.schedulePeriodicAnimeUpdate()
+
+        verify(exactly = 1) { animeUpdateScheduler.schedulePeriodicUpdate() }
+    }
+
+    @Test
+    fun `scheduleImmediateAnimeUpdate delegates to Scheduler`() {
+        repository.scheduleImmediateAnimeUpdate()
+
+        verify(exactly = 1) { animeUpdateScheduler.scheduleImmediateUpdate() }
+    }
+
+    @Test
+    fun `observeLastAnimeUpdateRun maps null Long to null Instant`() = runTest {
+        every { animeLocalDataSource.observeLastAnimeUpdateRun() } returns flowOf(null)
+
+        repository.observeLastAnimeUpdateRun().test {
+            assertThat(awaitItem()).isNull()
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `observeLastAnimeUpdateRun maps epochMillis to Instant`() = runTest {
+        val epochMillis = 1_700_000_000_000L
+        every { animeLocalDataSource.observeLastAnimeUpdateRun() } returns flowOf(epochMillis)
+
+        repository.observeLastAnimeUpdateRun().test {
+            assertThat(awaitItem()).isEqualTo(Instant.fromEpochMilliseconds(epochMillis))
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `recordAnimeUpdateRun writes current clock time to local data source`() = runTest {
+        coEvery { animeLocalDataSource.setLastAnimeUpdateRun(any()) } returns Unit
+
+        repository.recordAnimeUpdateRun()
+
+        coVerify(exactly = 1) { animeLocalDataSource.setLastAnimeUpdateRun(fixedInstant.toEpochMilliseconds()) }
     }
 }

@@ -2,7 +2,7 @@ package com.vuzeda.animewatchlist.tracker.module.usecase
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
-import com.vuzeda.animewatchlist.tracker.module.repository.SchedulerRepository
+import com.vuzeda.animewatchlist.tracker.module.repository.AnimeRepository
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
@@ -12,7 +12,7 @@ import kotlin.time.Instant
 
 class ObserveLastAnimeUpdateRunUseCaseTest {
 
-    private val repository = mockk<SchedulerRepository>()
+    private val repository = mockk<AnimeRepository>()
     private val useCase = ObserveLastAnimeUpdateRunUseCase(repository)
 
     @Test
