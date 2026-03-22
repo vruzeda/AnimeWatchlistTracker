@@ -3,7 +3,7 @@ package com.vuzeda.animewatchlist.tracker.module.repository.impl
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.SchedulerLocalDataSource
-import com.vuzeda.animewatchlist.tracker.module.scheduler.Scheduler
+import com.vuzeda.animewatchlist.tracker.module.scheduler.AnimeUpdateScheduler
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -15,28 +15,28 @@ import org.junit.jupiter.api.Test
 import kotlin.time.Clock
 import kotlin.time.Instant
 
-class SchedulerRepositoryImplTest {
+class AnimeUpdateSchedulerRepositoryImplTest {
 
-    private val scheduler: Scheduler = mockk(relaxUnitFun = true)
+    private val animeUpdateScheduler: AnimeUpdateScheduler = mockk(relaxUnitFun = true)
     private val localDataSource: SchedulerLocalDataSource = mockk(relaxUnitFun = true)
     private val fixedInstant = Instant.fromEpochMilliseconds(1_700_000_000_000L)
     private val clock: Clock = mockk {
         every { now() } returns fixedInstant
     }
-    private val repository = SchedulerRepositoryImpl(scheduler, localDataSource, clock)
+    private val repository = SchedulerRepositoryImpl(animeUpdateScheduler, localDataSource, clock)
 
     @Test
     fun `schedulePeriodicAnimeUpdate delegates to Scheduler`() {
         repository.schedulePeriodicAnimeUpdate()
 
-        verify(exactly = 1) { scheduler.schedulePeriodicAnimeUpdate() }
+        verify(exactly = 1) { animeUpdateScheduler.schedulePeriodicUpdate() }
     }
 
     @Test
     fun `scheduleImmediateAnimeUpdate delegates to Scheduler`() {
         repository.scheduleImmediateAnimeUpdate()
 
-        verify(exactly = 1) { scheduler.scheduleImmediateAnimeUpdate() }
+        verify(exactly = 1) { animeUpdateScheduler.scheduleImmediateUpdate() }
     }
 
     @Test

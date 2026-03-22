@@ -7,15 +7,15 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
-import com.vuzeda.animewatchlist.tracker.module.scheduler.Scheduler
+import com.vuzeda.animewatchlist.tracker.module.scheduler.AnimeUpdateScheduler
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
-class SchedulerImpl @Inject constructor(
+class AnimeUpdateWorkerScheduler @Inject constructor(
     private val workManager: WorkManager
-) : Scheduler {
+) : AnimeUpdateScheduler {
 
-    override fun schedulePeriodicAnimeUpdate() {
+    override fun schedulePeriodicUpdate() {
         workManager.enqueueUniquePeriodicWork(
             AnimeUpdateWorker.WORK_NAME,
             ExistingPeriodicWorkPolicy.KEEP,
@@ -29,7 +29,7 @@ class SchedulerImpl @Inject constructor(
         )
     }
 
-    override fun scheduleImmediateAnimeUpdate() {
+    override fun scheduleImmediateUpdate() {
         workManager.enqueueUniqueWork(
             AnimeUpdateWorker.WORK_NAME_IMMEDIATE,
             ExistingWorkPolicy.KEEP,

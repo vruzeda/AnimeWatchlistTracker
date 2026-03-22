@@ -2,7 +2,10 @@ package com.vuzeda.animewatchlist.tracker.di
 
 import com.squareup.moshi.Moshi
 import com.vuzeda.animewatchlist.tracker.BuildConfig
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.AnimeRemoteDataSource
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.AnimeRemoteDataSourceImpl
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.interceptor.RateLimitInterceptor
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.ChiakiService
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.JikanApiService
 import dagger.Module
 import dagger.Provides
@@ -17,7 +20,15 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object NetworkModule {
+object RemoteDataSourceModule {
+
+    @Provides
+    @Singleton
+    fun provideAnimeRemoteDataSource(
+        jikanApiService: JikanApiService,
+        chiakiService: ChiakiService
+    ): AnimeRemoteDataSource =
+        AnimeRemoteDataSourceImpl(jikanApiService, chiakiService)
 
     @Provides
     @Singleton
@@ -29,7 +40,7 @@ object NetworkModule {
             .addInterceptor(
                 HttpLoggingInterceptor().apply {
                     level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
-                        else HttpLoggingInterceptor.Level.NONE
+                    else HttpLoggingInterceptor.Level.NONE
                 }
             )
             .build()
