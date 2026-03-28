@@ -7,9 +7,11 @@ import androidx.work.WorkerParameters
 import com.vuzeda.animewatchlist.tracker.module.domain.DataError
 import com.vuzeda.animewatchlist.tracker.module.notification.AnimeUpdateNotifier
 import com.vuzeda.animewatchlist.tracker.module.usecase.CheckAnimeUpdatesUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.RecordAnimeUpdateRunUseCase
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.flow.first
 
 @HiltWorker
 class AnimeUpdateWorker @AssistedInject constructor(
@@ -17,14 +19,16 @@ class AnimeUpdateWorker @AssistedInject constructor(
     @Assisted workerParams: WorkerParameters,
     private val animeUpdateNotifier: AnimeUpdateNotifier,
     private val checkAnimeUpdatesUseCase: CheckAnimeUpdatesUseCase,
+    private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase,
     private val recordAnimeUpdateRunUseCase: RecordAnimeUpdateRunUseCase
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
         return try {
+            val titleLanguage = observeTitleLanguageUseCase().first()
             val updates = checkAnimeUpdatesUseCase()
             for (update in updates) {
-                animeUpdateNotifier.showUpdateNotification(update)
+                animeUpdateNotifier.showUpdateNotification(update, titleLanguage)
             }
             recordAnimeUpdateRunUseCase()
             Result.success()

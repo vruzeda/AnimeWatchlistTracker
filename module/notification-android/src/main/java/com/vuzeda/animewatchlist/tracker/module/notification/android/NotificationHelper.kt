@@ -13,6 +13,8 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.TaskStackBuilder
 import androidx.core.content.ContextCompat
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdate
+import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
+import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
 import com.vuzeda.animewatchlist.tracker.module.notification.AnimeUpdateNotifier
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -37,7 +39,7 @@ class NotificationHelper @Inject constructor(
         notificationManager.createNotificationChannel(channel)
     }
 
-    override fun showUpdateNotification(update: AnimeUpdate) {
+    override fun showUpdateNotification(update: AnimeUpdate, titleLanguage: TitleLanguage) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             return
         }
@@ -51,6 +53,7 @@ class NotificationHelper @Inject constructor(
             is AnimeUpdate.NewEpisodes -> update.anime
             is AnimeUpdate.NewSeason -> update.anime
         }
+        val animeTitle = resolveDisplayTitle(anime.title, anime.titleEnglish, anime.titleJapanese, titleLanguage)
         val (text, notificationId) = when (update) {
             is AnimeUpdate.NewEpisodes -> Pair(
                 context.resources.getQuantityString(
@@ -61,7 +64,7 @@ class NotificationHelper @Inject constructor(
                 "ep_${anime.id}".hashCode()
             )
             is AnimeUpdate.NewSeason -> Pair(
-                "New season announced: ${update.sequelTitle}",
+                "New season announced: ${resolveDisplayTitle(update.sequelTitle, update.sequelTitleEnglish, update.sequelTitleJapanese, titleLanguage)}",
                 "season_${anime.id}_${update.sequelMalId}".hashCode()
             )
         }
@@ -80,7 +83,7 @@ class NotificationHelper @Inject constructor(
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(anime.title)
+            .setContentTitle(animeTitle)
             .setContentText(text)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
@@ -92,7 +95,7 @@ class NotificationHelper @Inject constructor(
 
         val summary = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(anime.title)
+            .setContentTitle(animeTitle)
             .setGroup(groupKey)
             .setGroupSummary(true)
             .setAutoCancel(true)

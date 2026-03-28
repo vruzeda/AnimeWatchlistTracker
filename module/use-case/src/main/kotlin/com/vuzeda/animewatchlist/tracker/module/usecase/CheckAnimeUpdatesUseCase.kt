@@ -133,7 +133,9 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
             return AnimeUpdate.NewSeason(
                 anime = anime,
                 sequelMalId = entry.malId,
-                sequelTitle = entry.title
+                sequelTitle = entry.title,
+                sequelTitleEnglish = entry.titleEnglish,
+                sequelTitleJapanese = entry.titleJapanese,
             )
         }
         return null

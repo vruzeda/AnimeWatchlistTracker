@@ -11,6 +11,8 @@ sealed interface AnimeUpdate {
     data class NewSeason(
         val anime: Anime,
         val sequelMalId: Int,
-        val sequelTitle: String
+        val sequelTitle: String,
+        val sequelTitleEnglish: String? = null,
+        val sequelTitleJapanese: String? = null,
     ) : AnimeUpdate
 }

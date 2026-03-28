@@ -220,6 +220,37 @@ class CheckAnimeUpdatesUseCaseTest {
         assertThat(seasonUpdates).hasSize(1)
         assertThat(seasonUpdates[0].sequelMalId).isEqualTo(300)
         assertThat(seasonUpdates[0].sequelTitle).isEqualTo("Season 2")
+        assertThat(seasonUpdates[0].sequelTitleEnglish).isNull()
+        assertThat(seasonUpdates[0].sequelTitleJapanese).isNull()
+    }
+
+    @Test
+    fun `propagates sequel title language variants from watch order entry`() = runTest {
+        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
+        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
+        coEvery {
+            animeRepository.fetchEpisodesAiredBetween(100, yesterday, fixedDate, 12)
+        } returns Result.success(emptyList())
+        coEvery { animeRepository.fetchWatchOrder(100) } returns Result.success(
+            listOf(
+                SeasonData(malId = 100, title = "Season 1", type = "TV", startDate = LocalDate.of(2003, 10, 4)),
+                SeasonData(
+                    malId = 300,
+                    title = "Season 2",
+                    titleEnglish = "Season 2 English",
+                    titleJapanese = "Season 2 Japanese",
+                    type = "TV",
+                    startDate = fixedDate
+                )
+            )
+        )
+
+        val updates = useCase()
+
+        val seasonUpdate = updates.filterIsInstance<AnimeUpdate.NewSeason>().single()
+        assertThat(seasonUpdate.sequelTitle).isEqualTo("Season 2")
+        assertThat(seasonUpdate.sequelTitleEnglish).isEqualTo("Season 2 English")
+        assertThat(seasonUpdate.sequelTitleJapanese).isEqualTo("Season 2 Japanese")
     }
 
     @Test
