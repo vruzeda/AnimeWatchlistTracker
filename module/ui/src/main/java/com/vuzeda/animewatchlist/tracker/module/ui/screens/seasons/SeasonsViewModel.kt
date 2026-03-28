@@ -163,14 +163,10 @@ class SeasonsViewModel @Inject constructor(
                 page = nextPage
             )
                 .onSuccess { page ->
-                    _rawAnimeList.update { existing ->
-                        val seenIds = existing.mapTo(mutableSetOf()) { it.malId }
-                        existing + page.results.filter { it.malId !in seenIds }
-                    }
+                    _rawAnimeList.update { (it + page.results).distinctBy { item -> item.malId } }
                     _uiState.update {
-                        val seenIds = it.animeList.mapTo(mutableSetOf()) { item -> item.malId }
                         it.copy(
-                            animeList = it.animeList + page.results.filter { item -> item.malId !in seenIds },
+                            animeList = (it.animeList + page.results).distinctBy { item -> item.malId },
                             hasNextPage = page.hasNextPage,
                             currentPage = page.currentPage,
                             isLoadingMore = false
