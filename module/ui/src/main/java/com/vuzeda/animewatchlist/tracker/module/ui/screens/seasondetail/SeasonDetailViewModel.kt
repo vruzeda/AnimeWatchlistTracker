@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
+import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddAnimeFromDetailsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddSeasonToWatchlistUseCase
@@ -60,6 +61,7 @@ open class SeasonDetailViewModel @Inject constructor(
 
     private var pendingDetails: AnimeFullDetails? = null
     private var observingSiblingsForAnimeId: Long = -1L
+    private var latestTitleLanguage: TitleLanguage = TitleLanguage.DEFAULT
     private var latestIsNotificationDebugInfoEnabled: Boolean = false
 
     private val _uiState = MutableStateFlow<SeasonDetailUiState>(SeasonDetailUiState.Loading)
@@ -94,6 +96,7 @@ open class SeasonDetailViewModel @Inject constructor(
     private fun observeTitleLanguage() {
         viewModelScope.launch {
             observeTitleLanguageUseCase().collect { titleLanguage ->
+                latestTitleLanguage = titleLanguage
                 _uiState.update { state ->
                     when (state) {
                         is SeasonDetailUiState.Success -> state.copy(titleLanguage = titleLanguage)
@@ -135,6 +138,7 @@ open class SeasonDetailViewModel @Inject constructor(
                                     season = season,
                                     isInWatchlist = season.isInWatchlist,
                                     isLoadingEpisodes = true,
+                                    titleLanguage = latestTitleLanguage,
                                     broadcastLocalTime = computeBroadcastLocalTime(season),
                                     isNotificationDebugInfoEnabled = latestIsNotificationDebugInfoEnabled
                                 )
@@ -196,6 +200,7 @@ open class SeasonDetailViewModel @Inject constructor(
                                 season = season,
                                 isInWatchlist = false,
                                 isLoadingEpisodes = true,
+                                titleLanguage = latestTitleLanguage,
                                 broadcastLocalTime = computeBroadcastLocalTime(season),
                                 isNotificationDebugInfoEnabled = latestIsNotificationDebugInfoEnabled
                             )
@@ -205,6 +210,7 @@ open class SeasonDetailViewModel @Inject constructor(
                             season = season,
                             isInWatchlist = false,
                             isLoadingEpisodes = true,
+                            titleLanguage = latestTitleLanguage,
                             broadcastLocalTime = computeBroadcastLocalTime(season),
                             isNotificationDebugInfoEnabled = latestIsNotificationDebugInfoEnabled
                         )
@@ -482,6 +488,7 @@ open class SeasonDetailViewModel @Inject constructor(
                                 SeasonDetailUiState.Success(
                                     season = season,
                                     isLoadingEpisodes = true,
+                                    titleLanguage = latestTitleLanguage,
                                     broadcastLocalTime = computeBroadcastLocalTime(season),
                                     isNotificationDebugInfoEnabled = latestIsNotificationDebugInfoEnabled
                                 )

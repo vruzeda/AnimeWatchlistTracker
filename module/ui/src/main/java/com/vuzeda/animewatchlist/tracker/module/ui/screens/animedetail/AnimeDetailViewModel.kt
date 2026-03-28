@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.vuzeda.animewatchlist.tracker.module.domain.Anime
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
+import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddSeasonToWatchlistUseCase
@@ -61,6 +62,7 @@ class AnimeDetailViewModel @Inject constructor(
 
     private var resolvedAnime: Anime? = null
     private var resolvedSeasons: List<Season> = emptyList()
+    private var latestTitleLanguage: TitleLanguage = TitleLanguage.DEFAULT
     private var latestIsNotificationDebugInfoEnabled: Boolean = false
 
     init {
@@ -78,6 +80,7 @@ class AnimeDetailViewModel @Inject constructor(
     private fun observeTitleLanguage() {
         viewModelScope.launch {
             observeTitleLanguageUseCase().collect { titleLanguage ->
+                latestTitleLanguage = titleLanguage
                 _uiState.update { state ->
                     when (state) {
                         is AnimeDetailUiState.Success -> state.copy(titleLanguage = titleLanguage)
@@ -124,6 +127,7 @@ class AnimeDetailViewModel @Inject constructor(
                                 anime = anime,
                                 seasons = seasons,
                                 isInWatchlist = true,
+                                titleLanguage = latestTitleLanguage,
                                 isNotificationDebugInfoEnabled = latestIsNotificationDebugInfoEnabled
                             )
                         }
@@ -191,13 +195,14 @@ class AnimeDetailViewModel @Inject constructor(
                                 anime = anime,
                                 seasons = seasons,
                                 isRefreshing = false
-                            ) else AnimeDetailUiState.Success(anime = anime, seasons = seasons, isInWatchlist = false, isNotificationDebugInfoEnabled = latestIsNotificationDebugInfoEnabled)
+                            ) else AnimeDetailUiState.Success(anime = anime, seasons = seasons, isInWatchlist = false, titleLanguage = latestTitleLanguage, isNotificationDebugInfoEnabled = latestIsNotificationDebugInfoEnabled)
                         }
                     } else {
                         _uiState.value = AnimeDetailUiState.Success(
                             anime = anime,
                             seasons = seasons,
                             isInWatchlist = false,
+                            titleLanguage = latestTitleLanguage,
                             isNotificationDebugInfoEnabled = latestIsNotificationDebugInfoEnabled
                         )
                     }
