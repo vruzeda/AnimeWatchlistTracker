@@ -49,6 +49,7 @@ import coil.compose.AsyncImage
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.AnimeCard
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.ConfirmationDialog
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.EmptyStateMessage
+import com.vuzeda.animewatchlist.tracker.module.designsystem.component.MultiSelectFilterMenuButton
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.NotificationButton
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.OptionSelectionSheet
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.RatingBar
@@ -97,7 +98,9 @@ fun AnimeDetailScreenRoute(
         onDismissAddSeasonSheet = viewModel::dismissAddSeasonSheet,
         onSnackbarDismissed = viewModel::clearSnackbar,
         onNotificationPermissionDenied = viewModel::notifyPermissionDenied,
-        onRefresh = viewModel::refresh
+        onRefresh = viewModel::refresh,
+        onTypeFilterToggled = viewModel::toggleTypeFilter,
+        onResetTypeFilter = viewModel::resetTypeFilter
     )
 }
 
@@ -127,7 +130,9 @@ fun AnimeDetailScreen(
     onDismissAddSeasonSheet: () -> Unit,
     onSnackbarDismissed: () -> Unit,
     onNotificationPermissionDenied: () -> Unit,
-    onRefresh: () -> Unit = {}
+    onRefresh: () -> Unit = {},
+    onTypeFilterToggled: (String) -> Unit = {},
+    onResetTypeFilter: () -> Unit = {}
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -204,7 +209,9 @@ fun AnimeDetailScreen(
                             onRatingChanged = onRatingChanged,
                             onAddToWatchlistClick = onAddToWatchlistClick,
                             onSeasonClick = onSeasonClick,
-                            onSeasonAddClick = onSeasonAddClick
+                            onSeasonAddClick = onSeasonAddClick,
+                            onTypeFilterToggled = onTypeFilterToggled,
+                            onResetTypeFilter = onResetTypeFilter
                         )
                     }
 
@@ -329,9 +336,16 @@ private fun AnimeDetailContent(
     onRatingChanged: (Int) -> Unit,
     onAddToWatchlistClick: () -> Unit,
     onSeasonClick: (seasonId: Long, malId: Int) -> Unit,
-    onSeasonAddClick: (Season) -> Unit
+    onSeasonAddClick: (Season) -> Unit,
+    onTypeFilterToggled: (String) -> Unit,
+    onResetTypeFilter: () -> Unit
 ) {
     val anime = state.anime
+    val displayedSeasons = if (state.typeFilter.isEmpty()) state.seasons
+                           else state.seasons.filter { it.type in state.typeFilter }
+    val availableTypes = remember(state.seasons) {
+        state.seasons.map { it.type }.distinct().sorted()
+    }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
@@ -382,24 +396,47 @@ private fun AnimeDetailContent(
         if (state.seasons.isNotEmpty()) {
             item(key = "seasons_header") {
                 Spacer(modifier = Modifier.height(24.dp))
-                Text(
-                    text = stringResource(R.string.anime_detail_section_seasons),
-                    style = MaterialTheme.typography.titleLarge
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = stringResource(R.string.anime_detail_section_seasons),
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                    MultiSelectFilterMenuButton(
+                        label = stringResource(R.string.filter_group_type),
+                        options = availableTypes,
+                        selectedOptions = state.typeFilter,
+                        onOptionToggled = onTypeFilterToggled,
+                        resetLabel = stringResource(R.string.filter_reset),
+                        onReset = onResetTypeFilter
+                    )
+                }
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
-            items(
-                items = state.seasons,
-                key = { it.id.takeIf { id -> id > 0 } ?: it.malId.toLong() }
-            ) { season ->
-                SeasonCardItem(
-                    season = season,
-                    titleLanguage = state.titleLanguage,
-                    onClick = { onSeasonClick(season.id, season.malId) },
-                    onAddClick = { onSeasonAddClick(season) }
-                )
-                Spacer(modifier = Modifier.height(8.dp))
+            if (displayedSeasons.isEmpty()) {
+                item(key = "seasons_empty") {
+                    EmptyStateMessage(
+                        title = stringResource(R.string.search_no_filter_match_title),
+                        subtitle = stringResource(R.string.search_no_filter_match_subtitle)
+                    )
+                }
+            } else {
+                items(
+                    items = displayedSeasons,
+                    key = { it.id.takeIf { id -> id > 0 } ?: it.malId.toLong() }
+                ) { season ->
+                    SeasonCardItem(
+                        season = season,
+                        titleLanguage = state.titleLanguage,
+                        onClick = { onSeasonClick(season.id, season.malId) },
+                        onAddClick = { onSeasonAddClick(season) }
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
             }
         }
 

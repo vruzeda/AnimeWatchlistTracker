@@ -676,4 +676,72 @@ class AnimeDetailViewModelTest {
             cancelAndIgnoreRemainingEvents()
         }
     }
+
+    @Test
+    fun `typeFilter defaults to empty set on initial load`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            val success = awaitItem() as AnimeDetailUiState.Success
+            assertThat(success.typeFilter).isEmpty()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `toggleTypeFilter adds type to filter when not present`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            awaitItem()
+            awaitItem()
+
+            viewModel.toggleTypeFilter("TV")
+
+            val state = awaitItem() as AnimeDetailUiState.Success
+            assertThat(state.typeFilter).containsExactly("TV")
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `toggleTypeFilter removes type from filter when already present`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            awaitItem()
+            awaitItem()
+
+            viewModel.toggleTypeFilter("TV")
+            awaitItem()
+            viewModel.toggleTypeFilter("TV")
+
+            val state = awaitItem() as AnimeDetailUiState.Success
+            assertThat(state.typeFilter).isEmpty()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `resetTypeFilter clears all selected types`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            awaitItem()
+            awaitItem()
+
+            viewModel.toggleTypeFilter("TV")
+            awaitItem()
+            viewModel.toggleTypeFilter("OVA")
+            awaitItem()
+
+            viewModel.resetTypeFilter()
+
+            val state = awaitItem() as AnimeDetailUiState.Success
+            assertThat(state.typeFilter).isEmpty()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
 }

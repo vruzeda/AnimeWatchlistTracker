@@ -25,7 +25,8 @@ sealed interface AnimeDetailUiState {
         val isDeleteConfirmationVisible: Boolean = false,
         val snackbarEvent: AnimeDetailSnackbarEvent? = null,
         val isRefreshing: Boolean = false,
-        val isNotificationDebugInfoEnabled: Boolean = false
+        val isNotificationDebugInfoEnabled: Boolean = false,
+        val typeFilter: Set<String> = emptySet()
     ) : AnimeDetailUiState {
         val isNotificationsEnabled: Boolean get() = notificationType != NotificationType.NONE
     }

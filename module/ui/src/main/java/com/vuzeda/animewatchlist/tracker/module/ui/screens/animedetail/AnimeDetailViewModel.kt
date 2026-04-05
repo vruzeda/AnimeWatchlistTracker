@@ -473,4 +473,19 @@ class AnimeDetailViewModel @Inject constructor(
             else state
         }
     }
+
+    fun toggleTypeFilter(type: String) {
+        _uiState.update { state ->
+            if (state is AnimeDetailUiState.Success) {
+                val updated = if (type in state.typeFilter) state.typeFilter - type else state.typeFilter + type
+                state.copy(typeFilter = updated)
+            } else state
+        }
+    }
+
+    fun resetTypeFilter() {
+        _uiState.update { state ->
+            if (state is AnimeDetailUiState.Success) state.copy(typeFilter = emptySet()) else state
+        }
+    }
 }

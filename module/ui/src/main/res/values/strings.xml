@@ -22,6 +22,7 @@
     <!-- HomeScreen filters -->
     <string name="filter_group_status">By Status</string>
     <string name="filter_group_notification">By Notification</string>
+    <string name="filter_group_type">By Type</string>
     <string name="filter_notification_on">On</string>
     <string name="filter_notification_off">Off</string>
     <string name="filter_reset">Reset Filters</string>
