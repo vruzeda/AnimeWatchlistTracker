@@ -19,6 +19,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -89,6 +92,7 @@ fun SeasonDetailScreenRoute(
         onDismissStatusSheet = viewModel::dismissStatusSheet,
         onEpisodeProgressChanged = viewModel::updateEpisodeProgress,
         onEpisodeWatched = viewModel::setEpisodeWatched,
+        onMarkAllEpisodesWatched = viewModel::markAllEpisodesWatched,
         onLoadMoreEpisodes = viewModel::loadMoreEpisodes,
         onDeleteClick = viewModel::showDeleteConfirmation,
         onConfirmDelete = viewModel::confirmDelete,
@@ -114,6 +118,7 @@ fun SeasonDetailScreen(
     onDismissStatusSheet: () -> Unit,
     onEpisodeProgressChanged: (Int) -> Unit,
     onEpisodeWatched: (Int, Boolean) -> Unit,
+    onMarkAllEpisodesWatched: () -> Unit,
     onLoadMoreEpisodes: () -> Unit,
     onDeleteClick: () -> Unit,
     onConfirmDelete: () -> Unit,
@@ -200,6 +205,7 @@ fun SeasonDetailScreen(
                             state = uiState,
                             onStatusChipClick = onStatusChipClick,
                             onEpisodeWatched = onEpisodeWatched,
+                            onMarkAllEpisodesWatched = onMarkAllEpisodesWatched,
                             onLoadMoreEpisodes = onLoadMoreEpisodes,
                             onAddToWatchlistClick = onAddToWatchlistClick,
                             onViewFullSeriesClick = onViewFullSeriesClick
@@ -276,6 +282,7 @@ private fun SeasonDetailContent(
     state: SeasonDetailUiState.Success,
     onStatusChipClick: () -> Unit,
     onEpisodeWatched: (Int, Boolean) -> Unit,
+    onMarkAllEpisodesWatched: () -> Unit,
     onLoadMoreEpisodes: () -> Unit,
     onAddToWatchlistClick: () -> Unit,
     onViewFullSeriesClick: () -> Unit
@@ -344,10 +351,39 @@ private fun SeasonDetailContent(
         if (state.episodes.isNotEmpty() || state.isLoadingEpisodes) {
             Spacer(modifier = Modifier.height(24.dp))
 
-            Text(
-                text = stringResource(R.string.season_detail_section_episodes),
-                style = MaterialTheme.typography.titleLarge
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.season_detail_section_episodes),
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.weight(1f)
+                )
+                if (state.isInWatchlist && state.episodes.isNotEmpty()) {
+                    var isMenuExpanded by remember { mutableStateOf(false) }
+                    Box {
+                        IconButton(onClick = { isMenuExpanded = true }) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = stringResource(R.string.cd_episodes_menu)
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = isMenuExpanded,
+                            onDismissRequest = { isMenuExpanded = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.season_detail_mark_all_episodes_watched)) },
+                                onClick = {
+                                    onMarkAllEpisodesWatched()
+                                    isMenuExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
 

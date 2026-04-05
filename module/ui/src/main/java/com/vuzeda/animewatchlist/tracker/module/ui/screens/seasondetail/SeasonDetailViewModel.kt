@@ -19,6 +19,7 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveIsNotificationDeb
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveWatchedEpisodesUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.RefreshSeasonDataUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.SetAllEpisodesWatchedUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetEpisodeWatchedUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ToggleSeasonEpisodeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonProgressUseCase
@@ -57,7 +58,8 @@ open class SeasonDetailViewModel @Inject constructor(
     private val refreshSeasonDataUseCase: RefreshSeasonDataUseCase,
     private val observeIsNotificationDebugInfoEnabledUseCase: ObserveIsNotificationDebugInfoEnabledUseCase,
     private val observeWatchedEpisodesUseCase: ObserveWatchedEpisodesUseCase,
-    private val setEpisodeWatchedUseCase: SetEpisodeWatchedUseCase
+    private val setEpisodeWatchedUseCase: SetEpisodeWatchedUseCase,
+    private val setAllEpisodesWatchedUseCase: SetAllEpisodesWatchedUseCase
 ) : ViewModel() {
 
     private val seasonId: Long = checkNotNull(savedStateHandle["seasonId"])
@@ -141,6 +143,14 @@ open class SeasonDetailViewModel @Inject constructor(
         val state = _uiState.value
         if (state !is SeasonDetailUiState.Success || !state.isInWatchlist) return
         viewModelScope.launch { setEpisodeWatchedUseCase(state.season.id, episodeNumber, isWatched) }
+    }
+
+    fun markAllEpisodesWatched() {
+        val state = _uiState.value
+        if (state !is SeasonDetailUiState.Success || !state.isInWatchlist) return
+        val episodeNumbers = state.episodes.map { it.number }
+        if (episodeNumbers.isEmpty()) return
+        viewModelScope.launch { setAllEpisodesWatchedUseCase(state.season.id, episodeNumbers) }
     }
 
     private fun observeSeason() {

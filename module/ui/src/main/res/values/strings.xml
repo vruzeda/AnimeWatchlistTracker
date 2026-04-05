@@ -67,6 +67,7 @@
     <!-- AnimeDetailScreen -->
     <string name="anime_detail_title">Anime Detail</string>
     <string name="cd_delete">Delete</string>
+    <string name="cd_episodes_menu">Episodes menu</string>
     <string name="anime_detail_not_found">Anime not found</string>
     <string name="anime_detail_change_status_title">Change status</string>
     <string name="anime_detail_section_your_rating">Your Rating</string>
@@ -97,6 +98,7 @@
     <string name="season_detail_section_episodes">Episodes</string>
     <string name="season_detail_episode_count">%1$d episodes</string>
     <string name="season_detail_load_more_episodes">Load more episodes</string>
+    <string name="season_detail_mark_all_episodes_watched">Mark all as seen</string>
     <string name="season_detail_airing_status">Status: %1$s</string>
     <string name="season_detail_broadcast_info">Broadcast: %1$s</string>
     <string name="season_detail_broadcast_local_time">Local time: %1$s</string>

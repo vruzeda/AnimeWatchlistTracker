@@ -21,6 +21,7 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveIsNotificationDeb
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveWatchedEpisodesUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.RefreshSeasonDataUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.SetAllEpisodesWatchedUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetEpisodeWatchedUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ToggleSeasonEpisodeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonProgressUseCase
@@ -62,6 +63,7 @@ class SeasonDetailViewModelTest {
     private val observeIsNotificationDebugInfoEnabledUseCase: ObserveIsNotificationDebugInfoEnabledUseCase = mockk()
     private val observeWatchedEpisodesUseCase: ObserveWatchedEpisodesUseCase = mockk()
     private val setEpisodeWatchedUseCase: SetEpisodeWatchedUseCase = mockk(relaxed = true)
+    private val setAllEpisodesWatchedUseCase: SetAllEpisodesWatchedUseCase = mockk(relaxed = true)
 
     private val sampleSeason = Season(
         id = 1L,
@@ -130,7 +132,8 @@ class SeasonDetailViewModelTest {
             refreshSeasonDataUseCase = refreshSeasonDataUseCase,
             observeIsNotificationDebugInfoEnabledUseCase = observeIsNotificationDebugInfoEnabledUseCase,
             observeWatchedEpisodesUseCase = observeWatchedEpisodesUseCase,
-            setEpisodeWatchedUseCase = setEpisodeWatchedUseCase
+            setEpisodeWatchedUseCase = setEpisodeWatchedUseCase,
+            setAllEpisodesWatchedUseCase = setAllEpisodesWatchedUseCase
         ) {
             override fun localZoneId(): ZoneId = localZoneId
         }
@@ -707,6 +710,39 @@ class SeasonDetailViewModelTest {
             testDispatcher.scheduler.advanceUntilIdle()
 
             coVerify(exactly = 0) { setEpisodeWatchedUseCase(any(), any(), any()) }
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `markAllEpisodesWatched delegates loaded episodes to use case`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.markAllEpisodesWatched()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            coVerify { setAllEpisodesWatchedUseCase(sampleSeason.id, listOf(1, 2)) }
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `markAllEpisodesWatched does nothing when not in watchlist`() = runTest {
+        seasonFlow.value = sampleSeason.copy(isInWatchlist = false)
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.markAllEpisodesWatched()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            coVerify(exactly = 0) { setAllEpisodesWatchedUseCase(any(), any()) }
             cancelAndIgnoreRemainingEvents()
         }
     }
