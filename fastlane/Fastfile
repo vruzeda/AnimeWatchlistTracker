@@ -1,3 +1,8 @@
+desc "Clean the project build artifacts"
+lane :clean do
+  gradle(task: "clean")
+end
+
 desc "Run unit tests and verify branch coverage (≥80%)"
 lane :test do
   gradle(task: "jacocoTestCoverageVerification")
@@ -60,6 +65,7 @@ lane :release do |options|
 
   commit_message = options[:version_name] ? "Bump version" : "Bump version code"
 
+  clean
   test
   bump_version(version_name: options[:version_name])
   build

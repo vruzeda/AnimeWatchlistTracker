@@ -13,6 +13,14 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 # Available Actions
 
+### clean
+
+```sh
+[bundle exec] fastlane clean
+```
+
+Clean the project build artifacts
+
 ### test
 
 ```sh
