@@ -49,7 +49,6 @@ class SeasonEntityTest {
         assertThat(result.imageUrl).isEqualTo("https://example.com/aot.jpg")
         assertThat(result.type).isEqualTo("TV")
         assertThat(result.episodeCount).isEqualTo(25)
-        assertThat(result.currentEpisode).isEqualTo(12)
         assertThat(result.status).isEqualTo(WatchStatus.WATCHING)
         assertThat(result.score).isEqualTo(8.54)
         assertThat(result.orderIndex).isEqualTo(0)
@@ -131,7 +130,6 @@ class SeasonEntityTest {
             imageUrl = "https://example.com/aot.jpg",
             type = "TV",
             episodeCount = 25,
-            currentEpisode = 5,
             status = WatchStatus.COMPLETED,
             score = 8.5,
             orderIndex = 1,
@@ -161,7 +159,6 @@ class SeasonEntityTest {
         assertThat(result.imageUrl).isEqualTo("https://example.com/aot.jpg")
         assertThat(result.type).isEqualTo("TV")
         assertThat(result.episodeCount).isEqualTo(25)
-        assertThat(result.currentEpisode).isEqualTo(5)
         assertThat(result.status).isEqualTo("COMPLETED")
         assertThat(result.score).isEqualTo(8.5)
         assertThat(result.orderIndex).isEqualTo(1)

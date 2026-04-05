@@ -5,7 +5,11 @@ import com.vuzeda.animewatchlist.tracker.module.localdatasource.SeasonLocalDataS
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.WatchedEpisodeLocalDataSource
 import com.vuzeda.animewatchlist.tracker.module.repository.SeasonRepository
 import com.vuzeda.animewatchlist.tracker.module.repository.TransactionRunner
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
 import javax.inject.Inject
@@ -17,16 +21,31 @@ class SeasonRepositoryImpl @Inject constructor(
 ) : SeasonRepository {
 
     override fun observeAllSeasons(): Flow<List<Season>> =
-        seasonLocalDataSource.observeAll()
+        combine(
+            seasonLocalDataSource.observeAll(),
+            watchedEpisodeLocalDataSource.observeWatchedCountsForAllSeasons()
+        ) { seasons, watchedCounts ->
+            seasons.map { it.copy(watchedEpisodeCount = watchedCounts[it.id] ?: 0) }
+        }
 
     override fun observeAllSeasonMalIds(): Flow<Set<Int>> =
         seasonLocalDataSource.observeAllMalIds().map { it.toSet() }
 
     override fun observeSeasonsForAnime(animeId: Long): Flow<List<Season>> =
-        seasonLocalDataSource.observeByAnimeId(animeId)
+        combine(
+            seasonLocalDataSource.observeByAnimeId(animeId),
+            watchedEpisodeLocalDataSource.observeWatchedCountsForAllSeasons()
+        ) { seasons, watchedCounts ->
+            seasons.map { it.copy(watchedEpisodeCount = watchedCounts[it.id] ?: 0) }
+        }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun observeSeasonById(id: Long): Flow<Season?> =
-        seasonLocalDataSource.observeById(id)
+        seasonLocalDataSource.observeById(id).flatMapLatest { season ->
+            if (season == null) return@flatMapLatest flowOf(null)
+            watchedEpisodeLocalDataSource.observeWatchedEpisodeNumbers(id)
+                .map { watchedEpisodes -> season.copy(watchedEpisodeCount = watchedEpisodes.size) }
+        }
 
     override suspend fun findAnimeIdBySeasonMalId(malId: Int): Long? =
         seasonLocalDataSource.findByMalId(malId)?.animeId

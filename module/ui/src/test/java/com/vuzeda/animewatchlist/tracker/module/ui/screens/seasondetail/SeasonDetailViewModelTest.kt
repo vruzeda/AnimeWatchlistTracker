@@ -24,7 +24,6 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.RefreshSeasonDataUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetAllEpisodesWatchedUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetEpisodeWatchedUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ToggleSeasonEpisodeNotificationsUseCase
-import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonProgressUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonStatusUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -51,7 +50,6 @@ class SeasonDetailViewModelTest {
     private val observeSeasonsForAnimeUseCase: ObserveSeasonsForAnimeUseCase = mockk()
     private val fetchSeasonDetailUseCase: FetchSeasonDetailUseCase = mockk()
     private val fetchEpisodesUseCase: FetchEpisodesUseCase = mockk()
-    private val updateSeasonProgressUseCase: UpdateSeasonProgressUseCase = mockk(relaxed = true)
     private val updateSeasonStatusUseCase: UpdateSeasonStatusUseCase = mockk(relaxed = true)
     private val deleteSeasonUseCase: DeleteSeasonUseCase = mockk(relaxed = true)
     private val addSeasonToWatchlistUseCase: AddSeasonToWatchlistUseCase = mockk(relaxed = true)
@@ -71,7 +69,6 @@ class SeasonDetailViewModelTest {
         malId = 16498,
         title = "Attack on Titan",
         episodeCount = 25,
-        currentEpisode = 12,
         score = 8.5,
         type = "TV",
         airingStatus = "Finished Airing"
@@ -121,7 +118,6 @@ class SeasonDetailViewModelTest {
             observeSeasonsForAnimeUseCase = observeSeasonsForAnimeUseCase,
             fetchSeasonDetailUseCase = fetchSeasonDetailUseCase,
             fetchEpisodesUseCase = fetchEpisodesUseCase,
-            updateSeasonProgressUseCase = updateSeasonProgressUseCase,
             updateSeasonStatusUseCase = updateSeasonStatusUseCase,
             deleteSeasonUseCase = deleteSeasonUseCase,
             addSeasonToWatchlistUseCase = addSeasonToWatchlistUseCase,
@@ -202,66 +198,18 @@ class SeasonDetailViewModelTest {
     }
 
     @Test
-    fun `updateEpisodeProgress delegates to use case`() = runTest {
-        val viewModel = createViewModel()
-
-        viewModel.uiState.test {
-            testDispatcher.scheduler.advanceUntilIdle()
-            expectMostRecentItem()
-
-            viewModel.updateEpisodeProgress(15)
-            testDispatcher.scheduler.advanceUntilIdle()
-
-            coVerify { updateSeasonProgressUseCase(sampleSeason, 15) }
-            cancelAndIgnoreRemainingEvents()
-        }
-    }
-
-    @Test
-    fun `updateEpisodeProgress clamps to max episodes`() = runTest {
-        val viewModel = createViewModel()
-
-        viewModel.uiState.test {
-            testDispatcher.scheduler.advanceUntilIdle()
-            expectMostRecentItem()
-
-            viewModel.updateEpisodeProgress(100)
-            testDispatcher.scheduler.advanceUntilIdle()
-
-            coVerify { updateSeasonProgressUseCase(sampleSeason, 25) }
-            cancelAndIgnoreRemainingEvents()
-        }
-    }
-
-    @Test
-    fun `updateEpisodeProgress clamps to zero minimum`() = runTest {
-        val viewModel = createViewModel()
-
-        viewModel.uiState.test {
-            testDispatcher.scheduler.advanceUntilIdle()
-            expectMostRecentItem()
-
-            viewModel.updateEpisodeProgress(-5)
-            testDispatcher.scheduler.advanceUntilIdle()
-
-            coVerify { updateSeasonProgressUseCase(sampleSeason, 0) }
-            cancelAndIgnoreRemainingEvents()
-        }
-    }
-
-    @Test
     fun `season updates reactively from database`() = runTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
             testDispatcher.scheduler.advanceUntilIdle()
             val initial = expectMostRecentItem() as SeasonDetailUiState.Success
-            assertThat(initial.season.currentEpisode).isEqualTo(12)
+            assertThat(initial.season.title).isEqualTo("Attack on Titan")
 
-            seasonFlow.value = sampleSeason.copy(currentEpisode = 20)
+            seasonFlow.value = sampleSeason.copy(title = "Attack on Titan Updated")
 
             val updated = awaitItem() as SeasonDetailUiState.Success
-            assertThat(updated.season.currentEpisode).isEqualTo(20)
+            assertThat(updated.season.title).isEqualTo("Attack on Titan Updated")
             cancelAndIgnoreRemainingEvents()
         }
     }

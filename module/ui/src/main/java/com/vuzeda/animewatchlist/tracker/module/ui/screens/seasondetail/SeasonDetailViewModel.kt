@@ -22,7 +22,6 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.RefreshSeasonDataUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetAllEpisodesWatchedUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetEpisodeWatchedUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ToggleSeasonEpisodeNotificationsUseCase
-import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonProgressUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonStatusUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,7 +46,6 @@ open class SeasonDetailViewModel @Inject constructor(
     private val observeSeasonsForAnimeUseCase: ObserveSeasonsForAnimeUseCase,
     private val fetchSeasonDetailUseCase: FetchSeasonDetailUseCase,
     private val fetchEpisodesUseCase: FetchEpisodesUseCase,
-    private val updateSeasonProgressUseCase: UpdateSeasonProgressUseCase,
     private val updateSeasonStatusUseCase: UpdateSeasonStatusUseCase,
     private val deleteSeasonUseCase: DeleteSeasonUseCase,
     private val addSeasonToWatchlistUseCase: AddSeasonToWatchlistUseCase,
@@ -304,20 +302,6 @@ open class SeasonDetailViewModel @Inject constructor(
 
         _uiState.update { (it as? SeasonDetailUiState.Success)?.copy(isLoadingEpisodes = true) ?: it }
         loadEpisodes(malId = state.season.malId, page = state.nextEpisodePage)
-    }
-
-    fun updateEpisodeProgress(newEpisode: Int) {
-        val state = _uiState.value
-        if (state !is SeasonDetailUiState.Success) return
-
-        val maxEpisode = state.season.episodeCount
-        val clamped = newEpisode.coerceAtLeast(0).let { ep ->
-            if (maxEpisode != null) ep.coerceAtMost(maxEpisode) else ep
-        }
-
-        viewModelScope.launch {
-            updateSeasonProgressUseCase(state.season, clamped)
-        }
     }
 
     fun showStatusSheet() {

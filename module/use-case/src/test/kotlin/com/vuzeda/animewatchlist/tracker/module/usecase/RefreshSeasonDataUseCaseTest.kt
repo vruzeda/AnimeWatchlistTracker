@@ -27,7 +27,6 @@ class RefreshSeasonDataUseCaseTest {
         type = "TV",
         episodeCount = 25,
         score = 8.4,
-        currentEpisode = 12,
         orderIndex = 0,
         isInWatchlist = true
     )
@@ -80,7 +79,6 @@ class RefreshSeasonDataUseCaseTest {
         assertThat(updated.id).isEqualTo(1L)
         assertThat(updated.animeId).isEqualTo(10L)
         assertThat(updated.malId).isEqualTo(16498)
-        assertThat(updated.currentEpisode).isEqualTo(12)
         assertThat(updated.orderIndex).isEqualTo(0)
         assertThat(updated.isInWatchlist).isTrue()
     }

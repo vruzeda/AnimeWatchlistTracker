@@ -32,7 +32,6 @@ class SeasonRepositoryImplTest {
         title = "Attack on Titan",
         type = "TV",
         episodeCount = 25,
-        currentEpisode = 12,
         score = 8.5,
         orderIndex = 0
     )
@@ -40,6 +39,7 @@ class SeasonRepositoryImplTest {
     @Test
     fun `observeAllSeasons emits all seasons from data source`() = runTest {
         every { seasonLocalDataSource.observeAll() } returns flowOf(listOf(sampleSeason))
+        every { watchedEpisodeLocalDataSource.observeWatchedCountsForAllSeasons() } returns flowOf(emptyMap())
 
         repository.observeAllSeasons().test {
             val result = awaitItem()
@@ -51,8 +51,22 @@ class SeasonRepositoryImplTest {
     }
 
     @Test
+    fun `observeAllSeasons populates watchedEpisodeCount from watched data`() = runTest {
+        every { seasonLocalDataSource.observeAll() } returns flowOf(listOf(sampleSeason))
+        every { watchedEpisodeLocalDataSource.observeWatchedCountsForAllSeasons() } returns flowOf(mapOf(1L to 5))
+
+        repository.observeAllSeasons().test {
+            val result = awaitItem()
+
+            assertThat(result[0].watchedEpisodeCount).isEqualTo(5)
+            awaitComplete()
+        }
+    }
+
+    @Test
     fun `observeSeasonsForAnime emits mapped season domain models`() = runTest {
         every { seasonLocalDataSource.observeByAnimeId(1L) } returns flowOf(listOf(sampleSeason))
+        every { watchedEpisodeLocalDataSource.observeWatchedCountsForAllSeasons() } returns flowOf(emptyMap())
 
         repository.observeSeasonsForAnime(1L).test {
             val result = awaitItem()
@@ -65,8 +79,22 @@ class SeasonRepositoryImplTest {
     }
 
     @Test
+    fun `observeSeasonsForAnime populates watchedEpisodeCount from watched data`() = runTest {
+        every { seasonLocalDataSource.observeByAnimeId(1L) } returns flowOf(listOf(sampleSeason))
+        every { watchedEpisodeLocalDataSource.observeWatchedCountsForAllSeasons() } returns flowOf(mapOf(1L to 3))
+
+        repository.observeSeasonsForAnime(1L).test {
+            val result = awaitItem()
+
+            assertThat(result[0].watchedEpisodeCount).isEqualTo(3)
+            awaitComplete()
+        }
+    }
+
+    @Test
     fun `observeSeasonById emits mapped domain model`() = runTest {
         every { seasonLocalDataSource.observeById(1L) } returns flowOf(sampleSeason)
+        every { watchedEpisodeLocalDataSource.observeWatchedEpisodeNumbers(1L) } returns flowOf(emptySet())
 
         repository.observeSeasonById(1L).test {
             val result = awaitItem()
@@ -74,6 +102,19 @@ class SeasonRepositoryImplTest {
             assertThat(result).isNotNull()
             assertThat(result?.malId).isEqualTo(16498)
             assertThat(result?.title).isEqualTo("Attack on Titan")
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `observeSeasonById populates watchedEpisodeCount from watched data`() = runTest {
+        every { seasonLocalDataSource.observeById(1L) } returns flowOf(sampleSeason)
+        every { watchedEpisodeLocalDataSource.observeWatchedEpisodeNumbers(1L) } returns flowOf(setOf(1, 2, 4))
+
+        repository.observeSeasonById(1L).test {
+            val result = awaitItem()
+
+            assertThat(result?.watchedEpisodeCount).isEqualTo(3)
             awaitComplete()
         }
     }
@@ -154,7 +195,7 @@ class SeasonRepositoryImplTest {
     fun `updateSeason delegates to data source`() = runTest {
         coEvery { seasonLocalDataSource.update(any()) } returns Unit
 
-        repository.updateSeason(Season(id = 1L, animeId = 1L, malId = 100, title = "S1", currentEpisode = 5))
+        repository.updateSeason(Season(id = 1L, animeId = 1L, malId = 100, title = "S1"))
 
         coVerify { seasonLocalDataSource.update(any()) }
     }

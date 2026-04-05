@@ -42,10 +42,10 @@ class HomeViewModelTest {
     )
 
     private val sampleSeasonList = listOf(
-        Season(id = 10L, animeId = 1L, malId = 100, title = "Attack on Titan S1", score = 9.0, episodeCount = 25, currentEpisode = 25),
-        Season(id = 11L, animeId = 1L, malId = 101, title = "Attack on Titan S2", score = 8.5, episodeCount = 12, currentEpisode = 6),
-        Season(id = 20L, animeId = 2L, malId = 200, title = "One Punch Man S1", score = 8.8, episodeCount = 12, currentEpisode = 12),
-        Season(id = 30L, animeId = 3L, malId = 300, title = "Bleach S1", score = 7.5, episodeCount = 50, currentEpisode = 10)
+        Season(id = 10L, animeId = 1L, malId = 100, title = "Attack on Titan S1", score = 9.0, episodeCount = 25, watchedEpisodeCount = 25),
+        Season(id = 11L, animeId = 1L, malId = 101, title = "Attack on Titan S2", score = 8.5, episodeCount = 12, watchedEpisodeCount = 6),
+        Season(id = 20L, animeId = 2L, malId = 200, title = "One Punch Man S1", score = 8.8, episodeCount = 12, watchedEpisodeCount = 12),
+        Season(id = 30L, animeId = 3L, malId = 300, title = "Bleach S1", score = 7.5, episodeCount = 50, watchedEpisodeCount = 10)
     )
 
     @BeforeEach

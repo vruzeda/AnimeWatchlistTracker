@@ -553,15 +553,15 @@ private fun SeasonCardItem(
     )
     val totalEpisodes = season.episodeCount
     val episodeText = if (season.isInWatchlist && totalEpisodes != null) {
-        stringResource(R.string.anime_detail_season_episodes, season.currentEpisode, totalEpisodes)
-    } else if (season.isInWatchlist && season.currentEpisode > 0) {
-        stringResource(R.string.anime_detail_season_episodes_no_total, season.currentEpisode)
+        stringResource(R.string.anime_detail_season_episodes, season.watchedEpisodeCount, totalEpisodes)
+    } else if (season.isInWatchlist && season.watchedEpisodeCount > 0) {
+        stringResource(R.string.anime_detail_season_episodes_no_total, season.watchedEpisodeCount)
     } else {
         totalEpisodes?.let { stringResource(R.string.season_detail_episode_count, it) }
     }
 
     val progress = if (season.isInWatchlist && totalEpisodes != null && totalEpisodes > 0) {
-        season.currentEpisode.toFloat() / totalEpisodes.toFloat()
+        season.watchedEpisodeCount.toFloat() / totalEpisodes.toFloat()
     } else {
         null
     }

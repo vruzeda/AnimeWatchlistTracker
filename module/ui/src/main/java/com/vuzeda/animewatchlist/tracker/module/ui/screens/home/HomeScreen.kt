@@ -192,12 +192,12 @@ fun HomeScreen(
                         val episodeText = item.season.episodeCount?.let { total ->
                             stringResource(
                                 R.string.home_episode_with_total,
-                                item.season.currentEpisode,
+                                item.season.watchedEpisodeCount,
                                 total
                             )
                         } ?: stringResource(
                             R.string.home_episode_without_total,
-                            item.season.currentEpisode
+                            item.season.watchedEpisodeCount
                         )
                         AnimeCard(
                             title = displayTitle,

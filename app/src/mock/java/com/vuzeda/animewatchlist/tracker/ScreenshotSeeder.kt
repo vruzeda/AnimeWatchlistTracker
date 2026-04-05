@@ -36,8 +36,8 @@ class ScreenshotSeeder @Inject constructor(
             genres = listOf("Action", "Drama", "Fantasy"),
             addedAt = now - 86400000 * 30
         ) to listOf(
-            Season(animeId = 0, malId = 16498, title = "Attack on Titan", imageUrl = "https://cdn.myanimelist.net/images/anime/10/47347.jpg", episodeCount = 25, currentEpisode = 18, score = 8.54, orderIndex = 0),
-            Season(animeId = 0, malId = 25777, title = "Attack on Titan Season 2", imageUrl = "https://cdn.myanimelist.net/images/anime/4/84177.jpg", episodeCount = 12, currentEpisode = 8, score = 8.48, orderIndex = 1),
+            Season(animeId = 0, malId = 16498, title = "Attack on Titan", imageUrl = "https://cdn.myanimelist.net/images/anime/10/47347.jpg", episodeCount = 25, watchedEpisodeCount = 18, score = 8.54, orderIndex = 0),
+            Season(animeId = 0, malId = 25777, title = "Attack on Titan Season 2", imageUrl = "https://cdn.myanimelist.net/images/anime/4/84177.jpg", episodeCount = 12, watchedEpisodeCount = 8, score = 8.48, orderIndex = 1),
         ),
         Anime(
             title = "One Punch Man",
@@ -48,8 +48,8 @@ class ScreenshotSeeder @Inject constructor(
             genres = listOf("Action", "Comedy", "Sci-Fi", "Supernatural"),
             addedAt = now - 86400000 * 60
         ) to listOf(
-            Season(animeId = 0, malId = 21, title = "One Punch Man", episodeCount = 12, currentEpisode = 12, score = 8.50, orderIndex = 0),
-            Season(animeId = 0, malId = 30276, title = "One Punch Man Season 2", episodeCount = 12, currentEpisode = 12, score = 7.43, orderIndex = 1)
+            Season(animeId = 0, malId = 21, title = "One Punch Man", episodeCount = 12, watchedEpisodeCount = 12, score = 8.50, orderIndex = 0),
+            Season(animeId = 0, malId = 30276, title = "One Punch Man Season 2", episodeCount = 12, watchedEpisodeCount = 12, score = 7.43, orderIndex = 1)
         ),
         Anime(
             title = "Death Note",
@@ -60,7 +60,7 @@ class ScreenshotSeeder @Inject constructor(
             genres = listOf("Mystery", "Psychological", "Supernatural", "Thriller"),
             addedAt = now - 86400000 * 90
         ) to listOf(
-            Season(animeId = 0, malId = 1535, title = "Death Note", episodeCount = 37, currentEpisode = 37, score = 8.62, orderIndex = 0)
+            Season(animeId = 0, malId = 1535, title = "Death Note", episodeCount = 37, watchedEpisodeCount = 37, score = 8.62, orderIndex = 0)
         ),
         Anime(
             title = "Hunter x Hunter (2011)",
@@ -71,7 +71,7 @@ class ScreenshotSeeder @Inject constructor(
             genres = listOf("Action", "Adventure", "Fantasy"),
             addedAt = now - 86400000 * 14
         ) to listOf(
-            Season(animeId = 0, malId = 11061, title = "Hunter x Hunter (2011)", episodeCount = 148, currentEpisode = 75, score = 9.04, orderIndex = 0)
+            Season(animeId = 0, malId = 11061, title = "Hunter x Hunter (2011)", episodeCount = 148, watchedEpisodeCount = 75, score = 9.04, orderIndex = 0)
         ),
         Anime(
             title = "Gintama",
@@ -82,7 +82,7 @@ class ScreenshotSeeder @Inject constructor(
             genres = listOf("Action", "Comedy", "Drama", "Sci-Fi"),
             addedAt = now - 86400000 * 45
         ) to listOf(
-            Season(animeId = 0, malId = 28977, title = "Gintama°", episodeCount = 51, currentEpisode = 20, score = 9.06, orderIndex = 0)
+            Season(animeId = 0, malId = 28977, title = "Gintama°", episodeCount = 51, watchedEpisodeCount = 20, score = 9.06, orderIndex = 0)
         ),
         Anime(
             title = "Spy x Family",
@@ -93,7 +93,7 @@ class ScreenshotSeeder @Inject constructor(
             genres = listOf("Action", "Comedy", "Slice of Life"),
             addedAt = now - 86400000 * 20
         ) to listOf(
-            Season(animeId = 0, malId = 50265, title = "Spy x Family", episodeCount = 12, currentEpisode = 12, score = 8.53, orderIndex = 0)
+            Season(animeId = 0, malId = 50265, title = "Spy x Family", episodeCount = 12, watchedEpisodeCount = 12, score = 8.53, orderIndex = 0)
         ),
         Anime(
             title = "Fullmetal Alchemist: Brotherhood",
@@ -114,7 +114,7 @@ class ScreenshotSeeder @Inject constructor(
             genres = listOf("Action", "Adventure", "Fantasy"),
             addedAt = now - 86400000 * 120
         ) to listOf(
-            Season(animeId = 0, malId = 20, title = "Naruto", episodeCount = 220, currentEpisode = 135, score = 8.0, orderIndex = 0)
+            Season(animeId = 0, malId = 20, title = "Naruto", episodeCount = 220, watchedEpisodeCount = 135, score = 8.0, orderIndex = 0)
         ),
         Anime(
             title = "Steins;Gate",
@@ -125,7 +125,7 @@ class ScreenshotSeeder @Inject constructor(
             genres = listOf("Drama", "Sci-Fi", "Suspense"),
             addedAt = now - 86400000 * 7
         ) to listOf(
-            Season(animeId = 0, malId = 9253, title = "Steins;Gate", episodeCount = 24, currentEpisode = 10, score = 9.07, orderIndex = 0)
+            Season(animeId = 0, malId = 9253, title = "Steins;Gate", episodeCount = 24, watchedEpisodeCount = 10, score = 9.07, orderIndex = 0)
         )
     )
 }

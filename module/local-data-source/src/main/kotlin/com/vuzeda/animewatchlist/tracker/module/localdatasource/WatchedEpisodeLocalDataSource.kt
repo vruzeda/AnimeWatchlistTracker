@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface WatchedEpisodeLocalDataSource {
     fun observeWatchedEpisodeNumbers(seasonId: Long): Flow<Set<Int>>
+    fun observeWatchedCountsForAllSeasons(): Flow<Map<Long, Int>>
     suspend fun markWatched(seasonId: Long, episodeNumber: Int)
     suspend fun markUnwatched(seasonId: Long, episodeNumber: Int)
 }
