@@ -4,6 +4,7 @@ import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.SeasonLocalDataSource
+import com.vuzeda.animewatchlist.tracker.module.localdatasource.WatchedEpisodeLocalDataSource
 import com.vuzeda.animewatchlist.tracker.module.repository.TransactionRunner
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -18,10 +19,11 @@ import java.time.LocalDate
 class SeasonRepositoryImplTest {
 
     private val seasonLocalDataSource: SeasonLocalDataSource = mockk()
+    private val watchedEpisodeLocalDataSource: WatchedEpisodeLocalDataSource = mockk()
     private val transactionRunner = object : TransactionRunner {
         override suspend fun <T> runInTransaction(block: suspend () -> T): T = block()
     }
-    private val repository = SeasonRepositoryImpl(seasonLocalDataSource, transactionRunner)
+    private val repository = SeasonRepositoryImpl(seasonLocalDataSource, watchedEpisodeLocalDataSource, transactionRunner)
 
     private val sampleSeason = Season(
         id = 1L,
@@ -223,5 +225,37 @@ class SeasonRepositoryImplTest {
         repository.updateLastEpisodeCheckDate(1L, date)
 
         coVerify { seasonLocalDataSource.updateLastEpisodeCheckDate(1L, date) }
+    }
+
+    @Test
+    fun `observeWatchedEpisodesForSeason emits set from data source`() = runTest {
+        every { watchedEpisodeLocalDataSource.observeWatchedEpisodeNumbers(1L) } returns flowOf(setOf(1, 3))
+
+        repository.observeWatchedEpisodesForSeason(1L).test {
+            val result = awaitItem()
+
+            assertThat(result).containsExactly(1, 3)
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `setEpisodeWatched marks episode as watched`() = runTest {
+        coEvery { watchedEpisodeLocalDataSource.markWatched(1L, 5) } returns Unit
+
+        repository.setEpisodeWatched(seasonId = 1L, episodeNumber = 5, isWatched = true)
+
+        coVerify { watchedEpisodeLocalDataSource.markWatched(1L, 5) }
+        coVerify(exactly = 0) { watchedEpisodeLocalDataSource.markUnwatched(any(), any()) }
+    }
+
+    @Test
+    fun `setEpisodeWatched marks episode as unwatched`() = runTest {
+        coEvery { watchedEpisodeLocalDataSource.markUnwatched(1L, 5) } returns Unit
+
+        repository.setEpisodeWatched(seasonId = 1L, episodeNumber = 5, isWatched = false)
+
+        coVerify { watchedEpisodeLocalDataSource.markUnwatched(1L, 5) }
+        coVerify(exactly = 0) { watchedEpisodeLocalDataSource.markWatched(any(), any()) }
     }
 }

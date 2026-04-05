@@ -3,6 +3,20 @@ package com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val MIGRATION_14_15 = object : Migration(14, 15) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `watched_episode` " +
+                "(`seasonId` INTEGER NOT NULL, `episodeNumber` INTEGER NOT NULL, " +
+                "PRIMARY KEY(`seasonId`, `episodeNumber`), " +
+                "FOREIGN KEY(`seasonId`) REFERENCES `season`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE)"
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS `index_watched_episode_seasonId` ON `watched_episode` (`seasonId`)"
+        )
+    }
+}
+
 val MIGRATION_13_14 = object : Migration(13, 14) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("CREATE TABLE IF NOT EXISTS `scheduler_state` (`id` INTEGER NOT NULL, `lastAnimeUpdateRunAt` INTEGER, PRIMARY KEY(`id`))")

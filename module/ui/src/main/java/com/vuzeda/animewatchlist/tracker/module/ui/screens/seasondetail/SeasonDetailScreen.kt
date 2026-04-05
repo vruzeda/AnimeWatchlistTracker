@@ -53,7 +53,6 @@ import coil.compose.AsyncImage
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.ConfirmationDialog
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.EmptyStateMessage
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.EpisodeListItem
-import com.vuzeda.animewatchlist.tracker.module.designsystem.component.EpisodeStepper
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.NotificationButton
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusChip
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusOption
@@ -89,6 +88,7 @@ fun SeasonDetailScreenRoute(
         onStatusSelected = viewModel::updateStatus,
         onDismissStatusSheet = viewModel::dismissStatusSheet,
         onEpisodeProgressChanged = viewModel::updateEpisodeProgress,
+        onEpisodeWatched = viewModel::setEpisodeWatched,
         onLoadMoreEpisodes = viewModel::loadMoreEpisodes,
         onDeleteClick = viewModel::showDeleteConfirmation,
         onConfirmDelete = viewModel::confirmDelete,
@@ -113,6 +113,7 @@ fun SeasonDetailScreen(
     onStatusSelected: (WatchStatus) -> Unit,
     onDismissStatusSheet: () -> Unit,
     onEpisodeProgressChanged: (Int) -> Unit,
+    onEpisodeWatched: (Int, Boolean) -> Unit,
     onLoadMoreEpisodes: () -> Unit,
     onDeleteClick: () -> Unit,
     onConfirmDelete: () -> Unit,
@@ -198,7 +199,7 @@ fun SeasonDetailScreen(
                         SeasonDetailContent(
                             state = uiState,
                             onStatusChipClick = onStatusChipClick,
-                            onEpisodeProgressChanged = onEpisodeProgressChanged,
+                            onEpisodeWatched = onEpisodeWatched,
                             onLoadMoreEpisodes = onLoadMoreEpisodes,
                             onAddToWatchlistClick = onAddToWatchlistClick,
                             onViewFullSeriesClick = onViewFullSeriesClick
@@ -274,7 +275,7 @@ fun SeasonDetailScreen(
 private fun SeasonDetailContent(
     state: SeasonDetailUiState.Success,
     onStatusChipClick: () -> Unit,
-    onEpisodeProgressChanged: (Int) -> Unit,
+    onEpisodeWatched: (Int, Boolean) -> Unit,
     onLoadMoreEpisodes: () -> Unit,
     onAddToWatchlistClick: () -> Unit,
     onViewFullSeriesClick: () -> Unit
@@ -340,23 +341,6 @@ private fun SeasonDetailContent(
             }
         }
 
-        if (state.isInWatchlist) {
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Text(
-                text = stringResource(R.string.season_detail_section_progress),
-                style = MaterialTheme.typography.titleLarge
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            EpisodeStepper(
-                currentEpisode = season.currentEpisode,
-                totalEpisodes = season.episodeCount,
-                onEpisodeChanged = onEpisodeProgressChanged
-            )
-        }
-
         if (state.episodes.isNotEmpty() || state.isLoadingEpisodes) {
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -374,7 +358,11 @@ private fun SeasonDetailContent(
                     airedDate = episode.aired,
                     isFiller = episode.isFiller,
                     isRecap = episode.isRecap,
-                    showDivider = index < state.episodes.size - 1 || state.hasMoreEpisodes
+                    showDivider = index < state.episodes.size - 1 || state.hasMoreEpisodes,
+                    isWatched = episode.number in state.watchedEpisodes,
+                    onWatchedToggle = if (state.isInWatchlist) {
+                        { onEpisodeWatched(episode.number, episode.number !in state.watchedEpisodes) }
+                    } else null
                 )
             }
 

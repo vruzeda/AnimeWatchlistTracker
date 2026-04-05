@@ -4,11 +4,13 @@ import android.content.Context
 import androidx.room.Room
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.AnimeLocalDataSource
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.SeasonLocalDataSource
+import com.vuzeda.animewatchlist.tracker.module.localdatasource.WatchedEpisodeLocalDataSource
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database.AnimeDatabase
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database.MIGRATION_10_11
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database.MIGRATION_11_12
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database.MIGRATION_12_13
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database.MIGRATION_13_14
+import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database.MIGRATION_14_15
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database.MIGRATION_6_7
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database.MIGRATION_7_8
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database.MIGRATION_8_9
@@ -34,7 +36,7 @@ object LocalDataSourceModule {
             AnimeDatabase::class.java,
             "anime_watchlist.db"
         )
-            .addMigrations(MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14)
+            .addMigrations(MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14, MIGRATION_14_15)
             .build()
 
     @Provides
@@ -46,6 +48,11 @@ object LocalDataSourceModule {
     @Singleton
     fun provideSeasonLocalDataSource(database: AnimeDatabase): SeasonLocalDataSource =
         database.seasonDao()
+
+    @Provides
+    @Singleton
+    fun provideWatchedEpisodeLocalDataSource(database: AnimeDatabase): WatchedEpisodeLocalDataSource =
+        database.watchedEpisodeDao()
 
     @Provides
     @Singleton

@@ -19,7 +19,9 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSeasonByIdUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSeasonsForAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveIsNotificationDebugInfoEnabledUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveWatchedEpisodesUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.RefreshSeasonDataUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.SetEpisodeWatchedUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ToggleSeasonEpisodeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonProgressUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonStatusUseCase
@@ -58,6 +60,8 @@ class SeasonDetailViewModelTest {
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
     private val refreshSeasonDataUseCase: RefreshSeasonDataUseCase = mockk(relaxed = true)
     private val observeIsNotificationDebugInfoEnabledUseCase: ObserveIsNotificationDebugInfoEnabledUseCase = mockk()
+    private val observeWatchedEpisodesUseCase: ObserveWatchedEpisodesUseCase = mockk()
+    private val setEpisodeWatchedUseCase: SetEpisodeWatchedUseCase = mockk(relaxed = true)
 
     private val sampleSeason = Season(
         id = 1L,
@@ -85,6 +89,7 @@ class SeasonDetailViewModelTest {
         every { observeSeasonByIdUseCase(1L) } returns seasonFlow
         every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
         every { observeIsNotificationDebugInfoEnabledUseCase() } returns flowOf(false)
+        every { observeWatchedEpisodesUseCase(any()) } returns flowOf(emptySet())
         every { observeSeasonsForAnimeUseCase(any()) } returns flowOf(listOf(sampleSeason))
         coEvery { findSeasonIdByMalIdUseCase(any()) } returns null
         coEvery { fetchEpisodesUseCase(malId = 16498, page = 1) } returns Result.success(
@@ -123,7 +128,9 @@ class SeasonDetailViewModelTest {
             toggleSeasonEpisodeNotificationsUseCase = toggleSeasonEpisodeNotificationsUseCase,
             observeTitleLanguageUseCase = observeTitleLanguageUseCase,
             refreshSeasonDataUseCase = refreshSeasonDataUseCase,
-            observeIsNotificationDebugInfoEnabledUseCase = observeIsNotificationDebugInfoEnabledUseCase
+            observeIsNotificationDebugInfoEnabledUseCase = observeIsNotificationDebugInfoEnabledUseCase,
+            observeWatchedEpisodesUseCase = observeWatchedEpisodesUseCase,
+            setEpisodeWatchedUseCase = setEpisodeWatchedUseCase
         ) {
             override fun localZoneId(): ZoneId = localZoneId
         }
@@ -654,6 +661,52 @@ class SeasonDetailViewModelTest {
 
             val state = expectMostRecentItem() as SeasonDetailUiState.Success
             assertThat(state.isNotificationDebugInfoEnabled).isTrue()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `watchedEpisodes defaults to empty set on initial load`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val state = expectMostRecentItem() as SeasonDetailUiState.Success
+            assertThat(state.watchedEpisodes).isEmpty()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `setEpisodeWatched delegates to use case`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.setEpisodeWatched(3, true)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            coVerify { setEpisodeWatchedUseCase(sampleSeason.id, 3, true) }
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `setEpisodeWatched does nothing when not in watchlist`() = runTest {
+        seasonFlow.value = sampleSeason.copy(isInWatchlist = false)
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.setEpisodeWatched(1, true)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            coVerify(exactly = 0) { setEpisodeWatchedUseCase(any(), any(), any()) }
             cancelAndIgnoreRemainingEvents()
         }
     }

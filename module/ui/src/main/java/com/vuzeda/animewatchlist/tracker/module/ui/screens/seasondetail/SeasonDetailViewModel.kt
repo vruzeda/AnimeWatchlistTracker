@@ -17,7 +17,9 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSeasonByIdUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSeasonsForAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveIsNotificationDebugInfoEnabledUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveWatchedEpisodesUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.RefreshSeasonDataUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.SetEpisodeWatchedUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ToggleSeasonEpisodeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonProgressUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonStatusUseCase
@@ -53,7 +55,9 @@ open class SeasonDetailViewModel @Inject constructor(
     private val toggleSeasonEpisodeNotificationsUseCase: ToggleSeasonEpisodeNotificationsUseCase,
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase,
     private val refreshSeasonDataUseCase: RefreshSeasonDataUseCase,
-    private val observeIsNotificationDebugInfoEnabledUseCase: ObserveIsNotificationDebugInfoEnabledUseCase
+    private val observeIsNotificationDebugInfoEnabledUseCase: ObserveIsNotificationDebugInfoEnabledUseCase,
+    private val observeWatchedEpisodesUseCase: ObserveWatchedEpisodesUseCase,
+    private val setEpisodeWatchedUseCase: SetEpisodeWatchedUseCase
 ) : ViewModel() {
 
     private val seasonId: Long = checkNotNull(savedStateHandle["seasonId"])
@@ -72,6 +76,7 @@ open class SeasonDetailViewModel @Inject constructor(
         observeNotificationDebugInfo()
         if (seasonId > 0) {
             observeSeason()
+            observeWatchedEpisodes(seasonId)
         } else if (malId > 0) {
             loadFromApi()
         } else {
@@ -119,6 +124,23 @@ open class SeasonDetailViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    private fun observeWatchedEpisodes(seasonId: Long) {
+        viewModelScope.launch {
+            observeWatchedEpisodesUseCase(seasonId).collect { watched ->
+                _uiState.update { state ->
+                    if (state is SeasonDetailUiState.Success) state.copy(watchedEpisodes = watched)
+                    else state
+                }
+            }
+        }
+    }
+
+    fun setEpisodeWatched(episodeNumber: Int, isWatched: Boolean) {
+        val state = _uiState.value
+        if (state !is SeasonDetailUiState.Success || !state.isInWatchlist) return
+        viewModelScope.launch { setEpisodeWatchedUseCase(state.season.id, episodeNumber, isWatched) }
     }
 
     private fun observeSeason() {
@@ -472,6 +494,7 @@ open class SeasonDetailViewModel @Inject constructor(
     }
 
     private fun observeSeason(seasonId: Long) {
+        observeWatchedEpisodes(seasonId)
         viewModelScope.launch {
             observeSeasonByIdUseCase(seasonId).collect { season ->
                 if (season != null) {

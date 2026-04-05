@@ -2,6 +2,7 @@ package com.vuzeda.animewatchlist.tracker.module.repository.impl
 
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.SeasonLocalDataSource
+import com.vuzeda.animewatchlist.tracker.module.localdatasource.WatchedEpisodeLocalDataSource
 import com.vuzeda.animewatchlist.tracker.module.repository.SeasonRepository
 import com.vuzeda.animewatchlist.tracker.module.repository.TransactionRunner
 import kotlinx.coroutines.flow.Flow
@@ -11,6 +12,7 @@ import javax.inject.Inject
 
 class SeasonRepositoryImpl @Inject constructor(
     private val seasonLocalDataSource: SeasonLocalDataSource,
+    private val watchedEpisodeLocalDataSource: WatchedEpisodeLocalDataSource,
     private val transactionRunner: TransactionRunner
 ) : SeasonRepository {
 
@@ -68,5 +70,13 @@ class SeasonRepositoryImpl @Inject constructor(
 
     override suspend fun updateLastEpisodeCheckDate(seasonId: Long, date: LocalDate) {
         seasonLocalDataSource.updateLastEpisodeCheckDate(seasonId = seasonId, date = date)
+    }
+
+    override fun observeWatchedEpisodesForSeason(seasonId: Long): Flow<Set<Int>> =
+        watchedEpisodeLocalDataSource.observeWatchedEpisodeNumbers(seasonId)
+
+    override suspend fun setEpisodeWatched(seasonId: Long, episodeNumber: Int, isWatched: Boolean) {
+        if (isWatched) watchedEpisodeLocalDataSource.markWatched(seasonId, episodeNumber)
+        else watchedEpisodeLocalDataSource.markUnwatched(seasonId, episodeNumber)
     }
 }
