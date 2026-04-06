@@ -17,6 +17,9 @@ class ChiakiServiceImpl(
         withContext(Dispatchers.IO) {
             val request = Request.Builder()
                 .url("${ChiakiService.BASE_URL}?/tools/watch_order/id/$malId")
+                .header("User-Agent", BROWSER_USER_AGENT)
+                .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                .header("Accept-Language", "en-US,en;q=0.5")
                 .build()
 
             val html = okHttpClient.newCall(request).execute().use { response ->
@@ -38,6 +41,9 @@ class ChiakiServiceImpl(
         }
 
     companion object {
+        private const val BROWSER_USER_AGENT =
+            "Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36"
+
         private val ROW_PATTERN = Regex(
             """<tr[^>]*\bdata-id="(\d+)"[^>]*\bdata-type="(\d+)"[^>]*\bdata-eps="(\d*)"[^>]*>"""
         )
