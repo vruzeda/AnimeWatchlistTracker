@@ -18,7 +18,9 @@ data class AnimeFullDetails(
     val broadcastTimezone: String? = null,
     val streamingLinks: List<StreamingInfo> = emptyList(),
     val sequels: List<SequelInfo>,
-    val prequels: List<SequelInfo> = emptyList()
+    val prequels: List<SequelInfo> = emptyList(),
+    val airingSeasonName: String? = null,
+    val airingSeasonYear: Int? = null
 )
 
 data class SequelInfo(

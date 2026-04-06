@@ -42,4 +42,18 @@ class AnimeUpdateWorkerScheduler @Inject constructor(
                 .build()
         )
     }
+
+    override fun scheduleAiringSeasonBackfill() {
+        workManager.enqueueUniqueWork(
+            BackfillAiringSeasonWorker.WORK_NAME,
+            ExistingWorkPolicy.KEEP,
+            OneTimeWorkRequestBuilder<BackfillAiringSeasonWorker>()
+                .setConstraints(
+                    Constraints.Builder()
+                        .setRequiredNetworkType(NetworkType.CONNECTED)
+                        .build()
+                )
+                .build()
+        )
+    }
 }

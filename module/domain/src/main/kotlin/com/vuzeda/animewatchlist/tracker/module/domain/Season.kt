@@ -25,5 +25,7 @@ data class Season(
     val lastCheckedAiredEpisodeCount: Int? = null,
     val lastEpisodeCheckDate: LocalDate? = null,
     val isEpisodeNotificationsEnabled: Boolean = false,
-    val isInWatchlist: Boolean = true
+    val isInWatchlist: Boolean = true,
+    val airingSeasonName: String? = null,
+    val airingSeasonYear: Int? = null
 )

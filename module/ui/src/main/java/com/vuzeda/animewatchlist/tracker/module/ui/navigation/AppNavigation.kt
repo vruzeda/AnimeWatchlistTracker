@@ -28,6 +28,7 @@ import com.vuzeda.animewatchlist.tracker.module.ui.R
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.animedetail.AnimeDetailScreenRoute
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.developer.DeveloperScreenRoute
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.home.HomeScreenRoute
+import com.vuzeda.animewatchlist.tracker.module.ui.screens.schedule.ScheduleScreenRoute
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.search.SearchScreenRoute
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.seasondetail.SeasonDetailScreenRoute
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.seasons.SeasonsScreenRoute
@@ -104,6 +105,18 @@ fun AppNavigation(
                     onAnimeClick = { animeId ->
                         navController.navigate(Route.AnimeDetail(animeId = animeId))
                     },
+                    onSeasonClick = { seasonId ->
+                        navController.navigate(Route.SeasonDetail(seasonId = seasonId))
+                    },
+                    onScheduleClick = {
+                        navController.navigate(Route.Schedule)
+                    }
+                )
+            }
+
+            composable<Route.Schedule> {
+                ScheduleScreenRoute(
+                    onNavigateBack = { navController.popBackStack() },
                     onSeasonClick = { seasonId ->
                         navController.navigate(Route.SeasonDetail(seasonId = seasonId))
                     }

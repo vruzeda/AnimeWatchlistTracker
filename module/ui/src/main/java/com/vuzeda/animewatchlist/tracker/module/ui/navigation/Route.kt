@@ -24,5 +24,8 @@ sealed interface Route {
     data class SeasonDetail(val seasonId: Long = 0, val malId: Int = 0) : Route
 
     @Serializable
+    data object Schedule : Route
+
+    @Serializable
     data object Developer : Route
 }

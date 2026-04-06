@@ -160,4 +160,19 @@
         <item quantity="one">%1$d tap to enable developer options</item>
         <item quantity="other">%1$d taps to enable developer options</item>
     </plurals>
+
+    <!-- ScheduleScreen -->
+    <string name="schedule_title">Schedule</string>
+    <string name="cd_open_schedule">Open schedule</string>
+    <string name="schedule_empty_title">No schedule yet</string>
+    <string name="schedule_empty_subtitle">Add airing anime to your watchlist and their broadcast day will appear here</string>
+    <string name="schedule_day_monday">Monday</string>
+    <string name="schedule_day_tuesday">Tuesday</string>
+    <string name="schedule_day_wednesday">Wednesday</string>
+    <string name="schedule_day_thursday">Thursday</string>
+    <string name="schedule_day_friday">Friday</string>
+    <string name="schedule_day_saturday">Saturday</string>
+    <string name="schedule_day_sunday">Sunday</string>
+    <string name="schedule_day_unknown">Unknown Day</string>
+    <string name="schedule_season_no_data">No shows scheduled this season</string>
 </resources>

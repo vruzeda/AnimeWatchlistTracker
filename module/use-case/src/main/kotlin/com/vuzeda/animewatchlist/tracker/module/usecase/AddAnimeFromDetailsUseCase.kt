@@ -38,7 +38,9 @@ class AddAnimeFromDetailsUseCase @Inject constructor(
             streamingLinks = details.streamingLinks,
             orderIndex = orderIndex,
             status = status,
-            isInWatchlist = true
+            isInWatchlist = true,
+            airingSeasonName = details.airingSeasonName,
+            airingSeasonYear = details.airingSeasonYear
         )
 
         seasonRepository.findAnimeIdBySeasonMalId(details.malId)?.let { return it }

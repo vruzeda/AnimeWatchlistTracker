@@ -23,7 +23,9 @@ data class AnimeFullDataDto(
     @Json(name = "status") val status: String? = null,
     @Json(name = "broadcast") val broadcast: BroadcastDto? = null,
     @Json(name = "streaming") val streaming: List<StreamingDto>? = null,
-    @Json(name = "relations") val relations: List<AnimeRelationDto>? = null
+    @Json(name = "relations") val relations: List<AnimeRelationDto>? = null,
+    @Json(name = "season") val season: String? = null,
+    @Json(name = "year") val year: Int? = null
 )
 
 @JsonClass(generateAdapter = true)

@@ -8,8 +8,12 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -47,6 +51,7 @@ private val notificationValues = listOf(null, true, false)
 fun HomeScreenRoute(
     onAnimeClick: (Long) -> Unit,
     onSeasonClick: (Long) -> Unit,
+    onScheduleClick: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -57,7 +62,8 @@ fun HomeScreenRoute(
         onResetFilters = viewModel::resetFilters,
         onSortSelected = viewModel::selectSort,
         onAnimeClick = onAnimeClick,
-        onSeasonClick = onSeasonClick
+        onSeasonClick = onSeasonClick,
+        onScheduleClick = onScheduleClick
     )
 }
 
@@ -70,7 +76,8 @@ fun HomeScreen(
     onResetFilters: () -> Unit,
     onSortSelected: (HomeSortOption) -> Unit,
     onAnimeClick: (Long) -> Unit,
-    onSeasonClick: (Long) -> Unit
+    onSeasonClick: (Long) -> Unit,
+    onScheduleClick: () -> Unit
 ) {
     val sortOptions = HomeSortOption.entries.map { stringResource(it.displayLabelRes) }
 
@@ -102,6 +109,12 @@ fun HomeScreen(
             title = { Text(stringResource(R.string.home_title)) },
             windowInsets = WindowInsets(0, 0, 0, 0),
             actions = {
+                IconButton(onClick = onScheduleClick) {
+                    Icon(
+                        imageVector = Icons.Outlined.CalendarMonth,
+                        contentDescription = stringResource(R.string.cd_open_schedule)
+                    )
+                }
                 NestedFilterMenuButton(
                     filterGroups = listOf(statusFilterGroup, notificationFilterGroup),
                     onOptionSelected = { groupIndex, optionIndex ->
