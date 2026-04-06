@@ -694,4 +694,24 @@ class SeasonDetailViewModelTest {
             cancelAndIgnoreRemainingEvents()
         }
     }
+
+    @Test
+    fun `watchedEpisodes are present on first Success emission when they emit before season`() = runTest {
+        val delayedSeasonFlow = MutableStateFlow<Season?>(null)
+        every { observeSeasonByIdUseCase(1L) } returns delayedSeasonFlow
+        every { observeWatchedEpisodesUseCase(1L) } returns flowOf(setOf(1, 2, 3))
+
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            awaitItem() // Loading
+
+            delayedSeasonFlow.value = sampleSeason
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val success = expectMostRecentItem() as SeasonDetailUiState.Success
+            assertThat(success.watchedEpisodes).containsExactly(1, 2, 3)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
 }

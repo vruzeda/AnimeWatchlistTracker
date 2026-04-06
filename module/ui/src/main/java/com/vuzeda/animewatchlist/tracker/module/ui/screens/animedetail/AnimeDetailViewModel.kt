@@ -60,14 +60,7 @@ class AnimeDetailViewModel @Inject constructor(
 
     private var observeJob: Job? = null
 
-    private var resolvedAnime: Anime? = null
-    private var resolvedSeasons: List<Season> = emptyList()
-    private var latestTitleLanguage: TitleLanguage = TitleLanguage.DEFAULT
-    private var latestIsNotificationDebugInfoEnabled: Boolean = false
-
     init {
-        observeTitleLanguage()
-        observeNotificationDebugInfo()
         if (animeId > 0) {
             observeAnime(animeId)
         } else if (malId > 0) {
@@ -77,43 +70,17 @@ class AnimeDetailViewModel @Inject constructor(
         }
     }
 
-    private fun observeTitleLanguage() {
-        viewModelScope.launch {
-            observeTitleLanguageUseCase().collect { titleLanguage ->
-                latestTitleLanguage = titleLanguage
-                _uiState.update { state ->
-                    when (state) {
-                        is AnimeDetailUiState.Success -> state.copy(titleLanguage = titleLanguage)
-                        else -> state
-                    }
-                }
-            }
-        }
-    }
-
-    private fun observeNotificationDebugInfo() {
-        viewModelScope.launch {
-            observeIsNotificationDebugInfoEnabledUseCase().collect { enabled ->
-                latestIsNotificationDebugInfoEnabled = enabled
-                _uiState.update { state ->
-                    when (state) {
-                        is AnimeDetailUiState.Success -> state.copy(isNotificationDebugInfoEnabled = enabled)
-                        else -> state
-                    }
-                }
-            }
-        }
-    }
-
     private fun observeAnime(id: Long) {
         observeJob?.cancel()
         observeJob = viewModelScope.launch {
             combine(
                 observeAnimeByIdUseCase(id),
-                observeSeasonsForAnimeUseCase(id)
-            ) { anime, seasons ->
-                anime to seasons
-            }.collect { (anime, seasons) ->
+                observeSeasonsForAnimeUseCase(id),
+                observeTitleLanguageUseCase(),
+                observeIsNotificationDebugInfoEnabledUseCase()
+            ) { anime, seasons, titleLanguage, isNotificationDebugInfoEnabled ->
+                AnimeCombinedData(anime, seasons, titleLanguage, isNotificationDebugInfoEnabled)
+            }.collect { (anime, seasons, titleLanguage, isNotificationDebugInfoEnabled) ->
                 if (anime != null) {
                     _uiState.update { currentState ->
                         when (currentState) {
@@ -121,14 +88,16 @@ class AnimeDetailViewModel @Inject constructor(
                                 anime = anime,
                                 seasons = seasons,
                                 isInWatchlist = true,
-                                notificationType = anime.notificationType
+                                notificationType = anime.notificationType,
+                                titleLanguage = titleLanguage,
+                                isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled
                             )
                             else -> AnimeDetailUiState.Success(
                                 anime = anime,
                                 seasons = seasons,
                                 isInWatchlist = true,
-                                titleLanguage = latestTitleLanguage,
-                                isNotificationDebugInfoEnabled = latestIsNotificationDebugInfoEnabled
+                                titleLanguage = titleLanguage,
+                                isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled
                             )
                         }
                     }
@@ -162,6 +131,9 @@ class AnimeDetailViewModel @Inject constructor(
                 return@launch
             }
 
+            val titleLanguage = observeTitleLanguageUseCase().first()
+            val isNotificationDebugInfoEnabled = observeIsNotificationDebugInfoEnabledUseCase().first()
+
             resolveAnimeUseCase(malId)
                 .onSuccess { result ->
                     val anime = Anime(
@@ -187,24 +159,36 @@ class AnimeDetailViewModel @Inject constructor(
                             isInWatchlist = false
                         )
                     }
-                    resolvedAnime = anime
-                    resolvedSeasons = seasons
                     if (isRefresh) {
                         _uiState.update { state ->
                             if (state is AnimeDetailUiState.Success) state.copy(
                                 anime = anime,
                                 seasons = seasons,
                                 isRefreshing = false
-                            ) else AnimeDetailUiState.Success(anime = anime, seasons = seasons, isInWatchlist = false, titleLanguage = latestTitleLanguage, isNotificationDebugInfoEnabled = latestIsNotificationDebugInfoEnabled)
+                            ) else AnimeDetailUiState.Success(anime = anime, seasons = seasons, isInWatchlist = false, titleLanguage = titleLanguage, isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled)
                         }
                     } else {
                         _uiState.value = AnimeDetailUiState.Success(
                             anime = anime,
                             seasons = seasons,
                             isInWatchlist = false,
-                            titleLanguage = latestTitleLanguage,
-                            isNotificationDebugInfoEnabled = latestIsNotificationDebugInfoEnabled
+                            titleLanguage = titleLanguage,
+                            isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled
                         )
+                        viewModelScope.launch {
+                            observeTitleLanguageUseCase().collect { lang ->
+                                _uiState.update { s ->
+                                    if (s is AnimeDetailUiState.Success) s.copy(titleLanguage = lang) else s
+                                }
+                            }
+                        }
+                        viewModelScope.launch {
+                            observeIsNotificationDebugInfoEnabledUseCase().collect { enabled ->
+                                _uiState.update { s ->
+                                    if (s is AnimeDetailUiState.Success) s.copy(isNotificationDebugInfoEnabled = enabled) else s
+                                }
+                            }
+                        }
                     }
                 }
                 .onFailure {
@@ -301,6 +285,7 @@ class AnimeDetailViewModel @Inject constructor(
         val state = _uiState.value
         if (state !is AnimeDetailUiState.Success) return
         val season = state.pendingAddSeason ?: return
+        val anime = state.anime
 
         _uiState.update {
             if (it is AnimeDetailUiState.Success) it.copy(
@@ -313,10 +298,7 @@ class AnimeDetailViewModel @Inject constructor(
             if (season.id > 0) {
                 addSeasonToWatchlistUseCase(season, status)
             } else {
-                val anime = resolvedAnime ?: return@launch
                 val newId = addAnimeUseCase(anime, listOf(season), status)
-                resolvedAnime = null
-                resolvedSeasons = emptyList()
                 _uiState.update {
                     if (it is AnimeDetailUiState.Success) it.copy(
                         snackbarEvent = AnimeDetailSnackbarEvent.AddedToWatchlist(anime.title)
@@ -331,8 +313,8 @@ class AnimeDetailViewModel @Inject constructor(
         val state = _uiState.value
         if (state !is AnimeDetailUiState.Success) return
         val status = state.pendingAddStatus ?: return
-        val anime = resolvedAnime ?: return
-        val seasons = if (allSeasons) resolvedSeasons else resolvedSeasons.take(1)
+        val anime = state.anime
+        val seasons = if (allSeasons) state.seasons else state.seasons.take(1)
         val title = anime.title
 
         _uiState.update {
@@ -348,8 +330,6 @@ class AnimeDetailViewModel @Inject constructor(
                 seasons = seasons,
                 status = status
             )
-            resolvedAnime = null
-            resolvedSeasons = emptyList()
             _uiState.update {
                 if (it is AnimeDetailUiState.Success) it.copy(
                     snackbarEvent = AnimeDetailSnackbarEvent.AddedToWatchlist(title)
@@ -489,3 +469,10 @@ class AnimeDetailViewModel @Inject constructor(
         }
     }
 }
+
+private data class AnimeCombinedData(
+    val anime: Anime?,
+    val seasons: List<Season>,
+    val titleLanguage: TitleLanguage,
+    val isNotificationDebugInfoEnabled: Boolean
+)

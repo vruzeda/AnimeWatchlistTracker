@@ -15,6 +15,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -35,18 +36,20 @@ class SettingsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            observeTitleLanguageUseCase().collect { titleLanguage ->
-                _uiState.update { it.copy(titleLanguage = titleLanguage) }
-            }
-        }
-        viewModelScope.launch {
-            observeHomeViewModeUseCase().collect { viewMode ->
-                _uiState.update { it.copy(homeViewMode = viewMode) }
-            }
-        }
-        viewModelScope.launch {
-            observeIsDeveloperOptionsEnabledUseCase().collect { enabled ->
-                _uiState.update { it.copy(isDeveloperOptionsEnabled = enabled) }
+            combine(
+                observeTitleLanguageUseCase(),
+                observeHomeViewModeUseCase(),
+                observeIsDeveloperOptionsEnabledUseCase()
+            ) { titleLanguage, homeViewMode, isDeveloperOptionsEnabled ->
+                Triple(titleLanguage, homeViewMode, isDeveloperOptionsEnabled)
+            }.collect { (titleLanguage, homeViewMode, isDeveloperOptionsEnabled) ->
+                _uiState.update {
+                    it.copy(
+                        titleLanguage = titleLanguage,
+                        homeViewMode = homeViewMode,
+                        isDeveloperOptionsEnabled = isDeveloperOptionsEnabled
+                    )
+                }
             }
         }
     }

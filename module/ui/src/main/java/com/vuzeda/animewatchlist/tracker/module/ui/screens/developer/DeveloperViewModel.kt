@@ -11,6 +11,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -29,13 +30,18 @@ class DeveloperViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            observeLastAnimeUpdateRunUseCase().collect { instant ->
-                _uiState.update { it.copy(lastAnimeUpdateRun = instant) }
-            }
-        }
-        viewModelScope.launch {
-            observeIsNotificationDebugInfoEnabledUseCase().collect { enabled ->
-                _uiState.update { it.copy(isNotificationDebugInfoEnabled = enabled) }
+            combine(
+                observeLastAnimeUpdateRunUseCase(),
+                observeIsNotificationDebugInfoEnabledUseCase()
+            ) { lastAnimeUpdateRun, isNotificationDebugInfoEnabled ->
+                lastAnimeUpdateRun to isNotificationDebugInfoEnabled
+            }.collect { (lastAnimeUpdateRun, isNotificationDebugInfoEnabled) ->
+                _uiState.update {
+                    it.copy(
+                        lastAnimeUpdateRun = lastAnimeUpdateRun,
+                        isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled
+                    )
+                }
             }
         }
     }

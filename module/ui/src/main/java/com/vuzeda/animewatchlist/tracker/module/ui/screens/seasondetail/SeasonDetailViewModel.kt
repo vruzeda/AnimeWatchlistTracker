@@ -27,6 +27,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -65,18 +66,13 @@ open class SeasonDetailViewModel @Inject constructor(
 
     private var pendingDetails: AnimeFullDetails? = null
     private var observingSiblingsForAnimeId: Long = -1L
-    private var latestTitleLanguage: TitleLanguage = TitleLanguage.DEFAULT
-    private var latestIsNotificationDebugInfoEnabled: Boolean = false
 
     private val _uiState = MutableStateFlow<SeasonDetailUiState>(SeasonDetailUiState.Loading)
     val uiState: StateFlow<SeasonDetailUiState> = _uiState.asStateFlow()
 
     init {
-        observeTitleLanguage()
-        observeNotificationDebugInfo()
         if (seasonId > 0) {
-            observeSeason()
-            observeWatchedEpisodes(seasonId)
+            observeSeasonData()
         } else if (malId > 0) {
             loadFromApi()
         } else {
@@ -98,42 +94,50 @@ open class SeasonDetailViewModel @Inject constructor(
         }
     }
 
-    private fun observeTitleLanguage() {
+    private fun observeSeasonData() {
         viewModelScope.launch {
-            observeTitleLanguageUseCase().collect { titleLanguage ->
-                latestTitleLanguage = titleLanguage
-                _uiState.update { state ->
-                    when (state) {
-                        is SeasonDetailUiState.Success -> state.copy(titleLanguage = titleLanguage)
-                        else -> state
+            combine(
+                observeSeasonByIdUseCase(seasonId),
+                observeWatchedEpisodesUseCase(seasonId),
+                observeTitleLanguageUseCase(),
+                observeIsNotificationDebugInfoEnabledUseCase()
+            ) { season, watchedEpisodes, titleLanguage, isNotificationDebugInfoEnabled ->
+                SeasonCombinedData(season, watchedEpisodes, titleLanguage, isNotificationDebugInfoEnabled)
+            }.collect { (season, watchedEpisodes, titleLanguage, isNotificationDebugInfoEnabled) ->
+                if (season != null) observeSiblingCount(season.animeId)
+                _uiState.update { currentState ->
+                    if (season == null) {
+                        if (currentState is SeasonDetailUiState.Success && !currentState.isInWatchlist) currentState
+                        else SeasonDetailUiState.NotFound
+                    } else {
+                        when (currentState) {
+                            is SeasonDetailUiState.Success -> currentState.copy(
+                                season = season,
+                                isInWatchlist = season.isInWatchlist,
+                                watchedEpisodes = watchedEpisodes,
+                                titleLanguage = titleLanguage,
+                                isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled
+                            )
+                            else -> {
+                                loadEpisodes(season.malId, page = 1)
+                                SeasonDetailUiState.Success(
+                                    season = season,
+                                    isInWatchlist = season.isInWatchlist,
+                                    watchedEpisodes = watchedEpisodes,
+                                    titleLanguage = titleLanguage,
+                                    isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled,
+                                    isLoadingEpisodes = true,
+                                    broadcastLocalTime = computeBroadcastLocalTime(season)
+                                )
+                            }
+                        }
                     }
                 }
             }
         }
-    }
-
-    private fun observeNotificationDebugInfo() {
         viewModelScope.launch {
-            observeIsNotificationDebugInfoEnabledUseCase().collect { enabled ->
-                latestIsNotificationDebugInfoEnabled = enabled
-                _uiState.update { state ->
-                    when (state) {
-                        is SeasonDetailUiState.Success -> state.copy(isNotificationDebugInfoEnabled = enabled)
-                        else -> state
-                    }
-                }
-            }
-        }
-    }
-
-    private fun observeWatchedEpisodes(seasonId: Long) {
-        viewModelScope.launch {
-            observeWatchedEpisodesUseCase(seasonId).collect { watched ->
-                _uiState.update { state ->
-                    if (state is SeasonDetailUiState.Success) state.copy(watchedEpisodes = watched)
-                    else state
-                }
-            }
+            val season = observeSeasonByIdUseCase(seasonId).first() ?: return@launch
+            runCatching { refreshSeasonDataUseCase(season) }
         }
     }
 
@@ -151,44 +155,6 @@ open class SeasonDetailViewModel @Inject constructor(
         viewModelScope.launch { setAllEpisodesWatchedUseCase(state.season.id, episodeNumbers) }
     }
 
-    private fun observeSeason() {
-        viewModelScope.launch {
-            observeSeasonByIdUseCase(seasonId).collect { season ->
-                if (season != null) {
-                    observeSiblingCount(season.animeId)
-                    _uiState.update { currentState ->
-                        when (currentState) {
-                            is SeasonDetailUiState.Success -> currentState.copy(
-                                season = season,
-                                isInWatchlist = season.isInWatchlist
-                            )
-                            else -> {
-                                loadEpisodes(season.malId, page = 1)
-                                SeasonDetailUiState.Success(
-                                    season = season,
-                                    isInWatchlist = season.isInWatchlist,
-                                    isLoadingEpisodes = true,
-                                    titleLanguage = latestTitleLanguage,
-                                    broadcastLocalTime = computeBroadcastLocalTime(season),
-                                    isNotificationDebugInfoEnabled = latestIsNotificationDebugInfoEnabled
-                                )
-                            }
-                        }
-                    }
-                } else {
-                    _uiState.update { current ->
-                        if (current is SeasonDetailUiState.Success && !current.isInWatchlist) current
-                        else SeasonDetailUiState.NotFound
-                    }
-                }
-            }
-        }
-        viewModelScope.launch {
-            val season = observeSeasonByIdUseCase(seasonId).first() ?: return@launch
-            runCatching { refreshSeasonDataUseCase(season) }
-        }
-    }
-
     private fun loadFromApi(isRefresh: Boolean = false) {
         viewModelScope.launch {
             val existingSeasonId = findSeasonIdByMalIdUseCase(malId)
@@ -199,6 +165,9 @@ open class SeasonDetailViewModel @Inject constructor(
                 observeSeason(existingSeasonId)
                 return@launch
             }
+
+            val titleLanguage = observeTitleLanguageUseCase().first()
+            val isNotificationDebugInfoEnabled = observeIsNotificationDebugInfoEnabledUseCase().first()
 
             fetchSeasonDetailUseCase(malId)
                 .onSuccess { details ->
@@ -230,9 +199,9 @@ open class SeasonDetailViewModel @Inject constructor(
                                 season = season,
                                 isInWatchlist = false,
                                 isLoadingEpisodes = true,
-                                titleLanguage = latestTitleLanguage,
+                                titleLanguage = titleLanguage,
                                 broadcastLocalTime = computeBroadcastLocalTime(season),
-                                isNotificationDebugInfoEnabled = latestIsNotificationDebugInfoEnabled
+                                isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled
                             )
                         }
                     } else {
@@ -240,10 +209,24 @@ open class SeasonDetailViewModel @Inject constructor(
                             season = season,
                             isInWatchlist = false,
                             isLoadingEpisodes = true,
-                            titleLanguage = latestTitleLanguage,
+                            titleLanguage = titleLanguage,
                             broadcastLocalTime = computeBroadcastLocalTime(season),
-                            isNotificationDebugInfoEnabled = latestIsNotificationDebugInfoEnabled
+                            isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled
                         )
+                        viewModelScope.launch {
+                            observeTitleLanguageUseCase().collect { lang ->
+                                _uiState.update { s ->
+                                    if (s is SeasonDetailUiState.Success) s.copy(titleLanguage = lang) else s
+                                }
+                            }
+                        }
+                        viewModelScope.launch {
+                            observeIsNotificationDebugInfoEnabledUseCase().collect { enabled ->
+                                _uiState.update { s ->
+                                    if (s is SeasonDetailUiState.Success) s.copy(isNotificationDebugInfoEnabled = enabled) else s
+                                }
+                            }
+                        }
                     }
                 }
                 .onFailure {
@@ -488,32 +471,43 @@ open class SeasonDetailViewModel @Inject constructor(
     }
 
     private fun observeSeason(seasonId: Long) {
-        observeWatchedEpisodes(seasonId)
         viewModelScope.launch {
-            observeSeasonByIdUseCase(seasonId).collect { season ->
-                if (season != null) {
-                    observeSiblingCount(season.animeId)
-                    _uiState.update { currentState ->
+            combine(
+                observeSeasonByIdUseCase(seasonId),
+                observeWatchedEpisodesUseCase(seasonId),
+                observeTitleLanguageUseCase(),
+                observeIsNotificationDebugInfoEnabledUseCase()
+            ) { season, watchedEpisodes, titleLanguage, isNotificationDebugInfoEnabled ->
+                SeasonCombinedData(season, watchedEpisodes, titleLanguage, isNotificationDebugInfoEnabled)
+            }.collect { (season, watchedEpisodes, titleLanguage, isNotificationDebugInfoEnabled) ->
+                if (season != null) observeSiblingCount(season.animeId)
+                _uiState.update { currentState ->
+                    if (season == null) {
+                        SeasonDetailUiState.NotFound
+                    } else {
                         when (currentState) {
                             is SeasonDetailUiState.Success -> currentState.copy(
                                 season = season,
                                 isInWatchlist = true,
-                                isEpisodeNotificationsEnabled = season.isEpisodeNotificationsEnabled
+                                isEpisodeNotificationsEnabled = season.isEpisodeNotificationsEnabled,
+                                watchedEpisodes = watchedEpisodes,
+                                titleLanguage = titleLanguage,
+                                isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled
                             )
                             else -> {
                                 loadEpisodes(season.malId, page = 1)
                                 SeasonDetailUiState.Success(
                                     season = season,
+                                    isInWatchlist = true,
+                                    watchedEpisodes = watchedEpisodes,
+                                    titleLanguage = titleLanguage,
+                                    isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled,
                                     isLoadingEpisodes = true,
-                                    titleLanguage = latestTitleLanguage,
-                                    broadcastLocalTime = computeBroadcastLocalTime(season),
-                                    isNotificationDebugInfoEnabled = latestIsNotificationDebugInfoEnabled
+                                    broadcastLocalTime = computeBroadcastLocalTime(season)
                                 )
                             }
                         }
                     }
-                } else {
-                    _uiState.value = SeasonDetailUiState.NotFound
                 }
             }
         }
@@ -523,3 +517,10 @@ open class SeasonDetailViewModel @Inject constructor(
         }
     }
 }
+
+private data class SeasonCombinedData(
+    val season: Season?,
+    val watchedEpisodes: Set<Int>,
+    val titleLanguage: TitleLanguage,
+    val isNotificationDebugInfoEnabled: Boolean
+)
