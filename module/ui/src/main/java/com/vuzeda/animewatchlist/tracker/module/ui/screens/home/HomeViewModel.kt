@@ -130,7 +130,8 @@ fun buildSeasonItems(
             season = season,
             animeStatus = anime.status,
             animeNotificationType = anime.notificationType,
-            animeAddedAt = anime.addedAt
+            animeAddedAt = anime.addedAt,
+            animeImageUrl = anime.imageUrl
         )
     }
 

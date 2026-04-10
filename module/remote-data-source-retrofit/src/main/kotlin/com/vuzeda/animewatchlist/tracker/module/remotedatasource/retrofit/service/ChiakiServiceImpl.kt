@@ -57,7 +57,7 @@ class ChiakiServiceImpl(
             """<span\s+class="wo_rating"[^>]*>★([\d.]+)"""
         )
         private val IMAGE_PATTERN = Regex(
-            """<div\s+class="wo_avatar_big"[^>]*style="background-image:\s*url\('([^']+)'\)"""
+            """<div\s+class="wo_avatar_big"[^>]*style="background-image:\s*url\(['"]?([^'")\s]+)['"]?\)"""
         )
         private val RELATED_PATTERN = Regex("""data-related='(\{[^']*\})'""")
         private val RELATED_ENTRY_PATTERN = Regex(""""(\d+)":"([^"]+)"""")

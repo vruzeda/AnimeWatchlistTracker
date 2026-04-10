@@ -215,7 +215,7 @@ fun HomeScreen(
                         )
                         AnimeCard(
                             title = displayTitle,
-                            imageUrl = item.season.imageUrl,
+                            imageUrl = item.season.imageUrl ?: item.animeImageUrl,
                             onClick = { onSeasonClick(item.season.id) },
                             episodeText = episodeText,
                             score = item.season.score,

@@ -30,7 +30,8 @@ data class HomeSeasonItem(
     val season: Season,
     val animeStatus: WatchStatus,
     val animeNotificationType: NotificationType,
-    val animeAddedAt: Long
+    val animeAddedAt: Long,
+    val animeImageUrl: String? = null
 )
 
 data class HomeUiState(

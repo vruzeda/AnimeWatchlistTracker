@@ -433,7 +433,8 @@ private fun AnimeDetailContent(
                         season = season,
                         titleLanguage = state.titleLanguage,
                         onClick = { onSeasonClick(season.id, season.malId) },
-                        onAddClick = { onSeasonAddClick(season) }
+                        onAddClick = { onSeasonAddClick(season) },
+                        animeImageUrl = anime.imageUrl
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                 }
@@ -543,7 +544,8 @@ private fun SeasonCardItem(
     season: Season,
     titleLanguage: TitleLanguage,
     onClick: () -> Unit,
-    onAddClick: () -> Unit
+    onAddClick: () -> Unit,
+    animeImageUrl: String? = null
 ) {
     val displayTitle = resolveDisplayTitle(
         title = season.title,
@@ -568,7 +570,7 @@ private fun SeasonCardItem(
 
     AnimeCard(
         title = displayTitle,
-        imageUrl = season.imageUrl,
+        imageUrl = season.imageUrl ?: animeImageUrl,
         onClick = onClick,
         score = season.score,
         episodeText = episodeText,
