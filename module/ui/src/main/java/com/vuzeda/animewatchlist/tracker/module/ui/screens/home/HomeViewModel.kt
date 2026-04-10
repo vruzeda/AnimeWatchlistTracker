@@ -13,8 +13,6 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveAllSeasonsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveAnimeListUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveHomeViewModeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
-import java.text.Collator
-import java.util.Locale
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,6 +20,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.text.Collator
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -51,7 +51,7 @@ class HomeViewModel @Inject constructor(
                 val seasonList = values[1] as List<*>
                 val filterState = values[2] as HomeFilterState
                 val sortState = values[3] as HomeSortState
-                val titleLanguage = values[4] as com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
+                val titleLanguage = values[4] as TitleLanguage
                 val viewMode = values[5] as HomeViewMode
 
                 @Suppress("UNCHECKED_CAST")
@@ -211,5 +211,5 @@ fun sortAnimeList(
 private fun TitleLanguage.toLocale(): Locale = when (this) {
     TitleLanguage.DEFAULT -> Locale.ROOT
     TitleLanguage.ENGLISH -> Locale.ENGLISH
-    TitleLanguage.JAPANESE -> Locale("ja")
+    TitleLanguage.JAPANESE -> Locale.JAPANESE
 }
