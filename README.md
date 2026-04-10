@@ -26,6 +26,7 @@ Anime Watchlist Tracker is a personal anime management app built for fans who wa
 - **Home View Mode** — Toggle the Home screen between Anime view (one card per series) and Season view (one card per individual season), configurable in Settings
 - **Notifications** — Enable per-anime notifications to get daily checks for new episodes and new seasons
 - **Title Language** — Choose to display anime titles in Romaji (default), English, or Japanese
+- **Localization** — UI fully translated in English, Brazilian Portuguese, Latin American Spanish, and French
 - **Settings** — Configure title language preference, Home view mode, and delete all data
 - **Offline First** — All data stored locally on your device using Room, with user preferences in DataStore
 - **Material You** — Modern, dynamic theming that adapts to your wallpaper (Android 12+)

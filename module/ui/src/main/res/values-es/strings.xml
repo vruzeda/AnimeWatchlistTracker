@@ -22,6 +22,7 @@
     <!-- HomeScreen filters -->
     <string name="filter_group_status">Por estado</string>
     <string name="filter_group_notification">Por notificación</string>
+    <string name="filter_group_type">Por tipo</string>
     <string name="filter_notification_on">Activada</string>
     <string name="filter_notification_off">Desactivada</string>
     <string name="filter_reset">Restablecer filtros</string>
@@ -66,6 +67,7 @@
     <!-- AnimeDetailScreen -->
     <string name="anime_detail_title">Detalle del anime</string>
     <string name="cd_delete">Eliminar</string>
+    <string name="cd_episodes_menu">Menú de episodios</string>
     <string name="anime_detail_not_found">Anime no encontrado</string>
     <string name="anime_detail_change_status_title">Cambiar estado</string>
     <string name="anime_detail_section_your_rating">Tu puntuación</string>
@@ -105,6 +107,8 @@
     <string name="season_detail_episode_notifications_disabled">Notificaciones de episodios desactivadas</string>
     <string name="season_detail_broadcast_info">Emisión: %1$s</string>
     <string name="season_detail_broadcast_local_time">Hora local: %1$s</string>
+    <string name="season_detail_local_broadcast_format">%1$s a las %2$s (%3$s)</string>
+    <string name="season_detail_mark_all_episodes_watched">Marcar todos como vistos</string>
     <string name="season_detail_section_streaming">Disponible en</string>
     <string name="season_detail_streaming_show_more">Mostrar %1$d más</string>
     <string name="season_detail_streaming_show_less">Mostrar menos</string>
@@ -140,6 +144,12 @@
     <string name="settings_delete_dialog_confirm">Eliminar</string>
     <string name="settings_delete_dialog_dismiss">Cancelar</string>
     <string name="settings_data_deleted">Todos los datos eliminados</string>
+    <string name="settings_version">Versión %1$s (%2$d)</string>
+    <string name="settings_developer_options_enabled">Opciones de desarrollador activadas</string>
+    <plurals name="settings_developer_options_countdown">
+        <item quantity="one">%1$d toque para activar las opciones de desarrollador</item>
+        <item quantity="other">%1$d toques para activar las opciones de desarrollador</item>
+    </plurals>
     <string name="developer_title">Desarrollador</string>
     <string name="developer_last_update_run">Última comprobación de actualizaciones</string>
     <string name="developer_last_update_run_never">Nunca</string>
@@ -151,4 +161,19 @@
     <string name="developer_last_checked_aired_episodes">Episodios emitidos verificados: %1$s</string>
     <string name="developer_value_never">Nunca</string>
     <string name="developer_value_none">Ninguno</string>
+
+    <!-- ScheduleScreen -->
+    <string name="schedule_title">Horario</string>
+    <string name="cd_open_schedule">Abrir horario</string>
+    <string name="schedule_empty_title">Sin horario aún</string>
+    <string name="schedule_empty_subtitle">Agrega anime en emisión a tu lista y su día de transmisión aparecerá aquí</string>
+    <string name="schedule_day_monday">Lunes</string>
+    <string name="schedule_day_tuesday">Martes</string>
+    <string name="schedule_day_wednesday">Miércoles</string>
+    <string name="schedule_day_thursday">Jueves</string>
+    <string name="schedule_day_friday">Viernes</string>
+    <string name="schedule_day_saturday">Sábado</string>
+    <string name="schedule_day_sunday">Domingo</string>
+    <string name="schedule_day_unknown">Día desconocido</string>
+    <string name="schedule_season_no_data">No hay programas agendados esta temporada</string>
 </resources>

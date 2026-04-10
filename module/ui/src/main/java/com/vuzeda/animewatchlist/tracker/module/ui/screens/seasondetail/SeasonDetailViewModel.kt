@@ -443,7 +443,7 @@ open class SeasonDetailViewModel @Inject constructor(
 
     protected open fun localZoneId(): ZoneId = ZoneId.systemDefault()
 
-    private fun computeBroadcastLocalTime(season: Season): String? {
+    private fun computeBroadcastLocalTime(season: Season): LocalBroadcastTime? {
         val day = season.broadcastDay ?: return null
         val time = season.broadcastTime ?: return null
         val timezone = season.broadcastTimezone ?: return null
@@ -461,10 +461,11 @@ open class SeasonDetailViewModel @Inject constructor(
                 .withSecond(0)
                 .withNano(0)
             val local = reference.withZoneSameInstant(localZone)
-            val localDay = local.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())
-            val localTime = local.format(DateTimeFormatter.ofPattern("HH:mm"))
-            val zoneName = localZone.getDisplayName(TextStyle.SHORT_STANDALONE, Locale.getDefault())
-            "$localDay at $localTime ($zoneName)"
+            LocalBroadcastTime(
+                day = local.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault()),
+                time = local.format(DateTimeFormatter.ofPattern("HH:mm")),
+                zone = localZone.getDisplayName(TextStyle.SHORT_STANDALONE, Locale.getDefault())
+            )
         } catch (_: Exception) {
             null
         }

@@ -104,6 +104,16 @@ Do not skip or defer any of these steps. Do not batch multiple milestones before
 - `suspend` for one-shot operations; `Flow` for data displayed on screen
 - `_uiState` / `uiState` convention for private/public state flows
 
+## Localization
+
+The app supports English (default), Brazilian Portuguese (`values-pt`), Latin American Spanish (`values-es`), and French (`values-fr`).
+
+**Rules:**
+- All user-visible strings must live in `strings.xml` — never hardcode text in Kotlin or XML layout files
+- Every new string added to `values/strings.xml` must be translated in all four language files
+- ViewModels must not build display strings by concatenating literals — return structured data to the Composable and format with `stringResource` there
+- String modules: `:module:ui`, `:module:design-system`, `:module:notification-android` each have their own `res/values*/strings.xml` files — keep strings in the module that owns the UI
+
 ## Technology Stack
 
 - Kotlin 2.3.10 · AGP 9.0.1 · Gradle 9.2.1

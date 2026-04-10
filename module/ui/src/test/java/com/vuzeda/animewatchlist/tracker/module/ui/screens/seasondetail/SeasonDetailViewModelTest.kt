@@ -503,7 +503,7 @@ class SeasonDetailViewModelTest {
         viewModel.uiState.test {
             testDispatcher.scheduler.advanceUntilIdle()
             val state = expectMostRecentItem() as SeasonDetailUiState.Success
-            assertThat(state.broadcastLocalTime).isEqualTo("Saturday at 09:00 (UTC)")
+            assertThat(state.broadcastLocalTime).isEqualTo(LocalBroadcastTime(day = "Saturday", time = "09:00", zone = "UTC"))
             cancelAndIgnoreRemainingEvents()
         }
     }
