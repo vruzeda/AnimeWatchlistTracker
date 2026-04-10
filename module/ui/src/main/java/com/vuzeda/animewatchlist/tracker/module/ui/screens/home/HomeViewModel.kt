@@ -6,11 +6,15 @@ import com.vuzeda.animewatchlist.tracker.module.domain.Anime
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
+import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
+import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveAllSeasonsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveAnimeListUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveHomeViewModeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
+import java.text.Collator
+import java.util.Locale
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -58,7 +62,8 @@ class HomeViewModel @Inject constructor(
                 val filteredAnime = sortAnimeList(
                     list = applyFilters(typedAnimeList, filterState),
                     option = sortState.option,
-                    isAscending = sortState.isAscending
+                    isAscending = sortState.isAscending,
+                    titleLanguage = titleLanguage
                 )
 
                 val seasonItems = if (viewMode == HomeViewMode.SEASON) {
@@ -66,7 +71,8 @@ class HomeViewModel @Inject constructor(
                         animeList = typedAnimeList,
                         seasonList = typedSeasonList,
                         filterState = filterState,
-                        sortState = sortState
+                        sortState = sortState,
+                        titleLanguage = titleLanguage
                     )
                 } else {
                     emptyList()
@@ -112,7 +118,8 @@ fun buildSeasonItems(
     animeList: List<Anime>,
     seasonList: List<Season>,
     filterState: HomeFilterState,
-    sortState: HomeSortState
+    sortState: HomeSortState,
+    titleLanguage: TitleLanguage = TitleLanguage.DEFAULT
 ): List<HomeSeasonItem> {
     val animeMap = animeList.associateBy { it.id }
 
@@ -128,7 +135,7 @@ fun buildSeasonItems(
     }
 
     val filtered = applySeasonFilters(enriched, filterState)
-    return sortSeasonItems(filtered, sortState.option, sortState.isAscending)
+    return sortSeasonItems(filtered, sortState.option, sortState.isAscending, titleLanguage)
 }
 
 fun applySeasonFilters(
@@ -150,10 +157,16 @@ fun applySeasonFilters(
 fun sortSeasonItems(
     items: List<HomeSeasonItem>,
     option: HomeSortOption,
-    isAscending: Boolean = option.defaultAscending
+    isAscending: Boolean = option.defaultAscending,
+    titleLanguage: TitleLanguage = TitleLanguage.DEFAULT
 ): List<HomeSeasonItem> {
     val sorted = when (option) {
-        HomeSortOption.ALPHABETICAL -> items.sortedBy { it.season.title.lowercase() }
+        HomeSortOption.ALPHABETICAL -> {
+            val collator = Collator.getInstance(titleLanguage.toLocale())
+            items.sortedWith(compareBy(collator) {
+                resolveDisplayTitle(it.season.title, it.season.titleEnglish, it.season.titleJapanese, titleLanguage)
+            })
+        }
         HomeSortOption.RECENTLY_ADDED -> items.sortedByDescending { it.animeAddedAt }
         HomeSortOption.USER_RATING -> items.sortedByDescending { it.season.score ?: 0.0 }
     }
@@ -175,13 +188,25 @@ fun applyFilters(list: List<Anime>, filterState: HomeFilterState): List<Anime> {
 fun sortAnimeList(
     list: List<Anime>,
     option: HomeSortOption,
-    isAscending: Boolean = option.defaultAscending
+    isAscending: Boolean = option.defaultAscending,
+    titleLanguage: TitleLanguage = TitleLanguage.DEFAULT
 ): List<Anime> {
     val sorted = when (option) {
-        HomeSortOption.ALPHABETICAL -> list.sortedBy { it.title.lowercase() }
+        HomeSortOption.ALPHABETICAL -> {
+            val collator = Collator.getInstance(titleLanguage.toLocale())
+            list.sortedWith(compareBy(collator) {
+                resolveDisplayTitle(it.title, it.titleEnglish, it.titleJapanese, titleLanguage)
+            })
+        }
         HomeSortOption.RECENTLY_ADDED -> list.sortedByDescending { it.addedAt }
         HomeSortOption.USER_RATING -> list.sortedByDescending { it.userRating ?: 0 }
     }
     val shouldReverse = isAscending != option.defaultAscending
     return if (shouldReverse) sorted.reversed() else sorted
+}
+
+private fun TitleLanguage.toLocale(): Locale = when (this) {
+    TitleLanguage.DEFAULT -> Locale.ROOT
+    TitleLanguage.ENGLISH -> Locale.ENGLISH
+    TitleLanguage.JAPANESE -> Locale("ja")
 }
