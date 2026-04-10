@@ -8,8 +8,8 @@ import javax.inject.Inject
 
 /**
  * Fetches and persists airingSeasonName/airingSeasonYear for watchlist seasons that are missing
- * them. Also fills in broadcast fields if they are null. Introduces a delay between API calls
- * to respect Jikan's rate limit.
+ * them. Also fills in any other null metadata fields available from the API response. Introduces
+ * a delay between API calls to respect Jikan's rate limit.
  */
 class BackfillMissingAiringSeasonUseCase @Inject constructor(
     private val animeRepository: AnimeRepository,
@@ -24,13 +24,19 @@ class BackfillMissingAiringSeasonUseCase @Inject constructor(
             val details = animeRepository.fetchAnimeFullById(season.malId).getOrNull() ?: continue
             seasonRepository.updateSeason(
                 season.copy(
+                    titleEnglish = season.titleEnglish ?: details.titleEnglish,
+                    titleJapanese = season.titleJapanese ?: details.titleJapanese,
                     imageUrl = season.imageUrl ?: details.imageUrl,
-                    airingSeasonName = details.airingSeasonName,
-                    airingSeasonYear = details.airingSeasonYear,
+                    episodeCount = season.episodeCount ?: details.episodes,
+                    score = season.score ?: details.score,
+                    airingStatus = season.airingStatus ?: details.airingStatus,
                     broadcastDay = season.broadcastDay ?: details.broadcastDay,
                     broadcastTime = season.broadcastTime ?: details.broadcastTime,
                     broadcastTimezone = season.broadcastTimezone ?: details.broadcastTimezone,
-                    broadcastInfo = season.broadcastInfo ?: details.broadcastInfo
+                    broadcastInfo = season.broadcastInfo ?: details.broadcastInfo,
+                    streamingLinks = season.streamingLinks.ifEmpty { details.streamingLinks },
+                    airingSeasonName = details.airingSeasonName ?: season.airingSeasonName,
+                    airingSeasonYear = details.airingSeasonYear ?: season.airingSeasonYear
                 )
             )
             delay(JIKAN_REQUEST_DELAY_MS)
