@@ -117,6 +117,7 @@ fun HomeScreen(
                 }
                 NestedFilterMenuButton(
                     filterGroups = listOf(statusFilterGroup, notificationFilterGroup),
+                    isActive = uiState.filterState.statusFilter != null || uiState.filterState.notificationFilter != null,
                     onOptionSelected = { groupIndex, optionIndex ->
                         when (groupIndex) {
                             GROUP_STATUS -> onStatusFilterSelected(statusValues[optionIndex])

@@ -9,6 +9,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,6 +29,7 @@ fun FilterMenuButton(
     modifier: Modifier = Modifier,
     options: List<String>,
     selectedIndex: Int,
+    isActive: Boolean = false,
     onOptionSelected: (Int) -> Unit
 ) {
     var isExpanded by remember { mutableStateOf(false) }
@@ -36,7 +38,8 @@ fun FilterMenuButton(
         IconButton(onClick = { isExpanded = true }) {
             Icon(
                 imageVector = Icons.Default.FilterList,
-                contentDescription = stringResource(R.string.cd_filter)
+                contentDescription = stringResource(R.string.cd_filter),
+                tint = if (isActive) MaterialTheme.colorScheme.primary else LocalContentColor.current
             )
         }
 

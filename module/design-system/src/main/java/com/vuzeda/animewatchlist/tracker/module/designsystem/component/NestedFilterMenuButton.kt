@@ -11,6 +11,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,6 +37,7 @@ data class FilterGroup(
 fun NestedFilterMenuButton(
     modifier: Modifier = Modifier,
     filterGroups: List<FilterGroup>,
+    isActive: Boolean = false,
     onOptionSelected: (groupIndex: Int, optionIndex: Int) -> Unit,
     resetLabel: String,
     onReset: () -> Unit
@@ -46,7 +48,8 @@ fun NestedFilterMenuButton(
         IconButton(onClick = { isExpanded = true }) {
             Icon(
                 imageVector = Icons.Default.FilterList,
-                contentDescription = stringResource(R.string.cd_filter)
+                contentDescription = stringResource(R.string.cd_filter),
+                tint = if (isActive) MaterialTheme.colorScheme.primary else LocalContentColor.current
             )
         }
 
@@ -113,9 +116,9 @@ fun NestedFilterMenuButton(
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, name = "Inactive")
 @Composable
-private fun NestedFilterMenuButtonPreview() {
+private fun NestedFilterMenuButtonInactivePreview() {
     AnimeWatchlistTrackerTheme(dynamicColor = false) {
         NestedFilterMenuButton(
             modifier = Modifier.padding(16.dp),
@@ -131,6 +134,33 @@ private fun NestedFilterMenuButtonPreview() {
                     selectedIndex = 0
                 )
             ),
+            isActive = false,
+            onOptionSelected = { _, _ -> },
+            resetLabel = "Reset Filters",
+            onReset = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Active")
+@Composable
+private fun NestedFilterMenuButtonActivePreview() {
+    AnimeWatchlistTrackerTheme(dynamicColor = false) {
+        NestedFilterMenuButton(
+            modifier = Modifier.padding(16.dp),
+            filterGroups = listOf(
+                FilterGroup(
+                    label = "By Status",
+                    options = listOf("All", "Watching", "Completed", "Plan to Watch", "On Hold", "Dropped"),
+                    selectedIndex = 1
+                ),
+                FilterGroup(
+                    label = "By Notification",
+                    options = listOf("All", "On", "Off"),
+                    selectedIndex = 0
+                )
+            ),
+            isActive = true,
             onOptionSelected = { _, _ -> },
             resetLabel = "Reset Filters",
             onReset = {}
