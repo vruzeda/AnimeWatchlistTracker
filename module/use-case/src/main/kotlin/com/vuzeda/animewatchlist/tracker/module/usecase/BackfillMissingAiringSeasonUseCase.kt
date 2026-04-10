@@ -24,6 +24,7 @@ class BackfillMissingAiringSeasonUseCase @Inject constructor(
             val details = animeRepository.fetchAnimeFullById(season.malId).getOrNull() ?: continue
             seasonRepository.updateSeason(
                 season.copy(
+                    imageUrl = season.imageUrl ?: details.imageUrl,
                     airingSeasonName = details.airingSeasonName,
                     airingSeasonYear = details.airingSeasonYear,
                     broadcastDay = season.broadcastDay ?: details.broadcastDay,

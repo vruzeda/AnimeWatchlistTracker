@@ -112,6 +112,32 @@ class BackfillMissingAiringSeasonUseCaseTest {
     }
 
     @Test
+    fun `fills null imageUrl from API when season has no image`() = runTest {
+        val season = Season(id = 1, malId = 100, title = "Re:ZERO", isInWatchlist = true, airingSeasonName = null, imageUrl = null)
+        coEvery { seasonRepository.observeAllSeasons() } returns flowOf(listOf(season))
+        coEvery { animeRepository.fetchAnimeFullById(100) } returns Result.success(apiDetails.copy(imageUrl = "https://cdn.myanimelist.net/images/100.jpg"))
+
+        useCase()
+
+        val slot = slot<Season>()
+        coVerify { seasonRepository.updateSeason(capture(slot)) }
+        assertThat(slot.captured.imageUrl).isEqualTo("https://cdn.myanimelist.net/images/100.jpg")
+    }
+
+    @Test
+    fun `preserves existing imageUrl and does not overwrite with API value`() = runTest {
+        val season = Season(id = 1, malId = 100, title = "Re:ZERO", isInWatchlist = true, airingSeasonName = null, imageUrl = "https://chiaki.site/media/a/59/100.jpg")
+        coEvery { seasonRepository.observeAllSeasons() } returns flowOf(listOf(season))
+        coEvery { animeRepository.fetchAnimeFullById(100) } returns Result.success(apiDetails.copy(imageUrl = "https://cdn.myanimelist.net/images/100.jpg"))
+
+        useCase()
+
+        val slot = slot<Season>()
+        coVerify { seasonRepository.updateSeason(capture(slot)) }
+        assertThat(slot.captured.imageUrl).isEqualTo("https://chiaki.site/media/a/59/100.jpg")
+    }
+
+    @Test
     fun `continues to next season when API call fails for one season`() = runTest {
         val failing = Season(id = 1, malId = 100, title = "Failing", isInWatchlist = true, airingSeasonName = null)
         val succeeding = Season(id = 2, malId = 200, title = "Succeeding", isInWatchlist = true, airingSeasonName = null)
