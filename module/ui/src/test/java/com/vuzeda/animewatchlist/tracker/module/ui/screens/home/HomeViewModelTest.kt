@@ -213,6 +213,23 @@ class HomeViewModelTest {
     }
 
     @Test
+    fun `selectSort with WATCH_STATUS sorts by status ordinal ascending`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            skipItems(2)
+
+            viewModel.selectSort(HomeSortOption.WATCH_STATUS)
+
+            val sorted = awaitItem()
+            assertThat(sorted.sortOption).isEqualTo(HomeSortOption.WATCH_STATUS)
+            assertThat(sorted.animeList[0].title).isEqualTo("Attack on Titan")
+            assertThat(sorted.animeList[1].title).isEqualTo("Bleach")
+            assertThat(sorted.animeList[2].title).isEqualTo("One Punch Man")
+        }
+    }
+
+    @Test
     fun `selectSort with RECENTLY_ADDED sorts by addedAt descending`() = runTest {
         val viewModel = createViewModel()
 
@@ -400,6 +417,33 @@ class HomeViewModelTest {
             assertThat(sorted.seasonItems[1].season.score).isEqualTo(8.8)
             assertThat(sorted.seasonItems[2].season.score).isEqualTo(8.5)
             assertThat(sorted.seasonItems[3].season.score).isEqualTo(7.5)
+        }
+    }
+
+    @Test
+    fun `season mode sorts by anime status when WATCH_STATUS selected`() = runTest {
+        every { observeAnimeListUseCase() } returns flowOf(sampleAnimeList)
+        every { observeAllSeasonsUseCase() } returns flowOf(sampleSeasonList)
+        every { observeHomeViewModeUseCase() } returns flowOf(HomeViewMode.SEASON)
+
+        val viewModel = HomeViewModel(
+            observeAnimeListUseCase,
+            observeTitleLanguageUseCase,
+            observeHomeViewModeUseCase,
+            observeAllSeasonsUseCase
+        )
+
+        viewModel.uiState.test {
+            skipItems(2)
+
+            viewModel.selectSort(HomeSortOption.WATCH_STATUS)
+
+            val sorted = awaitItem()
+            assertThat(sorted.seasonItems[0].animeStatus).isEqualTo(WatchStatus.WATCHING)
+            assertThat(sorted.seasonItems[1].animeStatus).isEqualTo(WatchStatus.WATCHING)
+            assertThat(sorted.seasonItems[2].animeStatus).isEqualTo(WatchStatus.WATCHING)
+            assertThat(sorted.seasonItems[3].animeStatus).isEqualTo(WatchStatus.COMPLETED)
+            assertThat(sorted.seasonItems[3].season.title).isEqualTo("One Punch Man S1")
         }
     }
 }

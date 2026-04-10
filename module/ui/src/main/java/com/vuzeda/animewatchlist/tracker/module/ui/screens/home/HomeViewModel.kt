@@ -169,6 +169,7 @@ fun sortSeasonItems(
         }
         HomeSortOption.RECENTLY_ADDED -> items.sortedByDescending { it.animeAddedAt }
         HomeSortOption.USER_RATING -> items.sortedByDescending { it.season.score ?: 0.0 }
+        HomeSortOption.WATCH_STATUS -> items.sortedBy { it.animeStatus.ordinal }
     }
     val shouldReverse = isAscending != option.defaultAscending
     return if (shouldReverse) sorted.reversed() else sorted
@@ -200,6 +201,7 @@ fun sortAnimeList(
         }
         HomeSortOption.RECENTLY_ADDED -> list.sortedByDescending { it.addedAt }
         HomeSortOption.USER_RATING -> list.sortedByDescending { it.userRating ?: 0 }
+        HomeSortOption.WATCH_STATUS -> list.sortedBy { it.status.ordinal }
     }
     val shouldReverse = isAscending != option.defaultAscending
     return if (shouldReverse) sorted.reversed() else sorted

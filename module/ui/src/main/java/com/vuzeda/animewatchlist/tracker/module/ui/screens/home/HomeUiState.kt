@@ -17,7 +17,8 @@ data class HomeFilterState(
 enum class HomeSortOption(@StringRes val displayLabelRes: Int, val defaultAscending: Boolean) {
     ALPHABETICAL(R.string.sort_alphabetical, true),
     RECENTLY_ADDED(R.string.sort_recently_added, false),
-    USER_RATING(R.string.sort_user_rating, false)
+    USER_RATING(R.string.sort_user_rating, false),
+    WATCH_STATUS(R.string.sort_watch_status, true)
 }
 
 data class HomeSortState(

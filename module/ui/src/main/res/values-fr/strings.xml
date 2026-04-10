@@ -11,6 +11,7 @@
     <string name="sort_alphabetical">Alphabétique</string>
     <string name="sort_recently_added">Récemment ajouté</string>
     <string name="sort_user_rating">Votre note</string>
+    <string name="sort_watch_status">Statut de visionnage</string>
 
     <!-- Search sort options -->
     <string name="sort_relevance">Pertinence</string>
