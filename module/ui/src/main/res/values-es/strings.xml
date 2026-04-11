@@ -108,6 +108,7 @@
     <string name="season_detail_episode_notifications_disabled">Notificaciones de episodios desactivadas</string>
     <string name="season_detail_broadcast_info">Emisión: %1$s</string>
     <string name="season_detail_broadcast_local_time">Hora local: %1$s</string>
+    <string name="season_detail_airing_season">Temporada: %1$s</string>
     <string name="season_detail_local_broadcast_format">%1$s a las %2$s (%3$s)</string>
     <string name="season_detail_mark_all_episodes_watched">Marcar todos como vistos</string>
     <string name="season_detail_section_streaming">Disponible en</string>

@@ -537,6 +537,19 @@ private fun SeasonHeaderSection(
                 )
             }
 
+            val airingSeasonName = season.airingSeasonName
+            val airingSeasonYear = season.airingSeasonYear
+            if (airingSeasonName != null && airingSeasonYear != null) {
+                Text(
+                    text = stringResource(
+                        R.string.season_detail_airing_season,
+                        "${airingSeasonName.replaceFirstChar { it.uppercaseChar() }} $airingSeasonYear"
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
             Spacer(modifier = Modifier.height(4.dp))
             if (isInWatchlist) {
                 StatusChip(

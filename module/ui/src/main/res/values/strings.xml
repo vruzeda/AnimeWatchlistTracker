@@ -103,6 +103,7 @@
     <string name="season_detail_airing_status">Status: %1$s</string>
     <string name="season_detail_broadcast_info">Broadcast: %1$s</string>
     <string name="season_detail_broadcast_local_time">Local time: %1$s</string>
+    <string name="season_detail_airing_season">Season: %1$s</string>
     <string name="season_detail_local_broadcast_format">%1$s at %2$s (%3$s)</string>
     <string name="season_detail_section_streaming">Available on</string>
     <string name="season_detail_streaming_show_more">Show %1$d more</string>
