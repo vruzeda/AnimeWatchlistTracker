@@ -88,7 +88,11 @@ android {
 }
 
 afterEvaluate {
-    tasks.matching { it.name.matches(Regex("process.*Mock.*GoogleServices")) }.configureEach {
+    tasks.matching {
+        it.name.matches(Regex("process.*Mock.*GoogleServices")) ||
+            it.name.matches(Regex("injectCrashlyticsMappingFileId.*Mock.*")) ||
+            it.name.matches(Regex("uploadCrashlyticsMappingFile.*Mock.*"))
+    }.configureEach {
         enabled = false
     }
 }
