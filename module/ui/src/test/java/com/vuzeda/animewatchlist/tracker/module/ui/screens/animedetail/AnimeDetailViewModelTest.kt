@@ -10,6 +10,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonData
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
+import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsTracker
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddSeasonToWatchlistUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.DeleteAnimeUseCase
@@ -58,6 +59,7 @@ class AnimeDetailViewModelTest {
     private val refreshAnimeSeasonsUseCase: RefreshAnimeSeasonsUseCase = mockk(relaxed = true)
     private val refreshSeasonDataUseCase: RefreshSeasonDataUseCase = mockk(relaxed = true)
     private val observeIsNotificationDebugInfoEnabledUseCase: ObserveIsNotificationDebugInfoEnabledUseCase = mockk()
+    private val analyticsTracker: AnalyticsTracker = mockk(relaxed = true)
 
     private val sampleAnime = Anime(
         id = 1L,
@@ -112,7 +114,8 @@ class AnimeDetailViewModelTest {
             observeTitleLanguageUseCase = observeTitleLanguageUseCase,
             refreshAnimeSeasonsUseCase = refreshAnimeSeasonsUseCase,
             refreshSeasonDataUseCase = refreshSeasonDataUseCase,
-            observeIsNotificationDebugInfoEnabledUseCase = observeIsNotificationDebugInfoEnabledUseCase
+            observeIsNotificationDebugInfoEnabledUseCase = observeIsNotificationDebugInfoEnabledUseCase,
+            analyticsTracker = analyticsTracker
         )
     }
 

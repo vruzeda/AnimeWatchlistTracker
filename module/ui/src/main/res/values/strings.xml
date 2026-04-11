@@ -178,4 +178,16 @@
     <string name="schedule_day_sunday">Sunday</string>
     <string name="schedule_day_unknown">Unknown Day</string>
     <string name="schedule_season_no_data">No shows scheduled this season</string>
+
+    <!-- Feedback sheet -->
+    <string name="feedback_button_label">Send Feedback</string>
+    <string name="feedback_sheet_title">Send Feedback</string>
+    <string name="feedback_category_bug">Bug Report</string>
+    <string name="feedback_category_feature">Feature Request</string>
+    <string name="feedback_category_general">General</string>
+    <string name="feedback_message_hint">Describe your feedback…</string>
+    <string name="feedback_submit">Submit</string>
+    <string name="feedback_success">Feedback sent. Thank you!</string>
+    <string name="feedback_error">Failed to send feedback. Please try again.</string>
+    <string name="feedback_char_count">%1$d / 500</string>
 </resources>

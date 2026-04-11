@@ -11,6 +11,9 @@ local.properties
 keystore.properties
 *.jks
 
+# Firebase
+app/google-services.json
+
 # Fastlane
 fastlane/play-store-key.json
 fastlane/report.xml

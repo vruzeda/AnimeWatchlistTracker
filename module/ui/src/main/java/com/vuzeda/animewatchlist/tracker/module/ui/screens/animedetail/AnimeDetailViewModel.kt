@@ -3,6 +3,8 @@ package com.vuzeda.animewatchlist.tracker.module.ui.screens.animedetail
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsEvent
+import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsTracker
 import com.vuzeda.animewatchlist.tracker.module.domain.Anime
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
@@ -49,7 +51,8 @@ class AnimeDetailViewModel @Inject constructor(
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase,
     private val refreshAnimeSeasonsUseCase: RefreshAnimeSeasonsUseCase,
     private val refreshSeasonDataUseCase: RefreshSeasonDataUseCase,
-    private val observeIsNotificationDebugInfoEnabledUseCase: ObserveIsNotificationDebugInfoEnabledUseCase
+    private val observeIsNotificationDebugInfoEnabledUseCase: ObserveIsNotificationDebugInfoEnabledUseCase,
+    private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
     private val animeId: Long = checkNotNull(savedStateHandle["animeId"])
@@ -297,8 +300,10 @@ class AnimeDetailViewModel @Inject constructor(
         viewModelScope.launch {
             if (season.id > 0) {
                 addSeasonToWatchlistUseCase(season, status)
+                analyticsTracker.track(AnalyticsEvent.AddSeason(status.name))
             } else {
                 val newId = addAnimeUseCase(anime, listOf(season), status)
+                analyticsTracker.track(AnalyticsEvent.AddSeason(status.name))
                 _uiState.update {
                     if (it is AnimeDetailUiState.Success) it.copy(
                         snackbarEvent = AnimeDetailSnackbarEvent.AddedToWatchlist(anime.title)
@@ -330,6 +335,7 @@ class AnimeDetailViewModel @Inject constructor(
                 seasons = seasons,
                 status = status
             )
+            analyticsTracker.track(AnalyticsEvent.AddAnime(status.name, seasons.size, allSeasons))
             _uiState.update {
                 if (it is AnimeDetailUiState.Success) it.copy(
                     snackbarEvent = AnimeDetailSnackbarEvent.AddedToWatchlist(title)
@@ -346,6 +352,7 @@ class AnimeDetailViewModel @Inject constructor(
 
         viewModelScope.launch {
             updateSeasonStatusUseCase(mostRecentSeason, status)
+            analyticsTracker.track(AnalyticsEvent.UpdateAnimeStatus(status.name))
         }
     }
 
@@ -355,6 +362,7 @@ class AnimeDetailViewModel @Inject constructor(
 
         viewModelScope.launch {
             updateAnimeUseCase(state.anime.copy(userRating = if (rating > 0) rating else null))
+            analyticsTracker.track(AnalyticsEvent.UpdateUserRating(rating))
         }
     }
 
@@ -378,6 +386,7 @@ class AnimeDetailViewModel @Inject constructor(
 
         viewModelScope.launch {
             deleteAnimeUseCase(state.anime.id)
+            analyticsTracker.track(AnalyticsEvent.RemoveAnime(state.anime.status.name))
             _uiState.update { current ->
                 if (current is AnimeDetailUiState.Success) current.copy(
                     isInWatchlist = false,
@@ -432,6 +441,7 @@ class AnimeDetailViewModel @Inject constructor(
                 id = state.anime.id,
                 notificationType = notificationType
             )
+            analyticsTracker.track(AnalyticsEvent.SelectNotificationType(notificationType.name))
             _uiState.update {
                 if (it is AnimeDetailUiState.Success) it.copy(
                     snackbarEvent = AnimeDetailSnackbarEvent.NotificationsEnabled(notificationType)
@@ -441,6 +451,7 @@ class AnimeDetailViewModel @Inject constructor(
     }
 
     fun notifyPermissionDenied() {
+        analyticsTracker.track(AnalyticsEvent.NotificationPermissionDenied)
         _uiState.update {
             if (it is AnimeDetailUiState.Success) it.copy(snackbarEvent = AnimeDetailSnackbarEvent.NotificationPermissionDenied)
             else it

@@ -29,6 +29,7 @@ dependencies {
     implementation(project(":module:use-case"))
     implementation(project(":module:design-system"))
     implementation(project(":module:domain"))
+    implementation(project(":module:analytics"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)

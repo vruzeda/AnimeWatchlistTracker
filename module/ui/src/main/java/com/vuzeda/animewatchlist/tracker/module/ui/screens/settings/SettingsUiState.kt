@@ -9,5 +9,6 @@ data class SettingsUiState(
     val isDeleteConfirmationVisible: Boolean = false,
     val isDataDeleted: Boolean = false,
     val developerTapCount: Int = 0,
-    val isDeveloperOptionsEnabled: Boolean = false
+    val isDeveloperOptionsEnabled: Boolean = false,
+    val isFeedbackSheetVisible: Boolean = false
 )

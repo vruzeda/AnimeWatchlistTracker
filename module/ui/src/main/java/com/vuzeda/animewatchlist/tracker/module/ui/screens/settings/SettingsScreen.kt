@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Feedback
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -61,19 +62,31 @@ private enum class HomeViewModeOption(
 @Composable
 fun SettingsScreenRoute(
     viewModel: SettingsViewModel = hiltViewModel(),
+    feedbackViewModel: FeedbackViewModel = hiltViewModel(),
     onDeveloperClick: () -> Unit = {},
     versionName: String = "",
     versionCode: Int = 0
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val feedbackUiState by feedbackViewModel.uiState.collectAsStateWithLifecycle()
     SettingsScreen(
         uiState = uiState,
+        feedbackUiState = feedbackUiState,
         onTitleLanguageSelected = viewModel::setTitleLanguage,
         onHomeViewModeSelected = viewModel::setHomeViewMode,
         onDeleteAllClick = viewModel::requestDeleteAllData,
         onConfirmDelete = viewModel::confirmDeleteAllData,
         onDismissDelete = viewModel::dismissDeleteConfirmation,
         onDataDeletedShown = viewModel::clearDataDeletedFlag,
+        onFeedbackClick = viewModel::showFeedbackSheet,
+        onFeedbackDismiss = {
+            viewModel.hideFeedbackSheet()
+            feedbackViewModel.reset()
+        },
+        onFeedbackCategorySelected = feedbackViewModel::selectCategory,
+        onFeedbackMessageChanged = feedbackViewModel::updateMessage,
+        onFeedbackSubmit = feedbackViewModel::submitFeedback,
+        onFeedbackEventConsumed = feedbackViewModel::clearSnackbarEvent,
         onDeveloperClick = onDeveloperClick,
         versionName = versionName,
         versionCode = versionCode,
@@ -85,12 +98,19 @@ fun SettingsScreenRoute(
 @Composable
 fun SettingsScreen(
     uiState: SettingsUiState,
+    feedbackUiState: FeedbackUiState = FeedbackUiState(),
     onTitleLanguageSelected: (TitleLanguage) -> Unit,
     onHomeViewModeSelected: (HomeViewMode) -> Unit,
     onDeleteAllClick: () -> Unit,
     onConfirmDelete: () -> Unit,
     onDismissDelete: () -> Unit,
     onDataDeletedShown: () -> Unit,
+    onFeedbackClick: () -> Unit = {},
+    onFeedbackDismiss: () -> Unit = {},
+    onFeedbackCategorySelected: (String) -> Unit = {},
+    onFeedbackMessageChanged: (String) -> Unit = {},
+    onFeedbackSubmit: () -> Unit = {},
+    onFeedbackEventConsumed: () -> Unit = {},
     onDeveloperClick: () -> Unit = {},
     versionName: String = "",
     versionCode: Int = 0,
@@ -221,6 +241,27 @@ fun SettingsScreen(
                 )
             }
 
+            Spacer(modifier = Modifier.height(8.dp))
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+
+            TextButton(
+                onClick = onFeedbackClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Feedback,
+                    contentDescription = null,
+                    modifier = Modifier.padding(end = 8.dp)
+                )
+                Text(
+                    text = stringResource(R.string.feedback_button_label),
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
             if (uiState.isDeveloperOptionsEnabled) {
                 Spacer(modifier = Modifier.height(8.dp))
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
@@ -262,5 +303,16 @@ fun SettingsScreen(
                 onDismiss = onDismissDelete
             )
         }
+    }
+
+    if (uiState.isFeedbackSheetVisible) {
+        FeedbackSheet(
+            uiState = feedbackUiState,
+            onCategorySelected = onFeedbackCategorySelected,
+            onMessageChanged = onFeedbackMessageChanged,
+            onSubmit = onFeedbackSubmit,
+            onEventConsumed = onFeedbackEventConsumed,
+            onDismiss = onFeedbackDismiss
+        )
     }
 }

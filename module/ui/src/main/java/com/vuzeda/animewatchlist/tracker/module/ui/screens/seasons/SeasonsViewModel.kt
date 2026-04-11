@@ -2,6 +2,8 @@ package com.vuzeda.animewatchlist.tracker.module.ui.screens.seasons
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsEvent
+import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsTracker
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
@@ -29,7 +31,8 @@ class SeasonsViewModel @Inject constructor(
     private val addAnimeFromDetailsUseCase: AddAnimeFromDetailsUseCase,
     private val removeAnimeByMalIdUseCase: RemoveAnimeByMalIdUseCase,
     private val observeWatchlistMalIdsUseCase: ObserveWatchlistMalIdsUseCase,
-    private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase
+    private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase,
+    private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
     private val _rawAnimeList = MutableStateFlow<List<SearchResult>>(emptyList())
@@ -108,10 +111,12 @@ class SeasonsViewModel @Inject constructor(
     }
 
     fun selectSort(option: SeasonsSortOption) {
+        var isAscending = option.defaultAscending
         _sortState.update { current ->
-            val isAscending = if (option == current.option) !current.isAscending else option.defaultAscending
+            isAscending = if (option == current.option) !current.isAscending else option.defaultAscending
             current.copy(option = option, isAscending = isAscending)
         }
+        analyticsTracker.track(AnalyticsEvent.SelectSort("seasons", option.name, isAscending))
     }
 
     fun selectNextSeason() {
@@ -215,6 +220,7 @@ class SeasonsViewModel @Inject constructor(
 
         viewModelScope.launch {
             addAnimeFromDetailsUseCase(details, status)
+            analyticsTracker.track(AnalyticsEvent.AddAnime(status.name, 1, false))
 
             pendingDetails = null
             _uiState.update {
@@ -244,6 +250,7 @@ class SeasonsViewModel @Inject constructor(
 
         viewModelScope.launch {
             removeAnimeByMalIdUseCase(result.malId)
+            analyticsTracker.track(AnalyticsEvent.RemoveAnime("UNKNOWN"))
             _uiState.update { it.copy(selectedResultForDelete = null) }
         }
     }

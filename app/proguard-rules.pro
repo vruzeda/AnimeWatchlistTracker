@@ -35,3 +35,9 @@
 # --- Kotlin Serialization (keep metadata for reflection) ---
 -keep class kotlin.reflect.** { *; }
 -dontwarn kotlin.reflect.**
+
+# --- Firebase ---
+-keep class com.google.firebase.** { *; }
+-keep class com.google.android.gms.** { *; }
+-dontwarn com.google.firebase.**
+-dontwarn com.google.android.gms.**

@@ -178,4 +178,16 @@
     <string name="schedule_day_sunday">Dimanche</string>
     <string name="schedule_day_unknown">Jour inconnu</string>
     <string name="schedule_season_no_data">Aucune émission prévue cette saison</string>
+
+    <!-- Feedback sheet -->
+    <string name="feedback_button_label">Envoyer des Commentaires</string>
+    <string name="feedback_sheet_title">Envoyer des Commentaires</string>
+    <string name="feedback_category_bug">Rapport de Bug</string>
+    <string name="feedback_category_feature">Demande de Fonctionnalité</string>
+    <string name="feedback_category_general">Général</string>
+    <string name="feedback_message_hint">Décrivez vos commentaires…</string>
+    <string name="feedback_submit">Envoyer</string>
+    <string name="feedback_success">Commentaires envoyés. Merci !</string>
+    <string name="feedback_error">Échec de l\'envoi. Veuillez réessayer.</string>
+    <string name="feedback_char_count">%1$d / 500</string>
 </resources>

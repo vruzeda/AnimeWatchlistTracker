@@ -2,6 +2,8 @@ package com.vuzeda.animewatchlist.tracker.module.ui.screens.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsEvent
+import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsTracker
 import com.vuzeda.animewatchlist.tracker.module.domain.Anime
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
@@ -29,7 +31,8 @@ class HomeViewModel @Inject constructor(
     private val observeAnimeListUseCase: ObserveAnimeListUseCase,
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase,
     private val observeHomeViewModeUseCase: ObserveHomeViewModeUseCase,
-    private val observeAllSeasonsUseCase: ObserveAllSeasonsUseCase
+    private val observeAllSeasonsUseCase: ObserveAllSeasonsUseCase,
+    private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
     private val _filterState = MutableStateFlow(HomeFilterState())
@@ -96,21 +99,26 @@ class HomeViewModel @Inject constructor(
 
     fun selectStatusFilter(status: WatchStatus?) {
         _filterState.update { it.copy(statusFilter = status) }
+        analyticsTracker.track(AnalyticsEvent.SelectFilter("status", status?.name ?: "reset"))
     }
 
     fun selectNotificationFilter(enabled: Boolean?) {
         _filterState.update { it.copy(notificationFilter = enabled) }
+        analyticsTracker.track(AnalyticsEvent.SelectFilter("notification", enabled?.toString() ?: "reset"))
     }
 
     fun resetFilters() {
         _filterState.update { HomeFilterState() }
+        analyticsTracker.track(AnalyticsEvent.SelectFilter("all", "reset"))
     }
 
     fun selectSort(option: HomeSortOption) {
+        var isAscending = option.defaultAscending
         _sortState.update { current ->
-            val isAscending = if (option == current.option) !current.isAscending else option.defaultAscending
+            isAscending = if (option == current.option) !current.isAscending else option.defaultAscending
             current.copy(option = option, isAscending = isAscending)
         }
+        analyticsTracker.track(AnalyticsEvent.SelectSort("home", option.name, isAscending))
     }
 }
 

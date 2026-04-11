@@ -3,6 +3,8 @@ package com.vuzeda.animewatchlist.tracker.module.ui.screens.seasondetail
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsEvent
+import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsTracker
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
@@ -58,7 +60,8 @@ open class SeasonDetailViewModel @Inject constructor(
     private val observeIsNotificationDebugInfoEnabledUseCase: ObserveIsNotificationDebugInfoEnabledUseCase,
     private val observeWatchedEpisodesUseCase: ObserveWatchedEpisodesUseCase,
     private val setEpisodeWatchedUseCase: SetEpisodeWatchedUseCase,
-    private val setAllEpisodesWatchedUseCase: SetAllEpisodesWatchedUseCase
+    private val setAllEpisodesWatchedUseCase: SetAllEpisodesWatchedUseCase,
+    private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
     private val seasonId: Long = checkNotNull(savedStateHandle["seasonId"])
@@ -144,7 +147,10 @@ open class SeasonDetailViewModel @Inject constructor(
     fun setEpisodeWatched(episodeNumber: Int, isWatched: Boolean) {
         val state = _uiState.value
         if (state !is SeasonDetailUiState.Success || !state.isInWatchlist) return
-        viewModelScope.launch { setEpisodeWatchedUseCase(state.season.id, episodeNumber, isWatched) }
+        viewModelScope.launch {
+            setEpisodeWatchedUseCase(state.season.id, episodeNumber, isWatched)
+            analyticsTracker.track(AnalyticsEvent.SetEpisodeWatched(isWatched))
+        }
     }
 
     fun markAllEpisodesWatched() {
@@ -152,7 +158,10 @@ open class SeasonDetailViewModel @Inject constructor(
         if (state !is SeasonDetailUiState.Success || !state.isInWatchlist) return
         val episodeNumbers = state.episodes.map { it.number }
         if (episodeNumbers.isEmpty()) return
-        viewModelScope.launch { setAllEpisodesWatchedUseCase(state.season.id, episodeNumbers) }
+        viewModelScope.launch {
+            setAllEpisodesWatchedUseCase(state.season.id, episodeNumbers)
+            analyticsTracker.track(AnalyticsEvent.MarkAllEpisodesWatched)
+        }
     }
 
     private fun loadFromApi(isRefresh: Boolean = false) {
@@ -307,6 +316,7 @@ open class SeasonDetailViewModel @Inject constructor(
 
         viewModelScope.launch {
             updateSeasonStatusUseCase(state.season, status)
+            analyticsTracker.track(AnalyticsEvent.UpdateSeasonStatus(status.name))
         }
     }
 
@@ -330,6 +340,7 @@ open class SeasonDetailViewModel @Inject constructor(
 
         viewModelScope.launch {
             deleteSeasonUseCase(state.season)
+            analyticsTracker.track(AnalyticsEvent.RemoveSeason(state.isLastSeason))
             _uiState.update { current ->
                 if (current is SeasonDetailUiState.Success) current.copy(
                     isInWatchlist = false,
@@ -361,6 +372,7 @@ open class SeasonDetailViewModel @Inject constructor(
         if (season.id > 0) {
             viewModelScope.launch {
                 addSeasonToWatchlistUseCase(season, status)
+                analyticsTracker.track(AnalyticsEvent.AddSeason(status.name))
                 _uiState.update { s ->
                     if (s is SeasonDetailUiState.Success) s.copy(
                         isAddSheetVisible = false,
@@ -374,6 +386,7 @@ open class SeasonDetailViewModel @Inject constructor(
         val details = pendingDetails ?: return
         viewModelScope.launch {
             addAnimeFromDetailsUseCase(details, status)
+            analyticsTracker.track(AnalyticsEvent.AddSeason(status.name))
             pendingDetails = null
             _uiState.update { s ->
                 if (s is SeasonDetailUiState.Success) s.copy(
@@ -398,6 +411,7 @@ open class SeasonDetailViewModel @Inject constructor(
                 seasonId = state.season.id,
                 enabled = newEnabled
             )
+            analyticsTracker.track(AnalyticsEvent.ToggleEpisodeNotifications(newEnabled))
             _uiState.update { current ->
                 if (current is SeasonDetailUiState.Success) current.copy(
                     isEpisodeNotificationsEnabled = newEnabled,
@@ -428,6 +442,7 @@ open class SeasonDetailViewModel @Inject constructor(
     }
 
     fun notifyPermissionDenied() {
+        analyticsTracker.track(AnalyticsEvent.NotificationPermissionDenied)
         _uiState.update {
             if (it is SeasonDetailUiState.Success) it.copy(snackbarEvent = SeasonDetailSnackbarEvent.NotificationPermissionDenied)
             else it

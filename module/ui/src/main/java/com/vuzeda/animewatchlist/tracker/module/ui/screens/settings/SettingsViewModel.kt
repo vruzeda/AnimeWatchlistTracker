@@ -2,6 +2,8 @@ package com.vuzeda.animewatchlist.tracker.module.ui.screens.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsEvent
+import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsTracker
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.usecase.DeleteAllDataUseCase
@@ -28,7 +30,8 @@ class SettingsViewModel @Inject constructor(
     private val observeHomeViewModeUseCase: ObserveHomeViewModeUseCase,
     private val setHomeViewModeUseCase: SetHomeViewModeUseCase,
     private val observeIsDeveloperOptionsEnabledUseCase: ObserveIsDeveloperOptionsEnabledUseCase,
-    private val setIsDeveloperOptionsEnabledUseCase: SetIsDeveloperOptionsEnabledUseCase
+    private val setIsDeveloperOptionsEnabledUseCase: SetIsDeveloperOptionsEnabledUseCase,
+    private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -57,12 +60,14 @@ class SettingsViewModel @Inject constructor(
     fun setTitleLanguage(language: TitleLanguage) {
         viewModelScope.launch {
             setTitleLanguageUseCase(language)
+            analyticsTracker.track(AnalyticsEvent.SetTitleLanguage(language.name))
         }
     }
 
     fun setHomeViewMode(mode: HomeViewMode) {
         viewModelScope.launch {
             setHomeViewModeUseCase(mode)
+            analyticsTracker.track(AnalyticsEvent.SetHomeViewMode(mode.name))
         }
     }
 
@@ -78,8 +83,17 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isDeleteConfirmationVisible = false) }
             deleteAllDataUseCase()
+            analyticsTracker.track(AnalyticsEvent.DeleteAllData)
             _uiState.update { it.copy(isDataDeleted = true) }
         }
+    }
+
+    fun showFeedbackSheet() {
+        _uiState.update { it.copy(isFeedbackSheetVisible = true) }
+    }
+
+    fun hideFeedbackSheet() {
+        _uiState.update { it.copy(isFeedbackSheetVisible = false) }
     }
 
     fun clearDataDeletedFlag() {

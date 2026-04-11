@@ -9,6 +9,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.EpisodePage
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
+import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsTracker
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddAnimeFromDetailsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddSeasonToWatchlistUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.DeleteSeasonUseCase
@@ -62,6 +63,7 @@ class SeasonDetailViewModelTest {
     private val observeWatchedEpisodesUseCase: ObserveWatchedEpisodesUseCase = mockk()
     private val setEpisodeWatchedUseCase: SetEpisodeWatchedUseCase = mockk(relaxed = true)
     private val setAllEpisodesWatchedUseCase: SetAllEpisodesWatchedUseCase = mockk(relaxed = true)
+    private val analyticsTracker: AnalyticsTracker = mockk(relaxed = true)
 
     private val sampleSeason = Season(
         id = 1L,
@@ -129,7 +131,8 @@ class SeasonDetailViewModelTest {
             observeIsNotificationDebugInfoEnabledUseCase = observeIsNotificationDebugInfoEnabledUseCase,
             observeWatchedEpisodesUseCase = observeWatchedEpisodesUseCase,
             setEpisodeWatchedUseCase = setEpisodeWatchedUseCase,
-            setAllEpisodesWatchedUseCase = setAllEpisodesWatchedUseCase
+            setAllEpisodesWatchedUseCase = setAllEpisodesWatchedUseCase,
+            analyticsTracker = analyticsTracker
         ) {
             override fun localZoneId(): ZoneId = localZoneId
         }

@@ -4,6 +4,7 @@ import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
+import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsTracker
 import com.vuzeda.animewatchlist.tracker.module.usecase.DeleteAllDataUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveHomeViewModeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveIsDeveloperOptionsEnabledUseCase
@@ -36,6 +37,7 @@ class SettingsViewModelTest {
     private val setHomeViewModeUseCase: SetHomeViewModeUseCase = mockk(relaxUnitFun = true)
     private val observeIsDeveloperOptionsEnabledUseCase: ObserveIsDeveloperOptionsEnabledUseCase = mockk()
     private val setIsDeveloperOptionsEnabledUseCase: SetIsDeveloperOptionsEnabledUseCase = mockk(relaxUnitFun = true)
+    private val analyticsTracker: AnalyticsTracker = mockk(relaxed = true)
 
     @BeforeEach
     fun setup() {
@@ -57,7 +59,8 @@ class SettingsViewModelTest {
         observeHomeViewModeUseCase,
         setHomeViewModeUseCase,
         observeIsDeveloperOptionsEnabledUseCase,
-        setIsDeveloperOptionsEnabledUseCase
+        setIsDeveloperOptionsEnabledUseCase,
+        analyticsTracker
     )
 
     @Test

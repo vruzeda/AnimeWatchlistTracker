@@ -8,6 +8,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
+import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsTracker
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveAllSeasonsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveAnimeListUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveHomeViewModeUseCase
@@ -34,6 +35,7 @@ class HomeViewModelTest {
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
     private val observeHomeViewModeUseCase: ObserveHomeViewModeUseCase = mockk()
     private val observeAllSeasonsUseCase: ObserveAllSeasonsUseCase = mockk()
+    private val analyticsTracker: AnalyticsTracker = mockk(relaxed = true)
 
     private val sampleAnimeList = listOf(
         Anime(id = 1L, title = "Attack on Titan", status = WatchStatus.WATCHING, userRating = 8, addedAt = 1000L, notificationType = NotificationType.BOTH),
@@ -67,7 +69,8 @@ class HomeViewModelTest {
             observeAnimeListUseCase,
             observeTitleLanguageUseCase,
             observeHomeViewModeUseCase,
-            observeAllSeasonsUseCase
+            observeAllSeasonsUseCase,
+            analyticsTracker
         )
     }
 
@@ -294,7 +297,8 @@ class HomeViewModelTest {
             observeAnimeListUseCase,
             observeTitleLanguageUseCase,
             observeHomeViewModeUseCase,
-            observeAllSeasonsUseCase
+            observeAllSeasonsUseCase,
+            analyticsTracker
         )
 
         viewModel.uiState.test {
@@ -326,7 +330,8 @@ class HomeViewModelTest {
             observeAnimeListUseCase,
             observeTitleLanguageUseCase,
             observeHomeViewModeUseCase,
-            observeAllSeasonsUseCase
+            observeAllSeasonsUseCase,
+            analyticsTracker
         )
 
         viewModel.uiState.test {
@@ -353,7 +358,8 @@ class HomeViewModelTest {
             observeAnimeListUseCase,
             observeTitleLanguageUseCase,
             observeHomeViewModeUseCase,
-            observeAllSeasonsUseCase
+            observeAllSeasonsUseCase,
+            analyticsTracker
         )
 
         viewModel.uiState.test {
@@ -381,7 +387,8 @@ class HomeViewModelTest {
             observeAnimeListUseCase,
             observeTitleLanguageUseCase,
             observeHomeViewModeUseCase,
-            observeAllSeasonsUseCase
+            observeAllSeasonsUseCase,
+            analyticsTracker
         )
 
         viewModel.uiState.test {
@@ -404,7 +411,8 @@ class HomeViewModelTest {
             observeAnimeListUseCase,
             observeTitleLanguageUseCase,
             observeHomeViewModeUseCase,
-            observeAllSeasonsUseCase
+            observeAllSeasonsUseCase,
+            analyticsTracker
         )
 
         viewModel.uiState.test {
@@ -430,7 +438,8 @@ class HomeViewModelTest {
             observeAnimeListUseCase,
             observeTitleLanguageUseCase,
             observeHomeViewModeUseCase,
-            observeAllSeasonsUseCase
+            observeAllSeasonsUseCase,
+            analyticsTracker
         )
 
         viewModel.uiState.test {

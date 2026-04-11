@@ -6,6 +6,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
+import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsTracker
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddAnimeFromDetailsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
@@ -40,6 +41,7 @@ class SearchViewModelTest {
     private val watchlistMalIdsFlow = MutableStateFlow<Set<Int>>(emptySet())
     private val observeWatchlistMalIdsUseCase: ObserveWatchlistMalIdsUseCase = mockk()
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
+    private val analyticsTracker: AnalyticsTracker = mockk(relaxed = true)
 
     private lateinit var viewModel: SearchViewModel
 
@@ -71,7 +73,8 @@ class SearchViewModelTest {
             addAnimeFromDetailsUseCase = addAnimeFromDetailsUseCase,
             removeAnimeByMalIdUseCase = removeAnimeByMalIdUseCase,
             observeWatchlistMalIdsUseCase = observeWatchlistMalIdsUseCase,
-            observeTitleLanguageUseCase = observeTitleLanguageUseCase
+            observeTitleLanguageUseCase = observeTitleLanguageUseCase,
+            analyticsTracker = analyticsTracker
         )
     }
 

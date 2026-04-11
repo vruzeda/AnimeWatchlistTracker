@@ -2,6 +2,8 @@ package com.vuzeda.animewatchlist.tracker.module.ui.screens.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsEvent
+import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsTracker
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
@@ -27,7 +29,8 @@ class SearchViewModel @Inject constructor(
     private val addAnimeFromDetailsUseCase: AddAnimeFromDetailsUseCase,
     private val removeAnimeByMalIdUseCase: RemoveAnimeByMalIdUseCase,
     private val observeWatchlistMalIdsUseCase: ObserveWatchlistMalIdsUseCase,
-    private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase
+    private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase,
+    private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
     private val _rawResults = MutableStateFlow<List<SearchResult>>(emptyList())
@@ -85,6 +88,9 @@ class SearchViewModel @Inject constructor(
                             hasSearched = true
                         )
                     }
+                    analyticsTracker.track(
+                        AnalyticsEvent.ExecuteSearch(query.length, results.size, true)
+                    )
                 }
                 .onFailure { error ->
                     _uiState.update {
@@ -94,6 +100,9 @@ class SearchViewModel @Inject constructor(
                             hasSearched = true
                         )
                     }
+                    analyticsTracker.track(
+                        AnalyticsEvent.ExecuteSearch(query.length, 0, false)
+                    )
                 }
         }
     }
@@ -117,10 +126,12 @@ class SearchViewModel @Inject constructor(
     }
 
     fun selectSort(option: SearchSortOption) {
+        var isAscending = option.defaultAscending
         _sortState.update { current ->
-            val isAscending = if (option == current.option) !current.isAscending else option.defaultAscending
+            isAscending = if (option == current.option) !current.isAscending else option.defaultAscending
             current.copy(option = option, isAscending = isAscending)
         }
+        analyticsTracker.track(AnalyticsEvent.SelectSort("search", option.name, isAscending))
     }
 
     fun onResultClick(result: SearchResult) {
@@ -158,6 +169,7 @@ class SearchViewModel @Inject constructor(
 
         viewModelScope.launch {
             addAnimeFromDetailsUseCase(details, status)
+            analyticsTracker.track(AnalyticsEvent.AddAnime(status.name, 1, false))
 
             pendingDetails = null
             _uiState.update {
@@ -187,6 +199,7 @@ class SearchViewModel @Inject constructor(
 
         viewModelScope.launch {
             removeAnimeByMalIdUseCase(result.malId)
+            analyticsTracker.track(AnalyticsEvent.RemoveAnime("UNKNOWN"))
             _uiState.update { it.copy(selectedResultForDelete = null) }
         }
     }
