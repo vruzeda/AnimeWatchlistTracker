@@ -87,6 +87,12 @@ android {
     }
 }
 
+afterEvaluate {
+    tasks.matching { it.name.matches(Regex("process.*Mock.*GoogleServices")) }.configureEach {
+        enabled = false
+    }
+}
+
 dependencies {
     implementation(project(":module:domain"))
     implementation(project(":module:design-system"))
@@ -101,11 +107,15 @@ dependencies {
     implementation(project(":module:notification-android"))
     implementation(project(":module:scheduler"))
     implementation(project(":module:scheduler-work"))
-    implementation(project(":module:analytics-firebase"))
-    implementation(project(":module:remote-data-source-firebase"))
+    implementation(project(":module:analytics"))
+    "prodImplementation"(project(":module:analytics-firebase"))
+    "prodImplementation"(project(":module:remote-data-source-firebase"))
 
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.crashlytics)
+    "prodImplementation"(platform(libs.firebase.bom))
+    "prodImplementation"(libs.firebase.analytics)
+    "prodImplementation"(libs.firebase.auth)
+    "prodImplementation"(libs.firebase.crashlytics)
+    "prodImplementation"(libs.firebase.firestore)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
