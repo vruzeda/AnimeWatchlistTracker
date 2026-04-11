@@ -2,6 +2,7 @@ package com.vuzeda.animewatchlist.tracker
 
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.ChiakiWatchOrderEntryDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.ChiakiService
+import java.time.LocalDate
 
 class FakeChiakiService : ChiakiService {
 
@@ -9,62 +10,122 @@ class FakeChiakiService : ChiakiService {
         16498 to listOf(
             ChiakiWatchOrderEntryDto(
                 malId = 16498,
-                title = "Attack on Titan",
+                title = "Shingeki no Kyojin",
+                titleEnglish = "Attack on Titan",
                 typeCode = 1,
                 episodeCount = 25,
-                score = 8.54,
-                imageUrl = "https://cdn.myanimelist.net/images/anime/10/47347.jpg",
+                score = 8.57,
+                imageUrl = "https://myanimelist.net/images/anime/10/47347l.jpg",
                 isMainSeries = true,
+                startDate = LocalDate.of(2013, 4, 7),
             ),
             ChiakiWatchOrderEntryDto(
                 malId = 25777,
-                title = "Attack on Titan Season 2",
+                title = "Shingeki no Kyojin Season 2",
+                titleEnglish = "Attack on Titan Season 2",
                 typeCode = 1,
                 episodeCount = 12,
-                score = 8.48,
-                imageUrl = "https://cdn.myanimelist.net/images/anime/4/84177.jpg",
+                score = 8.54,
+                imageUrl = "https://myanimelist.net/images/anime/4/84177l.jpg",
                 isMainSeries = true,
-            )
+                startDate = LocalDate.of(2017, 4, 1),
+            ),
         ),
         25777 to listOf(
             ChiakiWatchOrderEntryDto(
                 malId = 16498,
-                title = "Attack on Titan",
+                title = "Shingeki no Kyojin",
+                titleEnglish = "Attack on Titan",
                 typeCode = 1,
                 episodeCount = 25,
-                score = 8.54,
-                imageUrl = "https://cdn.myanimelist.net/images/anime/10/47347.jpg",
+                score = 8.57,
+                imageUrl = "https://myanimelist.net/images/anime/10/47347l.jpg",
                 isMainSeries = true,
+                startDate = LocalDate.of(2013, 4, 7),
             ),
             ChiakiWatchOrderEntryDto(
                 malId = 25777,
-                title = "Attack on Titan Season 2",
+                title = "Shingeki no Kyojin Season 2",
+                titleEnglish = "Attack on Titan Season 2",
+                typeCode = 1,
+                episodeCount = 12,
+                score = 8.54,
+                imageUrl = "https://myanimelist.net/images/anime/4/84177l.jpg",
+                isMainSeries = true,
+                startDate = LocalDate.of(2017, 4, 1),
+            ),
+        ),
+        30276 to listOf(
+            ChiakiWatchOrderEntryDto(
+                malId = 30276,
+                title = "One Punch Man",
+                titleEnglish = "One-Punch Man",
                 typeCode = 1,
                 episodeCount = 12,
                 score = 8.48,
-                imageUrl = "https://cdn.myanimelist.net/images/anime/4/84177.jpg",
+                imageUrl = "https://myanimelist.net/images/anime/12/76049l.jpg",
                 isMainSeries = true,
-            )
+                startDate = LocalDate.of(2015, 10, 5),
+            ),
+            ChiakiWatchOrderEntryDto(
+                malId = 34134,
+                title = "One Punch Man 2nd Season",
+                titleEnglish = "One-Punch Man Season 2",
+                typeCode = 1,
+                episodeCount = 12,
+                score = 7.53,
+                imageUrl = "https://myanimelist.net/images/anime/1247/122044l.jpg",
+                isMainSeries = true,
+                startDate = LocalDate.of(2019, 4, 10),
+            ),
+        ),
+        34134 to listOf(
+            ChiakiWatchOrderEntryDto(
+                malId = 30276,
+                title = "One Punch Man",
+                titleEnglish = "One-Punch Man",
+                typeCode = 1,
+                episodeCount = 12,
+                score = 8.48,
+                imageUrl = "https://myanimelist.net/images/anime/12/76049l.jpg",
+                isMainSeries = true,
+                startDate = LocalDate.of(2015, 10, 5),
+            ),
+            ChiakiWatchOrderEntryDto(
+                malId = 34134,
+                title = "One Punch Man 2nd Season",
+                titleEnglish = "One-Punch Man Season 2",
+                typeCode = 1,
+                episodeCount = 12,
+                score = 7.53,
+                imageUrl = "https://myanimelist.net/images/anime/1247/122044l.jpg",
+                isMainSeries = true,
+                startDate = LocalDate.of(2019, 4, 10),
+            ),
         ),
         38000 to listOf(
             ChiakiWatchOrderEntryDto(
                 malId = 38000,
-                title = "Demon Slayer: Kimetsu no Yaiba",
+                title = "Kimetsu no Yaiba",
+                titleEnglish = "Demon Slayer: Kimetsu no Yaiba",
                 typeCode = 1,
                 episodeCount = 26,
                 score = 8.45,
                 imageUrl = "https://cdn.myanimelist.net/images/anime/1286/99889.jpg",
                 isMainSeries = true,
+                startDate = LocalDate.of(2019, 4, 6),
             ),
             ChiakiWatchOrderEntryDto(
                 malId = 47778,
-                title = "Demon Slayer: Mugen Train Arc",
+                title = "Kimetsu no Yaiba: Mugen Ressha-hen",
+                titleEnglish = "Demon Slayer: Mugen Train Arc",
                 typeCode = 1,
                 episodeCount = 7,
                 score = 8.20,
-                imageUrl = null,
+                imageUrl = "https://myanimelist.net/images/anime/1003/119500l.jpg",
                 isMainSeries = true,
-            )
+                startDate = LocalDate.of(2021, 10, 10),
+            ),
         ),
         52991 to listOf(
             ChiakiWatchOrderEntryDto(
@@ -76,6 +137,7 @@ class FakeChiakiService : ChiakiService {
                 score = 7.86,
                 imageUrl = "https://chiaki.site/media/a/a2/56805.jpg",
                 isMainSeries = false,
+                startDate = LocalDate.of(2023, 9, 29),
             ),
             ChiakiWatchOrderEntryDto(
                 malId = 52991,
@@ -86,6 +148,7 @@ class FakeChiakiService : ChiakiService {
                 score = 9.27,
                 imageUrl = "https://chiaki.site/media/a/ec/52991.jpg",
                 isMainSeries = true,
+                startDate = LocalDate.of(2023, 9, 29),
             ),
             ChiakiWatchOrderEntryDto(
                 malId = 59978,
@@ -96,6 +159,7 @@ class FakeChiakiService : ChiakiService {
                 score = 9.25,
                 imageUrl = "https://chiaki.site/media/a/ec/59978.jpg",
                 isMainSeries = true,
+                startDate = LocalDate.of(2026, 1, 16),
             ),
         ),
         59978 to listOf(
@@ -108,6 +172,7 @@ class FakeChiakiService : ChiakiService {
                 score = 7.86,
                 imageUrl = "https://chiaki.site/media/a/a2/56805.jpg",
                 isMainSeries = false,
+                startDate = LocalDate.of(2023, 9, 29),
             ),
             ChiakiWatchOrderEntryDto(
                 malId = 52991,
@@ -118,6 +183,7 @@ class FakeChiakiService : ChiakiService {
                 score = 9.27,
                 imageUrl = "https://chiaki.site/media/a/ec/52991.jpg",
                 isMainSeries = true,
+                startDate = LocalDate.of(2023, 9, 29),
             ),
             ChiakiWatchOrderEntryDto(
                 malId = 59978,
@@ -128,6 +194,7 @@ class FakeChiakiService : ChiakiService {
                 score = 9.25,
                 imageUrl = "https://chiaki.site/media/a/ec/59978.jpg",
                 isMainSeries = true,
+                startDate = LocalDate.of(2026, 1, 16),
             ),
         ),
         56805 to listOf(
@@ -140,6 +207,7 @@ class FakeChiakiService : ChiakiService {
                 score = 7.86,
                 imageUrl = "https://chiaki.site/media/a/a2/56805.jpg",
                 isMainSeries = false,
+                startDate = LocalDate.of(2023, 9, 29),
             ),
             ChiakiWatchOrderEntryDto(
                 malId = 52991,
@@ -150,6 +218,7 @@ class FakeChiakiService : ChiakiService {
                 score = 9.27,
                 imageUrl = "https://chiaki.site/media/a/ec/52991.jpg",
                 isMainSeries = true,
+                startDate = LocalDate.of(2023, 9, 29),
             ),
             ChiakiWatchOrderEntryDto(
                 malId = 59978,
@@ -160,6 +229,7 @@ class FakeChiakiService : ChiakiService {
                 score = 9.25,
                 imageUrl = "https://chiaki.site/media/a/ec/59978.jpg",
                 isMainSeries = true,
+                startDate = LocalDate.of(2026, 1, 16),
             ),
         ),
     )
