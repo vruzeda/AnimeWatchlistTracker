@@ -139,6 +139,8 @@ dependencies {
     implementation(libs.okhttp.logging.interceptor)
     implementation(libs.moshi)
 
+    implementation(libs.coil)
+
     implementation(libs.timber)
 
     implementation(libs.androidx.work.runtime.ktx)
