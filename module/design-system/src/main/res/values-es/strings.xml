@@ -35,6 +35,9 @@
     <string name="cd_previous_season">Temporada anterior</string>
     <string name="cd_next_season">Temporada siguiente</string>
 
+    <!-- FullScreenImageViewer -->
+    <string name="cd_close">Cerrar</string>
+
     <!-- NotificationsButton -->
     <string name="cd_disable_notifications">Desactivar notificaciones</string>
     <string name="cd_enable_notifications">Activar notificaciones</string>

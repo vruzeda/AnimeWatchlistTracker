@@ -55,6 +55,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.ConfirmationDialog
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.EmptyStateMessage
+import com.vuzeda.animewatchlist.tracker.module.designsystem.component.FullScreenImageViewer
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.EpisodeListItem
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.NotificationButton
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusChip
@@ -464,19 +465,32 @@ private fun SeasonHeaderSection(
         titleJapanese = season.titleJapanese,
         language = titleLanguage
     )
+    val imageUrl = season.imageUrl
+    var showFullScreenImage by remember { mutableStateOf(false) }
     Row(modifier = Modifier.fillMaxWidth()) {
         AsyncImage(
-            model = season.imageUrl,
+            model = imageUrl,
             contentDescription = displayTitle,
             modifier = Modifier
                 .width(120.dp)
                 .height(170.dp)
-                .clip(MaterialTheme.shapes.medium),
+                .clip(MaterialTheme.shapes.medium)
+                .then(
+                    if (imageUrl != null) Modifier.clickable { showFullScreenImage = true }
+                    else Modifier
+                ),
             contentScale = ContentScale.Crop,
             placeholder = ColorPainter(Color(0xFFE0E0E0)),
             error = ColorPainter(Color(0xFFE0E0E0)),
             fallback = ColorPainter(Color(0xFFE0E0E0))
         )
+        if (showFullScreenImage && imageUrl != null) {
+            FullScreenImageViewer(
+                imageUrl = imageUrl,
+                contentDescription = displayTitle,
+                onDismiss = { showFullScreenImage = false }
+            )
+        }
 
         Spacer(modifier = Modifier.width(16.dp))
 
