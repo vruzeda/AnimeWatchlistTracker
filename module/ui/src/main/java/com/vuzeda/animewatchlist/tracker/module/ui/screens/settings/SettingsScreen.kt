@@ -174,12 +174,13 @@ fun SettingsScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .clickable { onTitleLanguageSelected(option.language) }
                         .padding(horizontal = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     RadioButton(
                         selected = uiState.titleLanguage == option.language,
-                        onClick = { onTitleLanguageSelected(option.language) }
+                        onClick = null
                     )
                     Text(
                         text = stringResource(option.labelRes),
@@ -203,12 +204,13 @@ fun SettingsScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .clickable { onHomeViewModeSelected(option.mode) }
                         .padding(horizontal = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     RadioButton(
                         selected = uiState.homeViewMode == option.mode,
-                        onClick = { onHomeViewModeSelected(option.mode) }
+                        onClick = null
                     )
                     Text(
                         text = stringResource(option.labelRes),
