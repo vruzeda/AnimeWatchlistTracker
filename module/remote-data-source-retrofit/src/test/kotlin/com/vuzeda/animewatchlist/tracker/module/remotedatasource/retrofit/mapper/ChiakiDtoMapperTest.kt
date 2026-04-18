@@ -173,6 +173,62 @@ class ChiakiDtoMapperTest {
     }
 
     @Test
+    fun `infers airingStatus as Finished Airing when endDate is in the past`() {
+        val entry = ChiakiWatchOrderEntryDto(
+            malId = 1, title = "Old Anime", typeCode = 1, episodeCount = 13,
+            score = null, imageUrl = null,
+            startDate = LocalDate.of(2020, 1, 1),
+            endDate = LocalDate.of(2020, 3, 31),
+        )
+
+        val result = entry.toSeasonData()
+
+        assertThat(result.airingStatus).isEqualTo("Finished Airing")
+    }
+
+    @Test
+    fun `infers airingStatus as Currently Airing when started but no end date`() {
+        val entry = ChiakiWatchOrderEntryDto(
+            malId = 2, title = "Ongoing Anime", typeCode = 1, episodeCount = null,
+            score = null, imageUrl = null,
+            startDate = LocalDate.of(2024, 1, 1),
+            endDate = null,
+        )
+
+        val result = entry.toSeasonData()
+
+        assertThat(result.airingStatus).isEqualTo("Currently Airing")
+    }
+
+    @Test
+    fun `infers airingStatus as Not yet aired when startDate is in the future`() {
+        val entry = ChiakiWatchOrderEntryDto(
+            malId = 3, title = "Future Anime", typeCode = 1, episodeCount = null,
+            score = null, imageUrl = null,
+            startDate = LocalDate.of(2099, 10, 1),
+            endDate = null,
+        )
+
+        val result = entry.toSeasonData()
+
+        assertThat(result.airingStatus).isEqualTo("Not yet aired")
+    }
+
+    @Test
+    fun `airingStatus is null when startDate is null`() {
+        val entry = ChiakiWatchOrderEntryDto(
+            malId = 4, title = "Unknown Anime", typeCode = 1, episodeCount = null,
+            score = null, imageUrl = null,
+            startDate = null,
+            endDate = null,
+        )
+
+        val result = entry.toSeasonData()
+
+        assertThat(result.airingStatus).isNull()
+    }
+
+    @Test
     fun `preserves order of entries`() {
         val entries = listOf(
             dto(malId = 10, typeCode = 1, title = "First"),

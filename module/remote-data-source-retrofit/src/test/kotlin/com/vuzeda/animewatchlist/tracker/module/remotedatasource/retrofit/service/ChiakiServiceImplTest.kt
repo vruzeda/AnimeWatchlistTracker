@@ -133,7 +133,7 @@ class ChiakiServiceImplTest {
     }
 
     @Test
-    fun `returns null English title when English title div is blank`() {
+    fun `returns null English title when English title span is blank`() {
         val html = buildSampleHtml(
             entry(malId = 900, typeCode = 1, eps = 12, title = "Some Anime", score = null, ratingCount = null, image = null, englishTitle = "   ")
         )
@@ -198,49 +198,71 @@ class ChiakiServiceImplTest {
     }
 
     @Test
-    fun `parseChiakiStartDate parses full cross-year date range`() {
-        val result = ChiakiServiceImpl.parseChiakiStartDate("Oct 4, 2003 – Oct 2, 2004")
+    fun `parseChiakiDateRange parses full cross-year date range`() {
+        val (startDate, endDate) = ChiakiServiceImpl.parseChiakiDateRange("Oct 4, 2003 – Oct 2, 2004")
 
-        assertThat(result).isEqualTo(LocalDate.of(2003, 10, 4))
+        assertThat(startDate).isEqualTo(LocalDate.of(2003, 10, 4))
+        assertThat(endDate).isEqualTo(LocalDate.of(2004, 10, 2))
     }
 
     @Test
-    fun `parseChiakiStartDate parses abbreviated start with same-year range`() {
-        val result = ChiakiServiceImpl.parseChiakiStartDate("Apr 7 – Sep 29, 2013")
+    fun `parseChiakiDateRange parses abbreviated start with same-year range`() {
+        val (startDate, endDate) = ChiakiServiceImpl.parseChiakiDateRange("Apr 7 – Sep 29, 2013")
 
-        assertThat(result).isEqualTo(LocalDate.of(2013, 4, 7))
+        assertThat(startDate).isEqualTo(LocalDate.of(2013, 4, 7))
+        assertThat(endDate).isEqualTo(LocalDate.of(2013, 9, 29))
     }
 
     @Test
-    fun `parseChiakiStartDate parses single date`() {
-        val result = ChiakiServiceImpl.parseChiakiStartDate("Jul 23, 2005")
+    fun `parseChiakiDateRange parses single date`() {
+        val (startDate, endDate) = ChiakiServiceImpl.parseChiakiDateRange("Jul 23, 2005")
 
-        assertThat(result).isEqualTo(LocalDate.of(2005, 7, 23))
+        assertThat(startDate).isEqualTo(LocalDate.of(2005, 7, 23))
+        assertThat(endDate).isNull()
     }
 
     @Test
-    fun `parseChiakiStartDate parses open-ended date range`() {
-        val result = ChiakiServiceImpl.parseChiakiStartDate("Oct 11, 2023 – ?")
+    fun `parseChiakiDateRange parses open-ended date range with question mark`() {
+        val (startDate, endDate) = ChiakiServiceImpl.parseChiakiDateRange("Oct 11, 2023 – ?")
 
-        assertThat(result).isEqualTo(LocalDate.of(2023, 10, 11))
+        assertThat(startDate).isEqualTo(LocalDate.of(2023, 10, 11))
+        assertThat(endDate).isNull()
     }
 
     @Test
-    fun `parseChiakiStartDate returns null for unparseable input`() {
-        val result = ChiakiServiceImpl.parseChiakiStartDate("Unknown date")
+    fun `parseChiakiDateRange parses open-ended date range with double space before separator`() {
+        val (startDate, endDate) = ChiakiServiceImpl.parseChiakiDateRange("Oct 11, 2023  – ?")
 
-        assertThat(result).isNull()
+        assertThat(startDate).isEqualTo(LocalDate.of(2023, 10, 11))
+        assertThat(endDate).isNull()
     }
 
     @Test
-    fun `parseChiakiStartDate returns null when abbreviated start has no year in end part`() {
-        val result = ChiakiServiceImpl.parseChiakiStartDate("Apr 7 – ?")
+    fun `parseChiakiDateRange parses month-year-only start date`() {
+        val (startDate, endDate) = ChiakiServiceImpl.parseChiakiDateRange("Oct, 2027 – ?")
 
-        assertThat(result).isNull()
+        assertThat(startDate).isEqualTo(LocalDate.of(2027, 10, 1))
+        assertThat(endDate).isNull()
     }
 
     @Test
-    fun `parses wo_meta start date from HTML entry`() {
+    fun `parseChiakiDateRange returns null start for unparseable input`() {
+        val (startDate, endDate) = ChiakiServiceImpl.parseChiakiDateRange("Unknown date")
+
+        assertThat(startDate).isNull()
+        assertThat(endDate).isNull()
+    }
+
+    @Test
+    fun `parseChiakiDateRange returns null start when abbreviated start has no year in end part`() {
+        val (startDate, endDate) = ChiakiServiceImpl.parseChiakiDateRange("Apr 7 – ?")
+
+        assertThat(startDate).isNull()
+        assertThat(endDate).isNull()
+    }
+
+    @Test
+    fun `parses wo_meta start and end date from HTML entry`() {
         val html = buildSampleHtml(
             entryWithMeta(malId = 16498, typeCode = 1, eps = 25, title = "AoT", meta = "Oct 4, 2013 – Mar 29, 2014 | 25 eps")
         )
@@ -249,6 +271,19 @@ class ChiakiServiceImplTest {
 
         assertThat(result).hasSize(1)
         assertThat(result[0].startDate).isEqualTo(LocalDate.of(2013, 10, 4))
+        assertThat(result[0].endDate).isEqualTo(LocalDate.of(2014, 3, 29))
+    }
+
+    @Test
+    fun `treats data-eps 0 as null episode count`() {
+        val html = buildSampleHtml(
+            entry(malId = 56885, typeCode = 5, eps = 0, title = "Ongoing ONA", score = null, ratingCount = null, image = null)
+        )
+
+        val result = ChiakiServiceImpl.parseWatchOrderHtml(html)
+
+        assertThat(result).hasSize(1)
+        assertThat(result[0].episodeCount).isNull()
     }
 
     @Test
@@ -293,7 +328,7 @@ class ChiakiServiceImplTest {
         val rowClass = if (isSecondary) "wo_row_secondary" else "wo_row"
         val scoreHtml = if (score != null) """<span class="wo_rating">★$score ($ratingCount)</span>""" else ""
         val imageHtml = if (image != null) """<div class="wo_avatar_big" style="background-image: url('$image')"></div>""" else ""
-        val englishTitleHtml = if (englishTitle != null) """<div class="uk-text-small">$englishTitle</div>""" else ""
+        val englishTitleHtml = if (englishTitle != null) """<span class="uk-text-small">$englishTitle</span>""" else ""
         val relatedAttr = if (related.isNotEmpty()) {
             val json = related.entries.joinToString(",") { (id, label) -> """"$id":"$label"""" }
             """ data-related='{$json}'"""

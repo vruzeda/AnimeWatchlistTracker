@@ -11,5 +11,6 @@ data class ChiakiWatchOrderEntryDto(
     val score: Double?,
     val imageUrl: String?,
     var isMainSeries: Boolean = true,
-    val startDate: LocalDate? = null
+    val startDate: LocalDate? = null,
+    val endDate: LocalDate? = null,
 )

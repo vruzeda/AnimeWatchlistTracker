@@ -3,6 +3,7 @@ package com.vuzeda.animewatchlist.tracker.module.usecase
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.repository.AnimeRepository
 import com.vuzeda.animewatchlist.tracker.module.repository.SeasonRepository
+import java.time.LocalDate
 import javax.inject.Inject
 
 /** Fetches the watch order from the API and inserts any seasons not yet stored locally as non-watchlist entries. */
@@ -32,6 +33,8 @@ class RefreshAnimeSeasonsUseCase @Inject constructor(
                     episodeCount = seasonData.episodeCount,
                     score = seasonData.score,
                     airingStatus = seasonData.airingStatus,
+                    airingSeasonName = seasonData.startDate?.toAiringSeasonName(),
+                    airingSeasonYear = seasonData.startDate?.year,
                     orderIndex = watchOrder.indexOfFirst { it.malId == seasonData.malId },
                     isInWatchlist = false
                 )
@@ -40,4 +43,11 @@ class RefreshAnimeSeasonsUseCase @Inject constructor(
         if (newSeasons.isEmpty()) return
         seasonRepository.addSeasonsToAnime(animeId, newSeasons)
     }
+}
+
+private fun LocalDate.toAiringSeasonName(): String = when (monthValue) {
+    in 1..3 -> "winter"
+    in 4..6 -> "spring"
+    in 7..9 -> "summer"
+    else    -> "fall"
 }

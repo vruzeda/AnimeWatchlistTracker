@@ -2,6 +2,7 @@ package com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mappe
 
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonData
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.ChiakiWatchOrderEntryDto
+import java.time.LocalDate
 
 private val TYPE_CODE_TO_STRING = mapOf(
     1 to "TV",
@@ -28,4 +29,15 @@ fun ChiakiWatchOrderEntryDto.toSeasonData(): SeasonData = SeasonData(
     score = score,
     isMainSeries = isMainSeries,
     startDate = startDate,
+    airingStatus = inferAiringStatus(startDate, endDate),
 )
+
+private fun inferAiringStatus(startDate: LocalDate?, endDate: LocalDate?): String? {
+    val today = LocalDate.now()
+    return when {
+        startDate == null                          -> null
+        startDate.isAfter(today)                   -> "Not yet aired"
+        endDate != null && !endDate.isAfter(today) -> "Finished Airing"
+        else                                       -> "Currently Airing"
+    }
+}
