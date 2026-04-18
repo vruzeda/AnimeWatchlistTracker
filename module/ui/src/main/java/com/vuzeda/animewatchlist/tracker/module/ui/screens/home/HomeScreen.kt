@@ -224,8 +224,8 @@ fun HomeScreen(
                             score = item.season.score,
                             trailingContent = {
                                 StatusChip(
-                                    label = stringResource(item.animeStatus.toDisplayLabelRes()),
-                                    color = item.animeStatus.toColor()
+                                    label = stringResource(item.season.status.toDisplayLabelRes()),
+                                    color = item.season.status.toColor()
                                 )
                             }
                         )

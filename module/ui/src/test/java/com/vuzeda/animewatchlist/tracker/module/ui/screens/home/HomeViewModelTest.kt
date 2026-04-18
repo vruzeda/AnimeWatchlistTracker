@@ -490,6 +490,34 @@ class HomeViewModelTest {
     }
 
     @Test
+    fun `season items carry each season's own status independently of parent anime status`() = runTest {
+        val anime = Anime(id = 1L, title = "Attack on Titan", status = WatchStatus.WATCHING, addedAt = 1000L)
+        val completedSeason = Season(
+            id = 10L, animeId = 1L, malId = 100, title = "Attack on Titan S1",
+            status = WatchStatus.COMPLETED, orderIndex = 0
+        )
+        val watchingSeason = Season(
+            id = 11L, animeId = 1L, malId = 101, title = "Attack on Titan S2",
+            status = WatchStatus.WATCHING, orderIndex = 1
+        )
+
+        val items = buildSeasonItems(
+            animeList = listOf(anime),
+            seasonList = listOf(completedSeason, watchingSeason),
+            filterState = HomeFilterState(),
+            sortState = HomeSortState(HomeSortOption.ALPHABETICAL, true)
+        )
+
+        assertThat(items).hasSize(2)
+        val s1 = items.first { it.season.id == 10L }
+        val s2 = items.first { it.season.id == 11L }
+        assertThat(s1.season.status).isEqualTo(WatchStatus.COMPLETED)
+        assertThat(s2.season.status).isEqualTo(WatchStatus.WATCHING)
+        assertThat(s1.animeStatus).isEqualTo(WatchStatus.WATCHING)
+        assertThat(s2.animeStatus).isEqualTo(WatchStatus.WATCHING)
+    }
+
+    @Test
     fun `season mode sorts by anime status when WATCH_STATUS selected`() = runTest {
         every { observeAnimeListUseCase() } returns flowOf(sampleAnimeList)
         every { observeAllSeasonsUseCase() } returns flowOf(sampleSeasonList)
