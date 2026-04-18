@@ -25,7 +25,6 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.ResolveAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetAnimeDetailTypeFilterUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ToggleAnimeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateAnimeUseCase
-import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonStatusUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,7 +42,6 @@ class AnimeDetailViewModel @Inject constructor(
     private val observeAnimeByIdUseCase: ObserveAnimeByIdUseCase,
     private val observeSeasonsForAnimeUseCase: ObserveSeasonsForAnimeUseCase,
     private val updateAnimeUseCase: UpdateAnimeUseCase,
-    private val updateSeasonStatusUseCase: UpdateSeasonStatusUseCase,
     private val deleteAnimeUseCase: DeleteAnimeUseCase,
     private val toggleAnimeNotificationsUseCase: ToggleAnimeNotificationsUseCase,
     private val resolveAnimeUseCase: ResolveAnimeUseCase,
@@ -217,14 +215,6 @@ class AnimeDetailViewModel @Inject constructor(
         }
     }
 
-    fun showStatusSheet() {
-        _uiState.update { it.copy(isStatusSheetVisible = true) }
-    }
-
-    fun dismissStatusSheet() {
-        _uiState.update { it.copy(isStatusSheetVisible = false) }
-    }
-
     fun showAddSheet() {
         _uiState.update { it.copy(isAddSheetVisible = true) }
     }
@@ -310,17 +300,6 @@ class AnimeDetailViewModel @Inject constructor(
                 snackbarEvent = AnimeDetailSnackbarEvent.AddedToWatchlist(title)
             ) }
             observeAnime(newId)
-        }
-    }
-
-    fun updateStatus(status: WatchStatus) {
-        val state = _uiState.value
-        if (state.anime == null) return
-        val mostRecentSeason = state.seasons.maxByOrNull { it.orderIndex } ?: return
-
-        viewModelScope.launch {
-            updateSeasonStatusUseCase(mostRecentSeason, status)
-            analyticsTracker.track(AnalyticsEvent.UpdateAnimeStatus(status.name))
         }
     }
 

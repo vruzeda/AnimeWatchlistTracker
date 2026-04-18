@@ -26,7 +26,6 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.ResolveAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetAnimeDetailTypeFilterUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ToggleAnimeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateAnimeUseCase
-import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonStatusUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -50,7 +49,6 @@ class AnimeDetailViewModelTest {
     private val observeAnimeByIdUseCase: ObserveAnimeByIdUseCase = mockk()
     private val observeSeasonsForAnimeUseCase: ObserveSeasonsForAnimeUseCase = mockk()
     private val updateAnimeUseCase: UpdateAnimeUseCase = mockk()
-    private val updateSeasonStatusUseCase: UpdateSeasonStatusUseCase = mockk()
     private val deleteAnimeUseCase: DeleteAnimeUseCase = mockk()
     private val toggleAnimeNotificationsUseCase: ToggleAnimeNotificationsUseCase = mockk(relaxed = true)
     private val resolveAnimeUseCase: ResolveAnimeUseCase = mockk()
@@ -112,7 +110,6 @@ class AnimeDetailViewModelTest {
             observeAnimeByIdUseCase = observeAnimeByIdUseCase,
             observeSeasonsForAnimeUseCase = observeSeasonsForAnimeUseCase,
             updateAnimeUseCase = updateAnimeUseCase,
-            updateSeasonStatusUseCase = updateSeasonStatusUseCase,
             deleteAnimeUseCase = deleteAnimeUseCase,
             toggleAnimeNotificationsUseCase = toggleAnimeNotificationsUseCase,
             resolveAnimeUseCase = resolveAnimeUseCase,
@@ -278,29 +275,6 @@ class AnimeDetailViewModelTest {
     }
 
     @Test
-    fun `updateStatus updates most recent season status via use case`() = runTest {
-        coEvery { updateSeasonStatusUseCase(any(), any()) } coAnswers {
-            animeFlow.value = animeFlow.value!!.copy(status = secondArg())
-        }
-
-        val viewModel = createViewModel()
-
-        viewModel.uiState.test {
-            testDispatcher.scheduler.advanceUntilIdle()
-            expectMostRecentItem()
-
-            viewModel.updateStatus(WatchStatus.COMPLETED)
-            testDispatcher.scheduler.advanceUntilIdle()
-
-            val updated = expectMostRecentItem()
-            assertThat(updated.anime?.status).isEqualTo(WatchStatus.COMPLETED)
-
-            coVerify { updateSeasonStatusUseCase(match { it.id == 2L }, WatchStatus.COMPLETED) }
-            cancelAndIgnoreRemainingEvents()
-        }
-    }
-
-    @Test
     fun `updateUserRating persists via use case`() = runTest {
         coEvery { updateAnimeUseCase(any()) } coAnswers {
             animeFlow.value = firstArg()
@@ -421,25 +395,6 @@ class AnimeDetailViewModelTest {
                     notificationType = NotificationType.NONE
                 )
             }
-            cancelAndIgnoreRemainingEvents()
-        }
-    }
-
-    @Test
-    fun `showStatusSheet and dismissStatusSheet toggle visibility`() = runTest {
-        val viewModel = createViewModel()
-
-        viewModel.uiState.test {
-            testDispatcher.scheduler.advanceUntilIdle()
-            expectMostRecentItem()
-
-            viewModel.showStatusSheet()
-            val shown = awaitItem()
-            assertThat(shown.isStatusSheetVisible).isTrue()
-
-            viewModel.dismissStatusSheet()
-            val hidden = awaitItem()
-            assertThat(hidden.isStatusSheetVisible).isFalse()
             cancelAndIgnoreRemainingEvents()
         }
     }

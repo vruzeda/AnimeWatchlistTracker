@@ -91,9 +91,6 @@ fun AnimeDetailScreenRoute(
         uiState = uiState,
         onNavigateBack = onNavigateBack,
         onSeasonClick = onSeasonClick,
-        onStatusChipClick = viewModel::showStatusSheet,
-        onStatusSelected = viewModel::updateStatus,
-        onDismissStatusSheet = viewModel::dismissStatusSheet,
         onRatingChanged = viewModel::updateUserRating,
         onDeleteClick = viewModel::showDeleteConfirmation,
         onConfirmDelete = viewModel::confirmDelete,
@@ -123,9 +120,6 @@ fun AnimeDetailScreen(
     uiState: AnimeDetailUiState,
     onNavigateBack: () -> Unit,
     onSeasonClick: (seasonId: Long, malId: Int) -> Unit,
-    onStatusChipClick: () -> Unit,
-    onStatusSelected: (WatchStatus) -> Unit,
-    onDismissStatusSheet: () -> Unit,
     onRatingChanged: (Int) -> Unit,
     onDeleteClick: () -> Unit,
     onConfirmDelete: () -> Unit,
@@ -274,7 +268,6 @@ fun AnimeDetailScreen(
                                         state = uiState,
                                         imageModifier = Modifier.then(navImageModifier).then(localImageModifier),
                                         onImageClick = { showFullScreenImage = true },
-                                        onStatusChipClick = onStatusChipClick,
                                         onRatingChanged = onRatingChanged,
                                         onAddToWatchlistClick = onAddToWatchlistClick,
                                         onSeasonClick = onSeasonClick,
@@ -285,22 +278,6 @@ fun AnimeDetailScreen(
                                 }
                             }
                         }
-                    }
-
-                    if (uiState.isStatusSheetVisible) {
-                        val statusOptions = WatchStatus.entries.map {
-                            StatusOption(stringResource(it.toDisplayLabelRes()), it.toColor())
-                        }
-                        StatusSelectionSheet(
-                            title = stringResource(R.string.anime_detail_change_status_title),
-                            subtitle = animeDisplayTitle,
-                            options = statusOptions,
-                            onOptionSelected = { index ->
-                                onStatusSelected(WatchStatus.entries[index])
-                                onDismissStatusSheet()
-                            },
-                            onDismiss = onDismissStatusSheet
-                        )
                     }
 
                     if (uiState.isAddSheetVisible) {
@@ -400,7 +377,6 @@ private fun AnimeDetailContent(
     state: AnimeDetailUiState,
     imageModifier: Modifier = Modifier,
     onImageClick: () -> Unit,
-    onStatusChipClick: () -> Unit,
     onRatingChanged: (Int) -> Unit,
     onAddToWatchlistClick: () -> Unit,
     onSeasonClick: (seasonId: Long, malId: Int) -> Unit,
@@ -426,7 +402,6 @@ private fun AnimeDetailContent(
                 isInWatchlist = state.isInWatchlist,
                 imageModifier = imageModifier,
                 onImageClick = onImageClick,
-                onStatusChipClick = onStatusChipClick,
                 onAddToWatchlistClick = onAddToWatchlistClick
             )
         }
@@ -537,7 +512,6 @@ private fun AnimeHeaderSection(
     isInWatchlist: Boolean,
     imageModifier: Modifier = Modifier,
     onImageClick: () -> Unit,
-    onStatusChipClick: () -> Unit,
     onAddToWatchlistClick: () -> Unit
 ) {
     val displayTitle = resolveDisplayTitle(
@@ -577,8 +551,7 @@ private fun AnimeHeaderSection(
             if (isInWatchlist) {
                 StatusChip(
                     label = stringResource(anime.status.toDisplayLabelRes()),
-                    color = anime.status.toColor(),
-                    modifier = Modifier.clickable(onClick = onStatusChipClick)
+                    color = anime.status.toColor()
                 )
             } else {
                 Button(onClick = onAddToWatchlistClick) {

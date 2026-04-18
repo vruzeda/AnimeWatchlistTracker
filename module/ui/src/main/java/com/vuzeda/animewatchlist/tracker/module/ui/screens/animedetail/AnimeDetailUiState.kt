@@ -14,7 +14,6 @@ data class AnimeDetailUiState(
     val isInWatchlist: Boolean = true,
     val notificationType: NotificationType = NotificationType.NONE,
     val titleLanguage: TitleLanguage = TitleLanguage.DEFAULT,
-    val isStatusSheetVisible: Boolean = false,
     val isAddSheetVisible: Boolean = false,
     val isAddScopeSheetVisible: Boolean = false,
     val pendingAddStatus: WatchStatus? = null,
