@@ -18,12 +18,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.MinTouchTarget
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SheetBottomPadding
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SmallSpacing
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -90,7 +90,7 @@ fun OptionSelectionSheetContent(
                     .fillMaxWidth()
                     .heightIn(min = MinTouchTarget)
                     .clickable { onOptionSelected(index) }
-                    .padding(horizontal = ScreenPadding, vertical = 4.dp)
+                    .padding(horizontal = ScreenPadding, vertical = SmallSpacing)
             )
         }
     }

@@ -59,7 +59,6 @@ import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
@@ -82,6 +81,7 @@ import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.MinTouchTarge
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.PosterHeight
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.PosterWidth
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SmallSpacing
 import com.vuzeda.animewatchlist.tracker.module.ui.R
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.home.toColor
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.home.toDisplayLabelRes
@@ -392,7 +392,7 @@ private fun SeasonDetailContent(
                 text = stringResource(R.string.season_detail_section_streaming),
                 style = MaterialTheme.typography.titleMedium
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(ElementSpacing))
             visibleLinks.forEach { link ->
                 OutlinedButton(
                     onClick = {
@@ -453,7 +453,7 @@ private fun SeasonDetailContent(
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(ElementSpacing))
 
             state.episodes.forEachIndexed { index, episode ->
                 EpisodeListItem(
@@ -481,7 +481,7 @@ private fun SeasonDetailContent(
                     CircularProgressIndicator()
                 }
             } else if (state.hasMoreEpisodes) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(ElementSpacing))
                 OutlinedButton(
                     onClick = onLoadMoreEpisodes,
                     modifier = Modifier.fillMaxWidth()
@@ -557,7 +557,7 @@ private fun SeasonHeaderSection(
 
         Spacer(modifier = Modifier.width(ElementSpacing))
 
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(SmallSpacing)) {
             Text(
                 text = displayTitle,
                 style = MaterialTheme.typography.headlineMedium

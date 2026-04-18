@@ -34,7 +34,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.AnimeCard
@@ -48,7 +47,9 @@ import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.LoadingIndicatorSize
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SubtleSpacing
 import com.vuzeda.animewatchlist.tracker.module.ui.R
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.home.toColor
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.home.toDisplayLabelRes
@@ -145,7 +146,7 @@ fun SearchScreen(
                 onSearch = onSearch
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(ElementSpacing))
 
             when {
                 uiState.isLoading -> {
@@ -193,7 +194,7 @@ fun SearchScreen(
                     ) {
                         LazyColumn(
                             contentPadding = PaddingValues(horizontal = ScreenPadding, vertical = ElementSpacing),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                            verticalArrangement = Arrangement.spacedBy(ElementSpacing)
                         ) {
                             items(
                                 items = uiState.displayedResults,
@@ -218,8 +219,8 @@ fun SearchScreen(
                                     trailingContent = {
                                         if (isResolving) {
                                             CircularProgressIndicator(
-                                                modifier = Modifier.size(24.dp),
-                                                strokeWidth = 2.dp
+                                                modifier = Modifier.size(LoadingIndicatorSize),
+                                                strokeWidth = SubtleSpacing
                                             )
                                         } else if (isAdded) {
                                             IconButton(onClick = { onRemoveClick(result) }) {

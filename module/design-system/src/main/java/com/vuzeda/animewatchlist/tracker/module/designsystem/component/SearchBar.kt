@@ -17,9 +17,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.vuzeda.animewatchlist.tracker.module.designsystem.R
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SectionSpacing
 
 @Composable
 fun AnimeSearchBar(
@@ -67,7 +67,7 @@ fun AnimeSearchBar(
 private fun AnimeSearchBarEmptyPreview() {
     AnimeWatchlistTrackerTheme(dynamicColor = false) {
         AnimeSearchBar(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(SectionSpacing),
             query = "",
             onQueryChanged = {},
             onSearch = {}
@@ -80,7 +80,7 @@ private fun AnimeSearchBarEmptyPreview() {
 private fun AnimeSearchBarWithQueryPreview() {
     AnimeWatchlistTrackerTheme(dynamicColor = false) {
         AnimeSearchBar(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(SectionSpacing),
             query = "Attack on Titan",
             onQueryChanged = {},
             onSearch = {}

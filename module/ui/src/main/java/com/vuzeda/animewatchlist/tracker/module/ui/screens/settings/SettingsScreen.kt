@@ -35,13 +35,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.ConfirmationDialog
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.MinTouchTarget
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SectionSpacing
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SmallSpacing
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.ui.R
@@ -190,7 +191,7 @@ fun SettingsScreen(
                     Text(
                         text = stringResource(option.labelRes),
                         style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.padding(start = 4.dp)
+                        modifier = Modifier.padding(start = SmallSpacing)
                     )
                 }
             }
@@ -221,7 +222,7 @@ fun SettingsScreen(
                     Text(
                         text = stringResource(option.labelRes),
                         style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.padding(start = 4.dp)
+                        modifier = Modifier.padding(start = SmallSpacing)
                     )
                 }
             }
@@ -240,7 +241,7 @@ fun SettingsScreen(
                     imageVector = Icons.Outlined.Delete,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(end = 8.dp)
+                    modifier = Modifier.padding(end = ElementSpacing)
                 )
                 Text(
                     text = stringResource(R.string.settings_delete_all_data),
@@ -262,7 +263,7 @@ fun SettingsScreen(
                 Icon(
                     imageVector = Icons.Outlined.Feedback,
                     contentDescription = null,
-                    modifier = Modifier.padding(end = 8.dp)
+                    modifier = Modifier.padding(end = ElementSpacing)
                 )
                 Text(
                     text = stringResource(R.string.feedback_button_label),
@@ -298,7 +299,7 @@ fun SettingsScreen(
                     .fillMaxWidth()
                     .heightIn(min = MinTouchTarget)
                     .clickable(onClick = onVersionTap)
-                    .padding(horizontal = ScreenPadding, vertical = 16.dp)
+                    .padding(horizontal = ScreenPadding, vertical = SectionSpacing)
             )
         }
 

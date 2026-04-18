@@ -29,10 +29,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SectionSpacing
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SheetBottomPadding
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SmallLoadingIndicatorSize
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SubtleSpacing
 import com.vuzeda.animewatchlist.tracker.module.domain.FeedbackCategory
 import com.vuzeda.animewatchlist.tracker.module.ui.R
 
@@ -91,7 +93,7 @@ fun FeedbackSheet(
                     FeedbackCategory.GENERAL to stringResource(R.string.feedback_category_general)
                 )
 
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(ElementSpacing)) {
                     categories.forEach { (category, label) ->
                         FilterChip(
                             selected = uiState.category == category.name,
@@ -124,8 +126,8 @@ fun FeedbackSheet(
                 ) {
                     if (uiState.isSubmitting) {
                         CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp,
+                            modifier = Modifier.size(SmallLoadingIndicatorSize),
+                            strokeWidth = SubtleSpacing,
                             color = MaterialTheme.colorScheme.onPrimary
                         )
                     } else {
@@ -136,7 +138,7 @@ fun FeedbackSheet(
 
             SnackbarHost(
                 hostState = snackbarHostState,
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier.padding(SectionSpacing)
             )
         }
     }

@@ -17,9 +17,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.vuzeda.animewatchlist.tracker.module.designsystem.R
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SectionSpacing
 
 @Composable
 fun SeasonPickerRow(
@@ -68,7 +68,7 @@ fun SeasonPickerRow(
 private fun SeasonPickerRowPreview() {
     AnimeWatchlistTrackerTheme(dynamicColor = false) {
         SeasonPickerRow(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(SectionSpacing),
             label = "Winter 2026",
             onPreviousClick = {},
             onNextClick = {}
@@ -81,7 +81,7 @@ private fun SeasonPickerRowPreview() {
 private fun SeasonPickerRowNextDisabledPreview() {
     AnimeWatchlistTrackerTheme(dynamicColor = false) {
         SeasonPickerRow(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(SectionSpacing),
             label = "Spring 2026",
             isNextEnabled = false,
             onPreviousClick = {},

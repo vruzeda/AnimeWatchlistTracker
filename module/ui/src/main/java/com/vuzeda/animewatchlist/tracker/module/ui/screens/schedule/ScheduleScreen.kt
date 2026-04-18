@@ -36,6 +36,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SmallSpacing
 import com.vuzeda.animewatchlist.tracker.module.ui.R
 import java.time.DayOfWeek
 
@@ -115,7 +116,7 @@ fun ScheduleScreen(
                                 style = MaterialTheme.typography.titleSmall,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(start = ScreenPadding, end = ScreenPadding, top = 4.dp, bottom = 4.dp)
+                                    .padding(start = ScreenPadding, end = ScreenPadding, top = SmallSpacing, bottom = SmallSpacing)
                             )
                         }
                         items(items = seasons, key = { it.id }) { season ->
@@ -123,7 +124,7 @@ fun ScheduleScreen(
                                 season = season,
                                 titleLanguage = uiState.titleLanguage,
                                 onSeasonClick = onSeasonClick,
-                                modifier = Modifier.padding(horizontal = ScreenPadding, vertical = 4.dp)
+                                modifier = Modifier.padding(horizontal = ScreenPadding, vertical = SmallSpacing)
                             )
                         }
                     }

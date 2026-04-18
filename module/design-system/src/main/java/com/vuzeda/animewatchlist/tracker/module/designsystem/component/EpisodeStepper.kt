@@ -11,9 +11,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.vuzeda.animewatchlist.tracker.module.designsystem.R
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SectionSpacing
 
 @Composable
 fun EpisodeStepper(
@@ -25,7 +26,7 @@ fun EpisodeStepper(
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(ElementSpacing)
     ) {
         OutlinedButton(onClick = { onEpisodeChanged(currentEpisode - 1) }) {
             Text(stringResource(R.string.episode_stepper_decrement))
@@ -52,7 +53,7 @@ fun EpisodeStepper(
 private fun EpisodeStepperWithTotalPreview() {
     AnimeWatchlistTrackerTheme(dynamicColor = false) {
         EpisodeStepper(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(SectionSpacing),
             currentEpisode = 5,
             totalEpisodes = 24,
             onEpisodeChanged = {}
@@ -65,7 +66,7 @@ private fun EpisodeStepperWithTotalPreview() {
 private fun EpisodeStepperWithoutTotalPreview() {
     AnimeWatchlistTrackerTheme(dynamicColor = false) {
         EpisodeStepper(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(SectionSpacing),
             currentEpisode = 12,
             totalEpisodes = null,
             onEpisodeChanged = {}

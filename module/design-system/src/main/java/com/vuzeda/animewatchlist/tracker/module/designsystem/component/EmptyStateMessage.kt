@@ -18,10 +18,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.EmptyStateIconSize
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.EmptyStateVerticalSpacing
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
 
 @Composable
@@ -34,7 +34,7 @@ fun EmptyStateMessage(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = ScreenPadding, vertical = 32.dp),
+            .padding(horizontal = ScreenPadding, vertical = EmptyStateVerticalSpacing),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -55,7 +55,7 @@ fun EmptyStateMessage(
         )
 
         if (subtitle != null) {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(ElementSpacing))
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodyMedium,

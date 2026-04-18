@@ -23,9 +23,13 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.vuzeda.animewatchlist.tracker.module.designsystem.R
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ListItemSpacing
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SectionSpacing
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SmallSpacing
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SubtleSpacing
 
 @Composable
 fun EpisodeListItem(
@@ -54,7 +58,7 @@ fun EpisodeListItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 12.dp),
+                .padding(vertical = ListItemSpacing),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
@@ -64,7 +68,7 @@ fun EpisodeListItem(
                 modifier = Modifier.alpha(contentAlpha)
             )
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(ListItemSpacing))
 
             Column(
                 modifier = Modifier
@@ -79,7 +83,7 @@ fun EpisodeListItem(
                 )
 
                 if (airedDate != null) {
-                    Spacer(modifier = Modifier.height(2.dp))
+                    Spacer(modifier = Modifier.height(SubtleSpacing))
                     Text(
                         text = airedDate.take(10),
                         style = MaterialTheme.typography.bodySmall,
@@ -89,8 +93,8 @@ fun EpisodeListItem(
             }
 
             if (isFiller || isRecap) {
-                Spacer(modifier = Modifier.width(8.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                Spacer(modifier = Modifier.width(ElementSpacing))
+                Row(horizontalArrangement = Arrangement.spacedBy(SmallSpacing)) {
                     if (isFiller) {
                         StatusChip(
                             label = stringResource(R.string.episode_badge_filler),
@@ -125,7 +129,7 @@ fun EpisodeListItem(
 private fun EpisodeListItemPreview() {
     AnimeWatchlistTrackerTheme(dynamicColor = false) {
         Surface {
-            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+            Column(modifier = Modifier.padding(horizontal = SectionSpacing)) {
                 EpisodeListItem(
                     episodeNumber = 1,
                     title = "To You, in 2000 Years: The Fall of Shiganshina, Part 1",

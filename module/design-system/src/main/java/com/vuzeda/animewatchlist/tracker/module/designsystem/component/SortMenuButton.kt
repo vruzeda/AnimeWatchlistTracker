@@ -20,9 +20,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.vuzeda.animewatchlist.tracker.module.designsystem.R
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SectionSpacing
 
 @Composable
 fun SortMenuButton(
@@ -81,7 +81,7 @@ fun SortMenuButton(
 private fun SortMenuButtonPreview() {
     AnimeWatchlistTrackerTheme(dynamicColor = false) {
         SortMenuButton(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(SectionSpacing),
             options = listOf("Alphabetical", "MAL Score", "Your Rating", "Progress"),
             selectedIndex = 0,
             isAscending = true,

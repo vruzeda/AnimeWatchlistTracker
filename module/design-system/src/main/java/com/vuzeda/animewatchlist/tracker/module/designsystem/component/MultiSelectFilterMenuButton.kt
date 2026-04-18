@@ -23,9 +23,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.vuzeda.animewatchlist.tracker.module.designsystem.R
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SectionSpacing
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SmallSpacing
 
 @Composable
 fun MultiSelectFilterMenuButton(
@@ -72,7 +74,7 @@ fun MultiSelectFilterMenuButton(
                     text = {
                         Text(
                             text = option,
-                            modifier = Modifier.padding(start = 8.dp)
+                            modifier = Modifier.padding(start = ElementSpacing)
                         )
                     },
                     onClick = { onOptionToggled(option) },
@@ -90,7 +92,7 @@ fun MultiSelectFilterMenuButton(
                 )
             }
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+            HorizontalDivider(modifier = Modifier.padding(vertical = SmallSpacing))
 
             DropdownMenuItem(
                 text = { Text(resetLabel) },
@@ -112,7 +114,7 @@ fun MultiSelectFilterMenuButton(
 private fun MultiSelectFilterMenuButtonPreview() {
     AnimeWatchlistTrackerTheme(dynamicColor = false) {
         MultiSelectFilterMenuButton(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(SectionSpacing),
             label = "By Type",
             options = listOf("TV", "OVA", "Movie", "Special", "ONA"),
             selectedOptions = setOf("TV", "OVA"),

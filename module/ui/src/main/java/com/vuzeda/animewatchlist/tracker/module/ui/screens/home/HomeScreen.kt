@@ -22,7 +22,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.AnimeCard
@@ -170,7 +169,7 @@ fun HomeScreen(
             uiState.homeViewMode == HomeViewMode.ANIME -> {
                 LazyColumn(
                     contentPadding = PaddingValues(horizontal = ScreenPadding, vertical = ElementSpacing),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(ElementSpacing)
                 ) {
                     items(
                         items = uiState.animeList,
@@ -201,7 +200,7 @@ fun HomeScreen(
             else -> {
                 LazyColumn(
                     contentPadding = PaddingValues(horizontal = ScreenPadding, vertical = ElementSpacing),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(ElementSpacing)
                 ) {
                     items(
                         items = uiState.seasonItems,

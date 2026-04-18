@@ -417,7 +417,7 @@ private fun AnimeDetailContent(
                     text = stringResource(R.string.anime_detail_section_your_rating),
                     style = MaterialTheme.typography.titleLarge
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(ElementSpacing))
                 RatingBar(
                     rating = anime.userRating ?: 0,
                     isInteractive = true,
@@ -434,7 +434,7 @@ private fun AnimeDetailContent(
                     text = stringResource(R.string.anime_detail_section_synopsis),
                     style = MaterialTheme.typography.titleLarge
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(ElementSpacing))
                 Text(
                     text = synopsis,
                     style = MaterialTheme.typography.bodyMedium
@@ -463,7 +463,7 @@ private fun AnimeDetailContent(
                         onReset = onResetTypeFilter
                     )
                 }
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(ElementSpacing))
             }
 
             if (displayedSeasons.isEmpty()) {
@@ -485,7 +485,7 @@ private fun AnimeDetailContent(
                         onAddClick = { onSeasonAddClick(season) },
                         animeImageUrl = anime.imageUrl
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(ElementSpacing))
                 }
             }
         }
@@ -550,7 +550,7 @@ private fun AnimeHeaderSection(
                 style = MaterialTheme.typography.headlineMedium
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(ElementSpacing))
 
             if (isInWatchlist) {
                 StatusChip(
@@ -564,7 +564,7 @@ private fun AnimeHeaderSection(
             }
 
             if (anime.genres.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(ElementSpacing))
                 Text(
                     text = anime.genres.joinToString(", "),
                     style = MaterialTheme.typography.bodySmall,

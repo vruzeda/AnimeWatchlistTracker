@@ -34,8 +34,13 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.vuzeda.animewatchlist.tracker.module.designsystem.R
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.CardElevation
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.CardThumbnailHeight
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.CardThumbnailWidth
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ListItemSpacing
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SectionSpacing
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SmallSpacing
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusPlanToWatch
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusWatching
 
@@ -72,12 +77,12 @@ fun AnimeCard(
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = CardElevation)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
+                .padding(ListItemSpacing),
             verticalAlignment = Alignment.CenterVertically
         ) {
             AsyncImage(
@@ -92,7 +97,7 @@ fun AnimeCard(
                 fallback = ColorPainter(Color(0xFFE0E0E0))
             )
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(ListItemSpacing))
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -103,7 +108,7 @@ fun AnimeCard(
                 )
 
                 if (score != null) {
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(SmallSpacing))
                     Text(
                         text = stringResource(R.string.score_format, score.toString()),
                         style = MaterialTheme.typography.bodySmall,
@@ -112,7 +117,7 @@ fun AnimeCard(
                 }
 
                 if (genresText != null) {
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(SmallSpacing))
                     Text(
                         text = genresText,
                         style = MaterialTheme.typography.bodySmall,
@@ -123,7 +128,7 @@ fun AnimeCard(
                 }
 
                 if (episodeText != null) {
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(SmallSpacing))
                     Text(
                         text = episodeText,
                         style = MaterialTheme.typography.bodySmall,
@@ -132,19 +137,19 @@ fun AnimeCard(
                 }
 
                 if (progress != null) {
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(SmallSpacing))
                     LinearProgressIndicator(
                         progress = { progress.coerceIn(0f, 1f) },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(4.dp)
+                            .height(SmallSpacing)
                             .clip(MaterialTheme.shapes.extraSmall),
                     )
                 }
             }
 
             if (trailingContent != null) {
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(ElementSpacing))
                 trailingContent()
             }
         }
@@ -156,7 +161,7 @@ fun AnimeCard(
 private fun AnimeCardWatchlistPreview() {
     AnimeWatchlistTrackerTheme(dynamicColor = false) {
         AnimeCard(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(SectionSpacing),
             title = "Attack on Titan: Final Season Part 3",
             imageUrl = null,
             score = 9.1,
@@ -179,7 +184,7 @@ private fun AnimeCardWatchlistPreview() {
 private fun AnimeCardSearchResultPreview() {
     AnimeWatchlistTrackerTheme(dynamicColor = false) {
         AnimeCard(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(SectionSpacing),
             title = "Jujutsu Kaisen Season 2",
             imageUrl = null,
             score = 8.6,
@@ -204,7 +209,7 @@ private fun AnimeCardSearchResultPreview() {
 private fun AnimeCardInWatchlistPreview() {
     AnimeWatchlistTrackerTheme(dynamicColor = false) {
         AnimeCard(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(SectionSpacing),
             title = "Spy x Family",
             imageUrl = null,
             score = 8.5,
@@ -219,7 +224,7 @@ private fun AnimeCardInWatchlistPreview() {
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(20.dp)
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(SmallSpacing))
                     StatusChip(
                         label = "Plan to Watch",
                         color = StatusPlanToWatch

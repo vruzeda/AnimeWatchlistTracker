@@ -23,9 +23,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.vuzeda.animewatchlist.tracker.module.designsystem.R
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SectionSpacing
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SmallSpacing
 
 data class FilterGroup(
     val label: String,
@@ -59,7 +61,7 @@ fun NestedFilterMenuButton(
         ) {
             filterGroups.forEachIndexed { groupIndex, group ->
                 if (groupIndex > 0) {
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                    HorizontalDivider(modifier = Modifier.padding(vertical = SmallSpacing))
                 }
 
                 DropdownMenuItem(
@@ -80,7 +82,7 @@ fun NestedFilterMenuButton(
                         text = {
                             Text(
                                 text = label,
-                                modifier = Modifier.padding(start = 8.dp)
+                                modifier = Modifier.padding(start = ElementSpacing)
                             )
                         },
                         onClick = { onOptionSelected(groupIndex, optionIndex) },
@@ -99,7 +101,7 @@ fun NestedFilterMenuButton(
                 }
             }
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+            HorizontalDivider(modifier = Modifier.padding(vertical = SmallSpacing))
 
             DropdownMenuItem(
                 text = { Text(resetLabel) },
@@ -121,7 +123,7 @@ fun NestedFilterMenuButton(
 private fun NestedFilterMenuButtonInactivePreview() {
     AnimeWatchlistTrackerTheme(dynamicColor = false) {
         NestedFilterMenuButton(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(SectionSpacing),
             filterGroups = listOf(
                 FilterGroup(
                     label = "By Status",
@@ -147,7 +149,7 @@ private fun NestedFilterMenuButtonInactivePreview() {
 private fun NestedFilterMenuButtonActivePreview() {
     AnimeWatchlistTrackerTheme(dynamicColor = false) {
         NestedFilterMenuButton(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(SectionSpacing),
             filterGroups = listOf(
                 FilterGroup(
                     label = "By Status",

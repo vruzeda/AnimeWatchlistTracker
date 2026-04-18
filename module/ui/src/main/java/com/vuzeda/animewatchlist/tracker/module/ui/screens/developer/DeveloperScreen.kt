@@ -24,11 +24,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SmallSpacing
 import com.vuzeda.animewatchlist.tracker.module.ui.R
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -101,7 +101,7 @@ fun DeveloperScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = ScreenPadding, vertical = 4.dp),
+                    .padding(horizontal = ScreenPadding, vertical = SmallSpacing),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -125,7 +125,7 @@ fun DeveloperScreen(
                 text = uiState.lastAnimeUpdateRun?.formatWith(formatter)
                     ?: stringResource(R.string.developer_last_update_run_never),
                 style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(horizontal = ScreenPadding, vertical = 4.dp)
+                modifier = Modifier.padding(horizontal = ScreenPadding, vertical = SmallSpacing)
             )
 
             TextButton(

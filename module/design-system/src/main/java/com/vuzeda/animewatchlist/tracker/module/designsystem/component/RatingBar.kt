@@ -28,6 +28,7 @@ import com.vuzeda.animewatchlist.tracker.module.designsystem.R
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.RatingEmpty
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.RatingGold
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SectionSpacing
 
 @Composable
 fun RatingBar(
@@ -86,7 +87,7 @@ fun RatingBar(
 private fun RatingBarPreview() {
     AnimeWatchlistTrackerTheme(dynamicColor = false) {
         RatingBar(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(SectionSpacing),
             rating = 7,
             maxRating = 10
         )
@@ -98,7 +99,7 @@ private fun RatingBarPreview() {
 private fun RatingBarEmptyPreview() {
     AnimeWatchlistTrackerTheme(dynamicColor = false) {
         RatingBar(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(SectionSpacing),
             rating = 0,
             maxRating = 10
         )
@@ -110,7 +111,7 @@ private fun RatingBarEmptyPreview() {
 private fun RatingBarInteractivePreview() {
     AnimeWatchlistTrackerTheme(dynamicColor = false) {
         RatingBar(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(SectionSpacing),
             rating = 5,
             maxRating = 10,
             isInteractive = true

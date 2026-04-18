@@ -16,9 +16,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.vuzeda.animewatchlist.tracker.module.designsystem.R
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
 
 @Composable
 fun FullScreenImageViewer(
@@ -46,7 +46,7 @@ fun FullScreenImageViewer(
             onClick = onDismiss,
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(8.dp)
+                .padding(ElementSpacing)
         ) {
             Icon(
                 imageVector = Icons.Default.Close,
