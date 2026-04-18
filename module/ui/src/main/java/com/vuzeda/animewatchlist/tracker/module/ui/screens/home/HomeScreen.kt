@@ -30,17 +30,17 @@ import com.vuzeda.animewatchlist.tracker.module.designsystem.component.FilterGro
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.NestedFilterMenuButton
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.SortMenuButton
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusChip
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusCompleted
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusDropped
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusOnHold
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusPlanToWatch
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusWatching
-import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeSortOption
+import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
-import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
-import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
 import com.vuzeda.animewatchlist.tracker.module.ui.R
 
 private const val GROUP_STATUS = 0

@@ -1,9 +1,8 @@
 package com.vuzeda.animewatchlist.tracker.module.ui.screens.home
 
 import com.vuzeda.animewatchlist.tracker.module.domain.Anime
-import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeSortOption
-import com.vuzeda.animewatchlist.tracker.module.domain.HomeSortState
+import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus

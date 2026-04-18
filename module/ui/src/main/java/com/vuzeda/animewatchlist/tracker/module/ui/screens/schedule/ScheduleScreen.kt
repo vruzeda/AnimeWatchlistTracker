@@ -31,12 +31,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.AnimeCard
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.EmptyStateMessage
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.SeasonPickerRow
-import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
-import com.vuzeda.animewatchlist.tracker.module.domain.Season
-import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SmallSpacing
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
+import com.vuzeda.animewatchlist.tracker.module.domain.Season
+import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
 import com.vuzeda.animewatchlist.tracker.module.ui.R
 import java.time.DayOfWeek
 
