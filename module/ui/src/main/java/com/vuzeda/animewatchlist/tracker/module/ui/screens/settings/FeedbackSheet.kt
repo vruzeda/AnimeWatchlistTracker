@@ -32,6 +32,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SheetBottomPadding
 import com.vuzeda.animewatchlist.tracker.module.domain.FeedbackCategory
 import com.vuzeda.animewatchlist.tracker.module.ui.R
 
@@ -75,7 +76,7 @@ fun FeedbackSheet(
                     .verticalScroll(rememberScrollState())
                     .navigationBarsPadding()
                     .padding(horizontal = ScreenPadding)
-                    .padding(bottom = 24.dp)
+                    .padding(bottom = SheetBottomPadding)
             ) {
                 Text(
                     text = stringResource(R.string.feedback_sheet_title),

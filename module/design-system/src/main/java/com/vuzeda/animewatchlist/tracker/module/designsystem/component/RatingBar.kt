@@ -4,6 +4,7 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.MinTouchTarget
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -64,7 +65,7 @@ fun RatingBar(
 
     Row(
         modifier = modifier
-            .heightIn(min = 48.dp)
+            .heightIn(min = MinTouchTarget)
             .then(gestureModifier),
         verticalAlignment = Alignment.CenterVertically
     ) {

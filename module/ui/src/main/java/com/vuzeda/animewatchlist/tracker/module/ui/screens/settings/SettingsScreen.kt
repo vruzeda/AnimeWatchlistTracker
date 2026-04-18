@@ -40,6 +40,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.ConfirmationDialog
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.MinTouchTarget
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
@@ -177,7 +178,7 @@ fun SettingsScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(min = 48.dp)
+                        .heightIn(min = MinTouchTarget)
                         .clickable { onTitleLanguageSelected(option.language) }
                         .padding(horizontal = ScreenPadding),
                     verticalAlignment = Alignment.CenterVertically
@@ -208,7 +209,7 @@ fun SettingsScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(min = 48.dp)
+                        .heightIn(min = MinTouchTarget)
                         .clickable { onHomeViewModeSelected(option.mode) }
                         .padding(horizontal = ScreenPadding),
                     verticalAlignment = Alignment.CenterVertically
@@ -295,7 +296,7 @@ fun SettingsScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 48.dp)
+                    .heightIn(min = MinTouchTarget)
                     .clickable(onClick = onVersionTap)
                     .padding(horizontal = ScreenPadding, vertical = 16.dp)
             )

@@ -76,6 +76,8 @@ import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.PosterHeight
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.PosterWidth
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
 import com.vuzeda.animewatchlist.tracker.module.ui.R
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.home.toColor
@@ -527,8 +529,8 @@ private fun AnimeHeaderSection(
             model = anime.imageUrl,
             contentDescription = displayTitle,
             modifier = imageModifier
-                .width(120.dp)
-                .height(170.dp)
+                .width(PosterWidth)
+                .height(PosterHeight)
                 .clip(MaterialTheme.shapes.medium)
                 .then(
                     if (anime.imageUrl != null) Modifier.clickable(onClick = onImageClick)

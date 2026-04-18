@@ -34,6 +34,8 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.vuzeda.animewatchlist.tracker.module.designsystem.R
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.CardThumbnailHeight
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.CardThumbnailWidth
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusPlanToWatch
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusWatching
 
@@ -82,7 +84,7 @@ fun AnimeCard(
                 model = imageUrl,
                 contentDescription = title,
                 modifier = sharedImageModifier
-                    .size(width = 72.dp, height = 100.dp)
+                    .size(width = CardThumbnailWidth, height = CardThumbnailHeight)
                     .clip(MaterialTheme.shapes.small),
                 contentScale = ContentScale.Crop,
                 placeholder = ColorPainter(Color(0xFFE0E0E0)),

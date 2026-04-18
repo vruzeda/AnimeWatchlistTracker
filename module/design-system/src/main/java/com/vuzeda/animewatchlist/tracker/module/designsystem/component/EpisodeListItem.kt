@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.MinTouchTarget
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
@@ -47,7 +48,7 @@ fun EpisodeListItem(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = 48.dp)
+            .heightIn(min = MinTouchTarget)
             .then(if (onWatchedToggle != null) Modifier.clickable { onWatchedToggle() } else Modifier)
     ) {
         Row(

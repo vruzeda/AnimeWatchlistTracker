@@ -21,7 +21,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.MinTouchTarget
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SheetBottomPadding
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,7 +63,7 @@ fun OptionSelectionSheetContent(
         modifier = modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(bottom = 24.dp)
+            .padding(bottom = SheetBottomPadding)
     ) {
         Text(
             text = title,
@@ -86,7 +88,7 @@ fun OptionSelectionSheetContent(
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 48.dp)
+                    .heightIn(min = MinTouchTarget)
                     .clickable { onOptionSelected(index) }
                     .padding(horizontal = ScreenPadding, vertical = 4.dp)
             )

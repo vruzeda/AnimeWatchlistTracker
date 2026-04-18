@@ -21,6 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.EmptyStateIconSize
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
 
 @Composable
@@ -40,7 +41,7 @@ fun EmptyStateMessage(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            modifier = Modifier.size(64.dp),
+            modifier = Modifier.size(EmptyStateIconSize),
             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
         )
 

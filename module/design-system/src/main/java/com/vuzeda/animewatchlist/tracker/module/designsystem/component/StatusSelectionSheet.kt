@@ -25,7 +25,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.MinTouchTarget
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SheetBottomPadding
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusCompleted
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusDropped
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusOnHold
@@ -72,7 +74,7 @@ fun StatusSelectionSheetContent(
         modifier = modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(bottom = 24.dp)
+            .padding(bottom = SheetBottomPadding)
     ) {
         Text(
             text = title,
@@ -95,7 +97,7 @@ fun StatusSelectionSheetContent(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 48.dp)
+                    .heightIn(min = MinTouchTarget)
                     .clickable { onOptionSelected(index) }
                     .padding(horizontal = ScreenPadding, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
