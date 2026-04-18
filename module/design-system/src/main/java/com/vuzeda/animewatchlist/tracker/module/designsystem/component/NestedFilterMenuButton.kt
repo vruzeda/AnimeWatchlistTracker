@@ -30,7 +30,7 @@ import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlis
 data class FilterGroup(
     val label: String,
     val options: List<String>,
-    val selectedIndex: Int
+    val selectedIndices: Set<Int>
 )
 
 @Composable
@@ -84,7 +84,7 @@ fun NestedFilterMenuButton(
                             )
                         },
                         onClick = { onOptionSelected(groupIndex, optionIndex) },
-                        trailingIcon = if (optionIndex == group.selectedIndex) {
+                        trailingIcon = if (optionIndex in group.selectedIndices) {
                             {
                                 Icon(
                                     imageVector = Icons.Default.Check,
@@ -126,12 +126,12 @@ private fun NestedFilterMenuButtonInactivePreview() {
                 FilterGroup(
                     label = "By Status",
                     options = listOf("All", "Watching", "Completed", "Plan to Watch", "On Hold", "Dropped"),
-                    selectedIndex = 0
+                    selectedIndices = setOf(0)
                 ),
                 FilterGroup(
                     label = "By Notification",
                     options = listOf("All", "On", "Off"),
-                    selectedIndex = 0
+                    selectedIndices = setOf(0)
                 )
             ),
             isActive = false,
@@ -152,12 +152,12 @@ private fun NestedFilterMenuButtonActivePreview() {
                 FilterGroup(
                     label = "By Status",
                     options = listOf("All", "Watching", "Completed", "Plan to Watch", "On Hold", "Dropped"),
-                    selectedIndex = 1
+                    selectedIndices = setOf(1, 2)
                 ),
                 FilterGroup(
                     label = "By Notification",
                     options = listOf("All", "On", "Off"),
-                    selectedIndex = 0
+                    selectedIndices = setOf(0)
                 )
             ),
             isActive = true,

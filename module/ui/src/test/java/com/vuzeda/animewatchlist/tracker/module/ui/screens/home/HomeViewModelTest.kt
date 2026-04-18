@@ -53,7 +53,7 @@ class HomeViewModelTest {
     private val analyticsTracker: AnalyticsTracker = mockk(relaxed = true)
 
     private val sortStateFlow = MutableStateFlow(HomeSortState())
-    private val statusFilterFlow = MutableStateFlow<WatchStatus?>(null)
+    private val statusFilterFlow = MutableStateFlow<Set<WatchStatus>>(emptySet())
     private val notificationFilterFlow = MutableStateFlow<Boolean?>(null)
 
     private val sampleAnimeList = listOf(
@@ -125,35 +125,71 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun `selectStatusFilter filters by status`() = runTest {
+    fun `toggleStatusFilter filters by single status`() = runTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
             skipItems(2)
 
-            viewModel.selectStatusFilter(WatchStatus.WATCHING)
+            viewModel.toggleStatusFilter(WatchStatus.WATCHING)
 
             val filtered = awaitItem()
-            assertThat(filtered.filterState.statusFilter).isEqualTo(WatchStatus.WATCHING)
+            assertThat(filtered.filterState.statusFilters).isEqualTo(setOf(WatchStatus.WATCHING))
             assertThat(filtered.animeList).hasSize(2)
             assertThat(filtered.animeList.all { it.status == WatchStatus.WATCHING }).isTrue()
         }
     }
 
     @Test
-    fun `selectStatusFilter with null shows all anime`() = runTest {
+    fun `toggleStatusFilter adds second status to filter`() = runTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
             skipItems(2)
 
-            viewModel.selectStatusFilter(WatchStatus.WATCHING)
+            viewModel.toggleStatusFilter(WatchStatus.WATCHING)
             awaitItem()
 
-            viewModel.selectStatusFilter(null)
+            viewModel.toggleStatusFilter(WatchStatus.COMPLETED)
+
+            val filtered = awaitItem()
+            assertThat(filtered.filterState.statusFilters).isEqualTo(setOf(WatchStatus.WATCHING, WatchStatus.COMPLETED))
+            assertThat(filtered.animeList).hasSize(3)
+        }
+    }
+
+    @Test
+    fun `toggleStatusFilter removes status when toggled off`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            skipItems(2)
+
+            viewModel.toggleStatusFilter(WatchStatus.WATCHING)
+            awaitItem()
+
+            viewModel.toggleStatusFilter(WatchStatus.WATCHING)
+
+            val cleared = awaitItem()
+            assertThat(cleared.filterState.statusFilters).isEmpty()
+            assertThat(cleared.animeList).hasSize(3)
+        }
+    }
+
+    @Test
+    fun `toggleStatusFilter with null clears all status filters`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            skipItems(2)
+
+            viewModel.toggleStatusFilter(WatchStatus.WATCHING)
+            awaitItem()
+
+            viewModel.toggleStatusFilter(null)
 
             val allAnime = awaitItem()
-            assertThat(allAnime.filterState.statusFilter).isNull()
+            assertThat(allAnime.filterState.statusFilters).isEmpty()
             assertThat(allAnime.animeList).hasSize(3)
         }
     }
@@ -197,13 +233,13 @@ class HomeViewModelTest {
         viewModel.uiState.test {
             skipItems(2)
 
-            viewModel.selectStatusFilter(WatchStatus.WATCHING)
+            viewModel.toggleStatusFilter(WatchStatus.WATCHING)
             awaitItem()
 
             viewModel.selectNotificationFilter(true)
 
             val combined = awaitItem()
-            assertThat(combined.filterState.statusFilter).isEqualTo(WatchStatus.WATCHING)
+            assertThat(combined.filterState.statusFilters).isEqualTo(setOf(WatchStatus.WATCHING))
             assertThat(combined.filterState.notificationFilter).isTrue()
             assertThat(combined.animeList).hasSize(2)
             assertThat(combined.animeList.all { it.status == WatchStatus.WATCHING && it.isNotificationsEnabled }).isTrue()
@@ -217,7 +253,7 @@ class HomeViewModelTest {
         viewModel.uiState.test {
             skipItems(2)
 
-            viewModel.selectStatusFilter(WatchStatus.WATCHING)
+            viewModel.toggleStatusFilter(WatchStatus.WATCHING)
             awaitItem()
             viewModel.selectNotificationFilter(true)
             awaitItem()
@@ -414,7 +450,7 @@ class HomeViewModelTest {
         viewModel.uiState.test {
             skipItems(2)
 
-            viewModel.selectStatusFilter(WatchStatus.COMPLETED)
+            viewModel.toggleStatusFilter(WatchStatus.COMPLETED)
 
             val filtered = awaitItem()
             assertThat(filtered.seasonItems).hasSize(2)

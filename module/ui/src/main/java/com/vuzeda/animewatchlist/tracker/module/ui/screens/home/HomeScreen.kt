@@ -58,7 +58,7 @@ fun HomeScreenRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     HomeScreen(
         uiState = uiState,
-        onStatusFilterSelected = viewModel::selectStatusFilter,
+        onStatusFilterSelected = viewModel::toggleStatusFilter,
         onNotificationFilterSelected = viewModel::selectNotificationFilter,
         onResetFilters = viewModel::resetFilters,
         onSortSelected = viewModel::selectSort,
@@ -82,6 +82,12 @@ fun HomeScreen(
 ) {
     val sortOptions = HomeSortOption.entries.map { stringResource(it.displayLabelRes) }
 
+    val selectedStatusIndices = if (uiState.filterState.statusFilters.isEmpty()) {
+        setOf(0)
+    } else {
+        uiState.filterState.statusFilters.map { statusValues.indexOf(it) }.toSet()
+    }
+
     val statusFilterGroup = FilterGroup(
         label = stringResource(R.string.filter_group_status),
         options = listOf(
@@ -92,7 +98,7 @@ fun HomeScreen(
             stringResource(R.string.status_on_hold),
             stringResource(R.string.status_dropped)
         ),
-        selectedIndex = statusValues.indexOf(uiState.filterState.statusFilter)
+        selectedIndices = selectedStatusIndices
     )
 
     val notificationFilterGroup = FilterGroup(
@@ -102,7 +108,7 @@ fun HomeScreen(
             stringResource(R.string.filter_notification_on),
             stringResource(R.string.filter_notification_off)
         ),
-        selectedIndex = notificationValues.indexOf(uiState.filterState.notificationFilter)
+        selectedIndices = setOf(notificationValues.indexOf(uiState.filterState.notificationFilter))
     )
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -118,7 +124,7 @@ fun HomeScreen(
                 }
                 NestedFilterMenuButton(
                     filterGroups = listOf(statusFilterGroup, notificationFilterGroup),
-                    isActive = uiState.filterState.statusFilter != null || uiState.filterState.notificationFilter != null,
+                    isActive = uiState.filterState.statusFilters.isNotEmpty() || uiState.filterState.notificationFilter != null,
                     onOptionSelected = { groupIndex, optionIndex ->
                         when (groupIndex) {
                             GROUP_STATUS -> onStatusFilterSelected(statusValues[optionIndex])

@@ -18,7 +18,7 @@ val HomeSortOption.displayLabelRes: Int
     }
 
 data class HomeFilterState(
-    val statusFilter: WatchStatus? = null,
+    val statusFilters: Set<WatchStatus> = emptySet(),
     val notificationFilter: Boolean? = null
 )
 

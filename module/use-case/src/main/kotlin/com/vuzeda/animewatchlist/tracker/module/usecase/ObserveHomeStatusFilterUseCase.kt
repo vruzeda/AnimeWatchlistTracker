@@ -9,6 +9,6 @@ class ObserveHomeStatusFilterUseCase @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository
 ) {
 
-    operator fun invoke(): Flow<WatchStatus?> =
+    operator fun invoke(): Flow<Set<WatchStatus>> =
         userPreferencesRepository.observeHomeStatusFilter()
 }

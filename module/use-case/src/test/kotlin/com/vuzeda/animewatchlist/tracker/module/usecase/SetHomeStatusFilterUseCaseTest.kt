@@ -13,16 +13,23 @@ class SetHomeStatusFilterUseCaseTest {
     private val useCase = SetHomeStatusFilterUseCase(repository)
 
     @Test
-    fun `delegates to repository with given status`() = runTest {
-        useCase(WatchStatus.COMPLETED)
+    fun `delegates to repository with single status set`() = runTest {
+        useCase(setOf(WatchStatus.COMPLETED))
 
-        coVerify(exactly = 1) { repository.setHomeStatusFilter(WatchStatus.COMPLETED) }
+        coVerify(exactly = 1) { repository.setHomeStatusFilter(setOf(WatchStatus.COMPLETED)) }
     }
 
     @Test
-    fun `delegates to repository with null to clear filter`() = runTest {
-        useCase(null)
+    fun `delegates to repository with multiple statuses set`() = runTest {
+        useCase(setOf(WatchStatus.WATCHING, WatchStatus.ON_HOLD))
 
-        coVerify(exactly = 1) { repository.setHomeStatusFilter(null) }
+        coVerify(exactly = 1) { repository.setHomeStatusFilter(setOf(WatchStatus.WATCHING, WatchStatus.ON_HOLD)) }
+    }
+
+    @Test
+    fun `delegates to repository with empty set to clear filter`() = runTest {
+        useCase(emptySet())
+
+        coVerify(exactly = 1) { repository.setHomeStatusFilter(emptySet()) }
     }
 }

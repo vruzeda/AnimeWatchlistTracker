@@ -63,18 +63,18 @@ class HomeViewModel @Inject constructor(
             ) { values ->
                 val animeList = values[0] as List<*>
                 val seasonList = values[1] as List<*>
-                val statusFilter = values[2] as WatchStatus?
+                @Suppress("UNCHECKED_CAST")
+                val statusFilters = values[2] as Set<WatchStatus>
                 val notificationFilter = values[3] as Boolean?
                 val sortState = values[4] as HomeSortState
                 val titleLanguage = values[5] as TitleLanguage
                 val viewMode = values[6] as HomeViewMode
 
-                val filterState = HomeFilterState(statusFilter, notificationFilter)
+                val filterState = HomeFilterState(statusFilters, notificationFilter)
 
                 @Suppress("UNCHECKED_CAST")
                 val typedAnimeList = animeList as List<Anime>
-                @Suppress("UNCHECKED_CAST")
-                val typedSeasonList = seasonList as List<Season>
+                @Suppress("UNCHECKED_CAST") val typedSeasonList = seasonList as List<Season>
 
                 val filteredAnime = sortAnimeList(
                     list = applyFilters(typedAnimeList, filterState),
@@ -111,9 +111,19 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun selectStatusFilter(status: WatchStatus?) {
-        analyticsTracker.track(AnalyticsEvent.SelectFilter("status", status?.name ?: "reset"))
-        viewModelScope.launch { setHomeStatusFilterUseCase(status) }
+    fun toggleStatusFilter(status: WatchStatus?) {
+        analyticsTracker.track(AnalyticsEvent.SelectFilter("status", status?.name ?: "clear"))
+        viewModelScope.launch {
+            val current = _uiState.value.filterState.statusFilters
+            val updated = if (status == null) {
+                emptySet()
+            } else if (status in current) {
+                current - status
+            } else {
+                current + status
+            }
+            setHomeStatusFilterUseCase(updated)
+        }
     }
 
     fun selectNotificationFilter(enabled: Boolean?) {
@@ -124,7 +134,7 @@ class HomeViewModel @Inject constructor(
     fun resetFilters() {
         analyticsTracker.track(AnalyticsEvent.SelectFilter("all", "reset"))
         viewModelScope.launch {
-            setHomeStatusFilterUseCase(null)
+            setHomeStatusFilterUseCase(emptySet())
             setHomeNotificationFilterUseCase(null)
         }
     }
@@ -164,8 +174,8 @@ fun applySeasonFilters(
     filterState: HomeFilterState
 ): List<HomeSeasonItem> {
     var filtered = items
-    filterState.statusFilter?.let { status ->
-        filtered = filtered.filter { it.season.status == status }
+    if (filterState.statusFilters.isNotEmpty()) {
+        filtered = filtered.filter { it.season.status in filterState.statusFilters }
     }
     filterState.notificationFilter?.let { enabled ->
         filtered = filtered.filter { it.season.isEpisodeNotificationsEnabled == enabled }
@@ -196,8 +206,8 @@ fun sortSeasonItems(
 
 fun applyFilters(list: List<Anime>, filterState: HomeFilterState): List<Anime> {
     var filtered = list
-    filterState.statusFilter?.let { status ->
-        filtered = filtered.filter { it.status == status }
+    if (filterState.statusFilters.isNotEmpty()) {
+        filtered = filtered.filter { it.status in filterState.statusFilters }
     }
     filterState.notificationFilter?.let { enabled ->
         filtered = filtered.filter { it.isNotificationsEnabled == enabled }

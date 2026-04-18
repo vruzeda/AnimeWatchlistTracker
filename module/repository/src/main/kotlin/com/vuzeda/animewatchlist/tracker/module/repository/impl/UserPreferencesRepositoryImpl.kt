@@ -46,13 +46,14 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         dataSource.setHomeSortState("${state.option.name}:${state.isAscending}")
     }
 
-    override fun observeHomeStatusFilter(): Flow<WatchStatus?> =
+    override fun observeHomeStatusFilter(): Flow<Set<WatchStatus>> =
         dataSource.observeHomeStatusFilter().map { value ->
-            if (value.isEmpty()) null else WatchStatus.entries.firstOrNull { it.name == value }
+            if (value.isEmpty()) emptySet()
+            else value.split(",").mapNotNull { name -> WatchStatus.entries.firstOrNull { it.name == name } }.toSet()
         }
 
-    override suspend fun setHomeStatusFilter(status: WatchStatus?) {
-        dataSource.setHomeStatusFilter(status?.name ?: "")
+    override suspend fun setHomeStatusFilter(statuses: Set<WatchStatus>) {
+        dataSource.setHomeStatusFilter(statuses.joinToString(",") { it.name })
     }
 
     override fun observeHomeNotificationFilter(): Flow<Boolean?> =

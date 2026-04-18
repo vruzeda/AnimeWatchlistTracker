@@ -8,6 +8,6 @@ class SetHomeStatusFilterUseCase @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository
 ) {
 
-    suspend operator fun invoke(status: WatchStatus?) =
-        userPreferencesRepository.setHomeStatusFilter(status)
+    suspend operator fun invoke(statuses: Set<WatchStatus>) =
+        userPreferencesRepository.setHomeStatusFilter(statuses)
 }

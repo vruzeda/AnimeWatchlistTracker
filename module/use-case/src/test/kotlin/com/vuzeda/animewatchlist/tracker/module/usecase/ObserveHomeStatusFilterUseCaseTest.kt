@@ -16,21 +16,31 @@ class ObserveHomeStatusFilterUseCaseTest {
     private val useCase = ObserveHomeStatusFilterUseCase(repository)
 
     @Test
-    fun `returns null when no filter is set`() = runTest {
-        every { repository.observeHomeStatusFilter() } returns flowOf(null)
+    fun `returns empty set when no filter is set`() = runTest {
+        every { repository.observeHomeStatusFilter() } returns flowOf(emptySet())
 
         useCase().test {
-            assertThat(awaitItem()).isNull()
+            assertThat(awaitItem()).isEmpty()
             awaitComplete()
         }
     }
 
     @Test
-    fun `returns watch status when filter is set`() = runTest {
-        every { repository.observeHomeStatusFilter() } returns flowOf(WatchStatus.WATCHING)
+    fun `returns set with single watch status when filter is set`() = runTest {
+        every { repository.observeHomeStatusFilter() } returns flowOf(setOf(WatchStatus.WATCHING))
 
         useCase().test {
-            assertThat(awaitItem()).isEqualTo(WatchStatus.WATCHING)
+            assertThat(awaitItem()).isEqualTo(setOf(WatchStatus.WATCHING))
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `returns set with multiple watch statuses when multiple filters are set`() = runTest {
+        every { repository.observeHomeStatusFilter() } returns flowOf(setOf(WatchStatus.WATCHING, WatchStatus.COMPLETED))
+
+        useCase().test {
+            assertThat(awaitItem()).isEqualTo(setOf(WatchStatus.WATCHING, WatchStatus.COMPLETED))
             awaitComplete()
         }
     }

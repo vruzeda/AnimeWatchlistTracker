@@ -20,9 +20,9 @@ interface UserPreferencesRepository {
 
     suspend fun setHomeSortState(state: HomeSortState)
 
-    fun observeHomeStatusFilter(): Flow<WatchStatus?>
+    fun observeHomeStatusFilter(): Flow<Set<WatchStatus>>
 
-    suspend fun setHomeStatusFilter(status: WatchStatus?)
+    suspend fun setHomeStatusFilter(statuses: Set<WatchStatus>)
 
     fun observeHomeNotificationFilter(): Flow<Boolean?>
 

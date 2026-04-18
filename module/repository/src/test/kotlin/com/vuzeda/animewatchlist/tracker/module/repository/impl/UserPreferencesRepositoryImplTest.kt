@@ -202,21 +202,31 @@ class UserPreferencesRepositoryImplTest {
     }
 
     @Test
-    fun `observeHomeStatusFilter returns null for empty stored value`() = runTest {
+    fun `observeHomeStatusFilter returns empty set for empty stored value`() = runTest {
         every { dataSource.observeHomeStatusFilter() } returns flowOf("")
 
         repository.observeHomeStatusFilter().test {
-            assertThat(awaitItem()).isNull()
+            assertThat(awaitItem()).isEmpty()
             awaitComplete()
         }
     }
 
     @Test
-    fun `observeHomeStatusFilter returns matching WatchStatus for valid stored value`() = runTest {
+    fun `observeHomeStatusFilter returns set with matching WatchStatus for single stored value`() = runTest {
         every { dataSource.observeHomeStatusFilter() } returns flowOf("WATCHING")
 
         repository.observeHomeStatusFilter().test {
-            assertThat(awaitItem()).isEqualTo(WatchStatus.WATCHING)
+            assertThat(awaitItem()).isEqualTo(setOf(WatchStatus.WATCHING))
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `observeHomeStatusFilter returns set with multiple WatchStatus for comma-separated stored value`() = runTest {
+        every { dataSource.observeHomeStatusFilter() } returns flowOf("WATCHING,COMPLETED")
+
+        repository.observeHomeStatusFilter().test {
+            assertThat(awaitItem()).isEqualTo(setOf(WatchStatus.WATCHING, WatchStatus.COMPLETED))
             awaitComplete()
         }
     }
@@ -227,26 +237,35 @@ class UserPreferencesRepositoryImplTest {
             every { dataSource.observeHomeStatusFilter() } returns flowOf(status.name)
 
             repository.observeHomeStatusFilter().test {
-                assertThat(awaitItem()).isEqualTo(status)
+                assertThat(awaitItem()).isEqualTo(setOf(status))
                 awaitComplete()
             }
         }
     }
 
     @Test
-    fun `setHomeStatusFilter delegates enum name to data source`() = runTest {
+    fun `setHomeStatusFilter delegates single enum name to data source`() = runTest {
         coEvery { dataSource.setHomeStatusFilter(any()) } returns Unit
 
-        repository.setHomeStatusFilter(WatchStatus.COMPLETED)
+        repository.setHomeStatusFilter(setOf(WatchStatus.COMPLETED))
 
         coVerify { dataSource.setHomeStatusFilter("COMPLETED") }
     }
 
     @Test
-    fun `setHomeStatusFilter delegates empty string to data source when null`() = runTest {
+    fun `setHomeStatusFilter delegates comma-separated names to data source for multiple statuses`() = runTest {
         coEvery { dataSource.setHomeStatusFilter(any()) } returns Unit
 
-        repository.setHomeStatusFilter(null)
+        repository.setHomeStatusFilter(setOf(WatchStatus.WATCHING, WatchStatus.ON_HOLD))
+
+        coVerify { dataSource.setHomeStatusFilter(match { it.split(",").toSet() == setOf("WATCHING", "ON_HOLD") }) }
+    }
+
+    @Test
+    fun `setHomeStatusFilter delegates empty string to data source for empty set`() = runTest {
+        coEvery { dataSource.setHomeStatusFilter(any()) } returns Unit
+
+        repository.setHomeStatusFilter(emptySet())
 
         coVerify { dataSource.setHomeStatusFilter("") }
     }
