@@ -3,8 +3,6 @@ package com.vuzeda.animewatchlist.tracker.module.ui.screens.schedule
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
-import com.vuzeda.animewatchlist.tracker.module.domain.Season
-import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveScheduleUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,15 +15,6 @@ import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalDate
 import javax.inject.Inject
-
-data class ScheduleUiState(
-    val selectedYear: Int = 0,
-    val selectedSeason: AnimeSeason = AnimeSeason.WINTER,
-    val schedule: Map<DayOfWeek, List<Season>> = emptyMap(),
-    val availableSeasons: List<Pair<Int, AnimeSeason>> = emptyList(),
-    val titleLanguage: TitleLanguage = TitleLanguage.DEFAULT,
-    val isLoading: Boolean = true
-)
 
 @HiltViewModel
 class ScheduleViewModel @Inject constructor(
