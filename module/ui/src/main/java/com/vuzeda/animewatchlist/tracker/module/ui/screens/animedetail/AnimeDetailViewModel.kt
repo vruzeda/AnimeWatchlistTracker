@@ -18,9 +18,11 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveAnimeByIdUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSeasonsForAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveIsNotificationDebugInfoEnabledUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveAnimeDetailTypeFilterUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.RefreshAnimeSeasonsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.RefreshSeasonDataUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ResolveAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.SetAnimeDetailTypeFilterUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ToggleAnimeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonStatusUseCase
@@ -52,6 +54,8 @@ class AnimeDetailViewModel @Inject constructor(
     private val refreshAnimeSeasonsUseCase: RefreshAnimeSeasonsUseCase,
     private val refreshSeasonDataUseCase: RefreshSeasonDataUseCase,
     private val observeIsNotificationDebugInfoEnabledUseCase: ObserveIsNotificationDebugInfoEnabledUseCase,
+    private val observeAnimeDetailTypeFilterUseCase: ObserveAnimeDetailTypeFilterUseCase,
+    private val setAnimeDetailTypeFilterUseCase: SetAnimeDetailTypeFilterUseCase,
     private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
@@ -80,10 +84,11 @@ class AnimeDetailViewModel @Inject constructor(
                 observeAnimeByIdUseCase(id),
                 observeSeasonsForAnimeUseCase(id),
                 observeTitleLanguageUseCase(),
-                observeIsNotificationDebugInfoEnabledUseCase()
-            ) { anime, seasons, titleLanguage, isNotificationDebugInfoEnabled ->
-                AnimeCombinedData(anime, seasons, titleLanguage, isNotificationDebugInfoEnabled)
-            }.collect { (anime, seasons, titleLanguage, isNotificationDebugInfoEnabled) ->
+                observeIsNotificationDebugInfoEnabledUseCase(),
+                observeAnimeDetailTypeFilterUseCase()
+            ) { anime, seasons, titleLanguage, isNotificationDebugInfoEnabled, typeFilter ->
+                AnimeCombinedData(anime, seasons, titleLanguage, isNotificationDebugInfoEnabled, typeFilter)
+            }.collect { (anime, seasons, titleLanguage, isNotificationDebugInfoEnabled, typeFilter) ->
                 if (anime != null) {
                     _uiState.update { currentState ->
                         currentState.copy(
@@ -94,7 +99,8 @@ class AnimeDetailViewModel @Inject constructor(
                             isInWatchlist = true,
                             notificationType = anime.notificationType,
                             titleLanguage = titleLanguage,
-                            isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled
+                            isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled,
+                            typeFilter = typeFilter
                         )
                     }
                 } else {
@@ -129,6 +135,7 @@ class AnimeDetailViewModel @Inject constructor(
 
             val titleLanguage = observeTitleLanguageUseCase().first()
             val isNotificationDebugInfoEnabled = observeIsNotificationDebugInfoEnabledUseCase().first()
+            val typeFilter = observeAnimeDetailTypeFilterUseCase().first()
 
             resolveAnimeUseCase(malId)
                 .onSuccess { result ->
@@ -165,7 +172,8 @@ class AnimeDetailViewModel @Inject constructor(
                             seasons = seasons,
                             isInWatchlist = false,
                             titleLanguage = titleLanguage,
-                            isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled
+                            isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled,
+                            typeFilter = typeFilter
                         ) }
                         viewModelScope.launch {
                             observeTitleLanguageUseCase().collect { lang ->
@@ -175,6 +183,11 @@ class AnimeDetailViewModel @Inject constructor(
                         viewModelScope.launch {
                             observeIsNotificationDebugInfoEnabledUseCase().collect { enabled ->
                                 _uiState.update { it.copy(isNotificationDebugInfoEnabled = enabled) }
+                            }
+                        }
+                        viewModelScope.launch {
+                            observeAnimeDetailTypeFilterUseCase().collect { filter ->
+                                _uiState.update { it.copy(typeFilter = filter) }
                             }
                         }
                     }
@@ -393,14 +406,20 @@ class AnimeDetailViewModel @Inject constructor(
     }
 
     fun toggleTypeFilter(type: String) {
-        _uiState.update { state ->
-            val updated = if (type in state.typeFilter) state.typeFilter - type else state.typeFilter + type
-            state.copy(typeFilter = updated)
-        }
+        val current = _uiState.value
+        val updated = if (type in current.typeFilter) current.typeFilter - type else current.typeFilter + type
+        analyticsTracker.track(
+            AnalyticsEvent.SelectFilter(
+                filterType = "anime_detail_type",
+                filterValue = if (updated.isEmpty()) "reset" else updated.sorted().joinToString(",")
+            )
+        )
+        viewModelScope.launch { setAnimeDetailTypeFilterUseCase(updated) }
     }
 
     fun resetTypeFilter() {
-        _uiState.update { it.copy(typeFilter = emptySet()) }
+        analyticsTracker.track(AnalyticsEvent.SelectFilter("anime_detail_type", "reset"))
+        viewModelScope.launch { setAnimeDetailTypeFilterUseCase(emptySet()) }
     }
 }
 
@@ -408,5 +427,6 @@ private data class AnimeCombinedData(
     val anime: Anime?,
     val seasons: List<Season>,
     val titleLanguage: TitleLanguage,
-    val isNotificationDebugInfoEnabled: Boolean
+    val isNotificationDebugInfoEnabled: Boolean,
+    val typeFilter: Set<String>
 )

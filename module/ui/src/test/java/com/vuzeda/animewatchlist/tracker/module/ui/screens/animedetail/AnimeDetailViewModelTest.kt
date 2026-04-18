@@ -16,12 +16,14 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.AddSeasonToWatchlistUseC
 import com.vuzeda.animewatchlist.tracker.module.usecase.DeleteAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FindAnimeBySeasonMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveAnimeByIdUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveAnimeDetailTypeFilterUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSeasonsForAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveIsNotificationDebugInfoEnabledUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.RefreshAnimeSeasonsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.RefreshSeasonDataUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ResolveAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.SetAnimeDetailTypeFilterUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ToggleAnimeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonStatusUseCase
@@ -59,7 +61,11 @@ class AnimeDetailViewModelTest {
     private val refreshAnimeSeasonsUseCase: RefreshAnimeSeasonsUseCase = mockk(relaxed = true)
     private val refreshSeasonDataUseCase: RefreshSeasonDataUseCase = mockk(relaxed = true)
     private val observeIsNotificationDebugInfoEnabledUseCase: ObserveIsNotificationDebugInfoEnabledUseCase = mockk()
+    private val observeAnimeDetailTypeFilterUseCase: ObserveAnimeDetailTypeFilterUseCase = mockk()
+    private val setAnimeDetailTypeFilterUseCase: SetAnimeDetailTypeFilterUseCase = mockk()
     private val analyticsTracker: AnalyticsTracker = mockk(relaxed = true)
+
+    private val typeFilterFlow = MutableStateFlow<Set<String>>(emptySet())
 
     private val sampleAnime = Anime(
         id = 1L,
@@ -85,6 +91,8 @@ class AnimeDetailViewModelTest {
         every { observeSeasonsForAnimeUseCase(1L) } returns seasonsFlow
         every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
         every { observeIsNotificationDebugInfoEnabledUseCase() } returns flowOf(false)
+        every { observeAnimeDetailTypeFilterUseCase() } returns typeFilterFlow
+        coEvery { setAnimeDetailTypeFilterUseCase(any()) } answers { typeFilterFlow.value = firstArg() }
     }
 
     @AfterEach
@@ -115,6 +123,8 @@ class AnimeDetailViewModelTest {
             refreshAnimeSeasonsUseCase = refreshAnimeSeasonsUseCase,
             refreshSeasonDataUseCase = refreshSeasonDataUseCase,
             observeIsNotificationDebugInfoEnabledUseCase = observeIsNotificationDebugInfoEnabledUseCase,
+            observeAnimeDetailTypeFilterUseCase = observeAnimeDetailTypeFilterUseCase,
+            setAnimeDetailTypeFilterUseCase = setAnimeDetailTypeFilterUseCase,
             analyticsTracker = analyticsTracker
         )
     }

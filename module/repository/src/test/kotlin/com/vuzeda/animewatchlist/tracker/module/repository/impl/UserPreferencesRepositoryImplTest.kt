@@ -298,4 +298,52 @@ class UserPreferencesRepositoryImplTest {
 
         coVerify { dataSource.setHomeNotificationFilter("") }
     }
+
+    @Test
+    fun `observeAnimeDetailTypeFilter returns empty set for empty stored value`() = runTest {
+        every { dataSource.observeAnimeDetailTypeFilter() } returns flowOf("")
+
+        repository.observeAnimeDetailTypeFilter().test {
+            assertThat(awaitItem()).isEmpty()
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `observeAnimeDetailTypeFilter returns single type set for single stored value`() = runTest {
+        every { dataSource.observeAnimeDetailTypeFilter() } returns flowOf("TV")
+
+        repository.observeAnimeDetailTypeFilter().test {
+            assertThat(awaitItem()).containsExactly("TV")
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `observeAnimeDetailTypeFilter returns multiple types for comma-separated stored value`() = runTest {
+        every { dataSource.observeAnimeDetailTypeFilter() } returns flowOf("TV,OVA,Movie")
+
+        repository.observeAnimeDetailTypeFilter().test {
+            assertThat(awaitItem()).containsExactly("TV", "OVA", "Movie")
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `setAnimeDetailTypeFilter delegates empty string to data source for empty set`() = runTest {
+        coEvery { dataSource.setAnimeDetailTypeFilter(any()) } returns Unit
+
+        repository.setAnimeDetailTypeFilter(emptySet())
+
+        coVerify { dataSource.setAnimeDetailTypeFilter("") }
+    }
+
+    @Test
+    fun `setAnimeDetailTypeFilter serialises set to comma-separated string`() = runTest {
+        coEvery { dataSource.setAnimeDetailTypeFilter(any()) } returns Unit
+
+        repository.setAnimeDetailTypeFilter(setOf("TV"))
+
+        coVerify { dataSource.setAnimeDetailTypeFilter("TV") }
+    }
 }

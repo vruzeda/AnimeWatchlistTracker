@@ -64,6 +64,15 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         dataSource.setHomeNotificationFilter(enabled?.toString() ?: "")
     }
 
+    override fun observeAnimeDetailTypeFilter(): Flow<Set<String>> =
+        dataSource.observeAnimeDetailTypeFilter().map { value ->
+            if (value.isEmpty()) emptySet() else value.split(",").toSet()
+        }
+
+    override suspend fun setAnimeDetailTypeFilter(filter: Set<String>) {
+        dataSource.setAnimeDetailTypeFilter(filter.joinToString(","))
+    }
+
     override fun observeIsDeveloperOptionsEnabled(): Flow<Boolean> =
         dataSource.observeIsDeveloperOptionsEnabled()
 

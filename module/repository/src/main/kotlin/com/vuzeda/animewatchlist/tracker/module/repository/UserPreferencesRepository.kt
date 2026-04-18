@@ -28,6 +28,10 @@ interface UserPreferencesRepository {
 
     suspend fun setHomeNotificationFilter(enabled: Boolean?)
 
+    fun observeAnimeDetailTypeFilter(): Flow<Set<String>>
+
+    suspend fun setAnimeDetailTypeFilter(filter: Set<String>)
+
     fun observeIsDeveloperOptionsEnabled(): Flow<Boolean>
 
     suspend fun setIsDeveloperOptionsEnabled(enabled: Boolean)

@@ -13,6 +13,8 @@ interface UserPreferencesLocalDataSource {
     suspend fun setHomeStatusFilter(filter: String)
     fun observeHomeNotificationFilter(): Flow<String>
     suspend fun setHomeNotificationFilter(filter: String)
+    fun observeAnimeDetailTypeFilter(): Flow<String>
+    suspend fun setAnimeDetailTypeFilter(filter: String)
     fun observeIsDeveloperOptionsEnabled(): Flow<Boolean>
     suspend fun setIsDeveloperOptionsEnabled(enabled: Boolean)
     fun observeIsNotificationDebugInfoEnabled(): Flow<Boolean>

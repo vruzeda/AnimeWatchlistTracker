@@ -72,6 +72,17 @@ class UserPreferencesDataStore(
         }
     }
 
+    override fun observeAnimeDetailTypeFilter(): Flow<String> =
+        context.dataStore.data.map { preferences ->
+            preferences[ANIME_DETAIL_TYPE_FILTER_KEY] ?: ""
+        }
+
+    override suspend fun setAnimeDetailTypeFilter(filter: String) {
+        context.dataStore.edit { preferences ->
+            preferences[ANIME_DETAIL_TYPE_FILTER_KEY] = filter
+        }
+    }
+
     override fun observeIsDeveloperOptionsEnabled(): Flow<Boolean> =
         context.dataStore.data.map { preferences ->
             preferences[DEVELOPER_OPTIONS_ENABLED_KEY] ?: false
@@ -103,6 +114,7 @@ class UserPreferencesDataStore(
         const val DEFAULT_HOME_SORT_STATE = "ALPHABETICAL:true"
         private val HOME_STATUS_FILTER_KEY = stringPreferencesKey("home_status_filter")
         private val HOME_NOTIFICATION_FILTER_KEY = stringPreferencesKey("home_notification_filter")
+        private val ANIME_DETAIL_TYPE_FILTER_KEY = stringPreferencesKey("anime_detail_type_filter")
         private val DEVELOPER_OPTIONS_ENABLED_KEY = booleanPreferencesKey("developer_options_enabled")
         private val NOTIFICATION_DEBUG_INFO_ENABLED_KEY = booleanPreferencesKey("notification_debug_info_enabled")
     }
