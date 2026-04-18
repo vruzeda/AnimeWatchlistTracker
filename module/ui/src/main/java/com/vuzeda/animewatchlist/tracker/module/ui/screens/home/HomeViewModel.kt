@@ -8,7 +8,6 @@ import com.vuzeda.animewatchlist.tracker.module.domain.Anime
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeSortOption
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeSortState
-import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
@@ -152,9 +151,6 @@ fun buildSeasonItems(
         val anime = animeMap[season.animeId] ?: return@mapNotNull null
         HomeSeasonItem(
             season = season,
-            animeStatus = anime.status,
-            animeNotificationType = anime.notificationType,
-            animeAddedAt = anime.addedAt,
             animeImageUrl = anime.imageUrl
         )
     }
@@ -169,12 +165,10 @@ fun applySeasonFilters(
 ): List<HomeSeasonItem> {
     var filtered = items
     filterState.statusFilter?.let { status ->
-        filtered = filtered.filter { it.animeStatus == status }
+        filtered = filtered.filter { it.season.status == status }
     }
     filterState.notificationFilter?.let { enabled ->
-        filtered = filtered.filter {
-            (it.animeNotificationType != NotificationType.NONE) == enabled
-        }
+        filtered = filtered.filter { it.season.isEpisodeNotificationsEnabled == enabled }
     }
     return filtered
 }
@@ -192,9 +186,9 @@ fun sortSeasonItems(
                 resolveDisplayTitle(it.season.title, it.season.titleEnglish, it.season.titleJapanese, titleLanguage)
             })
         }
-        HomeSortOption.RECENTLY_ADDED -> items.sortedByDescending { it.animeAddedAt }
+        HomeSortOption.RECENTLY_ADDED -> items.sortedByDescending { it.season.addedAt }
         HomeSortOption.USER_RATING -> items.sortedByDescending { it.season.score ?: 0.0 }
-        HomeSortOption.WATCH_STATUS -> items.sortedBy { it.animeStatus.ordinal }
+        HomeSortOption.WATCH_STATUS -> items.sortedBy { it.season.status.ordinal }
     }
     val shouldReverse = isAscending != option.defaultAscending
     return if (shouldReverse) sorted.reversed() else sorted

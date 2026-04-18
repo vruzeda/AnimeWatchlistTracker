@@ -27,5 +27,6 @@ data class Season(
     val isEpisodeNotificationsEnabled: Boolean = false,
     val isInWatchlist: Boolean = true,
     val airingSeasonName: String? = null,
-    val airingSeasonYear: Int? = null
+    val airingSeasonYear: Int? = null,
+    val addedAt: Long = 0
 )

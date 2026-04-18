@@ -35,7 +35,8 @@ class SeasonEntityTest {
             lastCheckedAiredEpisodeCount = 25,
             lastEpisodeCheckDate = checkDate,
             isEpisodeNotificationsEnabled = true,
-            isInWatchlist = false
+            isInWatchlist = false,
+            addedAt = 9000L
         )
 
         val result = entity.toDomainModel()
@@ -64,6 +65,7 @@ class SeasonEntityTest {
         assertThat(result.lastEpisodeCheckDate).isEqualTo(checkDate)
         assertThat(result.isEpisodeNotificationsEnabled).isTrue()
         assertThat(result.isInWatchlist).isFalse()
+        assertThat(result.addedAt).isEqualTo(9000L)
     }
 
     @Test
@@ -145,7 +147,8 @@ class SeasonEntityTest {
             lastCheckedAiredEpisodeCount = 10,
             lastEpisodeCheckDate = checkDate,
             isEpisodeNotificationsEnabled = true,
-            isInWatchlist = false
+            isInWatchlist = false,
+            addedAt = 8500L
         )
 
         val result = season.toEntity()
@@ -172,6 +175,7 @@ class SeasonEntityTest {
         assertThat(result.lastEpisodeCheckDate).isEqualTo(checkDate)
         assertThat(result.isEpisodeNotificationsEnabled).isTrue()
         assertThat(result.isInWatchlist).isFalse()
+        assertThat(result.addedAt).isEqualTo(8500L)
     }
 
     @Test

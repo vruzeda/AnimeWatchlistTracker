@@ -13,11 +13,13 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
 import javax.inject.Inject
+import kotlin.time.Clock
 
 class SeasonRepositoryImpl @Inject constructor(
     private val seasonLocalDataSource: SeasonLocalDataSource,
     private val watchedEpisodeLocalDataSource: WatchedEpisodeLocalDataSource,
-    private val transactionRunner: TransactionRunner
+    private val transactionRunner: TransactionRunner,
+    private val clock: Clock = Clock.System
 ) : SeasonRepository {
 
     override fun observeAllSeasons(): Flow<List<Season>> =
@@ -61,8 +63,9 @@ class SeasonRepositoryImpl @Inject constructor(
     }
 
     override suspend fun addSeasonsToAnime(animeId: Long, seasons: List<Season>) {
+        val now = clock.now().toEpochMilliseconds()
         transactionRunner.runInTransaction {
-            seasonLocalDataSource.insertAll(seasons.map { it.copy(animeId = animeId) })
+            seasonLocalDataSource.insertAll(seasons.map { it.copy(animeId = animeId, addedAt = now) })
         }
     }
 

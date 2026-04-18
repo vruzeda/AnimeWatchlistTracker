@@ -4,7 +4,6 @@ import com.vuzeda.animewatchlist.tracker.module.domain.Anime
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeSortOption
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeSortState
-import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
@@ -25,9 +24,6 @@ data class HomeFilterState(
 
 data class HomeSeasonItem(
     val season: Season,
-    val animeStatus: WatchStatus,
-    val animeNotificationType: NotificationType,
-    val animeAddedAt: Long,
     val animeImageUrl: String? = null
 )
 

@@ -46,7 +46,8 @@ data class SeasonEntity(
     val isEpisodeNotificationsEnabled: Boolean = false,
     val isInWatchlist: Boolean = true,
     val airingSeasonName: String? = null,
-    val airingSeasonYear: Int? = null
+    val airingSeasonYear: Int? = null,
+    val addedAt: Long = 0
 )
 
 fun SeasonEntity.toDomainModel(): Season = Season(
@@ -76,7 +77,8 @@ fun SeasonEntity.toDomainModel(): Season = Season(
     isEpisodeNotificationsEnabled = isEpisodeNotificationsEnabled,
     isInWatchlist = isInWatchlist,
     airingSeasonName = airingSeasonName,
-    airingSeasonYear = airingSeasonYear
+    airingSeasonYear = airingSeasonYear,
+    addedAt = addedAt
 )
 
 fun Season.toEntity(): SeasonEntity = SeasonEntity(
@@ -103,5 +105,6 @@ fun Season.toEntity(): SeasonEntity = SeasonEntity(
     isEpisodeNotificationsEnabled = isEpisodeNotificationsEnabled,
     isInWatchlist = isInWatchlist,
     airingSeasonName = airingSeasonName,
-    airingSeasonYear = airingSeasonYear
+    airingSeasonYear = airingSeasonYear,
+    addedAt = addedAt
 )
