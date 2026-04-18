@@ -3,6 +3,7 @@ package com.vuzeda.animewatchlist.tracker.module.designsystem.component
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -14,6 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
@@ -60,7 +62,12 @@ fun RatingBar(
         Modifier
     }
 
-    Row(modifier = modifier.then(gestureModifier)) {
+    Row(
+        modifier = modifier
+            .heightIn(min = 48.dp)
+            .then(gestureModifier),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         (1..maxRating).forEach { index ->
             val isFilled = index <= rating
             Icon(

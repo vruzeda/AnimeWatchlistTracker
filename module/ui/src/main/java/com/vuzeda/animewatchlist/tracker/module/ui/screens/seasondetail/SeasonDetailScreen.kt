@@ -20,7 +20,9 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -622,11 +624,18 @@ private fun SeasonHeaderSection(
 
             Spacer(modifier = Modifier.height(4.dp))
             if (isInWatchlist) {
-                StatusChip(
-                    label = stringResource(season.status.toDisplayLabelRes()),
-                    color = season.status.toColor(),
-                    modifier = Modifier.clickable(onClick = onStatusChipClick)
-                )
+                Box(
+                    modifier = Modifier
+                        .heightIn(min = 48.dp)
+                        .wrapContentWidth()
+                        .clickable(onClick = onStatusChipClick),
+                    contentAlignment = Alignment.Center
+                ) {
+                    StatusChip(
+                        label = stringResource(season.status.toDisplayLabelRes()),
+                        color = season.status.toColor()
+                    )
+                }
             } else {
                 Button(onClick = onAddToWatchlistClick) {
                     Text(stringResource(R.string.season_detail_add_to_watchlist))
