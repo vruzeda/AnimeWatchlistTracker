@@ -2,6 +2,14 @@ package com.vuzeda.animewatchlist.tracker.module.ui.screens.seasondetail
 
 import android.content.Intent
 import android.net.Uri
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -55,8 +63,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.ConfirmationDialog
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.EmptyStateMessage
-import com.vuzeda.animewatchlist.tracker.module.designsystem.component.FullScreenImageViewer
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.EpisodeListItem
+import com.vuzeda.animewatchlist.tracker.module.designsystem.component.FullScreenImageViewer
+import com.vuzeda.animewatchlist.tracker.module.designsystem.component.LocalNavAnimatedVisibilityScope
+import com.vuzeda.animewatchlist.tracker.module.designsystem.component.LocalSharedTransitionScope
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.NotificationButton
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusChip
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusOption
@@ -108,7 +118,7 @@ fun SeasonDetailScreenRoute(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun SeasonDetailScreen(
     uiState: SeasonDetailUiState,
@@ -195,35 +205,87 @@ fun SeasonDetailScreen(
                     )
                 }
                 is SeasonDetailUiState.Success -> {
-                    PullToRefreshBox(
-                        isRefreshing = uiState.isRefreshing,
-                        onRefresh = onRefresh,
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        SeasonDetailContent(
-                            state = uiState,
-                            onStatusChipClick = onStatusChipClick,
-                            onEpisodeWatched = onEpisodeWatched,
-                            onMarkAllEpisodesWatched = onMarkAllEpisodesWatched,
-                            onLoadMoreEpisodes = onLoadMoreEpisodes,
-                            onAddToWatchlistClick = onAddToWatchlistClick,
-                            onViewFullSeriesClick = onViewFullSeriesClick
-                        )
+                    val seasonDisplayTitle = resolveDisplayTitle(
+                        title = uiState.season.title,
+                        titleEnglish = uiState.season.titleEnglish,
+                        titleJapanese = uiState.season.titleJapanese,
+                        language = uiState.titleLanguage
+                    )
+                    val imageUrl = uiState.season.imageUrl
+                    var showFullScreenImage by remember { mutableStateOf(false) }
+                    val navScope = LocalSharedTransitionScope.current
+                    val navVisScope = LocalNavAnimatedVisibilityScope.current
+
+                    BackHandler(enabled = showFullScreenImage) {
+                        showFullScreenImage = false
+                    }
+
+                    SharedTransitionLayout(modifier = Modifier.fillMaxSize()) {
+                        AnimatedContent(
+                            targetState = showFullScreenImage,
+                            modifier = Modifier.fillMaxSize(),
+                            transitionSpec = {
+                                fadeIn(tween(300)) togetherWith fadeOut(tween(300))
+                            }
+                        ) { showFull ->
+                            if (showFull && imageUrl != null) {
+                                FullScreenImageViewer(
+                                    imageUrl = imageUrl,
+                                    contentDescription = seasonDisplayTitle,
+                                    imageModifier = with(this@SharedTransitionLayout) {
+                                        Modifier.sharedBounds(
+                                            rememberSharedContentState("season_fullscreen_${uiState.season.malId}"),
+                                            this@AnimatedContent
+                                        )
+                                    },
+                                    onDismiss = { showFullScreenImage = false }
+                                )
+                            } else {
+                                val navImageModifier: Modifier = if (navScope != null && navVisScope != null && imageUrl != null) {
+                                    with(navScope) {
+                                        Modifier.sharedBounds(
+                                            rememberSharedContentState("season_cover_${uiState.season.malId}"),
+                                            navVisScope
+                                        )
+                                    }
+                                } else Modifier
+                                val localImageModifier: Modifier = if (imageUrl != null) {
+                                    with(this@SharedTransitionLayout) {
+                                        Modifier.sharedBounds(
+                                            rememberSharedContentState("season_fullscreen_${uiState.season.malId}"),
+                                            this@AnimatedContent
+                                        )
+                                    }
+                                } else Modifier
+
+                                PullToRefreshBox(
+                                    isRefreshing = uiState.isRefreshing,
+                                    onRefresh = onRefresh,
+                                    modifier = Modifier.fillMaxSize()
+                                ) {
+                                    SeasonDetailContent(
+                                        state = uiState,
+                                        imageModifier = Modifier.then(navImageModifier).then(localImageModifier),
+                                        onImageClick = { showFullScreenImage = true },
+                                        onStatusChipClick = onStatusChipClick,
+                                        onEpisodeWatched = onEpisodeWatched,
+                                        onMarkAllEpisodesWatched = onMarkAllEpisodesWatched,
+                                        onLoadMoreEpisodes = onLoadMoreEpisodes,
+                                        onAddToWatchlistClick = onAddToWatchlistClick,
+                                        onViewFullSeriesClick = onViewFullSeriesClick
+                                    )
+                                }
+                            }
+                        }
                     }
 
                     if (uiState.isStatusSheetVisible) {
                         val statusOptions = WatchStatus.entries.map {
                             StatusOption(stringResource(it.toDisplayLabelRes()), it.toColor())
                         }
-                        val displayTitle = resolveDisplayTitle(
-                            title = uiState.season.title,
-                            titleEnglish = uiState.season.titleEnglish,
-                            titleJapanese = uiState.season.titleJapanese,
-                            language = uiState.titleLanguage
-                        )
                         StatusSelectionSheet(
                             title = stringResource(R.string.anime_detail_change_status_title),
-                            subtitle = displayTitle,
+                            subtitle = seasonDisplayTitle,
                             options = statusOptions,
                             onOptionSelected = { index ->
                                 onStatusSelected(WatchStatus.entries[index])
@@ -237,15 +299,9 @@ fun SeasonDetailScreen(
                         val statusOptions = WatchStatus.entries.map {
                             StatusOption(stringResource(it.toDisplayLabelRes()), it.toColor())
                         }
-                        val displayTitle = resolveDisplayTitle(
-                            title = uiState.season.title,
-                            titleEnglish = uiState.season.titleEnglish,
-                            titleJapanese = uiState.season.titleJapanese,
-                            language = uiState.titleLanguage
-                        )
                         StatusSelectionSheet(
                             title = stringResource(R.string.season_detail_add_sheet_title),
-                            subtitle = displayTitle,
+                            subtitle = seasonDisplayTitle,
                             options = statusOptions,
                             onOptionSelected = { index ->
                                 onAddStatusSelected(WatchStatus.entries[index])
@@ -276,9 +332,12 @@ fun SeasonDetailScreen(
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun SeasonDetailContent(
     state: SeasonDetailUiState.Success,
+    imageModifier: Modifier = Modifier,
+    onImageClick: () -> Unit,
     onStatusChipClick: () -> Unit,
     onEpisodeWatched: (Int, Boolean) -> Unit,
     onMarkAllEpisodesWatched: () -> Unit,
@@ -298,6 +357,8 @@ private fun SeasonDetailContent(
             titleLanguage = state.titleLanguage,
             isInWatchlist = state.isInWatchlist,
             broadcastLocalTime = state.broadcastLocalTime,
+            imageModifier = imageModifier,
+            onImageClick = onImageClick,
             onStatusChipClick = onStatusChipClick,
             onAddToWatchlistClick = onAddToWatchlistClick
         )
@@ -456,6 +517,8 @@ private fun SeasonHeaderSection(
     titleLanguage: TitleLanguage,
     isInWatchlist: Boolean,
     broadcastLocalTime: LocalBroadcastTime?,
+    imageModifier: Modifier = Modifier,
+    onImageClick: () -> Unit,
     onStatusChipClick: () -> Unit,
     onAddToWatchlistClick: () -> Unit
 ) {
@@ -465,18 +528,16 @@ private fun SeasonHeaderSection(
         titleJapanese = season.titleJapanese,
         language = titleLanguage
     )
-    val imageUrl = season.imageUrl
-    var showFullScreenImage by remember { mutableStateOf(false) }
     Row(modifier = Modifier.fillMaxWidth()) {
         AsyncImage(
-            model = imageUrl,
+            model = season.imageUrl,
             contentDescription = displayTitle,
-            modifier = Modifier
+            modifier = imageModifier
                 .width(120.dp)
                 .height(170.dp)
                 .clip(MaterialTheme.shapes.medium)
                 .then(
-                    if (imageUrl != null) Modifier.clickable { showFullScreenImage = true }
+                    if (season.imageUrl != null) Modifier.clickable(onClick = onImageClick)
                     else Modifier
                 ),
             contentScale = ContentScale.Crop,
@@ -484,13 +545,6 @@ private fun SeasonHeaderSection(
             error = ColorPainter(Color(0xFFE0E0E0)),
             fallback = ColorPainter(Color(0xFFE0E0E0))
         )
-        if (showFullScreenImage && imageUrl != null) {
-            FullScreenImageViewer(
-                imageUrl = imageUrl,
-                contentDescription = displayTitle,
-                onDismiss = { showFullScreenImage = false }
-            )
-        }
 
         Spacer(modifier = Modifier.width(16.dp))
 

@@ -209,6 +209,7 @@ fun SearchScreen(
                                     title = displayTitle,
                                     imageUrl = result.imageUrl,
                                     onClick = { onResultClick(result) },
+                                    imageSharedElementKey = "season_cover_${result.malId}",
                                     score = result.score,
                                     episodeText = result.episodeCount?.let { stringResource(R.string.search_episode_count, it) },
                                     genresText = result.genres.takeIf { it.isNotEmpty() }?.joinToString(", "),

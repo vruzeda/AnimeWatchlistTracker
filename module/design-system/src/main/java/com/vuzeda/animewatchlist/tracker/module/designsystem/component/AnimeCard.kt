@@ -1,5 +1,6 @@
 package com.vuzeda.animewatchlist.tracker.module.designsystem.component
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,18 +37,35 @@ import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlis
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusPlanToWatch
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusWatching
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun AnimeCard(
     modifier: Modifier = Modifier,
     title: String,
     imageUrl: String?,
     onClick: () -> Unit,
+    imageSharedElementKey: Any? = null,
     score: Double? = null,
     genresText: String? = null,
     episodeText: String? = null,
     progress: Float? = null,
     trailingContent: (@Composable () -> Unit)? = null
 ) {
+    val sharedTransitionScope = LocalSharedTransitionScope.current
+    val animatedVisibilityScope = LocalNavAnimatedVisibilityScope.current
+    val sharedImageModifier: Modifier = if (
+        imageSharedElementKey != null &&
+        sharedTransitionScope != null &&
+        animatedVisibilityScope != null
+    ) {
+        with(sharedTransitionScope) {
+            Modifier.sharedBounds(
+                rememberSharedContentState(imageSharedElementKey),
+                animatedVisibilityScope
+            )
+        }
+    } else Modifier
+
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -63,7 +81,7 @@ fun AnimeCard(
             AsyncImage(
                 model = imageUrl,
                 contentDescription = title,
-                modifier = Modifier
+                modifier = sharedImageModifier
                     .size(width = 72.dp, height = 100.dp)
                     .clip(MaterialTheme.shapes.small),
                 contentScale = ContentScale.Crop,

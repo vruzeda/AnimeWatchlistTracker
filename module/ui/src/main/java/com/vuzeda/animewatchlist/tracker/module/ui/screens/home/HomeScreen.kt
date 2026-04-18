@@ -177,6 +177,7 @@ fun HomeScreen(
                             title = displayTitle,
                             imageUrl = anime.imageUrl,
                             onClick = { onAnimeClick(anime.id) },
+                            imageSharedElementKey = "anime_cover_${anime.id}",
                             genresText = anime.genres.takeIf { it.isNotEmpty() }?.joinToString(", "),
                             trailingContent = {
                                 StatusChip(
@@ -217,6 +218,7 @@ fun HomeScreen(
                             title = displayTitle,
                             imageUrl = item.season.imageUrl ?: item.animeImageUrl,
                             onClick = { onSeasonClick(item.season.id) },
+                            imageSharedElementKey = "season_cover_${item.season.malId}",
                             episodeText = episodeText,
                             score = item.season.score,
                             trailingContent = {

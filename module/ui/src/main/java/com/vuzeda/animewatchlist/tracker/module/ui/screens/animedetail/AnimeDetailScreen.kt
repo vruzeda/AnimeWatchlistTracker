@@ -1,5 +1,13 @@
 package com.vuzeda.animewatchlist.tracker.module.ui.screens.animedetail
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -50,8 +58,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.AnimeCard
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.ConfirmationDialog
-import com.vuzeda.animewatchlist.tracker.module.designsystem.component.FullScreenImageViewer
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.EmptyStateMessage
+import com.vuzeda.animewatchlist.tracker.module.designsystem.component.FullScreenImageViewer
+import com.vuzeda.animewatchlist.tracker.module.designsystem.component.LocalNavAnimatedVisibilityScope
+import com.vuzeda.animewatchlist.tracker.module.designsystem.component.LocalSharedTransitionScope
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.MultiSelectFilterMenuButton
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.NotificationButton
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.OptionSelectionSheet
@@ -107,7 +117,7 @@ fun AnimeDetailScreenRoute(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun AnimeDetailScreen(
     uiState: AnimeDetailUiState,
@@ -201,29 +211,80 @@ fun AnimeDetailScreen(
                     )
                 }
                 is AnimeDetailUiState.Success -> {
-                    PullToRefreshBox(
-                        isRefreshing = uiState.isRefreshing,
-                        onRefresh = onRefresh,
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        AnimeDetailContent(
-                            state = uiState,
-                            onStatusChipClick = onStatusChipClick,
-                            onRatingChanged = onRatingChanged,
-                            onAddToWatchlistClick = onAddToWatchlistClick,
-                            onSeasonClick = onSeasonClick,
-                            onSeasonAddClick = onSeasonAddClick,
-                            onTypeFilterToggled = onTypeFilterToggled,
-                            onResetTypeFilter = onResetTypeFilter
-                        )
-                    }
-
                     val animeDisplayTitle = resolveDisplayTitle(
                         title = uiState.anime.title,
                         titleEnglish = uiState.anime.titleEnglish,
                         titleJapanese = uiState.anime.titleJapanese,
                         language = uiState.titleLanguage
                     )
+                    val imageUrl = uiState.anime.imageUrl
+                    var showFullScreenImage by remember { mutableStateOf(false) }
+                    val navScope = LocalSharedTransitionScope.current
+                    val navVisScope = LocalNavAnimatedVisibilityScope.current
+
+                    BackHandler(enabled = showFullScreenImage) {
+                        showFullScreenImage = false
+                    }
+
+                    SharedTransitionLayout(modifier = Modifier.fillMaxSize()) {
+                        AnimatedContent(
+                            targetState = showFullScreenImage,
+                            modifier = Modifier.fillMaxSize(),
+                            transitionSpec = {
+                                fadeIn(tween(300)) togetherWith fadeOut(tween(300))
+                            }
+                        ) { showFull ->
+                            if (showFull && imageUrl != null) {
+                                FullScreenImageViewer(
+                                    imageUrl = imageUrl,
+                                    contentDescription = animeDisplayTitle,
+                                    imageModifier = with(this@SharedTransitionLayout) {
+                                        Modifier.sharedBounds(
+                                            rememberSharedContentState("anime_fullscreen_${uiState.anime.id}"),
+                                            this@AnimatedContent
+                                        )
+                                    },
+                                    onDismiss = { showFullScreenImage = false }
+                                )
+                            } else {
+                                val navImageModifier: Modifier = if (navScope != null && navVisScope != null && imageUrl != null) {
+                                    with(navScope) {
+                                        Modifier.sharedBounds(
+                                            rememberSharedContentState("anime_cover_${uiState.anime.id}"),
+                                            navVisScope
+                                        )
+                                    }
+                                } else Modifier
+                                val localImageModifier: Modifier = if (imageUrl != null) {
+                                    with(this@SharedTransitionLayout) {
+                                        Modifier.sharedBounds(
+                                            rememberSharedContentState("anime_fullscreen_${uiState.anime.id}"),
+                                            this@AnimatedContent
+                                        )
+                                    }
+                                } else Modifier
+
+                                PullToRefreshBox(
+                                    isRefreshing = uiState.isRefreshing,
+                                    onRefresh = onRefresh,
+                                    modifier = Modifier.fillMaxSize()
+                                ) {
+                                    AnimeDetailContent(
+                                        state = uiState,
+                                        imageModifier = Modifier.then(navImageModifier).then(localImageModifier),
+                                        onImageClick = { showFullScreenImage = true },
+                                        onStatusChipClick = onStatusChipClick,
+                                        onRatingChanged = onRatingChanged,
+                                        onAddToWatchlistClick = onAddToWatchlistClick,
+                                        onSeasonClick = onSeasonClick,
+                                        onSeasonAddClick = onSeasonAddClick,
+                                        onTypeFilterToggled = onTypeFilterToggled,
+                                        onResetTypeFilter = onResetTypeFilter
+                                    )
+                                }
+                            }
+                        }
+                    }
 
                     if (uiState.isStatusSheetVisible) {
                         val statusOptions = WatchStatus.entries.map {
@@ -332,9 +393,12 @@ fun AnimeDetailScreen(
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun AnimeDetailContent(
     state: AnimeDetailUiState.Success,
+    imageModifier: Modifier = Modifier,
+    onImageClick: () -> Unit,
     onStatusChipClick: () -> Unit,
     onRatingChanged: (Int) -> Unit,
     onAddToWatchlistClick: () -> Unit,
@@ -359,6 +423,8 @@ private fun AnimeDetailContent(
                 anime = anime,
                 titleLanguage = state.titleLanguage,
                 isInWatchlist = state.isInWatchlist,
+                imageModifier = imageModifier,
+                onImageClick = onImageClick,
                 onStatusChipClick = onStatusChipClick,
                 onAddToWatchlistClick = onAddToWatchlistClick
             )
@@ -468,6 +534,8 @@ private fun AnimeHeaderSection(
     anime: Anime,
     titleLanguage: TitleLanguage,
     isInWatchlist: Boolean,
+    imageModifier: Modifier = Modifier,
+    onImageClick: () -> Unit,
     onStatusChipClick: () -> Unit,
     onAddToWatchlistClick: () -> Unit
 ) {
@@ -477,18 +545,16 @@ private fun AnimeHeaderSection(
         titleJapanese = anime.titleJapanese,
         language = titleLanguage
     )
-    val imageUrl = anime.imageUrl
-    var showFullScreenImage by remember { mutableStateOf(false) }
     Row(modifier = Modifier.fillMaxWidth()) {
         AsyncImage(
-            model = imageUrl,
+            model = anime.imageUrl,
             contentDescription = displayTitle,
-            modifier = Modifier
+            modifier = imageModifier
                 .width(120.dp)
                 .height(170.dp)
                 .clip(MaterialTheme.shapes.medium)
                 .then(
-                    if (imageUrl != null) Modifier.clickable { showFullScreenImage = true }
+                    if (anime.imageUrl != null) Modifier.clickable(onClick = onImageClick)
                     else Modifier
                 ),
             contentScale = ContentScale.Crop,
@@ -496,13 +562,6 @@ private fun AnimeHeaderSection(
             error = ColorPainter(Color(0xFFE0E0E0)),
             fallback = ColorPainter(Color(0xFFE0E0E0))
         )
-        if (showFullScreenImage && imageUrl != null) {
-            FullScreenImageViewer(
-                imageUrl = imageUrl,
-                contentDescription = displayTitle,
-                onDismiss = { showFullScreenImage = false }
-            )
-        }
 
         Spacer(modifier = Modifier.width(16.dp))
 
@@ -555,6 +614,7 @@ private fun resolveSnackbarMessage(event: AnimeDetailSnackbarEvent): String = wh
         stringResource(R.string.notification_permission_denied)
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun SeasonCardItem(
     season: Season,
@@ -588,6 +648,7 @@ private fun SeasonCardItem(
         title = displayTitle,
         imageUrl = season.imageUrl ?: animeImageUrl,
         onClick = onClick,
+        imageSharedElementKey = "season_cover_${season.malId}",
         score = season.score,
         episodeText = episodeText,
         genresText = "${season.type}${season.airingStatus?.let { " · $it" } ?: ""}",

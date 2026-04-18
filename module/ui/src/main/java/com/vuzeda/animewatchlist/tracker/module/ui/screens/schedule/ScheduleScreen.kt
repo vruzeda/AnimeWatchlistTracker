@@ -149,6 +149,7 @@ private fun ScheduleSeasonCard(
         title = displayTitle,
         imageUrl = season.imageUrl,
         onClick = { onSeasonClick(season.id) },
+        imageSharedElementKey = "season_cover_${season.malId}",
         episodeText = season.broadcastTime
     )
 }

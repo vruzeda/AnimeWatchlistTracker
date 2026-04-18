@@ -17,8 +17,6 @@ import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import com.vuzeda.animewatchlist.tracker.module.designsystem.R
 
@@ -26,42 +24,35 @@ import com.vuzeda.animewatchlist.tracker.module.designsystem.R
 fun FullScreenImageViewer(
     imageUrl: String,
     contentDescription: String?,
+    imageModifier: Modifier = Modifier,
     onDismiss: () -> Unit
 ) {
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(
-            usePlatformDefaultWidth = false,
-            decorFitsSystemWindows = false
-        )
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+            .clickable(onClick = onDismiss)
     ) {
-        Box(
+        AsyncImage(
+            model = imageUrl,
+            contentDescription = contentDescription,
+            modifier = imageModifier.fillMaxSize(),
+            contentScale = ContentScale.Fit,
+            placeholder = ColorPainter(Color(0xFF1A1A1A)),
+            error = ColorPainter(Color(0xFF1A1A1A)),
+            fallback = ColorPainter(Color(0xFF1A1A1A))
+        )
+        IconButton(
+            onClick = onDismiss,
             modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black)
-                .clickable(onClick = onDismiss)
+                .align(Alignment.TopEnd)
+                .padding(8.dp)
         ) {
-            AsyncImage(
-                model = imageUrl,
-                contentDescription = contentDescription,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Fit,
-                placeholder = ColorPainter(Color(0xFF1A1A1A)),
-                error = ColorPainter(Color(0xFF1A1A1A)),
-                fallback = ColorPainter(Color(0xFF1A1A1A))
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = stringResource(R.string.cd_close),
+                tint = Color.White
             )
-            IconButton(
-                onClick = onDismiss,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = stringResource(R.string.cd_close),
-                    tint = Color.White
-                )
-            }
         }
     }
 }
