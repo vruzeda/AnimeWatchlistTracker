@@ -6,6 +6,8 @@ import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsEvent
 import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsTracker
 import com.vuzeda.animewatchlist.tracker.module.domain.Anime
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
+import com.vuzeda.animewatchlist.tracker.module.domain.HomeSortOption
+import com.vuzeda.animewatchlist.tracker.module.domain.HomeSortState
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
@@ -13,14 +15,19 @@ import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveAllSeasonsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveAnimeListUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveHomeNotificationFilterUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveHomeSortStateUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveHomeStatusFilterUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveHomeViewModeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.SetHomeNotificationFilterUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.SetHomeSortStateUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.SetHomeStatusFilterUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.text.Collator
 import java.util.Locale
@@ -32,11 +39,15 @@ class HomeViewModel @Inject constructor(
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase,
     private val observeHomeViewModeUseCase: ObserveHomeViewModeUseCase,
     private val observeAllSeasonsUseCase: ObserveAllSeasonsUseCase,
+    private val observeHomeSortStateUseCase: ObserveHomeSortStateUseCase,
+    private val setHomeSortStateUseCase: SetHomeSortStateUseCase,
+    private val observeHomeStatusFilterUseCase: ObserveHomeStatusFilterUseCase,
+    private val setHomeStatusFilterUseCase: SetHomeStatusFilterUseCase,
+    private val observeHomeNotificationFilterUseCase: ObserveHomeNotificationFilterUseCase,
+    private val setHomeNotificationFilterUseCase: SetHomeNotificationFilterUseCase,
     private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
-    private val _filterState = MutableStateFlow(HomeFilterState())
-    private val _sortState = MutableStateFlow(HomeSortState())
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
@@ -45,17 +56,21 @@ class HomeViewModel @Inject constructor(
             combine(
                 observeAnimeListUseCase(),
                 observeAllSeasonsUseCase(),
-                _filterState,
-                _sortState,
+                observeHomeStatusFilterUseCase(),
+                observeHomeNotificationFilterUseCase(),
+                observeHomeSortStateUseCase(),
                 observeTitleLanguageUseCase(),
                 observeHomeViewModeUseCase()
             ) { values ->
                 val animeList = values[0] as List<*>
                 val seasonList = values[1] as List<*>
-                val filterState = values[2] as HomeFilterState
-                val sortState = values[3] as HomeSortState
-                val titleLanguage = values[4] as TitleLanguage
-                val viewMode = values[5] as HomeViewMode
+                val statusFilter = values[2] as WatchStatus?
+                val notificationFilter = values[3] as Boolean?
+                val sortState = values[4] as HomeSortState
+                val titleLanguage = values[5] as TitleLanguage
+                val viewMode = values[6] as HomeViewMode
+
+                val filterState = HomeFilterState(statusFilter, notificationFilter)
 
                 @Suppress("UNCHECKED_CAST")
                 val typedAnimeList = animeList as List<Anime>
@@ -98,27 +113,28 @@ class HomeViewModel @Inject constructor(
     }
 
     fun selectStatusFilter(status: WatchStatus?) {
-        _filterState.update { it.copy(statusFilter = status) }
         analyticsTracker.track(AnalyticsEvent.SelectFilter("status", status?.name ?: "reset"))
+        viewModelScope.launch { setHomeStatusFilterUseCase(status) }
     }
 
     fun selectNotificationFilter(enabled: Boolean?) {
-        _filterState.update { it.copy(notificationFilter = enabled) }
         analyticsTracker.track(AnalyticsEvent.SelectFilter("notification", enabled?.toString() ?: "reset"))
+        viewModelScope.launch { setHomeNotificationFilterUseCase(enabled) }
     }
 
     fun resetFilters() {
-        _filterState.update { HomeFilterState() }
         analyticsTracker.track(AnalyticsEvent.SelectFilter("all", "reset"))
+        viewModelScope.launch {
+            setHomeStatusFilterUseCase(null)
+            setHomeNotificationFilterUseCase(null)
+        }
     }
 
     fun selectSort(option: HomeSortOption) {
-        var isAscending = option.defaultAscending
-        _sortState.update { current ->
-            isAscending = if (option == current.option) !current.isAscending else option.defaultAscending
-            current.copy(option = option, isAscending = isAscending)
-        }
+        val current = _uiState.value
+        val isAscending = if (option == current.sortOption) !current.isSortAscending else option.defaultAscending
         analyticsTracker.track(AnalyticsEvent.SelectSort("home", option.name, isAscending))
+        viewModelScope.launch { setHomeSortStateUseCase(HomeSortState(option, isAscending)) }
     }
 }
 

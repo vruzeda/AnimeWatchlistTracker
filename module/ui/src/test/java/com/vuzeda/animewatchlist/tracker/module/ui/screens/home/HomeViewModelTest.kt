@@ -4,6 +4,8 @@ import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.domain.Anime
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
+import com.vuzeda.animewatchlist.tracker.module.domain.HomeSortOption
+import com.vuzeda.animewatchlist.tracker.module.domain.HomeSortState
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
@@ -11,8 +13,15 @@ import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsTracker
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveAllSeasonsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveAnimeListUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveHomeNotificationFilterUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveHomeSortStateUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveHomeStatusFilterUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveHomeViewModeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.SetHomeNotificationFilterUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.SetHomeSortStateUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.SetHomeStatusFilterUseCase
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -35,7 +44,17 @@ class HomeViewModelTest {
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
     private val observeHomeViewModeUseCase: ObserveHomeViewModeUseCase = mockk()
     private val observeAllSeasonsUseCase: ObserveAllSeasonsUseCase = mockk()
+    private val observeHomeSortStateUseCase: ObserveHomeSortStateUseCase = mockk()
+    private val setHomeSortStateUseCase: SetHomeSortStateUseCase = mockk()
+    private val observeHomeStatusFilterUseCase: ObserveHomeStatusFilterUseCase = mockk()
+    private val setHomeStatusFilterUseCase: SetHomeStatusFilterUseCase = mockk()
+    private val observeHomeNotificationFilterUseCase: ObserveHomeNotificationFilterUseCase = mockk()
+    private val setHomeNotificationFilterUseCase: SetHomeNotificationFilterUseCase = mockk()
     private val analyticsTracker: AnalyticsTracker = mockk(relaxed = true)
+
+    private val sortStateFlow = MutableStateFlow(HomeSortState())
+    private val statusFilterFlow = MutableStateFlow<WatchStatus?>(null)
+    private val notificationFilterFlow = MutableStateFlow<Boolean?>(null)
 
     private val sampleAnimeList = listOf(
         Anime(id = 1L, title = "Attack on Titan", status = WatchStatus.WATCHING, userRating = 8, addedAt = 1000L, notificationType = NotificationType.BOTH),
@@ -56,6 +75,12 @@ class HomeViewModelTest {
         every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
         every { observeHomeViewModeUseCase() } returns flowOf(HomeViewMode.ANIME)
         every { observeAllSeasonsUseCase() } returns flowOf(emptyList())
+        every { observeHomeSortStateUseCase() } returns sortStateFlow
+        every { observeHomeStatusFilterUseCase() } returns statusFilterFlow
+        every { observeHomeNotificationFilterUseCase() } returns notificationFilterFlow
+        coEvery { setHomeSortStateUseCase(any()) } answers { sortStateFlow.value = firstArg() }
+        coEvery { setHomeStatusFilterUseCase(any()) } answers { statusFilterFlow.value = firstArg() }
+        coEvery { setHomeNotificationFilterUseCase(any()) } answers { notificationFilterFlow.value = firstArg() }
     }
 
     @AfterEach
@@ -70,6 +95,12 @@ class HomeViewModelTest {
             observeTitleLanguageUseCase,
             observeHomeViewModeUseCase,
             observeAllSeasonsUseCase,
+            observeHomeSortStateUseCase,
+            setHomeSortStateUseCase,
+            observeHomeStatusFilterUseCase,
+            setHomeStatusFilterUseCase,
+            observeHomeNotificationFilterUseCase,
+            setHomeNotificationFilterUseCase,
             analyticsTracker
         )
     }
@@ -298,6 +329,12 @@ class HomeViewModelTest {
             observeTitleLanguageUseCase,
             observeHomeViewModeUseCase,
             observeAllSeasonsUseCase,
+            observeHomeSortStateUseCase,
+            setHomeSortStateUseCase,
+            observeHomeStatusFilterUseCase,
+            setHomeStatusFilterUseCase,
+            observeHomeNotificationFilterUseCase,
+            setHomeNotificationFilterUseCase,
             analyticsTracker
         )
 
@@ -331,6 +368,12 @@ class HomeViewModelTest {
             observeTitleLanguageUseCase,
             observeHomeViewModeUseCase,
             observeAllSeasonsUseCase,
+            observeHomeSortStateUseCase,
+            setHomeSortStateUseCase,
+            observeHomeStatusFilterUseCase,
+            setHomeStatusFilterUseCase,
+            observeHomeNotificationFilterUseCase,
+            setHomeNotificationFilterUseCase,
             analyticsTracker
         )
 
@@ -359,6 +402,12 @@ class HomeViewModelTest {
             observeTitleLanguageUseCase,
             observeHomeViewModeUseCase,
             observeAllSeasonsUseCase,
+            observeHomeSortStateUseCase,
+            setHomeSortStateUseCase,
+            observeHomeStatusFilterUseCase,
+            setHomeStatusFilterUseCase,
+            observeHomeNotificationFilterUseCase,
+            setHomeNotificationFilterUseCase,
             analyticsTracker
         )
 
@@ -388,6 +437,12 @@ class HomeViewModelTest {
             observeTitleLanguageUseCase,
             observeHomeViewModeUseCase,
             observeAllSeasonsUseCase,
+            observeHomeSortStateUseCase,
+            setHomeSortStateUseCase,
+            observeHomeStatusFilterUseCase,
+            setHomeStatusFilterUseCase,
+            observeHomeNotificationFilterUseCase,
+            setHomeNotificationFilterUseCase,
             analyticsTracker
         )
 
@@ -412,6 +467,12 @@ class HomeViewModelTest {
             observeTitleLanguageUseCase,
             observeHomeViewModeUseCase,
             observeAllSeasonsUseCase,
+            observeHomeSortStateUseCase,
+            setHomeSortStateUseCase,
+            observeHomeStatusFilterUseCase,
+            setHomeStatusFilterUseCase,
+            observeHomeNotificationFilterUseCase,
+            setHomeNotificationFilterUseCase,
             analyticsTracker
         )
 
@@ -439,6 +500,12 @@ class HomeViewModelTest {
             observeTitleLanguageUseCase,
             observeHomeViewModeUseCase,
             observeAllSeasonsUseCase,
+            observeHomeSortStateUseCase,
+            setHomeSortStateUseCase,
+            observeHomeStatusFilterUseCase,
+            setHomeStatusFilterUseCase,
+            observeHomeNotificationFilterUseCase,
+            setHomeNotificationFilterUseCase,
             analyticsTracker
         )
 

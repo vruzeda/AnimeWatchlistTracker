@@ -39,6 +39,39 @@ class UserPreferencesDataStore(
         }
     }
 
+    override fun observeHomeSortState(): Flow<String> =
+        context.dataStore.data.map { preferences ->
+            preferences[HOME_SORT_STATE_KEY] ?: DEFAULT_HOME_SORT_STATE
+        }
+
+    override suspend fun setHomeSortState(state: String) {
+        context.dataStore.edit { preferences ->
+            preferences[HOME_SORT_STATE_KEY] = state
+        }
+    }
+
+    override fun observeHomeStatusFilter(): Flow<String> =
+        context.dataStore.data.map { preferences ->
+            preferences[HOME_STATUS_FILTER_KEY] ?: ""
+        }
+
+    override suspend fun setHomeStatusFilter(filter: String) {
+        context.dataStore.edit { preferences ->
+            preferences[HOME_STATUS_FILTER_KEY] = filter
+        }
+    }
+
+    override fun observeHomeNotificationFilter(): Flow<String> =
+        context.dataStore.data.map { preferences ->
+            preferences[HOME_NOTIFICATION_FILTER_KEY] ?: ""
+        }
+
+    override suspend fun setHomeNotificationFilter(filter: String) {
+        context.dataStore.edit { preferences ->
+            preferences[HOME_NOTIFICATION_FILTER_KEY] = filter
+        }
+    }
+
     override fun observeIsDeveloperOptionsEnabled(): Flow<Boolean> =
         context.dataStore.data.map { preferences ->
             preferences[DEVELOPER_OPTIONS_ENABLED_KEY] ?: false
@@ -66,6 +99,10 @@ class UserPreferencesDataStore(
         const val DEFAULT_TITLE_LANGUAGE = "DEFAULT"
         private val HOME_VIEW_MODE_KEY = stringPreferencesKey("home_view_mode")
         const val DEFAULT_HOME_VIEW_MODE = "ANIME"
+        private val HOME_SORT_STATE_KEY = stringPreferencesKey("home_sort_state")
+        const val DEFAULT_HOME_SORT_STATE = "ALPHABETICAL:true"
+        private val HOME_STATUS_FILTER_KEY = stringPreferencesKey("home_status_filter")
+        private val HOME_NOTIFICATION_FILTER_KEY = stringPreferencesKey("home_notification_filter")
         private val DEVELOPER_OPTIONS_ENABLED_KEY = booleanPreferencesKey("developer_options_enabled")
         private val NOTIFICATION_DEBUG_INFO_ENABLED_KEY = booleanPreferencesKey("notification_debug_info_enabled")
     }

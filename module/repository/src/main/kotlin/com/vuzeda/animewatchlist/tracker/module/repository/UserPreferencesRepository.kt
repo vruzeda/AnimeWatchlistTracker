@@ -1,7 +1,9 @@
 package com.vuzeda.animewatchlist.tracker.module.repository
 
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
+import com.vuzeda.animewatchlist.tracker.module.domain.HomeSortState
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
+import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import kotlinx.coroutines.flow.Flow
 
 interface UserPreferencesRepository {
@@ -13,6 +15,18 @@ interface UserPreferencesRepository {
     fun observeHomeViewMode(): Flow<HomeViewMode>
 
     suspend fun setHomeViewMode(mode: HomeViewMode)
+
+    fun observeHomeSortState(): Flow<HomeSortState>
+
+    suspend fun setHomeSortState(state: HomeSortState)
+
+    fun observeHomeStatusFilter(): Flow<WatchStatus?>
+
+    suspend fun setHomeStatusFilter(status: WatchStatus?)
+
+    fun observeHomeNotificationFilter(): Flow<Boolean?>
+
+    suspend fun setHomeNotificationFilter(enabled: Boolean?)
 
     fun observeIsDeveloperOptionsEnabled(): Flow<Boolean>
 

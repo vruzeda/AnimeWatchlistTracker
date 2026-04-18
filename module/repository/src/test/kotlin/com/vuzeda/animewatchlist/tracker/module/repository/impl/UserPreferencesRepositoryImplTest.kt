@@ -3,7 +3,10 @@ package com.vuzeda.animewatchlist.tracker.module.repository.impl
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
+import com.vuzeda.animewatchlist.tracker.module.domain.HomeSortOption
+import com.vuzeda.animewatchlist.tracker.module.domain.HomeSortState
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
+import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.UserPreferencesLocalDataSource
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -156,5 +159,143 @@ class UserPreferencesRepositoryImplTest {
         repository.setIsNotificationDebugInfoEnabled(true)
 
         coVerify { dataSource.setIsNotificationDebugInfoEnabled(true) }
+    }
+
+    @Test
+    fun `observeHomeSortState returns ALPHABETICAL ascending for default stored value`() = runTest {
+        every { dataSource.observeHomeSortState() } returns flowOf("ALPHABETICAL:true")
+
+        repository.observeHomeSortState().test {
+            assertThat(awaitItem()).isEqualTo(HomeSortState(HomeSortOption.ALPHABETICAL, true))
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `observeHomeSortState returns correct state for RECENTLY_ADDED descending`() = runTest {
+        every { dataSource.observeHomeSortState() } returns flowOf("RECENTLY_ADDED:false")
+
+        repository.observeHomeSortState().test {
+            assertThat(awaitItem()).isEqualTo(HomeSortState(HomeSortOption.RECENTLY_ADDED, false))
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `observeHomeSortState falls back to ALPHABETICAL for unknown option`() = runTest {
+        every { dataSource.observeHomeSortState() } returns flowOf("UNKNOWN:true")
+
+        repository.observeHomeSortState().test {
+            val result = awaitItem()
+            assertThat(result.option).isEqualTo(HomeSortOption.ALPHABETICAL)
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `setHomeSortState serialises option and ascending to data source`() = runTest {
+        coEvery { dataSource.setHomeSortState(any()) } returns Unit
+
+        repository.setHomeSortState(HomeSortState(HomeSortOption.USER_RATING, false))
+
+        coVerify { dataSource.setHomeSortState("USER_RATING:false") }
+    }
+
+    @Test
+    fun `observeHomeStatusFilter returns null for empty stored value`() = runTest {
+        every { dataSource.observeHomeStatusFilter() } returns flowOf("")
+
+        repository.observeHomeStatusFilter().test {
+            assertThat(awaitItem()).isNull()
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `observeHomeStatusFilter returns matching WatchStatus for valid stored value`() = runTest {
+        every { dataSource.observeHomeStatusFilter() } returns flowOf("WATCHING")
+
+        repository.observeHomeStatusFilter().test {
+            assertThat(awaitItem()).isEqualTo(WatchStatus.WATCHING)
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `observeHomeStatusFilter returns all WatchStatus variants correctly`() = runTest {
+        WatchStatus.entries.forEach { status ->
+            every { dataSource.observeHomeStatusFilter() } returns flowOf(status.name)
+
+            repository.observeHomeStatusFilter().test {
+                assertThat(awaitItem()).isEqualTo(status)
+                awaitComplete()
+            }
+        }
+    }
+
+    @Test
+    fun `setHomeStatusFilter delegates enum name to data source`() = runTest {
+        coEvery { dataSource.setHomeStatusFilter(any()) } returns Unit
+
+        repository.setHomeStatusFilter(WatchStatus.COMPLETED)
+
+        coVerify { dataSource.setHomeStatusFilter("COMPLETED") }
+    }
+
+    @Test
+    fun `setHomeStatusFilter delegates empty string to data source when null`() = runTest {
+        coEvery { dataSource.setHomeStatusFilter(any()) } returns Unit
+
+        repository.setHomeStatusFilter(null)
+
+        coVerify { dataSource.setHomeStatusFilter("") }
+    }
+
+    @Test
+    fun `observeHomeNotificationFilter returns null for empty stored value`() = runTest {
+        every { dataSource.observeHomeNotificationFilter() } returns flowOf("")
+
+        repository.observeHomeNotificationFilter().test {
+            assertThat(awaitItem()).isNull()
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `observeHomeNotificationFilter returns true for stored true`() = runTest {
+        every { dataSource.observeHomeNotificationFilter() } returns flowOf("true")
+
+        repository.observeHomeNotificationFilter().test {
+            assertThat(awaitItem()).isTrue()
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `observeHomeNotificationFilter returns false for stored false`() = runTest {
+        every { dataSource.observeHomeNotificationFilter() } returns flowOf("false")
+
+        repository.observeHomeNotificationFilter().test {
+            assertThat(awaitItem()).isFalse()
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `setHomeNotificationFilter delegates true string to data source`() = runTest {
+        coEvery { dataSource.setHomeNotificationFilter(any()) } returns Unit
+
+        repository.setHomeNotificationFilter(true)
+
+        coVerify { dataSource.setHomeNotificationFilter("true") }
+    }
+
+    @Test
+    fun `setHomeNotificationFilter delegates empty string to data source when null`() = runTest {
+        coEvery { dataSource.setHomeNotificationFilter(any()) } returns Unit
+
+        repository.setHomeNotificationFilter(null)
+
+        coVerify { dataSource.setHomeNotificationFilter("") }
     }
 }
