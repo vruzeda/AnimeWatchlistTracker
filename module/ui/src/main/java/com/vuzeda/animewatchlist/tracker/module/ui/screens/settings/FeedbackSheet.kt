@@ -30,6 +30,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
 import com.vuzeda.animewatchlist.tracker.module.domain.FeedbackCategory
 import com.vuzeda.animewatchlist.tracker.module.ui.R
 
@@ -72,7 +74,7 @@ fun FeedbackSheet(
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
                     .navigationBarsPadding()
-                    .padding(horizontal = 24.dp)
+                    .padding(horizontal = ScreenPadding)
                     .padding(bottom = 24.dp)
             ) {
                 Text(
@@ -80,7 +82,7 @@ fun FeedbackSheet(
                     style = MaterialTheme.typography.titleLarge
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(ElementSpacing))
 
                 val categories = listOf(
                     FeedbackCategory.BUG_REPORT to stringResource(R.string.feedback_category_bug),
@@ -98,7 +100,7 @@ fun FeedbackSheet(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(ElementSpacing))
 
                 OutlinedTextField(
                     value = uiState.message,
@@ -112,7 +114,7 @@ fun FeedbackSheet(
                     maxLines = 8
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(ElementSpacing))
 
                 Button(
                     onClick = onSubmit,

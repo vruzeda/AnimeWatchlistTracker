@@ -27,6 +27,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
 import com.vuzeda.animewatchlist.tracker.module.ui.R
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -87,7 +89,7 @@ fun DeveloperScreen(
                 onClick = onDisableDeveloperOptions,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp)
+                    .padding(horizontal = ScreenPadding)
             ) {
                 Text(
                     text = stringResource(R.string.developer_disable_options),
@@ -99,7 +101,7 @@ fun DeveloperScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                    .padding(horizontal = ScreenPadding, vertical = 4.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -116,21 +118,21 @@ fun DeveloperScreen(
             Text(
                 text = stringResource(R.string.developer_last_update_run),
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                modifier = Modifier.padding(horizontal = ScreenPadding, vertical = ElementSpacing)
             )
 
             Text(
                 text = uiState.lastAnimeUpdateRun?.formatWith(formatter)
                     ?: stringResource(R.string.developer_last_update_run_never),
                 style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                modifier = Modifier.padding(horizontal = ScreenPadding, vertical = 4.dp)
             )
 
             TextButton(
                 onClick = onTriggerAnimeUpdate,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp)
+                    .padding(horizontal = ScreenPadding)
             ) {
                 Text(
                     text = stringResource(R.string.developer_trigger_update),

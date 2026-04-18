@@ -48,6 +48,8 @@ import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
 import com.vuzeda.animewatchlist.tracker.module.ui.R
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.home.toColor
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.home.toDisplayLabelRes
@@ -143,7 +145,7 @@ fun SeasonsScreen(
                 .padding(scaffoldPadding)
         ) {
             SeasonPickerRow(
-                modifier = Modifier.padding(horizontal = 8.dp),
+                modifier = Modifier.padding(horizontal = ScreenPadding),
                 label = pickerLabel,
                 isNextEnabled = uiState.isNextSeasonEnabled,
                 onPreviousClick = onPreviousSeason,
@@ -195,7 +197,7 @@ fun SeasonsScreen(
 
                         LazyColumn(
                             state = listState,
-                            contentPadding = PaddingValues(16.dp),
+                            contentPadding = PaddingValues(horizontal = ScreenPadding, vertical = ElementSpacing),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             items(

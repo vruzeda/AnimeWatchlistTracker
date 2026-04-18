@@ -24,6 +24,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusCompleted
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusDropped
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusOnHold
@@ -75,19 +77,19 @@ fun StatusSelectionSheetContent(
         Text(
             text = title,
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
+            modifier = Modifier.padding(horizontal = ScreenPadding, vertical = ElementSpacing)
         )
 
         Text(
             text = subtitle,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 24.dp),
+            modifier = Modifier.padding(horizontal = ScreenPadding),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(ElementSpacing))
 
         options.forEachIndexed { index, option ->
             Row(
@@ -95,9 +97,9 @@ fun StatusSelectionSheetContent(
                     .fillMaxWidth()
                     .heightIn(min = 48.dp)
                     .clickable { onOptionSelected(index) }
-                    .padding(horizontal = 24.dp, vertical = 14.dp),
+                    .padding(horizontal = ScreenPadding, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(ElementSpacing)
             ) {
                 StatusChip(
                     label = option.label,

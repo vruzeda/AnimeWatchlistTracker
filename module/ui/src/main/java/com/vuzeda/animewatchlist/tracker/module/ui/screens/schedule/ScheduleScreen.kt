@@ -34,6 +34,8 @@ import com.vuzeda.animewatchlist.tracker.module.designsystem.component.SeasonPic
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
 import com.vuzeda.animewatchlist.tracker.module.ui.R
 import java.time.DayOfWeek
 
@@ -80,7 +82,7 @@ fun ScheduleScreen(
         val pickerLabel = "$seasonLabel ${uiState.selectedYear}"
 
         SeasonPickerRow(
-            modifier = Modifier.padding(horizontal = 8.dp),
+            modifier = Modifier.padding(horizontal = ScreenPadding),
             label = pickerLabel,
             onPreviousClick = onPreviousSeason,
             onNextClick = onNextSeason
@@ -103,7 +105,7 @@ fun ScheduleScreen(
             }
             else -> {
                 LazyColumn(
-                    contentPadding = PaddingValues(bottom = 16.dp),
+                    contentPadding = PaddingValues(bottom = ElementSpacing),
                     verticalArrangement = Arrangement.spacedBy(0.dp)
                 ) {
                     uiState.schedule.forEach { (dayOfWeek, seasons) ->
@@ -113,7 +115,7 @@ fun ScheduleScreen(
                                 style = MaterialTheme.typography.titleSmall,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp)
+                                    .padding(start = ScreenPadding, end = ScreenPadding, top = 4.dp, bottom = 4.dp)
                             )
                         }
                         items(items = seasons, key = { it.id }) { season ->
@@ -121,7 +123,7 @@ fun ScheduleScreen(
                                 season = season,
                                 titleLanguage = uiState.titleLanguage,
                                 onSeasonClick = onSeasonClick,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                                modifier = Modifier.padding(horizontal = ScreenPadding, vertical = 4.dp)
                             )
                         }
                     }

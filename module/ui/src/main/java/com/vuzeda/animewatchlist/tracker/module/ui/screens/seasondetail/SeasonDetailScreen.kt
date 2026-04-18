@@ -77,6 +77,8 @@ import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
 import com.vuzeda.animewatchlist.tracker.module.ui.R
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.home.toColor
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.home.toDisplayLabelRes
@@ -353,7 +355,7 @@ private fun SeasonDetailContent(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp)
+            .padding(horizontal = ScreenPadding, vertical = ElementSpacing)
     ) {
         SeasonHeaderSection(
             season = season,
@@ -366,7 +368,7 @@ private fun SeasonDetailContent(
             onAddToWatchlistClick = onAddToWatchlistClick
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(ElementSpacing))
 
         OutlinedButton(
             onClick = onViewFullSeriesClick,
@@ -382,7 +384,7 @@ private fun SeasonDetailContent(
             val hasMore = season.streamingLinks.size > collapsedLimit
             val visibleLinks = if (streamingExpanded || !hasMore) season.streamingLinks
                                else season.streamingLinks.take(collapsedLimit)
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(ElementSpacing))
             Text(
                 text = stringResource(R.string.season_detail_section_streaming),
                 style = MaterialTheme.typography.titleMedium
@@ -412,7 +414,7 @@ private fun SeasonDetailContent(
         }
 
         if (state.episodes.isNotEmpty() || state.isLoadingEpisodes) {
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(ElementSpacing))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -470,7 +472,7 @@ private fun SeasonDetailContent(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 16.dp),
+                        .padding(vertical = ElementSpacing),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator()
@@ -497,7 +499,7 @@ private fun SeasonDetailContent(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp)
+                    .padding(vertical = ElementSpacing)
             )
             Text(
                 text = stringResource(
@@ -509,7 +511,7 @@ private fun SeasonDetailContent(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp)
+                    .padding(bottom = ElementSpacing)
             )
         }
     }
@@ -550,7 +552,7 @@ private fun SeasonHeaderSection(
             fallback = ColorPainter(Color(0xFFE0E0E0))
         )
 
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(ElementSpacing))
 
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
@@ -622,7 +624,7 @@ private fun SeasonHeaderSection(
                 )
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(ElementSpacing))
             if (isInWatchlist) {
                 Box(
                     modifier = Modifier

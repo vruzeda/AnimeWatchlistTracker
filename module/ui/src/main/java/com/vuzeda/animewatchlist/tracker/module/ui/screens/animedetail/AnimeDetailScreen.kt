@@ -75,6 +75,8 @@ import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
 import com.vuzeda.animewatchlist.tracker.module.ui.R
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.home.toColor
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.home.toDisplayLabelRes
@@ -392,7 +394,7 @@ private fun AnimeDetailContent(
     }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = PaddingValues(horizontal = ScreenPadding, vertical = ElementSpacing),
         verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
         item(key = "header") {
@@ -408,7 +410,7 @@ private fun AnimeDetailContent(
 
         if (state.isInWatchlist) {
             item(key = "rating") {
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(ElementSpacing))
                 Text(
                     text = stringResource(R.string.anime_detail_section_your_rating),
                     style = MaterialTheme.typography.titleLarge
@@ -425,7 +427,7 @@ private fun AnimeDetailContent(
         val synopsis = anime.synopsis
         if (synopsis != null) {
             item(key = "synopsis") {
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(ElementSpacing))
                 Text(
                     text = stringResource(R.string.anime_detail_section_synopsis),
                     style = MaterialTheme.typography.titleLarge
@@ -440,7 +442,7 @@ private fun AnimeDetailContent(
 
         if (state.seasons.isNotEmpty()) {
             item(key = "seasons_header") {
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(ElementSpacing))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -498,8 +500,8 @@ private fun AnimeDetailContent(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 16.dp)
-                )
+                        .padding(vertical = ElementSpacing)
+)
             }
         }
     }
@@ -538,7 +540,7 @@ private fun AnimeHeaderSection(
             fallback = ColorPainter(Color(0xFFE0E0E0))
         )
 
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(ElementSpacing))
 
         Column {
             Text(

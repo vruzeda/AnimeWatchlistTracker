@@ -39,6 +39,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.ConfirmationDialog
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.ui.R
@@ -168,7 +170,7 @@ fun SettingsScreen(
             Text(
                 text = stringResource(R.string.settings_title_language),
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                modifier = Modifier.padding(horizontal = ScreenPadding, vertical = ElementSpacing)
             )
 
             TitleLanguageOption.entries.forEach { option ->
@@ -177,7 +179,7 @@ fun SettingsScreen(
                         .fillMaxWidth()
                         .heightIn(min = 48.dp)
                         .clickable { onTitleLanguageSelected(option.language) }
-                        .padding(horizontal = 8.dp),
+                        .padding(horizontal = ScreenPadding),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     RadioButton(
@@ -192,14 +194,14 @@ fun SettingsScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(ElementSpacing))
+            HorizontalDivider(modifier = Modifier.padding(horizontal = ScreenPadding))
+            Spacer(modifier = Modifier.height(ElementSpacing))
 
             Text(
                 text = stringResource(R.string.settings_home_view_mode),
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                modifier = Modifier.padding(horizontal = ScreenPadding, vertical = ElementSpacing)
             )
 
             HomeViewModeOption.entries.forEach { option ->
@@ -208,7 +210,7 @@ fun SettingsScreen(
                         .fillMaxWidth()
                         .heightIn(min = 48.dp)
                         .clickable { onHomeViewModeSelected(option.mode) }
-                        .padding(horizontal = 8.dp),
+                        .padding(horizontal = ScreenPadding),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     RadioButton(
@@ -223,15 +225,15 @@ fun SettingsScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(ElementSpacing))
+            HorizontalDivider(modifier = Modifier.padding(horizontal = ScreenPadding))
+            Spacer(modifier = Modifier.height(ElementSpacing))
 
             TextButton(
                 onClick = onDeleteAllClick,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp)
+                    .padding(horizontal = ScreenPadding)
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Delete,
@@ -246,15 +248,15 @@ fun SettingsScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(ElementSpacing))
+            HorizontalDivider(modifier = Modifier.padding(horizontal = ScreenPadding))
+            Spacer(modifier = Modifier.height(ElementSpacing))
 
             TextButton(
                 onClick = onFeedbackClick,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp)
+                    .padding(horizontal = ScreenPadding)
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Feedback,
@@ -268,15 +270,15 @@ fun SettingsScreen(
             }
 
             if (uiState.isDeveloperOptionsEnabled) {
-                Spacer(modifier = Modifier.height(8.dp))
-                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(ElementSpacing))
+                HorizontalDivider(modifier = Modifier.padding(horizontal = ScreenPadding))
+                Spacer(modifier = Modifier.height(ElementSpacing))
 
                 TextButton(
                     onClick = onDeveloperClick,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 8.dp)
+                        .padding(horizontal = ScreenPadding)
                 ) {
                     Text(
                         text = stringResource(R.string.developer_title),
@@ -295,7 +297,7 @@ fun SettingsScreen(
                     .fillMaxWidth()
                     .heightIn(min = 48.dp)
                     .clickable(onClick = onVersionTap)
-                    .padding(horizontal = 16.dp, vertical = 16.dp)
+                    .padding(horizontal = ScreenPadding, vertical = 16.dp)
             )
         }
 
