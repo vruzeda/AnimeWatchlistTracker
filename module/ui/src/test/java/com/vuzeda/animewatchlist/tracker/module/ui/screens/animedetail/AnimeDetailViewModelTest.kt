@@ -125,10 +125,10 @@ class AnimeDetailViewModelTest {
 
         viewModel.uiState.test {
             val loading = awaitItem()
-            assertThat(loading).isInstanceOf(AnimeDetailUiState.Loading::class.java)
+            assertThat(loading.isLoading).isTrue()
 
-            val success = awaitItem() as AnimeDetailUiState.Success
-            assertThat(success.anime.title).isEqualTo("Attack on Titan")
+            val success = awaitItem()
+            assertThat(success.anime?.title).isEqualTo("Attack on Titan")
             assertThat(success.seasons).hasSize(2)
             assertThat(success.isInWatchlist).isTrue()
             cancelAndIgnoreRemainingEvents()
@@ -162,7 +162,7 @@ class AnimeDetailViewModelTest {
             awaitItem()
 
             val notFound = awaitItem()
-            assertThat(notFound).isInstanceOf(AnimeDetailUiState.NotFound::class.java)
+            assertThat(notFound.isNotFound).isTrue()
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -173,7 +173,7 @@ class AnimeDetailViewModelTest {
 
         viewModel.uiState.test {
             val notFound = awaitItem()
-            assertThat(notFound).isInstanceOf(AnimeDetailUiState.NotFound::class.java)
+            assertThat(notFound.isNotFound).isTrue()
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -198,11 +198,11 @@ class AnimeDetailViewModelTest {
 
         viewModel.uiState.test {
             val loading = awaitItem()
-            assertThat(loading).isInstanceOf(AnimeDetailUiState.Loading::class.java)
+            assertThat(loading.isLoading).isTrue()
 
-            val success = awaitItem() as AnimeDetailUiState.Success
-            assertThat(success.anime.title).isEqualTo("Spy x Family")
-            assertThat(success.anime.synopsis).isEqualTo("A spy forms a pretend family.")
+            val success = awaitItem()
+            assertThat(success.anime?.title).isEqualTo("Spy x Family")
+            assertThat(success.anime?.synopsis).isEqualTo("A spy forms a pretend family.")
             assertThat(success.seasons).hasSize(2)
             assertThat(success.isInWatchlist).isFalse()
             cancelAndIgnoreRemainingEvents()
@@ -227,7 +227,7 @@ class AnimeDetailViewModelTest {
         viewModel.uiState.test {
             awaitItem()
 
-            val success = awaitItem() as AnimeDetailUiState.Success
+            val success = awaitItem()
             assertThat(success.seasons).hasSize(2)
             assertThat(success.seasons.all { !it.isInWatchlist }).isTrue()
             cancelAndIgnoreRemainingEvents()
@@ -242,10 +242,10 @@ class AnimeDetailViewModelTest {
 
         viewModel.uiState.test {
             val loading = awaitItem()
-            assertThat(loading).isInstanceOf(AnimeDetailUiState.Loading::class.java)
+            assertThat(loading.isLoading).isTrue()
 
-            val success = awaitItem() as AnimeDetailUiState.Success
-            assertThat(success.anime.title).isEqualTo("Attack on Titan")
+            val success = awaitItem()
+            assertThat(success.anime?.title).isEqualTo("Attack on Titan")
             assertThat(success.isInWatchlist).isTrue()
             cancelAndIgnoreRemainingEvents()
         }
@@ -262,7 +262,7 @@ class AnimeDetailViewModelTest {
             awaitItem()
 
             val notFound = awaitItem()
-            assertThat(notFound).isInstanceOf(AnimeDetailUiState.NotFound::class.java)
+            assertThat(notFound.isNotFound).isTrue()
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -282,8 +282,8 @@ class AnimeDetailViewModelTest {
             viewModel.updateStatus(WatchStatus.COMPLETED)
             testDispatcher.scheduler.advanceUntilIdle()
 
-            val updated = expectMostRecentItem() as AnimeDetailUiState.Success
-            assertThat(updated.anime.status).isEqualTo(WatchStatus.COMPLETED)
+            val updated = expectMostRecentItem()
+            assertThat(updated.anime?.status).isEqualTo(WatchStatus.COMPLETED)
 
             coVerify { updateSeasonStatusUseCase(match { it.id == 2L }, WatchStatus.COMPLETED) }
             cancelAndIgnoreRemainingEvents()
@@ -304,8 +304,8 @@ class AnimeDetailViewModelTest {
 
             viewModel.updateUserRating(10)
 
-            val updated = awaitItem() as AnimeDetailUiState.Success
-            assertThat(updated.anime.userRating).isEqualTo(10)
+            val updated = awaitItem()
+            assertThat(updated.anime?.userRating).isEqualTo(10)
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -319,11 +319,11 @@ class AnimeDetailViewModelTest {
             expectMostRecentItem()
 
             viewModel.showDeleteConfirmation()
-            val shown = awaitItem() as AnimeDetailUiState.Success
+            val shown = awaitItem()
             assertThat(shown.isDeleteConfirmationVisible).isTrue()
 
             viewModel.dismissDeleteConfirmation()
-            val hidden = awaitItem() as AnimeDetailUiState.Success
+            val hidden = awaitItem()
             assertThat(hidden.isDeleteConfirmationVisible).isFalse()
             cancelAndIgnoreRemainingEvents()
         }
@@ -342,7 +342,7 @@ class AnimeDetailViewModelTest {
             viewModel.confirmDelete()
             testDispatcher.scheduler.advanceUntilIdle()
 
-            val deleted = expectMostRecentItem() as AnimeDetailUiState.Success
+            val deleted = expectMostRecentItem()
             assertThat(deleted.isInWatchlist).isFalse()
             assertThat(deleted.isDeleteConfirmationVisible).isFalse()
             coVerify { deleteAnimeUseCase(1L) }
@@ -360,7 +360,7 @@ class AnimeDetailViewModelTest {
 
             viewModel.onNotificationIconClick()
 
-            val shown = awaitItem() as AnimeDetailUiState.Success
+            val shown = awaitItem()
             assertThat(shown.isNotificationTypeSheetVisible).isTrue()
             cancelAndIgnoreRemainingEvents()
         }
@@ -380,7 +380,7 @@ class AnimeDetailViewModelTest {
             viewModel.selectNotificationType(NotificationType.NEW_EPISODES)
             testDispatcher.scheduler.advanceUntilIdle()
 
-            val dismissed = expectMostRecentItem() as AnimeDetailUiState.Success
+            val dismissed = expectMostRecentItem()
             assertThat(dismissed.isNotificationTypeSheetVisible).isFalse()
 
             coVerify {
@@ -424,11 +424,11 @@ class AnimeDetailViewModelTest {
             expectMostRecentItem()
 
             viewModel.showStatusSheet()
-            val shown = awaitItem() as AnimeDetailUiState.Success
+            val shown = awaitItem()
             assertThat(shown.isStatusSheetVisible).isTrue()
 
             viewModel.dismissStatusSheet()
-            val hidden = awaitItem() as AnimeDetailUiState.Success
+            val hidden = awaitItem()
             assertThat(hidden.isStatusSheetVisible).isFalse()
             cancelAndIgnoreRemainingEvents()
         }
@@ -464,20 +464,20 @@ class AnimeDetailViewModelTest {
 
         viewModel.uiState.test {
             testDispatcher.scheduler.advanceUntilIdle()
-            val resolved = expectMostRecentItem() as AnimeDetailUiState.Success
+            val resolved = expectMostRecentItem()
             assertThat(resolved.isInWatchlist).isFalse()
 
             viewModel.showAddScopeSheet(WatchStatus.PLAN_TO_WATCH)
-            val scopeSheet = awaitItem() as AnimeDetailUiState.Success
+            val scopeSheet = awaitItem()
             assertThat(scopeSheet.isAddScopeSheetVisible).isTrue()
             assertThat(scopeSheet.pendingAddStatus).isEqualTo(WatchStatus.PLAN_TO_WATCH)
 
             viewModel.confirmAddScope(allSeasons = true)
             testDispatcher.scheduler.advanceUntilIdle()
 
-            val watchlisted = expectMostRecentItem() as AnimeDetailUiState.Success
+            val watchlisted = expectMostRecentItem()
             assertThat(watchlisted.isInWatchlist).isTrue()
-            assertThat(watchlisted.anime.id).isEqualTo(10L)
+            assertThat(watchlisted.anime?.id).isEqualTo(10L)
 
             coVerify { addAnimeUseCase(any(), match { it.size == 2 }, WatchStatus.PLAN_TO_WATCH) }
             cancelAndIgnoreRemainingEvents()
@@ -494,14 +494,14 @@ class AnimeDetailViewModelTest {
             expectMostRecentItem()
 
             viewModel.showAddSeasonSheet(dbSeason)
-            val withSheet = awaitItem() as AnimeDetailUiState.Success
+            val withSheet = awaitItem()
             assertThat(withSheet.isAddSeasonSheetVisible).isTrue()
             assertThat(withSheet.pendingAddSeason).isEqualTo(dbSeason)
 
             viewModel.confirmAddSeason(WatchStatus.WATCHING)
             testDispatcher.scheduler.advanceUntilIdle()
 
-            val afterAdd = expectMostRecentItem() as AnimeDetailUiState.Success
+            val afterAdd = expectMostRecentItem()
             assertThat(afterAdd.isAddSeasonSheetVisible).isFalse()
             assertThat(afterAdd.pendingAddSeason).isNull()
 
@@ -537,7 +537,7 @@ class AnimeDetailViewModelTest {
 
         viewModel.uiState.test {
             testDispatcher.scheduler.advanceUntilIdle()
-            val resolved = expectMostRecentItem() as AnimeDetailUiState.Success
+            val resolved = expectMostRecentItem()
             assertThat(resolved.isInWatchlist).isFalse()
 
             val transientSeason = resolved.seasons[0]
@@ -547,9 +547,9 @@ class AnimeDetailViewModelTest {
             viewModel.confirmAddSeason(WatchStatus.PLAN_TO_WATCH)
             testDispatcher.scheduler.advanceUntilIdle()
 
-            val watchlisted = expectMostRecentItem() as AnimeDetailUiState.Success
+            val watchlisted = expectMostRecentItem()
             assertThat(watchlisted.isInWatchlist).isTrue()
-            assertThat(watchlisted.anime.id).isEqualTo(10L)
+            assertThat(watchlisted.anime?.id).isEqualTo(10L)
 
             coVerify { addAnimeUseCase(any(), match { it.size == 1 && it[0].malId == 50 }, WatchStatus.PLAN_TO_WATCH) }
             cancelAndIgnoreRemainingEvents()
@@ -569,7 +569,7 @@ class AnimeDetailViewModelTest {
             awaitItem()
 
             viewModel.dismissAddSeasonSheet()
-            val hidden = awaitItem() as AnimeDetailUiState.Success
+            val hidden = awaitItem()
             assertThat(hidden.isAddSeasonSheetVisible).isFalse()
             assertThat(hidden.pendingAddSeason).isNull()
             cancelAndIgnoreRemainingEvents()
@@ -587,7 +587,7 @@ class AnimeDetailViewModelTest {
             viewModel.refresh()
             testDispatcher.scheduler.advanceUntilIdle()
 
-            val refreshed = expectMostRecentItem() as AnimeDetailUiState.Success
+            val refreshed = expectMostRecentItem()
             assertThat(refreshed.isRefreshing).isFalse()
             coVerify { refreshAnimeSeasonsUseCase(1L) }
             coVerify { refreshSeasonDataUseCase(sampleSeasons[0]) }
@@ -612,15 +612,15 @@ class AnimeDetailViewModelTest {
 
         viewModel.uiState.test {
             testDispatcher.scheduler.advanceUntilIdle()
-            val initial = expectMostRecentItem() as AnimeDetailUiState.Success
+            val initial = expectMostRecentItem()
             assertThat(initial.isInWatchlist).isFalse()
 
             viewModel.refresh()
             testDispatcher.scheduler.advanceUntilIdle()
 
-            val refreshed = expectMostRecentItem() as AnimeDetailUiState.Success
+            val refreshed = expectMostRecentItem()
             assertThat(refreshed.isRefreshing).isFalse()
-            assertThat(refreshed.anime.title).isEqualTo("Spy x Family")
+            assertThat(refreshed.anime?.title).isEqualTo("Spy x Family")
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -674,7 +674,7 @@ class AnimeDetailViewModelTest {
         viewModel.uiState.test {
             testDispatcher.scheduler.advanceUntilIdle()
 
-            val state = expectMostRecentItem() as AnimeDetailUiState.Success
+            val state = expectMostRecentItem()
             assertThat(state.isNotificationDebugInfoEnabled).isTrue()
             cancelAndIgnoreRemainingEvents()
         }
@@ -687,7 +687,7 @@ class AnimeDetailViewModelTest {
         viewModel.uiState.test {
             awaitItem()
 
-            val success = awaitItem() as AnimeDetailUiState.Success
+            val success = awaitItem()
             assertThat(success.typeFilter).isEmpty()
             cancelAndIgnoreRemainingEvents()
         }
@@ -703,7 +703,7 @@ class AnimeDetailViewModelTest {
 
             viewModel.toggleTypeFilter("TV")
 
-            val state = awaitItem() as AnimeDetailUiState.Success
+            val state = awaitItem()
             assertThat(state.typeFilter).containsExactly("TV")
             cancelAndIgnoreRemainingEvents()
         }
@@ -721,7 +721,7 @@ class AnimeDetailViewModelTest {
             awaitItem()
             viewModel.toggleTypeFilter("TV")
 
-            val state = awaitItem() as AnimeDetailUiState.Success
+            val state = awaitItem()
             assertThat(state.typeFilter).isEmpty()
             cancelAndIgnoreRemainingEvents()
         }
@@ -742,7 +742,7 @@ class AnimeDetailViewModelTest {
 
             viewModel.resetTypeFilter()
 
-            val state = awaitItem() as AnimeDetailUiState.Success
+            val state = awaitItem()
             assertThat(state.typeFilter).isEmpty()
             cancelAndIgnoreRemainingEvents()
         }

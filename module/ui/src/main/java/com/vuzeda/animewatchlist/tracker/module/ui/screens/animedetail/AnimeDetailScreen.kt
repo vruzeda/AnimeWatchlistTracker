@@ -149,7 +149,7 @@ fun AnimeDetailScreen(
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
-    if (uiState is AnimeDetailUiState.Success && uiState.snackbarEvent != null) {
+    if (uiState.snackbarEvent != null) {
         val message = resolveSnackbarMessage(uiState.snackbarEvent)
         LaunchedEffect(uiState.snackbarEvent) {
             snackbarHostState.showSnackbar(message)
@@ -173,7 +173,7 @@ fun AnimeDetailScreen(
                     }
                 },
                 actions = {
-                    if (uiState is AnimeDetailUiState.Success && uiState.isInWatchlist) {
+                    if (uiState.anime != null && uiState.isInWatchlist) {
                         NotificationButton(
                             enabled = uiState.isNotificationsEnabled,
                             onClick = onNotificationIconClick,
@@ -195,8 +195,8 @@ fun AnimeDetailScreen(
                 .fillMaxSize()
                 .padding(scaffoldPadding)
         ) {
-            when (uiState) {
-                is AnimeDetailUiState.Loading -> {
+            when {
+                uiState.isLoading -> {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
@@ -204,20 +204,21 @@ fun AnimeDetailScreen(
                         CircularProgressIndicator()
                     }
                 }
-                is AnimeDetailUiState.NotFound -> {
+                uiState.isNotFound -> {
                     EmptyStateMessage(
                         modifier = Modifier.fillMaxSize(),
                         title = stringResource(R.string.anime_detail_not_found)
                     )
                 }
-                is AnimeDetailUiState.Success -> {
+                else -> {
+                    val anime = checkNotNull(uiState.anime)
                     val animeDisplayTitle = resolveDisplayTitle(
-                        title = uiState.anime.title,
-                        titleEnglish = uiState.anime.titleEnglish,
-                        titleJapanese = uiState.anime.titleJapanese,
+                        title = anime.title,
+                        titleEnglish = anime.titleEnglish,
+                        titleJapanese = anime.titleJapanese,
                         language = uiState.titleLanguage
                     )
-                    val imageUrl = uiState.anime.imageUrl
+                    val imageUrl = anime.imageUrl
                     var showFullScreenImage by remember { mutableStateOf(false) }
                     val navScope = LocalSharedTransitionScope.current
                     val navVisScope = LocalNavAnimatedVisibilityScope.current
@@ -240,7 +241,7 @@ fun AnimeDetailScreen(
                                     contentDescription = animeDisplayTitle,
                                     imageModifier = with(this@SharedTransitionLayout) {
                                         Modifier.sharedBounds(
-                                            rememberSharedContentState("anime_fullscreen_${uiState.anime.id}"),
+                                            rememberSharedContentState("anime_fullscreen_${anime.id}"),
                                             this@AnimatedContent
                                         )
                                     },
@@ -250,7 +251,7 @@ fun AnimeDetailScreen(
                                 val navImageModifier: Modifier = if (navScope != null && navVisScope != null && imageUrl != null) {
                                     with(navScope) {
                                         Modifier.sharedBounds(
-                                            rememberSharedContentState("anime_cover_${uiState.anime.id}"),
+                                            rememberSharedContentState("anime_cover_${anime.id}"),
                                             navVisScope
                                         )
                                     }
@@ -258,7 +259,7 @@ fun AnimeDetailScreen(
                                 val localImageModifier: Modifier = if (imageUrl != null) {
                                     with(this@SharedTransitionLayout) {
                                         Modifier.sharedBounds(
-                                            rememberSharedContentState("anime_fullscreen_${uiState.anime.id}"),
+                                            rememberSharedContentState("anime_fullscreen_${anime.id}"),
                                             this@AnimatedContent
                                         )
                                     }
@@ -396,7 +397,7 @@ fun AnimeDetailScreen(
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun AnimeDetailContent(
-    state: AnimeDetailUiState.Success,
+    state: AnimeDetailUiState,
     imageModifier: Modifier = Modifier,
     onImageClick: () -> Unit,
     onStatusChipClick: () -> Unit,
@@ -407,7 +408,7 @@ private fun AnimeDetailContent(
     onTypeFilterToggled: (String) -> Unit,
     onResetTypeFilter: () -> Unit
 ) {
-    val anime = state.anime
+    val anime = checkNotNull(state.anime)
     val displayedSeasons = if (state.typeFilter.isEmpty()) state.seasons
                            else state.seasons.filter { it.type in state.typeFilter }
     val availableTypes = remember(state.seasons) {
@@ -515,7 +516,7 @@ private fun AnimeDetailContent(
                 Text(
                     text = stringResource(
                         R.string.developer_last_season_check,
-                        state.anime.lastSeasonCheckDate?.toString()
+                        anime.lastSeasonCheckDate?.toString()
                             ?: stringResource(R.string.developer_value_never)
                     ),
                     style = MaterialTheme.typography.bodySmall,

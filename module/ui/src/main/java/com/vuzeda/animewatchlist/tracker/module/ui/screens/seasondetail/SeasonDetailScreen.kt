@@ -87,8 +87,8 @@ fun SeasonDetailScreenRoute(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect((uiState as? SeasonDetailUiState.Success)?.pendingNavigationMalId) {
-        val malId = (uiState as? SeasonDetailUiState.Success)?.pendingNavigationMalId
+    LaunchedEffect(uiState.pendingNavigationMalId) {
+        val malId = uiState.pendingNavigationMalId
         if (malId != null) {
             viewModel.onNavigated()
             onNavigateToAnimeDetail(malId)
@@ -143,7 +143,7 @@ fun SeasonDetailScreen(
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
-    if (uiState is SeasonDetailUiState.Success && uiState.snackbarEvent != null) {
+    if (uiState.snackbarEvent != null) {
         val message = resolveSnackbarMessage(uiState.snackbarEvent)
         LaunchedEffect(uiState.snackbarEvent) {
             snackbarHostState.showSnackbar(message)
@@ -167,7 +167,7 @@ fun SeasonDetailScreen(
                     }
                 },
                 actions = {
-                    if (uiState is SeasonDetailUiState.Success && uiState.isInWatchlist) {
+                    if (uiState.season != null && uiState.isInWatchlist) {
                         NotificationButton(
                             enabled = uiState.isEpisodeNotificationsEnabled,
                             onClick = onToggleEpisodeNotifications,
@@ -189,8 +189,8 @@ fun SeasonDetailScreen(
                 .fillMaxSize()
                 .padding(scaffoldPadding)
         ) {
-            when (uiState) {
-                is SeasonDetailUiState.Loading -> {
+            when {
+                uiState.isLoading -> {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
@@ -198,20 +198,21 @@ fun SeasonDetailScreen(
                         CircularProgressIndicator()
                     }
                 }
-                is SeasonDetailUiState.NotFound -> {
+                uiState.isNotFound -> {
                     EmptyStateMessage(
                         modifier = Modifier.fillMaxSize(),
                         title = stringResource(R.string.season_detail_not_found)
                     )
                 }
-                is SeasonDetailUiState.Success -> {
+                else -> {
+                    val season = checkNotNull(uiState.season)
                     val seasonDisplayTitle = resolveDisplayTitle(
-                        title = uiState.season.title,
-                        titleEnglish = uiState.season.titleEnglish,
-                        titleJapanese = uiState.season.titleJapanese,
+                        title = season.title,
+                        titleEnglish = season.titleEnglish,
+                        titleJapanese = season.titleJapanese,
                         language = uiState.titleLanguage
                     )
-                    val imageUrl = uiState.season.imageUrl
+                    val imageUrl = season.imageUrl
                     var showFullScreenImage by remember { mutableStateOf(false) }
                     val navScope = LocalSharedTransitionScope.current
                     val navVisScope = LocalNavAnimatedVisibilityScope.current
@@ -234,7 +235,7 @@ fun SeasonDetailScreen(
                                     contentDescription = seasonDisplayTitle,
                                     imageModifier = with(this@SharedTransitionLayout) {
                                         Modifier.sharedBounds(
-                                            rememberSharedContentState("season_fullscreen_${uiState.season.malId}"),
+                                            rememberSharedContentState("season_fullscreen_${season.malId}"),
                                             this@AnimatedContent
                                         )
                                     },
@@ -244,7 +245,7 @@ fun SeasonDetailScreen(
                                 val navImageModifier: Modifier = if (navScope != null && navVisScope != null && imageUrl != null) {
                                     with(navScope) {
                                         Modifier.sharedBounds(
-                                            rememberSharedContentState("season_cover_${uiState.season.malId}"),
+                                            rememberSharedContentState("season_cover_${season.malId}"),
                                             navVisScope
                                         )
                                     }
@@ -252,7 +253,7 @@ fun SeasonDetailScreen(
                                 val localImageModifier: Modifier = if (imageUrl != null) {
                                     with(this@SharedTransitionLayout) {
                                         Modifier.sharedBounds(
-                                            rememberSharedContentState("season_fullscreen_${uiState.season.malId}"),
+                                            rememberSharedContentState("season_fullscreen_${season.malId}"),
                                             this@AnimatedContent
                                         )
                                     }
@@ -335,7 +336,7 @@ fun SeasonDetailScreen(
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun SeasonDetailContent(
-    state: SeasonDetailUiState.Success,
+    state: SeasonDetailUiState,
     imageModifier: Modifier = Modifier,
     onImageClick: () -> Unit,
     onStatusChipClick: () -> Unit,
@@ -345,7 +346,7 @@ private fun SeasonDetailContent(
     onAddToWatchlistClick: () -> Unit,
     onViewFullSeriesClick: () -> Unit
 ) {
-    val season = state.season
+    val season = checkNotNull(state.season)
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -486,7 +487,7 @@ private fun SeasonDetailContent(
             Text(
                 text = stringResource(
                     R.string.developer_last_checked_aired_episodes,
-                    state.season.lastCheckedAiredEpisodeCount?.toString()
+                    season.lastCheckedAiredEpisodeCount?.toString()
                         ?: stringResource(R.string.developer_value_none)
                 ),
                 style = MaterialTheme.typography.bodySmall,
@@ -498,7 +499,7 @@ private fun SeasonDetailContent(
             Text(
                 text = stringResource(
                     R.string.developer_last_episode_check,
-                    state.season.lastEpisodeCheckDate?.toString()
+                    season.lastEpisodeCheckDate?.toString()
                         ?: stringResource(R.string.developer_value_never)
                 ),
                 style = MaterialTheme.typography.bodySmall,

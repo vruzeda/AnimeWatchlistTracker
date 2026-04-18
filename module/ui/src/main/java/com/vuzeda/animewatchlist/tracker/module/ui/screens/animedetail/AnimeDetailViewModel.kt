@@ -58,7 +58,7 @@ class AnimeDetailViewModel @Inject constructor(
     private val animeId: Long = checkNotNull(savedStateHandle["animeId"])
     private val malId: Int = savedStateHandle["malId"] ?: 0
 
-    private val _uiState = MutableStateFlow<AnimeDetailUiState>(AnimeDetailUiState.Loading)
+    private val _uiState = MutableStateFlow(AnimeDetailUiState())
     val uiState: StateFlow<AnimeDetailUiState> = _uiState.asStateFlow()
 
     private var observeJob: Job? = null
@@ -69,7 +69,7 @@ class AnimeDetailViewModel @Inject constructor(
         } else if (malId > 0) {
             resolveFromApi()
         } else {
-            _uiState.value = AnimeDetailUiState.NotFound
+            _uiState.update { it.copy(isLoading = false, isNotFound = true) }
         }
     }
 
@@ -86,28 +86,21 @@ class AnimeDetailViewModel @Inject constructor(
             }.collect { (anime, seasons, titleLanguage, isNotificationDebugInfoEnabled) ->
                 if (anime != null) {
                     _uiState.update { currentState ->
-                        when (currentState) {
-                            is AnimeDetailUiState.Success -> currentState.copy(
-                                anime = anime,
-                                seasons = seasons,
-                                isInWatchlist = true,
-                                notificationType = anime.notificationType,
-                                titleLanguage = titleLanguage,
-                                isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled
-                            )
-                            else -> AnimeDetailUiState.Success(
-                                anime = anime,
-                                seasons = seasons,
-                                isInWatchlist = true,
-                                titleLanguage = titleLanguage,
-                                isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled
-                            )
-                        }
+                        currentState.copy(
+                            isLoading = false,
+                            isNotFound = false,
+                            anime = anime,
+                            seasons = seasons,
+                            isInWatchlist = true,
+                            notificationType = anime.notificationType,
+                            titleLanguage = titleLanguage,
+                            isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled
+                        )
                     }
                 } else {
                     _uiState.update { current ->
-                        if (current is AnimeDetailUiState.Success && !current.isInWatchlist) current
-                        else AnimeDetailUiState.NotFound
+                        if (current.anime != null && !current.isInWatchlist) current
+                        else current.copy(isLoading = false, isNotFound = true, anime = null)
                     }
                 }
             }
@@ -128,7 +121,7 @@ class AnimeDetailViewModel @Inject constructor(
             val existingAnimeId = findAnimeBySeasonMalIdUseCase(malId)
             if (existingAnimeId != null) {
                 if (isRefresh) {
-                    _uiState.update { if (it is AnimeDetailUiState.Success) it.copy(isRefreshing = false) else it }
+                    _uiState.update { it.copy(isRefreshing = false) }
                 }
                 observeAnime(existingAnimeId)
                 return@launch
@@ -163,56 +156,48 @@ class AnimeDetailViewModel @Inject constructor(
                         )
                     }
                     if (isRefresh) {
-                        _uiState.update { state ->
-                            if (state is AnimeDetailUiState.Success) state.copy(
-                                anime = anime,
-                                seasons = seasons,
-                                isRefreshing = false
-                            ) else AnimeDetailUiState.Success(anime = anime, seasons = seasons, isInWatchlist = false, titleLanguage = titleLanguage, isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled)
-                        }
+                        _uiState.update { it.copy(anime = anime, seasons = seasons, isRefreshing = false) }
                     } else {
-                        _uiState.value = AnimeDetailUiState.Success(
+                        _uiState.update { it.copy(
+                            isLoading = false,
+                            isNotFound = false,
                             anime = anime,
                             seasons = seasons,
                             isInWatchlist = false,
                             titleLanguage = titleLanguage,
                             isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled
-                        )
+                        ) }
                         viewModelScope.launch {
                             observeTitleLanguageUseCase().collect { lang ->
-                                _uiState.update { s ->
-                                    if (s is AnimeDetailUiState.Success) s.copy(titleLanguage = lang) else s
-                                }
+                                _uiState.update { it.copy(titleLanguage = lang) }
                             }
                         }
                         viewModelScope.launch {
                             observeIsNotificationDebugInfoEnabledUseCase().collect { enabled ->
-                                _uiState.update { s ->
-                                    if (s is AnimeDetailUiState.Success) s.copy(isNotificationDebugInfoEnabled = enabled) else s
-                                }
+                                _uiState.update { it.copy(isNotificationDebugInfoEnabled = enabled) }
                             }
                         }
                     }
                 }
                 .onFailure {
                     if (isRefresh) {
-                        _uiState.update { if (it is AnimeDetailUiState.Success) it.copy(isRefreshing = false) else it }
+                        _uiState.update { it.copy(isRefreshing = false) }
                     } else {
-                        _uiState.value = AnimeDetailUiState.NotFound
+                        _uiState.update { it.copy(isLoading = false, isNotFound = true) }
                     }
                 }
         }
     }
 
     fun refresh() {
-        if (_uiState.value !is AnimeDetailUiState.Success) return
-        _uiState.update { if (it is AnimeDetailUiState.Success) it.copy(isRefreshing = true) else it }
+        if (_uiState.value.anime == null) return
+        _uiState.update { it.copy(isRefreshing = true) }
         if (animeId > 0) {
             viewModelScope.launch {
                 runCatching { refreshAnimeSeasonsUseCase(animeId) }
                 val seasons = observeSeasonsForAnimeUseCase(animeId).first()
                 seasons.forEach { season -> runCatching { refreshSeasonDataUseCase(season) } }
-                _uiState.update { if (it is AnimeDetailUiState.Success) it.copy(isRefreshing = false) else it }
+                _uiState.update { it.copy(isRefreshing = false) }
             }
         } else if (malId > 0) {
             resolveFromApi(isRefresh = true)
@@ -220,82 +205,59 @@ class AnimeDetailViewModel @Inject constructor(
     }
 
     fun showStatusSheet() {
-        _uiState.update { state ->
-            if (state is AnimeDetailUiState.Success) state.copy(isStatusSheetVisible = true)
-            else state
-        }
+        _uiState.update { it.copy(isStatusSheetVisible = true) }
     }
 
     fun dismissStatusSheet() {
-        _uiState.update { state ->
-            if (state is AnimeDetailUiState.Success) state.copy(isStatusSheetVisible = false)
-            else state
-        }
+        _uiState.update { it.copy(isStatusSheetVisible = false) }
     }
 
     fun showAddSheet() {
-        _uiState.update { state ->
-            if (state is AnimeDetailUiState.Success) state.copy(isAddSheetVisible = true)
-            else state
-        }
+        _uiState.update { it.copy(isAddSheetVisible = true) }
     }
 
     fun dismissAddSheet() {
-        _uiState.update { state ->
-            if (state is AnimeDetailUiState.Success) state.copy(isAddSheetVisible = false)
-            else state
-        }
+        _uiState.update { it.copy(isAddSheetVisible = false) }
     }
 
     fun showAddScopeSheet(status: WatchStatus) {
-        _uiState.update { state ->
-            if (state is AnimeDetailUiState.Success) state.copy(
-                isAddSheetVisible = false,
-                isAddScopeSheetVisible = true,
-                pendingAddStatus = status
-            ) else state
-        }
+        _uiState.update { it.copy(
+            isAddSheetVisible = false,
+            isAddScopeSheetVisible = true,
+            pendingAddStatus = status
+        ) }
     }
 
     fun dismissAddScopeSheet() {
-        _uiState.update { state ->
-            if (state is AnimeDetailUiState.Success) state.copy(
-                isAddScopeSheetVisible = false,
-                pendingAddStatus = null
-            ) else state
-        }
+        _uiState.update { it.copy(
+            isAddScopeSheetVisible = false,
+            pendingAddStatus = null
+        ) }
     }
 
     fun showAddSeasonSheet(season: Season) {
-        _uiState.update { state ->
-            if (state is AnimeDetailUiState.Success) state.copy(
-                isAddSeasonSheetVisible = true,
-                pendingAddSeason = season
-            ) else state
-        }
+        _uiState.update { it.copy(
+            isAddSeasonSheetVisible = true,
+            pendingAddSeason = season
+        ) }
     }
 
     fun dismissAddSeasonSheet() {
-        _uiState.update { state ->
-            if (state is AnimeDetailUiState.Success) state.copy(
-                isAddSeasonSheetVisible = false,
-                pendingAddSeason = null
-            ) else state
-        }
+        _uiState.update { it.copy(
+            isAddSeasonSheetVisible = false,
+            pendingAddSeason = null
+        ) }
     }
 
     fun confirmAddSeason(status: WatchStatus) {
         val state = _uiState.value
-        if (state !is AnimeDetailUiState.Success) return
         val season = state.pendingAddSeason ?: return
-        val anime = state.anime
+        val anime = state.anime ?: return
 
-        _uiState.update {
-            if (it is AnimeDetailUiState.Success) it.copy(
-                isAddSeasonSheetVisible = false,
-                pendingAddSeason = null
-            ) else it
-        }
+        _uiState.update { it.copy(
+            isAddSeasonSheetVisible = false,
+            pendingAddSeason = null
+        ) }
 
         viewModelScope.launch {
             if (season.id > 0) {
@@ -304,11 +266,9 @@ class AnimeDetailViewModel @Inject constructor(
             } else {
                 val newId = addAnimeUseCase(anime, listOf(season), status)
                 analyticsTracker.track(AnalyticsEvent.AddSeason(status.name))
-                _uiState.update {
-                    if (it is AnimeDetailUiState.Success) it.copy(
-                        snackbarEvent = AnimeDetailSnackbarEvent.AddedToWatchlist(anime.title)
-                    ) else it
-                }
+                _uiState.update { it.copy(
+                    snackbarEvent = AnimeDetailSnackbarEvent.AddedToWatchlist(anime.title)
+                ) }
                 observeAnime(newId)
             }
         }
@@ -316,18 +276,15 @@ class AnimeDetailViewModel @Inject constructor(
 
     fun confirmAddScope(allSeasons: Boolean) {
         val state = _uiState.value
-        if (state !is AnimeDetailUiState.Success) return
         val status = state.pendingAddStatus ?: return
-        val anime = state.anime
+        val anime = state.anime ?: return
         val seasons = if (allSeasons) state.seasons else state.seasons.take(1)
         val title = anime.title
 
-        _uiState.update {
-            if (it is AnimeDetailUiState.Success) it.copy(
-                isAddScopeSheetVisible = false,
-                pendingAddStatus = null
-            ) else it
-        }
+        _uiState.update { it.copy(
+            isAddScopeSheetVisible = false,
+            pendingAddStatus = null
+        ) }
 
         viewModelScope.launch {
             val newId = addAnimeUseCase(
@@ -336,18 +293,16 @@ class AnimeDetailViewModel @Inject constructor(
                 status = status
             )
             analyticsTracker.track(AnalyticsEvent.AddAnime(status.name, seasons.size, allSeasons))
-            _uiState.update {
-                if (it is AnimeDetailUiState.Success) it.copy(
-                    snackbarEvent = AnimeDetailSnackbarEvent.AddedToWatchlist(title)
-                ) else it
-            }
+            _uiState.update { it.copy(
+                snackbarEvent = AnimeDetailSnackbarEvent.AddedToWatchlist(title)
+            ) }
             observeAnime(newId)
         }
     }
 
     fun updateStatus(status: WatchStatus) {
         val state = _uiState.value
-        if (state !is AnimeDetailUiState.Success) return
+        if (state.anime == null) return
         val mostRecentSeason = state.seasons.maxByOrNull { it.orderIndex } ?: return
 
         viewModelScope.launch {
@@ -358,47 +313,38 @@ class AnimeDetailViewModel @Inject constructor(
 
     fun updateUserRating(rating: Int) {
         val state = _uiState.value
-        if (state !is AnimeDetailUiState.Success) return
+        val anime = state.anime ?: return
 
         viewModelScope.launch {
-            updateAnimeUseCase(state.anime.copy(userRating = if (rating > 0) rating else null))
+            updateAnimeUseCase(anime.copy(userRating = if (rating > 0) rating else null))
             analyticsTracker.track(AnalyticsEvent.UpdateUserRating(rating))
         }
     }
 
     fun showDeleteConfirmation() {
-        _uiState.update { state ->
-            if (state is AnimeDetailUiState.Success) state.copy(isDeleteConfirmationVisible = true)
-            else state
-        }
+        _uiState.update { it.copy(isDeleteConfirmationVisible = true) }
     }
 
     fun dismissDeleteConfirmation() {
-        _uiState.update { state ->
-            if (state is AnimeDetailUiState.Success) state.copy(isDeleteConfirmationVisible = false)
-            else state
-        }
+        _uiState.update { it.copy(isDeleteConfirmationVisible = false) }
     }
 
     fun confirmDelete() {
-        val state = _uiState.value
-        if (state !is AnimeDetailUiState.Success) return
+        val anime = _uiState.value.anime ?: return
 
         viewModelScope.launch {
-            deleteAnimeUseCase(state.anime.id)
-            analyticsTracker.track(AnalyticsEvent.RemoveAnime(state.anime.status.name))
-            _uiState.update { current ->
-                if (current is AnimeDetailUiState.Success) current.copy(
-                    isInWatchlist = false,
-                    isDeleteConfirmationVisible = false
-                ) else current
-            }
+            deleteAnimeUseCase(anime.id)
+            analyticsTracker.track(AnalyticsEvent.RemoveAnime(anime.status.name))
+            _uiState.update { it.copy(
+                isInWatchlist = false,
+                isDeleteConfirmationVisible = false
+            ) }
         }
     }
 
     fun onNotificationIconClick() {
         val state = _uiState.value
-        if (state !is AnimeDetailUiState.Success) return
+        if (state.anime == null) return
 
         if (state.isNotificationsEnabled) {
             viewModelScope.launch {
@@ -406,35 +352,24 @@ class AnimeDetailViewModel @Inject constructor(
                     id = state.anime.id,
                     notificationType = NotificationType.NONE
                 )
-                _uiState.update {
-                    if (it is AnimeDetailUiState.Success) it.copy(
-                        snackbarEvent = AnimeDetailSnackbarEvent.NotificationsDisabled
-                    ) else it
-                }
+                _uiState.update { it.copy(
+                    snackbarEvent = AnimeDetailSnackbarEvent.NotificationsDisabled
+                ) }
             }
         } else {
-            _uiState.update {
-                if (it is AnimeDetailUiState.Success) it.copy(isNotificationTypeSheetVisible = true)
-                else it
-            }
+            _uiState.update { it.copy(isNotificationTypeSheetVisible = true) }
         }
     }
 
     fun dismissNotificationTypeSheet() {
-        _uiState.update { state ->
-            if (state is AnimeDetailUiState.Success) state.copy(isNotificationTypeSheetVisible = false)
-            else state
-        }
+        _uiState.update { it.copy(isNotificationTypeSheetVisible = false) }
     }
 
     fun selectNotificationType(notificationType: NotificationType) {
         val state = _uiState.value
-        if (state !is AnimeDetailUiState.Success) return
+        if (state.anime == null) return
 
-        _uiState.update {
-            if (it is AnimeDetailUiState.Success) it.copy(isNotificationTypeSheetVisible = false)
-            else it
-        }
+        _uiState.update { it.copy(isNotificationTypeSheetVisible = false) }
 
         viewModelScope.launch {
             toggleAnimeNotificationsUseCase(
@@ -442,42 +377,30 @@ class AnimeDetailViewModel @Inject constructor(
                 notificationType = notificationType
             )
             analyticsTracker.track(AnalyticsEvent.SelectNotificationType(notificationType.name))
-            _uiState.update {
-                if (it is AnimeDetailUiState.Success) it.copy(
-                    snackbarEvent = AnimeDetailSnackbarEvent.NotificationsEnabled(notificationType)
-                ) else it
-            }
+            _uiState.update { it.copy(
+                snackbarEvent = AnimeDetailSnackbarEvent.NotificationsEnabled(notificationType)
+            ) }
         }
     }
 
     fun notifyPermissionDenied() {
         analyticsTracker.track(AnalyticsEvent.NotificationPermissionDenied)
-        _uiState.update {
-            if (it is AnimeDetailUiState.Success) it.copy(snackbarEvent = AnimeDetailSnackbarEvent.NotificationPermissionDenied)
-            else it
-        }
+        _uiState.update { it.copy(snackbarEvent = AnimeDetailSnackbarEvent.NotificationPermissionDenied) }
     }
 
     fun clearSnackbar() {
-        _uiState.update { state ->
-            if (state is AnimeDetailUiState.Success) state.copy(snackbarEvent = null)
-            else state
-        }
+        _uiState.update { it.copy(snackbarEvent = null) }
     }
 
     fun toggleTypeFilter(type: String) {
         _uiState.update { state ->
-            if (state is AnimeDetailUiState.Success) {
-                val updated = if (type in state.typeFilter) state.typeFilter - type else state.typeFilter + type
-                state.copy(typeFilter = updated)
-            } else state
+            val updated = if (type in state.typeFilter) state.typeFilter - type else state.typeFilter + type
+            state.copy(typeFilter = updated)
         }
     }
 
     fun resetTypeFilter() {
-        _uiState.update { state ->
-            if (state is AnimeDetailUiState.Success) state.copy(typeFilter = emptySet()) else state
-        }
+        _uiState.update { it.copy(typeFilter = emptySet()) }
     }
 }
 

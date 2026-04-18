@@ -10,30 +10,28 @@ data class LocalBroadcastTime(
     val zone: String
 )
 
-sealed interface SeasonDetailUiState {
-    data object Loading : SeasonDetailUiState
-    data object NotFound : SeasonDetailUiState
-    data class Success(
-        val season: Season,
-        val isInWatchlist: Boolean = true,
-        val titleLanguage: TitleLanguage = TitleLanguage.DEFAULT,
-        val episodes: List<EpisodeInfo> = emptyList(),
-        val isLoadingEpisodes: Boolean = false,
-        val hasMoreEpisodes: Boolean = false,
-        val nextEpisodePage: Int = 1,
-        val isLastSeason: Boolean = false,
-        val isStatusSheetVisible: Boolean = false,
-        val isDeleteConfirmationVisible: Boolean = false,
-        val isAddSheetVisible: Boolean = false,
-        val isEpisodeNotificationsEnabled: Boolean = season.isEpisodeNotificationsEnabled,
-        val broadcastLocalTime: LocalBroadcastTime? = null,
-        val snackbarEvent: SeasonDetailSnackbarEvent? = null,
-        val pendingNavigationMalId: Int? = null,
-        val isRefreshing: Boolean = false,
-        val isNotificationDebugInfoEnabled: Boolean = false,
-        val watchedEpisodes: Set<Int> = emptySet()
-    ) : SeasonDetailUiState
-}
+data class SeasonDetailUiState(
+    val isLoading: Boolean = true,
+    val isNotFound: Boolean = false,
+    val season: Season? = null,
+    val isInWatchlist: Boolean = true,
+    val titleLanguage: TitleLanguage = TitleLanguage.DEFAULT,
+    val episodes: List<EpisodeInfo> = emptyList(),
+    val isLoadingEpisodes: Boolean = false,
+    val hasMoreEpisodes: Boolean = false,
+    val nextEpisodePage: Int = 1,
+    val isLastSeason: Boolean = false,
+    val isStatusSheetVisible: Boolean = false,
+    val isDeleteConfirmationVisible: Boolean = false,
+    val isAddSheetVisible: Boolean = false,
+    val isEpisodeNotificationsEnabled: Boolean = false,
+    val broadcastLocalTime: LocalBroadcastTime? = null,
+    val snackbarEvent: SeasonDetailSnackbarEvent? = null,
+    val pendingNavigationMalId: Int? = null,
+    val isRefreshing: Boolean = false,
+    val isNotificationDebugInfoEnabled: Boolean = false,
+    val watchedEpisodes: Set<Int> = emptySet()
+)
 
 sealed interface SeasonDetailSnackbarEvent {
     data class AddedToWatchlist(val title: String) : SeasonDetailSnackbarEvent

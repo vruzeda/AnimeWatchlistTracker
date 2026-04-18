@@ -144,12 +144,12 @@ class SeasonDetailViewModelTest {
 
         viewModel.uiState.test {
             val loading = awaitItem()
-            assertThat(loading).isInstanceOf(SeasonDetailUiState.Loading::class.java)
+            assertThat(loading.isLoading).isTrue()
 
             testDispatcher.scheduler.advanceUntilIdle()
 
-            val loaded = expectMostRecentItem() as SeasonDetailUiState.Success
-            assertThat(loaded.season.title).isEqualTo("Attack on Titan")
+            val loaded = expectMostRecentItem()
+            assertThat(loaded.season?.title).isEqualTo("Attack on Titan")
             assertThat(loaded.episodes).hasSize(2)
             assertThat(loaded.hasMoreEpisodes).isTrue()
             assertThat(loaded.isLoadingEpisodes).isFalse()
@@ -168,7 +168,7 @@ class SeasonDetailViewModelTest {
             awaitItem()
 
             val notFound = awaitItem()
-            assertThat(notFound).isInstanceOf(SeasonDetailUiState.NotFound::class.java)
+            assertThat(notFound.isNotFound).isTrue()
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -186,14 +186,14 @@ class SeasonDetailViewModelTest {
 
         viewModel.uiState.test {
             testDispatcher.scheduler.advanceUntilIdle()
-            val initial = expectMostRecentItem() as SeasonDetailUiState.Success
+            val initial = expectMostRecentItem()
             assertThat(initial.episodes).hasSize(2)
             assertThat(initial.hasMoreEpisodes).isTrue()
 
             viewModel.loadMoreEpisodes()
             testDispatcher.scheduler.advanceUntilIdle()
 
-            val updated = expectMostRecentItem() as SeasonDetailUiState.Success
+            val updated = expectMostRecentItem()
             assertThat(updated.episodes).hasSize(3)
             assertThat(updated.hasMoreEpisodes).isFalse()
             cancelAndIgnoreRemainingEvents()
@@ -206,13 +206,13 @@ class SeasonDetailViewModelTest {
 
         viewModel.uiState.test {
             testDispatcher.scheduler.advanceUntilIdle()
-            val initial = expectMostRecentItem() as SeasonDetailUiState.Success
-            assertThat(initial.season.title).isEqualTo("Attack on Titan")
+            val initial = expectMostRecentItem()
+            assertThat(initial.season?.title).isEqualTo("Attack on Titan")
 
             seasonFlow.value = sampleSeason.copy(title = "Attack on Titan Updated")
 
-            val updated = awaitItem() as SeasonDetailUiState.Success
-            assertThat(updated.season.title).isEqualTo("Attack on Titan Updated")
+            val updated = awaitItem()
+            assertThat(updated.season?.title).isEqualTo("Attack on Titan Updated")
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -239,13 +239,13 @@ class SeasonDetailViewModelTest {
 
         viewModel.uiState.test {
             val loading = awaitItem()
-            assertThat(loading).isInstanceOf(SeasonDetailUiState.Loading::class.java)
+            assertThat(loading.isLoading).isTrue()
 
             testDispatcher.scheduler.advanceUntilIdle()
 
-            val success = expectMostRecentItem() as SeasonDetailUiState.Success
-            assertThat(success.season.title).isEqualTo("Spy x Family")
-            assertThat(success.season.malId).isEqualTo(50265)
+            val success = expectMostRecentItem()
+            assertThat(success.season?.title).isEqualTo("Spy x Family")
+            assertThat(success.season?.malId).isEqualTo(50265)
             assertThat(success.isInWatchlist).isFalse()
             cancelAndIgnoreRemainingEvents()
         }
@@ -262,7 +262,7 @@ class SeasonDetailViewModelTest {
             testDispatcher.scheduler.advanceUntilIdle()
 
             val notFound = expectMostRecentItem()
-            assertThat(notFound).isInstanceOf(SeasonDetailUiState.NotFound::class.java)
+            assertThat(notFound.isNotFound).isTrue()
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -273,7 +273,7 @@ class SeasonDetailViewModelTest {
 
         viewModel.uiState.test {
             val notFound = awaitItem()
-            assertThat(notFound).isInstanceOf(SeasonDetailUiState.NotFound::class.java)
+            assertThat(notFound.isNotFound).isTrue()
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -287,11 +287,11 @@ class SeasonDetailViewModelTest {
             expectMostRecentItem()
 
             viewModel.showDeleteConfirmation()
-            val shown = awaitItem() as SeasonDetailUiState.Success
+            val shown = awaitItem()
             assertThat(shown.isDeleteConfirmationVisible).isTrue()
 
             viewModel.dismissDeleteConfirmation()
-            val hidden = awaitItem() as SeasonDetailUiState.Success
+            val hidden = awaitItem()
             assertThat(hidden.isDeleteConfirmationVisible).isFalse()
             cancelAndIgnoreRemainingEvents()
         }
@@ -308,7 +308,7 @@ class SeasonDetailViewModelTest {
             viewModel.confirmDelete()
             testDispatcher.scheduler.advanceUntilIdle()
 
-            val deleted = expectMostRecentItem() as SeasonDetailUiState.Success
+            val deleted = expectMostRecentItem()
             assertThat(deleted.isInWatchlist).isFalse()
             assertThat(deleted.isDeleteConfirmationVisible).isFalse()
             coVerify { deleteSeasonUseCase(sampleSeason) }
@@ -336,15 +336,15 @@ class SeasonDetailViewModelTest {
 
         viewModel.uiState.test {
             testDispatcher.scheduler.advanceUntilIdle()
-            val initial = expectMostRecentItem() as SeasonDetailUiState.Success
+            val initial = expectMostRecentItem()
             assertThat(initial.isInWatchlist).isFalse()
 
             viewModel.showAddSheet()
-            val shown = awaitItem() as SeasonDetailUiState.Success
+            val shown = awaitItem()
             assertThat(shown.isAddSheetVisible).isTrue()
 
             viewModel.dismissAddSheet()
-            val hidden = awaitItem() as SeasonDetailUiState.Success
+            val hidden = awaitItem()
             assertThat(hidden.isAddSheetVisible).isFalse()
             cancelAndIgnoreRemainingEvents()
         }
@@ -375,7 +375,7 @@ class SeasonDetailViewModelTest {
 
         viewModel.uiState.test {
             testDispatcher.scheduler.advanceUntilIdle()
-            val resolved = expectMostRecentItem() as SeasonDetailUiState.Success
+            val resolved = expectMostRecentItem()
             assertThat(resolved.isInWatchlist).isFalse()
 
             viewModel.addToWatchlist(WatchStatus.PLAN_TO_WATCH)
@@ -416,7 +416,7 @@ class SeasonDetailViewModelTest {
 
         viewModel.uiState.test {
             testDispatcher.scheduler.advanceUntilIdle()
-            val state = expectMostRecentItem() as SeasonDetailUiState.Success
+            val state = expectMostRecentItem()
             assertThat(state.isInWatchlist).isFalse()
             cancelAndIgnoreRemainingEvents()
         }
@@ -431,7 +431,7 @@ class SeasonDetailViewModelTest {
 
         viewModel.uiState.test {
             testDispatcher.scheduler.advanceUntilIdle()
-            val state = expectMostRecentItem() as SeasonDetailUiState.Success
+            val state = expectMostRecentItem()
             assertThat(state.isLastSeason).isTrue()
             cancelAndIgnoreRemainingEvents()
         }
@@ -466,11 +466,11 @@ class SeasonDetailViewModelTest {
             expectMostRecentItem()
 
             viewModel.showStatusSheet()
-            val shown = awaitItem() as SeasonDetailUiState.Success
+            val shown = awaitItem()
             assertThat(shown.isStatusSheetVisible).isTrue()
 
             viewModel.dismissStatusSheet()
-            val hidden = awaitItem() as SeasonDetailUiState.Success
+            val hidden = awaitItem()
             assertThat(hidden.isStatusSheetVisible).isFalse()
             cancelAndIgnoreRemainingEvents()
         }
@@ -505,7 +505,7 @@ class SeasonDetailViewModelTest {
 
         viewModel.uiState.test {
             testDispatcher.scheduler.advanceUntilIdle()
-            val state = expectMostRecentItem() as SeasonDetailUiState.Success
+            val state = expectMostRecentItem()
             assertThat(state.broadcastLocalTime).isEqualTo(LocalBroadcastTime(day = "Saturday", time = "09:00", zone = "UTC"))
             cancelAndIgnoreRemainingEvents()
         }
@@ -517,7 +517,7 @@ class SeasonDetailViewModelTest {
 
         viewModel.uiState.test {
             testDispatcher.scheduler.advanceUntilIdle()
-            val state = expectMostRecentItem() as SeasonDetailUiState.Success
+            val state = expectMostRecentItem()
             assertThat(state.broadcastLocalTime).isNull()
             cancelAndIgnoreRemainingEvents()
         }
@@ -547,7 +547,7 @@ class SeasonDetailViewModelTest {
             viewModel.refresh()
             testDispatcher.scheduler.advanceUntilIdle()
 
-            val refreshed = expectMostRecentItem() as SeasonDetailUiState.Success
+            val refreshed = expectMostRecentItem()
             assertThat(refreshed.isRefreshing).isFalse()
             coVerify(atLeast = 2) { refreshSeasonDataUseCase(sampleSeason) }
             cancelAndIgnoreRemainingEvents()
@@ -575,15 +575,15 @@ class SeasonDetailViewModelTest {
 
         viewModel.uiState.test {
             testDispatcher.scheduler.advanceUntilIdle()
-            val initial = expectMostRecentItem() as SeasonDetailUiState.Success
+            val initial = expectMostRecentItem()
             assertThat(initial.isInWatchlist).isFalse()
 
             viewModel.refresh()
             testDispatcher.scheduler.advanceUntilIdle()
 
-            val refreshed = expectMostRecentItem() as SeasonDetailUiState.Success
+            val refreshed = expectMostRecentItem()
             assertThat(refreshed.isRefreshing).isFalse()
-            assertThat(refreshed.season.title).isEqualTo("Attack on Titan")
+            assertThat(refreshed.season?.title).isEqualTo("Attack on Titan")
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -598,7 +598,7 @@ class SeasonDetailViewModelTest {
 
             viewModel.navigateToAnimeDetail()
 
-            val updated = awaitItem() as SeasonDetailUiState.Success
+            val updated = awaitItem()
             assertThat(updated.pendingNavigationMalId).isEqualTo(16498)
             cancelAndIgnoreRemainingEvents()
         }
@@ -613,7 +613,7 @@ class SeasonDetailViewModelTest {
         viewModel.uiState.test {
             testDispatcher.scheduler.advanceUntilIdle()
 
-            val state = expectMostRecentItem() as SeasonDetailUiState.Success
+            val state = expectMostRecentItem()
             assertThat(state.isNotificationDebugInfoEnabled).isTrue()
             cancelAndIgnoreRemainingEvents()
         }
@@ -626,7 +626,7 @@ class SeasonDetailViewModelTest {
         viewModel.uiState.test {
             testDispatcher.scheduler.advanceUntilIdle()
 
-            val state = expectMostRecentItem() as SeasonDetailUiState.Success
+            val state = expectMostRecentItem()
             assertThat(state.watchedEpisodes).isEmpty()
             cancelAndIgnoreRemainingEvents()
         }
@@ -712,7 +712,7 @@ class SeasonDetailViewModelTest {
             delayedSeasonFlow.value = sampleSeason
             testDispatcher.scheduler.advanceUntilIdle()
 
-            val success = expectMostRecentItem() as SeasonDetailUiState.Success
+            val success = expectMostRecentItem()
             assertThat(success.watchedEpisodes).containsExactly(1, 2, 3)
             cancelAndIgnoreRemainingEvents()
         }

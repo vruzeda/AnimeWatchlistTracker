@@ -70,7 +70,7 @@ open class SeasonDetailViewModel @Inject constructor(
     private var pendingDetails: AnimeFullDetails? = null
     private var observingSiblingsForAnimeId: Long = -1L
 
-    private val _uiState = MutableStateFlow<SeasonDetailUiState>(SeasonDetailUiState.Loading)
+    private val _uiState = MutableStateFlow(SeasonDetailUiState())
     val uiState: StateFlow<SeasonDetailUiState> = _uiState.asStateFlow()
 
     init {
@@ -79,7 +79,7 @@ open class SeasonDetailViewModel @Inject constructor(
         } else if (malId > 0) {
             loadFromApi()
         } else {
-            _uiState.value = SeasonDetailUiState.NotFound
+            _uiState.update { it.copy(isLoading = false, isNotFound = true) }
         }
     }
 
@@ -88,11 +88,7 @@ open class SeasonDetailViewModel @Inject constructor(
         observingSiblingsForAnimeId = animeId
         viewModelScope.launch {
             observeSeasonsForAnimeUseCase(animeId).collect { siblings ->
-                _uiState.update { state ->
-                    if (state is SeasonDetailUiState.Success) state.copy(
-                        isLastSeason = siblings.count { it.isInWatchlist } <= 1
-                    ) else state
-                }
+                _uiState.update { it.copy(isLastSeason = siblings.count { s -> s.isInWatchlist } <= 1) }
             }
         }
     }
@@ -110,30 +106,30 @@ open class SeasonDetailViewModel @Inject constructor(
                 if (season != null) observeSiblingCount(season.animeId)
                 _uiState.update { currentState ->
                     if (season == null) {
-                        if (currentState is SeasonDetailUiState.Success && !currentState.isInWatchlist) currentState
-                        else SeasonDetailUiState.NotFound
+                        if (currentState.season != null && !currentState.isInWatchlist) currentState
+                        else currentState.copy(isLoading = false, isNotFound = true, season = null)
+                    } else if (currentState.season == null) {
+                        loadEpisodes(season.malId, page = 1)
+                        currentState.copy(
+                            isLoading = false,
+                            isNotFound = false,
+                            season = season,
+                            isInWatchlist = season.isInWatchlist,
+                            isEpisodeNotificationsEnabled = season.isEpisodeNotificationsEnabled,
+                            watchedEpisodes = watchedEpisodes,
+                            titleLanguage = titleLanguage,
+                            isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled,
+                            isLoadingEpisodes = true,
+                            broadcastLocalTime = computeBroadcastLocalTime(season)
+                        )
                     } else {
-                        when (currentState) {
-                            is SeasonDetailUiState.Success -> currentState.copy(
-                                season = season,
-                                isInWatchlist = season.isInWatchlist,
-                                watchedEpisodes = watchedEpisodes,
-                                titleLanguage = titleLanguage,
-                                isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled
-                            )
-                            else -> {
-                                loadEpisodes(season.malId, page = 1)
-                                SeasonDetailUiState.Success(
-                                    season = season,
-                                    isInWatchlist = season.isInWatchlist,
-                                    watchedEpisodes = watchedEpisodes,
-                                    titleLanguage = titleLanguage,
-                                    isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled,
-                                    isLoadingEpisodes = true,
-                                    broadcastLocalTime = computeBroadcastLocalTime(season)
-                                )
-                            }
-                        }
+                        currentState.copy(
+                            season = season,
+                            isInWatchlist = season.isInWatchlist,
+                            watchedEpisodes = watchedEpisodes,
+                            titleLanguage = titleLanguage,
+                            isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled
+                        )
                     }
                 }
             }
@@ -146,7 +142,7 @@ open class SeasonDetailViewModel @Inject constructor(
 
     fun setEpisodeWatched(episodeNumber: Int, isWatched: Boolean) {
         val state = _uiState.value
-        if (state !is SeasonDetailUiState.Success || !state.isInWatchlist) return
+        if (state.season == null || !state.isInWatchlist) return
         viewModelScope.launch {
             setEpisodeWatchedUseCase(state.season.id, episodeNumber, isWatched)
             analyticsTracker.track(AnalyticsEvent.SetEpisodeWatched(isWatched))
@@ -155,7 +151,7 @@ open class SeasonDetailViewModel @Inject constructor(
 
     fun markAllEpisodesWatched() {
         val state = _uiState.value
-        if (state !is SeasonDetailUiState.Success || !state.isInWatchlist) return
+        if (state.season == null || !state.isInWatchlist) return
         val episodeNumbers = state.episodes.map { it.number }
         if (episodeNumbers.isEmpty()) return
         viewModelScope.launch {
@@ -169,7 +165,7 @@ open class SeasonDetailViewModel @Inject constructor(
             val existingSeasonId = findSeasonIdByMalIdUseCase(malId)
             if (existingSeasonId != null) {
                 if (isRefresh) {
-                    _uiState.update { if (it is SeasonDetailUiState.Success) it.copy(isRefreshing = false) else it }
+                    _uiState.update { it.copy(isRefreshing = false) }
                 }
                 observeSeason(existingSeasonId)
                 return@launch
@@ -199,63 +195,52 @@ open class SeasonDetailViewModel @Inject constructor(
                     )
                     loadEpisodes(details.malId, page = 1)
                     if (isRefresh) {
-                        _uiState.update { state ->
-                            if (state is SeasonDetailUiState.Success) state.copy(
-                                season = season,
-                                isRefreshing = false,
-                                broadcastLocalTime = computeBroadcastLocalTime(season)
-                            ) else SeasonDetailUiState.Success(
-                                season = season,
-                                isInWatchlist = false,
-                                isLoadingEpisodes = true,
-                                titleLanguage = titleLanguage,
-                                broadcastLocalTime = computeBroadcastLocalTime(season),
-                                isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled
-                            )
-                        }
+                        _uiState.update { it.copy(
+                            season = season,
+                            isRefreshing = false,
+                            broadcastLocalTime = computeBroadcastLocalTime(season)
+                        ) }
                     } else {
-                        _uiState.value = SeasonDetailUiState.Success(
+                        _uiState.update { it.copy(
+                            isLoading = false,
+                            isNotFound = false,
                             season = season,
                             isInWatchlist = false,
                             isLoadingEpisodes = true,
                             titleLanguage = titleLanguage,
                             broadcastLocalTime = computeBroadcastLocalTime(season),
                             isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled
-                        )
+                        ) }
                         viewModelScope.launch {
                             observeTitleLanguageUseCase().collect { lang ->
-                                _uiState.update { s ->
-                                    if (s is SeasonDetailUiState.Success) s.copy(titleLanguage = lang) else s
-                                }
+                                _uiState.update { it.copy(titleLanguage = lang) }
                             }
                         }
                         viewModelScope.launch {
                             observeIsNotificationDebugInfoEnabledUseCase().collect { enabled ->
-                                _uiState.update { s ->
-                                    if (s is SeasonDetailUiState.Success) s.copy(isNotificationDebugInfoEnabled = enabled) else s
-                                }
+                                _uiState.update { it.copy(isNotificationDebugInfoEnabled = enabled) }
                             }
                         }
                     }
                 }
                 .onFailure {
                     if (isRefresh) {
-                        _uiState.update { if (it is SeasonDetailUiState.Success) it.copy(isRefreshing = false) else it }
+                        _uiState.update { it.copy(isRefreshing = false) }
                     } else {
-                        _uiState.value = SeasonDetailUiState.NotFound
+                        _uiState.update { it.copy(isLoading = false, isNotFound = true) }
                     }
                 }
         }
     }
 
     fun refresh() {
-        if (_uiState.value !is SeasonDetailUiState.Success) return
-        _uiState.update { if (it is SeasonDetailUiState.Success) it.copy(isRefreshing = true) else it }
+        if (_uiState.value.season == null) return
+        _uiState.update { it.copy(isRefreshing = true) }
         if (seasonId > 0) {
             viewModelScope.launch {
                 val season = observeSeasonByIdUseCase(seasonId).first()
                 if (season != null) runCatching { refreshSeasonDataUseCase(season) }
-                _uiState.update { if (it is SeasonDetailUiState.Success) it.copy(isRefreshing = false) else it }
+                _uiState.update { it.copy(isRefreshing = false) }
             }
         } else if (malId > 0) {
             loadFromApi(isRefresh = true)
@@ -267,118 +252,87 @@ open class SeasonDetailViewModel @Inject constructor(
             fetchEpisodesUseCase(malId = malId, page = page)
                 .onSuccess { episodePage ->
                     _uiState.update { state ->
-                        if (state is SeasonDetailUiState.Success) {
-                            state.copy(
-                                episodes = state.episodes + episodePage.episodes,
-                                isLoadingEpisodes = false,
-                                hasMoreEpisodes = episodePage.hasNextPage,
-                                nextEpisodePage = episodePage.nextPage
-                            )
-                        } else state
+                        state.copy(
+                            episodes = state.episodes + episodePage.episodes,
+                            isLoadingEpisodes = false,
+                            hasMoreEpisodes = episodePage.hasNextPage,
+                            nextEpisodePage = episodePage.nextPage
+                        )
                     }
                 }
                 .onFailure {
-                    _uiState.update { state ->
-                        if (state is SeasonDetailUiState.Success) {
-                            state.copy(isLoadingEpisodes = false)
-                        } else state
-                    }
+                    _uiState.update { it.copy(isLoadingEpisodes = false) }
                 }
         }
     }
 
     fun loadMoreEpisodes() {
         val state = _uiState.value
-        if (state !is SeasonDetailUiState.Success) return
-        if (state.isLoadingEpisodes || !state.hasMoreEpisodes) return
+        if (state.season == null || state.isLoadingEpisodes || !state.hasMoreEpisodes) return
 
-        _uiState.update { (it as? SeasonDetailUiState.Success)?.copy(isLoadingEpisodes = true) ?: it }
+        _uiState.update { it.copy(isLoadingEpisodes = true) }
         loadEpisodes(malId = state.season.malId, page = state.nextEpisodePage)
     }
 
     fun showStatusSheet() {
-        _uiState.update { state ->
-            if (state is SeasonDetailUiState.Success) state.copy(isStatusSheetVisible = true)
-            else state
-        }
+        _uiState.update { it.copy(isStatusSheetVisible = true) }
     }
 
     fun dismissStatusSheet() {
-        _uiState.update { state ->
-            if (state is SeasonDetailUiState.Success) state.copy(isStatusSheetVisible = false)
-            else state
-        }
+        _uiState.update { it.copy(isStatusSheetVisible = false) }
     }
 
     fun updateStatus(status: WatchStatus) {
-        val state = _uiState.value
-        if (state !is SeasonDetailUiState.Success) return
+        val season = _uiState.value.season ?: return
 
         viewModelScope.launch {
-            updateSeasonStatusUseCase(state.season, status)
+            updateSeasonStatusUseCase(season, status)
             analyticsTracker.track(AnalyticsEvent.UpdateSeasonStatus(status.name))
         }
     }
 
     fun showDeleteConfirmation() {
-        _uiState.update { state ->
-            if (state is SeasonDetailUiState.Success) state.copy(isDeleteConfirmationVisible = true)
-            else state
-        }
+        _uiState.update { it.copy(isDeleteConfirmationVisible = true) }
     }
 
     fun dismissDeleteConfirmation() {
-        _uiState.update { state ->
-            if (state is SeasonDetailUiState.Success) state.copy(isDeleteConfirmationVisible = false)
-            else state
-        }
+        _uiState.update { it.copy(isDeleteConfirmationVisible = false) }
     }
 
     fun confirmDelete() {
         val state = _uiState.value
-        if (state !is SeasonDetailUiState.Success) return
+        val season = state.season ?: return
 
         viewModelScope.launch {
-            deleteSeasonUseCase(state.season)
+            deleteSeasonUseCase(season)
             analyticsTracker.track(AnalyticsEvent.RemoveSeason(state.isLastSeason))
-            _uiState.update { current ->
-                if (current is SeasonDetailUiState.Success) current.copy(
-                    isInWatchlist = false,
-                    isDeleteConfirmationVisible = false
-                ) else current
-            }
+            _uiState.update { it.copy(
+                isInWatchlist = false,
+                isDeleteConfirmationVisible = false
+            ) }
         }
     }
 
     fun showAddSheet() {
-        _uiState.update { state ->
-            if (state is SeasonDetailUiState.Success) state.copy(isAddSheetVisible = true)
-            else state
-        }
+        _uiState.update { it.copy(isAddSheetVisible = true) }
     }
 
     fun dismissAddSheet() {
-        _uiState.update { state ->
-            if (state is SeasonDetailUiState.Success) state.copy(isAddSheetVisible = false)
-            else state
-        }
+        _uiState.update { it.copy(isAddSheetVisible = false) }
     }
 
     fun addToWatchlist(status: WatchStatus) {
         val state = _uiState.value
-        if (state !is SeasonDetailUiState.Success) return
-        val season = state.season
+        val season = state.season ?: return
 
         if (season.id > 0) {
             viewModelScope.launch {
                 addSeasonToWatchlistUseCase(season, status)
                 analyticsTracker.track(AnalyticsEvent.AddSeason(status.name))
-                _uiState.update { s ->
-                    if (s is SeasonDetailUiState.Success) s.copy(
-                        isAddSheetVisible = false,
-                        snackbarEvent = SeasonDetailSnackbarEvent.AddedToWatchlist(season.title)
-                    ) else s
-                }
+                _uiState.update { it.copy(
+                    isAddSheetVisible = false,
+                    snackbarEvent = SeasonDetailSnackbarEvent.AddedToWatchlist(season.title)
+                ) }
             }
             return
         }
@@ -388,12 +342,10 @@ open class SeasonDetailViewModel @Inject constructor(
             addAnimeFromDetailsUseCase(details, status)
             analyticsTracker.track(AnalyticsEvent.AddSeason(status.name))
             pendingDetails = null
-            _uiState.update { s ->
-                if (s is SeasonDetailUiState.Success) s.copy(
-                    isAddSheetVisible = false,
-                    snackbarEvent = SeasonDetailSnackbarEvent.AddedToWatchlist(details.title)
-                ) else s
-            }
+            _uiState.update { it.copy(
+                isAddSheetVisible = false,
+                snackbarEvent = SeasonDetailSnackbarEvent.AddedToWatchlist(details.title)
+            ) }
             val addedSeasonId = findSeasonIdByMalIdUseCase(malId)
             if (addedSeasonId != null) {
                 observeSeason(addedSeasonId)
@@ -403,7 +355,7 @@ open class SeasonDetailViewModel @Inject constructor(
 
     fun toggleEpisodeNotifications() {
         val state = _uiState.value
-        if (state !is SeasonDetailUiState.Success) return
+        if (state.season == null) return
 
         val newEnabled = !state.isEpisodeNotificationsEnabled
         viewModelScope.launch {
@@ -412,48 +364,29 @@ open class SeasonDetailViewModel @Inject constructor(
                 enabled = newEnabled
             )
             analyticsTracker.track(AnalyticsEvent.ToggleEpisodeNotifications(newEnabled))
-            _uiState.update { current ->
-                if (current is SeasonDetailUiState.Success) current.copy(
-                    isEpisodeNotificationsEnabled = newEnabled,
-                    snackbarEvent = SeasonDetailSnackbarEvent.EpisodeNotificationsToggled(newEnabled)
-                )
-                else current
-            }
+            _uiState.update { it.copy(
+                isEpisodeNotificationsEnabled = newEnabled,
+                snackbarEvent = SeasonDetailSnackbarEvent.EpisodeNotificationsToggled(newEnabled)
+            ) }
         }
     }
 
     fun navigateToAnimeDetail() {
-        val state = _uiState.value
-        if (state !is SeasonDetailUiState.Success) return
-
-        _uiState.update { current ->
-            if (current is SeasonDetailUiState.Success) current.copy(
-                pendingNavigationMalId = state.season.malId
-            )
-            else current
-        }
+        val season = _uiState.value.season ?: return
+        _uiState.update { it.copy(pendingNavigationMalId = season.malId) }
     }
 
     fun onNavigated() {
-        _uiState.update { state ->
-            if (state is SeasonDetailUiState.Success) state.copy(pendingNavigationMalId = null)
-            else state
-        }
+        _uiState.update { it.copy(pendingNavigationMalId = null) }
     }
 
     fun notifyPermissionDenied() {
         analyticsTracker.track(AnalyticsEvent.NotificationPermissionDenied)
-        _uiState.update {
-            if (it is SeasonDetailUiState.Success) it.copy(snackbarEvent = SeasonDetailSnackbarEvent.NotificationPermissionDenied)
-            else it
-        }
+        _uiState.update { it.copy(snackbarEvent = SeasonDetailSnackbarEvent.NotificationPermissionDenied) }
     }
 
     fun clearSnackbar() {
-        _uiState.update { state ->
-            if (state is SeasonDetailUiState.Success) state.copy(snackbarEvent = null)
-            else state
-        }
+        _uiState.update { it.copy(snackbarEvent = null) }
     }
 
     protected open fun localZoneId(): ZoneId = ZoneId.systemDefault()
@@ -499,30 +432,30 @@ open class SeasonDetailViewModel @Inject constructor(
                 if (season != null) observeSiblingCount(season.animeId)
                 _uiState.update { currentState ->
                     if (season == null) {
-                        SeasonDetailUiState.NotFound
+                        currentState.copy(isLoading = false, isNotFound = true, season = null)
+                    } else if (currentState.season == null) {
+                        loadEpisodes(season.malId, page = 1)
+                        currentState.copy(
+                            isLoading = false,
+                            isNotFound = false,
+                            season = season,
+                            isInWatchlist = true,
+                            isEpisodeNotificationsEnabled = season.isEpisodeNotificationsEnabled,
+                            watchedEpisodes = watchedEpisodes,
+                            titleLanguage = titleLanguage,
+                            isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled,
+                            isLoadingEpisodes = true,
+                            broadcastLocalTime = computeBroadcastLocalTime(season)
+                        )
                     } else {
-                        when (currentState) {
-                            is SeasonDetailUiState.Success -> currentState.copy(
-                                season = season,
-                                isInWatchlist = true,
-                                isEpisodeNotificationsEnabled = season.isEpisodeNotificationsEnabled,
-                                watchedEpisodes = watchedEpisodes,
-                                titleLanguage = titleLanguage,
-                                isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled
-                            )
-                            else -> {
-                                loadEpisodes(season.malId, page = 1)
-                                SeasonDetailUiState.Success(
-                                    season = season,
-                                    isInWatchlist = true,
-                                    watchedEpisodes = watchedEpisodes,
-                                    titleLanguage = titleLanguage,
-                                    isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled,
-                                    isLoadingEpisodes = true,
-                                    broadcastLocalTime = computeBroadcastLocalTime(season)
-                                )
-                            }
-                        }
+                        currentState.copy(
+                            season = season,
+                            isInWatchlist = true,
+                            isEpisodeNotificationsEnabled = season.isEpisodeNotificationsEnabled,
+                            watchedEpisodes = watchedEpisodes,
+                            titleLanguage = titleLanguage,
+                            isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled
+                        )
                     }
                 }
             }
