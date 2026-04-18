@@ -5,5 +5,6 @@ data class EpisodeInfo(
     val title: String?,
     val aired: String?,
     val isFiller: Boolean,
-    val isRecap: Boolean
+    val isRecap: Boolean,
+    val isPlaceholder: Boolean = false
 )

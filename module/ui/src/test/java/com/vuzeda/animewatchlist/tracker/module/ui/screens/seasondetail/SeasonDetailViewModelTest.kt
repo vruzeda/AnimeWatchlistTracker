@@ -15,6 +15,7 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.AddSeasonToWatchlistUseC
 import com.vuzeda.animewatchlist.tracker.module.usecase.DeleteSeasonUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FetchEpisodesUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FetchSeasonDetailUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.FillEpisodeGapsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FindSeasonIdByMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSeasonByIdUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSeasonsForAnimeUseCase
@@ -51,6 +52,7 @@ class SeasonDetailViewModelTest {
     private val observeSeasonsForAnimeUseCase: ObserveSeasonsForAnimeUseCase = mockk()
     private val fetchSeasonDetailUseCase: FetchSeasonDetailUseCase = mockk()
     private val fetchEpisodesUseCase: FetchEpisodesUseCase = mockk()
+    private val fillEpisodeGapsUseCase: FillEpisodeGapsUseCase = FillEpisodeGapsUseCase()
     private val updateSeasonStatusUseCase: UpdateSeasonStatusUseCase = mockk(relaxed = true)
     private val deleteSeasonUseCase: DeleteSeasonUseCase = mockk(relaxed = true)
     private val addSeasonToWatchlistUseCase: AddSeasonToWatchlistUseCase = mockk(relaxed = true)
@@ -120,6 +122,7 @@ class SeasonDetailViewModelTest {
             observeSeasonsForAnimeUseCase = observeSeasonsForAnimeUseCase,
             fetchSeasonDetailUseCase = fetchSeasonDetailUseCase,
             fetchEpisodesUseCase = fetchEpisodesUseCase,
+            fillEpisodeGapsUseCase = fillEpisodeGapsUseCase,
             updateSeasonStatusUseCase = updateSeasonStatusUseCase,
             deleteSeasonUseCase = deleteSeasonUseCase,
             addSeasonToWatchlistUseCase = addSeasonToWatchlistUseCase,
@@ -174,7 +177,7 @@ class SeasonDetailViewModelTest {
     }
 
     @Test
-    fun `loadMoreEpisodes appends episodes`() = runTest {
+    fun `loadMoreEpisodes appends episodes and fills gaps on last page`() = runTest {
         val moreEpisodes = listOf(
             EpisodeInfo(number = 3, title = "Episode 3", aired = "2013-04-21", isFiller = false, isRecap = false)
         )
@@ -187,15 +190,36 @@ class SeasonDetailViewModelTest {
         viewModel.uiState.test {
             testDispatcher.scheduler.advanceUntilIdle()
             val initial = expectMostRecentItem()
-            assertThat(initial.episodes).hasSize(2)
+            assertThat(initial.episodes).hasSize(2) // page 1, gap-fill not applied yet
             assertThat(initial.hasMoreEpisodes).isTrue()
 
             viewModel.loadMoreEpisodes()
             testDispatcher.scheduler.advanceUntilIdle()
 
+            // last page: 3 real episodes + 22 placeholders (4..25) = 25 total (sampleSeason.episodeCount = 25)
             val updated = expectMostRecentItem()
-            assertThat(updated.episodes).hasSize(3)
+            assertThat(updated.episodes).hasSize(25)
+            assertThat(updated.episodes.filter { it.isPlaceholder }).hasSize(22)
             assertThat(updated.hasMoreEpisodes).isFalse()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `gap-fill adds placeholders when last page has fewer episodes than episodeCount`() = runTest {
+        coEvery { fetchEpisodesUseCase(malId = 16498, page = 1) } returns Result.success(
+            EpisodePage(episodes = sampleEpisodes, hasNextPage = false, nextPage = 2)
+        )
+
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            val state = expectMostRecentItem()
+            // sampleSeason.episodeCount = 25; 2 real episodes fetched → 23 placeholders added
+            assertThat(state.episodes).hasSize(25)
+            assertThat(state.episodes.take(2).none { it.isPlaceholder }).isTrue()
+            assertThat(state.episodes.drop(2).all { it.isPlaceholder }).isTrue()
             cancelAndIgnoreRemainingEvents()
         }
     }

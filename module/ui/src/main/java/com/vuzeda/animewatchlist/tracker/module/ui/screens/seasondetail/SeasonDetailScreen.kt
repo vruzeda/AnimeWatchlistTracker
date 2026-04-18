@@ -455,6 +455,7 @@ private fun SeasonDetailContent(
                     airedDate = episode.aired,
                     isFiller = episode.isFiller,
                     isRecap = episode.isRecap,
+                    isPlaceholder = episode.isPlaceholder,
                     showDivider = index < state.episodes.size - 1 || state.hasMoreEpisodes,
                     isWatched = episode.number in state.watchedEpisodes,
                     onWatchedToggle = if (state.isInWatchlist) {

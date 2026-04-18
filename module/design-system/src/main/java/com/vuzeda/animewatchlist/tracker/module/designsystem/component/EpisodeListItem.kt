@@ -33,11 +33,16 @@ fun EpisodeListItem(
     airedDate: String?,
     isFiller: Boolean = false,
     isRecap: Boolean = false,
+    isPlaceholder: Boolean = false,
     showDivider: Boolean = true,
     isWatched: Boolean = false,
     onWatchedToggle: (() -> Unit)? = null
 ) {
-    val contentAlpha = if (isWatched) 0.5f else 1f
+    val contentAlpha = when {
+        isWatched -> 0.5f
+        isPlaceholder -> 0.6f
+        else -> 1f
+    }
     Column(
         modifier = modifier
             .fillMaxWidth()

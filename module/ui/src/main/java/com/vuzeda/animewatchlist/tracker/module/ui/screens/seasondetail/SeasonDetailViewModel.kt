@@ -13,6 +13,7 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.AddAnimeFromDetailsUseCa
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddSeasonToWatchlistUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.DeleteSeasonUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FetchEpisodesUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.FillEpisodeGapsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FindSeasonIdByMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSeasonByIdUseCase
@@ -49,6 +50,7 @@ open class SeasonDetailViewModel @Inject constructor(
     private val observeSeasonsForAnimeUseCase: ObserveSeasonsForAnimeUseCase,
     private val fetchSeasonDetailUseCase: FetchSeasonDetailUseCase,
     private val fetchEpisodesUseCase: FetchEpisodesUseCase,
+    private val fillEpisodeGapsUseCase: FillEpisodeGapsUseCase,
     private val updateSeasonStatusUseCase: UpdateSeasonStatusUseCase,
     private val deleteSeasonUseCase: DeleteSeasonUseCase,
     private val addSeasonToWatchlistUseCase: AddSeasonToWatchlistUseCase,
@@ -252,8 +254,13 @@ open class SeasonDetailViewModel @Inject constructor(
             fetchEpisodesUseCase(malId = malId, page = page)
                 .onSuccess { episodePage ->
                     _uiState.update { state ->
+                        val accumulated = state.episodes + episodePage.episodes
+                        val resolved = if (!episodePage.hasNextPage)
+                            fillEpisodeGapsUseCase(accumulated, state.season?.episodeCount)
+                        else
+                            accumulated
                         state.copy(
-                            episodes = state.episodes + episodePage.episodes,
+                            episodes = resolved,
                             isLoadingEpisodes = false,
                             hasMoreEpisodes = episodePage.hasNextPage,
                             nextEpisodePage = episodePage.nextPage
