@@ -1,5 +1,5 @@
 [versions]
-agp = "9.1.0"
+agp = "9.1.1"
 kotlin = "2.3.20"
 ksp = "2.3.6"
 composeBom = "2026.03.01"
@@ -24,9 +24,9 @@ junit5 = "6.0.3"
 mockk = "1.14.9"
 turbine = "1.2.1"
 truth = "1.4.5"
-firebase-bom = "33.15.0"
-google-services = "4.4.2"
-firebase-crashlytics-plugin = "3.0.3"
+firebase-bom = "34.12.0"
+google-services = "4.4.4"
+firebase-crashlytics-plugin = "3.0.7"
 
 [libraries]
 # AndroidX Core
@@ -99,12 +99,12 @@ kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-cor
 javax-inject = { group = "javax.inject", name = "javax.inject", version = "1" }
 
 # Firebase
-firebase-bom           = { group = "com.google.firebase", name = "firebase-bom",                         version.ref = "firebase-bom" }
-firebase-analytics     = { group = "com.google.firebase", name = "firebase-analytics-ktx"                }
-firebase-crashlytics   = { group = "com.google.firebase", name = "firebase-crashlytics-ktx"              }
-firebase-firestore     = { group = "com.google.firebase", name = "firebase-firestore-ktx"                }
-firebase-auth          = { group = "com.google.firebase", name = "firebase-auth-ktx"                     }
-firebase-installations = { group = "com.google.firebase", name = "firebase-installations"                }
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebase-bom" }
+firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics" }
+firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics" }
+firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore" }
+firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
+firebase-installations = { group = "com.google.firebase", name = "firebase-installations" }
 kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "coroutines" }
 
 [plugins]
@@ -115,6 +115,6 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
-google-services      = { id = "com.google.gms.google-services",  version.ref = "google-services" }
+google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }
 firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebase-crashlytics-plugin" }
 
