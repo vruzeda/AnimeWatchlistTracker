@@ -121,6 +121,23 @@ class ScheduleViewModelTest {
     }
 
     @Test
+    fun `same-day entries are ordered by broadcast time`() = runTest {
+        val (currentYear, currentSeason) = ScheduleViewModel.currentAnimeSeason()
+        val seasons = listOf(
+            Season(id = 1, malId = 1, title = "Late Show", broadcastDay = "Saturdays", broadcastTime = "23:30", isInWatchlist = true, airingSeasonName = currentSeason.apiValue, airingSeasonYear = currentYear),
+            Season(id = 2, malId = 2, title = "Early Show", broadcastDay = "Saturdays", broadcastTime = "09:00", isInWatchlist = true, airingSeasonName = currentSeason.apiValue, airingSeasonYear = currentYear),
+            Season(id = 3, malId = 3, title = "Mid Show", broadcastDay = "Saturdays", broadcastTime = "17:00", isInWatchlist = true, airingSeasonName = currentSeason.apiValue, airingSeasonYear = currentYear)
+        )
+        every { observeScheduleUseCase() } returns flowOf(seasons)
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        val saturdayIds = viewModel.uiState.value.schedule[DayOfWeek.SATURDAY]?.map { it.id }
+
+        assertThat(saturdayIds).containsExactly(2L, 3L, 1L).inOrder()
+    }
+
+    @Test
     fun `schedule is empty when selected season has no shows`() = runTest {
         every { observeScheduleUseCase() } returns flowOf(emptyList())
         val viewModel = createViewModel()

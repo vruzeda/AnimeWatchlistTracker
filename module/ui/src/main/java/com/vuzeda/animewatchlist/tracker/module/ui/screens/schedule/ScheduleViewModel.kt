@@ -49,6 +49,7 @@ class ScheduleViewModel @Inject constructor(
 
                 val schedule = filteredSeasons
                     .groupBy { it.broadcastDay?.toDayOfWeek() ?: DayOfWeek.MONDAY }
+                    .mapValues { (_, seasons) -> seasons.sortedBy { it.broadcastTime } }
                     .toSortedMap()
 
                 ScheduleUiState(
