@@ -132,7 +132,6 @@ fun SearchScreen(
     }
 
     val filterState = uiState.filterState
-    val isFilterActive = filterState.type != AnimeSearchType.ALL || filterState.status != AnimeSearchStatus.ALL
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -162,7 +161,6 @@ fun SearchScreen(
                                     selectedIndices = setOf(filterState.status.ordinal)
                                 )
                             ),
-                            isActive = isFilterActive,
                             onOptionSelected = { groupIndex, optionIndex ->
                                 when (groupIndex) {
                                     0 -> onTypeSelected(AnimeSearchType.entries[optionIndex])

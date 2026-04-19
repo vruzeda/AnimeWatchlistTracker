@@ -29,10 +29,10 @@ fun FilterMenuButton(
     modifier: Modifier = Modifier,
     options: List<String>,
     selectedIndex: Int,
-    isActive: Boolean = false,
     onOptionSelected: (Int) -> Unit
 ) {
     var isExpanded by remember { mutableStateOf(false) }
+    val isActive = selectedIndex != 0
 
     Box(modifier = modifier) {
         IconButton(onClick = { isExpanded = true }) {

@@ -30,11 +30,11 @@ fun SortMenuButton(
     modifier: Modifier = Modifier,
     options: List<String>,
     selectedIndex: Int,
-    isAscending: Boolean = false,
+    isAscending: Boolean = true,
     onOptionSelected: (Int) -> Unit
 ) {
     var isExpanded by remember { mutableStateOf(false) }
-    val isActive = selectedIndex != 0
+    val isActive = selectedIndex != 0 || !isAscending
 
     Box(modifier = modifier) {
         IconButton(onClick = { isExpanded = true }) {

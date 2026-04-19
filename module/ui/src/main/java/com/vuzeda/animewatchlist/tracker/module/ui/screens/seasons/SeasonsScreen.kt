@@ -134,7 +134,6 @@ fun SeasonsScreen(
                     FilterMenuButton(
                         options = filterOptions,
                         selectedIndex = uiState.seasonFilter.ordinal,
-                        isActive = uiState.seasonFilter != AnimeSearchType.TV,
                         onOptionSelected = { index -> onFilterSelected(AnimeSearchType.entries[index]) }
                     )
                 }

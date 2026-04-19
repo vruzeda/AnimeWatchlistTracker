@@ -39,12 +39,12 @@ data class FilterGroup(
 fun NestedFilterMenuButton(
     modifier: Modifier = Modifier,
     filterGroups: List<FilterGroup>,
-    isActive: Boolean = false,
     onOptionSelected: (groupIndex: Int, optionIndex: Int) -> Unit,
     resetLabel: String,
     onReset: () -> Unit
 ) {
     var isExpanded by remember { mutableStateOf(false) }
+    val isActive = filterGroups.any { it.selectedIndices != setOf(0) }
 
     Box(modifier = modifier) {
         IconButton(onClick = { isExpanded = true }) {
@@ -136,7 +136,6 @@ private fun NestedFilterMenuButtonInactivePreview() {
                     selectedIndices = setOf(0)
                 )
             ),
-            isActive = false,
             onOptionSelected = { _, _ -> },
             resetLabel = "Reset Filters",
             onReset = {}
@@ -162,7 +161,6 @@ private fun NestedFilterMenuButtonActivePreview() {
                     selectedIndices = setOf(0)
                 )
             ),
-            isActive = true,
             onOptionSelected = { _, _ -> },
             resetLabel = "Reset Filters",
             onReset = {}
