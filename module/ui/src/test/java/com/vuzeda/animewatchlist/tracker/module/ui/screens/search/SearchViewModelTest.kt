@@ -2,6 +2,7 @@ package com.vuzeda.animewatchlist.tracker.module.ui.screens.search
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
+import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsEvent
 import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsTracker
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchOrderBy
@@ -9,6 +10,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchStatus
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchFilterState
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
+import com.vuzeda.animewatchlist.tracker.module.domain.SearchResultPage
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddAnimeFromDetailsUseCase
@@ -23,6 +25,8 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -59,6 +63,8 @@ class SearchViewModelTest {
     private val sampleResultC = SearchResult(malId = 40, title = "Bleach", score = 7.9)
 
     private val multiResults = listOf(sampleResult, sampleResultB, sampleResultC)
+    private fun pageOf(results: List<SearchResult>, hasNextPage: Boolean = false, currentPage: Int = 1) =
+        SearchResultPage(results = results, hasNextPage = hasNextPage, currentPage = currentPage)
 
     private val sampleDetails = AnimeFullDetails(
         malId = 21,
@@ -105,6 +111,8 @@ class SearchViewModelTest {
             assertThat(state.results).isEmpty()
             assertThat(state.isLoading).isFalse()
             assertThat(state.hasSearched).isFalse()
+            assertThat(state.hasNextPage).isFalse()
+            assertThat(state.currentPage).isEqualTo(1)
         }
     }
 
@@ -122,7 +130,7 @@ class SearchViewModelTest {
 
     @Test
     fun `search with results updates state correctly`() = runTest {
-        coEvery { searchAnimeUseCase("one punch", any()) } returns Result.success(listOf(sampleResult))
+        coEvery { searchAnimeUseCase("one punch", any(), 1) } returns Result.success(pageOf(listOf(sampleResult)))
 
         viewModel.uiState.test {
             awaitItem()
@@ -138,12 +146,40 @@ class SearchViewModelTest {
             assertThat(loaded.results).hasSize(1)
             assertThat(loaded.results[0].title).isEqualTo("One Punch Man")
             assertThat(loaded.hasSearched).isTrue()
+            assertThat(loaded.currentPage).isEqualTo(1)
+        }
+    }
+
+    @Test
+    fun `search resets pagination state before fetching`() = runTest {
+        coEvery { searchAnimeUseCase("one punch", any(), 1) } returns
+            Result.success(pageOf(listOf(sampleResult), hasNextPage = true))
+
+        viewModel.uiState.test {
+            awaitItem()
+            viewModel.updateQuery("one punch")
+            awaitItem()
+            viewModel.search()
+            testDispatcher.scheduler.advanceUntilIdle()
+            val afterFirstSearch = expectMostRecentItem()
+            assertThat(afterFirstSearch.hasNextPage).isTrue()
+
+            coEvery { searchAnimeUseCase("one punch", any(), 1) } returns
+                Result.success(pageOf(listOf(sampleResultB), hasNextPage = false))
+            viewModel.search()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val afterSecondSearch = expectMostRecentItem()
+            assertThat(afterSecondSearch.results).hasSize(1)
+            assertThat(afterSecondSearch.results[0].title).isEqualTo("Attack on Titan")
+            assertThat(afterSecondSearch.hasNextPage).isFalse()
+            assertThat(afterSecondSearch.currentPage).isEqualTo(1)
         }
     }
 
     @Test
     fun `search with error updates error state`() = runTest {
-        coEvery { searchAnimeUseCase("test", any()) } returns Result.failure(IOException("Network error"))
+        coEvery { searchAnimeUseCase("test", any(), 1) } returns Result.failure(IOException("Network error"))
 
         viewModel.uiState.test {
             awaitItem()
@@ -174,6 +210,130 @@ class SearchViewModelTest {
 
             expectNoEvents()
         }
+    }
+
+    @Test
+    fun `loadMore appends results and updates pagination state`() = runTest {
+        coEvery { searchAnimeUseCase("anime", any(), 1) } returns
+            Result.success(pageOf(listOf(sampleResult), hasNextPage = true, currentPage = 1))
+        coEvery { searchAnimeUseCase("anime", any(), 2) } returns
+            Result.success(pageOf(listOf(sampleResultB), hasNextPage = false, currentPage = 2))
+
+        viewModel.uiState.test {
+            awaitItem()
+            viewModel.updateQuery("anime")
+            awaitItem()
+            viewModel.search()
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.loadMore()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val loaded = expectMostRecentItem()
+            assertThat(loaded.results).hasSize(2)
+            assertThat(loaded.results[0].title).isEqualTo("One Punch Man")
+            assertThat(loaded.results[1].title).isEqualTo("Attack on Titan")
+            assertThat(loaded.hasNextPage).isFalse()
+            assertThat(loaded.currentPage).isEqualTo(2)
+            assertThat(loaded.isLoadingMore).isFalse()
+        }
+    }
+
+    @Test
+    fun `loadMore deduplicates results across pages`() = runTest {
+        coEvery { searchAnimeUseCase("anime", any(), 1) } returns
+            Result.success(pageOf(listOf(sampleResult, sampleResultB), hasNextPage = true, currentPage = 1))
+        coEvery { searchAnimeUseCase("anime", any(), 2) } returns
+            Result.success(pageOf(listOf(sampleResultB, sampleResultC), hasNextPage = false, currentPage = 2))
+
+        viewModel.uiState.test {
+            awaitItem()
+            viewModel.updateQuery("anime")
+            awaitItem()
+            viewModel.search()
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.loadMore()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val loaded = expectMostRecentItem()
+            assertThat(loaded.results).hasSize(3)
+            assertThat(loaded.results.map { it.malId }).containsExactly(21, 30, 40).inOrder()
+        }
+    }
+
+    @Test
+    fun `loadMore does nothing when hasNextPage is false`() = runTest {
+        coEvery { searchAnimeUseCase("anime", any(), 1) } returns
+            Result.success(pageOf(listOf(sampleResult), hasNextPage = false, currentPage = 1))
+
+        viewModel.uiState.test {
+            awaitItem()
+            viewModel.updateQuery("anime")
+            awaitItem()
+            viewModel.search()
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.loadMore()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            expectNoEvents()
+            coVerify(exactly = 1) { searchAnimeUseCase(any(), any(), any()) }
+        }
+    }
+
+    @Test
+    fun `loadMore does nothing when already loading more`() = runTest {
+        coEvery { searchAnimeUseCase("anime", any(), 1) } returns
+            Result.success(pageOf(listOf(sampleResult), hasNextPage = true, currentPage = 1))
+
+        viewModel.uiState.test {
+            awaitItem()
+            viewModel.updateQuery("anime")
+            awaitItem()
+            viewModel.search()
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            val deferred = CompletableDeferred<Result<SearchResultPage>>()
+            coEvery { searchAnimeUseCase("anime", any(), 2) } coAnswers { deferred.await() }
+
+            viewModel.loadMore()
+            testDispatcher.scheduler.runCurrent() // lets the coroutine run until it suspends at deferred.await()
+
+            viewModel.loadMore() // isLoadingMore is now true, should be a no-op
+            deferred.complete(Result.success(pageOf(listOf(sampleResultB), hasNextPage = false, currentPage = 2)))
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            coVerify(exactly = 1) { searchAnimeUseCase("anime", any(), 2) }
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `loadMore tracks LoadMoreResults analytics event`() = runTest {
+        coEvery { searchAnimeUseCase("anime", any(), 1) } returns
+            Result.success(pageOf(listOf(sampleResult), hasNextPage = true, currentPage = 1))
+        coEvery { searchAnimeUseCase("anime", any(), 2) } returns
+            Result.success(pageOf(listOf(sampleResultB), hasNextPage = false, currentPage = 2))
+
+        viewModel.uiState.test {
+            awaitItem()
+            viewModel.updateQuery("anime")
+            awaitItem()
+            viewModel.search()
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.loadMore()
+            testDispatcher.scheduler.advanceUntilIdle()
+            cancelAndIgnoreRemainingEvents()
+        }
+
+        verify { analyticsTracker.track(AnalyticsEvent.LoadMoreResults("search", 2)) }
     }
 
     @Test
@@ -278,7 +438,7 @@ class SearchViewModelTest {
 
     @Test
     fun `selectSort toggles direction when same orderBy is selected again`() = runTest {
-        coEvery { searchAnimeUseCase("anime", any()) } returns Result.success(multiResults)
+        coEvery { searchAnimeUseCase("anime", any(), 1) } returns Result.success(pageOf(multiResults))
 
         viewModel.uiState.test {
             awaitItem()
@@ -305,7 +465,7 @@ class SearchViewModelTest {
 
     @Test
     fun `selectSort with new orderBy uses defaultAscending`() = runTest {
-        coEvery { searchAnimeUseCase("anime", any()) } returns Result.success(multiResults)
+        coEvery { searchAnimeUseCase("anime", any(), 1) } returns Result.success(pageOf(multiResults))
 
         viewModel.uiState.test {
             awaitItem()
@@ -327,7 +487,7 @@ class SearchViewModelTest {
 
     @Test
     fun `selectType updates filterState type and triggers re-search`() = runTest {
-        coEvery { searchAnimeUseCase("anime", any()) } returns Result.success(multiResults)
+        coEvery { searchAnimeUseCase("anime", any(), 1) } returns Result.success(pageOf(multiResults))
 
         viewModel.uiState.test {
             awaitItem()
@@ -348,7 +508,7 @@ class SearchViewModelTest {
 
     @Test
     fun `selectStatus updates filterState status and triggers re-search`() = runTest {
-        coEvery { searchAnimeUseCase("anime", any()) } returns Result.success(multiResults)
+        coEvery { searchAnimeUseCase("anime", any(), 1) } returns Result.success(pageOf(multiResults))
 
         viewModel.uiState.test {
             awaitItem()
@@ -369,7 +529,7 @@ class SearchViewModelTest {
 
     @Test
     fun `filter change re-triggers search when hasSearched is true`() = runTest {
-        coEvery { searchAnimeUseCase(any(), any()) } returns Result.success(multiResults)
+        coEvery { searchAnimeUseCase(any(), any(), any()) } returns Result.success(pageOf(multiResults))
 
         viewModel.uiState.test {
             awaitItem()
@@ -383,7 +543,7 @@ class SearchViewModelTest {
             searchFilterStateFlow.value = SearchFilterState(type = AnimeSearchType.TV)
             testDispatcher.scheduler.advanceUntilIdle()
 
-            coVerify(atLeast = 2) { searchAnimeUseCase(any(), any()) }
+            coVerify(atLeast = 2) { searchAnimeUseCase(any(), any(), any()) }
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -396,7 +556,7 @@ class SearchViewModelTest {
             searchFilterStateFlow.value = SearchFilterState(type = AnimeSearchType.MOVIE)
             testDispatcher.scheduler.advanceUntilIdle()
 
-            coVerify(exactly = 0) { searchAnimeUseCase(any(), any()) }
+            coVerify(exactly = 0) { searchAnimeUseCase(any(), any(), any()) }
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -442,7 +602,7 @@ class SearchViewModelTest {
 
     @Test
     fun `refresh re-runs search and updates results`() = runTest {
-        coEvery { searchAnimeUseCase("one punch", any()) } returns Result.success(listOf(sampleResult))
+        coEvery { searchAnimeUseCase("one punch", any(), 1) } returns Result.success(pageOf(listOf(sampleResult)))
 
         viewModel.uiState.test {
             awaitItem()
@@ -459,6 +619,8 @@ class SearchViewModelTest {
             val refreshed = expectMostRecentItem()
             assertThat(refreshed.isRefreshing).isFalse()
             assertThat(refreshed.results).hasSize(1)
+            assertThat(refreshed.currentPage).isEqualTo(1)
+            assertThat(refreshed.hasNextPage).isFalse()
         }
     }
 

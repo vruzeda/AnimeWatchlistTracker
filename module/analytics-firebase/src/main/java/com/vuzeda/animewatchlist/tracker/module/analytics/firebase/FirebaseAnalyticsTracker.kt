@@ -84,6 +84,11 @@ class FirebaseAnalyticsTracker(
                 bundle.putString("filter_value", filterValue)
                 "select_filter" to bundle
             }
+            is AnalyticsEvent.LoadMoreResults -> {
+                bundle.putString("screen", screen)
+                bundle.putInt("page", page)
+                "load_more_results" to bundle
+            }
             is AnalyticsEvent.ExecuteSearch -> {
                 bundle.putInt("query_length", queryLength)
                 bundle.putInt("result_count", resultCount)

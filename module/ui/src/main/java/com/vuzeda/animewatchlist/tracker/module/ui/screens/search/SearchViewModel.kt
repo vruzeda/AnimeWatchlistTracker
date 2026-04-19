@@ -88,18 +88,28 @@ class SearchViewModel @Inject constructor(
     private fun performSearch(query: String) {
         val filterState = _uiState.value.filterState
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            searchAnimeUseCase(query, filterState)
-                .onSuccess { results ->
+            _uiState.update {
+                it.copy(
+                    isLoading = true,
+                    errorMessage = null,
+                    results = emptyList(),
+                    hasNextPage = false,
+                    currentPage = 1
+                )
+            }
+            searchAnimeUseCase(query, filterState, page = 1)
+                .onSuccess { page ->
                     _uiState.update {
                         it.copy(
-                            results = results,
+                            results = page.results,
+                            hasNextPage = page.hasNextPage,
+                            currentPage = page.currentPage,
                             isLoading = false,
                             hasSearched = true
                         )
                     }
                     analyticsTracker.track(
-                        AnalyticsEvent.ExecuteSearch(query.length, results.size, true)
+                        AnalyticsEvent.ExecuteSearch(query.length, page.results.size, true)
                     )
                 }
                 .onFailure { error ->
@@ -117,6 +127,33 @@ class SearchViewModel @Inject constructor(
         }
     }
 
+    fun loadMore() {
+        val state = _uiState.value
+        if (state.isLoadingMore || !state.hasNextPage) return
+        val query = state.query.trim()
+        if (query.isBlank()) return
+        val nextPage = state.currentPage + 1
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoadingMore = true) }
+            analyticsTracker.track(AnalyticsEvent.LoadMoreResults("search", nextPage))
+            searchAnimeUseCase(query, state.filterState, page = nextPage)
+                .onSuccess { page ->
+                    _uiState.update {
+                        it.copy(
+                            results = (it.results + page.results).distinctBy { item -> item.malId },
+                            hasNextPage = page.hasNextPage,
+                            currentPage = page.currentPage,
+                            isLoadingMore = false
+                        )
+                    }
+                }
+                .onFailure {
+                    _uiState.update { it.copy(isLoadingMore = false) }
+                }
+        }
+    }
+
     fun refresh() {
         if (!_uiState.value.hasSearched) return
         val query = _uiState.value.query.trim()
@@ -124,10 +161,25 @@ class SearchViewModel @Inject constructor(
         val filterState = _uiState.value.filterState
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isRefreshing = true, errorMessage = null) }
-            searchAnimeUseCase(query, filterState)
-                .onSuccess { results ->
-                    _uiState.update { it.copy(results = results, isRefreshing = false) }
+            _uiState.update {
+                it.copy(
+                    isRefreshing = true,
+                    errorMessage = null,
+                    results = emptyList(),
+                    hasNextPage = false,
+                    currentPage = 1
+                )
+            }
+            searchAnimeUseCase(query, filterState, page = 1)
+                .onSuccess { page ->
+                    _uiState.update {
+                        it.copy(
+                            results = page.results,
+                            hasNextPage = page.hasNextPage,
+                            currentPage = page.currentPage,
+                            isRefreshing = false
+                        )
+                    }
                 }
                 .onFailure { error ->
                     _uiState.update { it.copy(isRefreshing = false, errorMessage = error.message) }

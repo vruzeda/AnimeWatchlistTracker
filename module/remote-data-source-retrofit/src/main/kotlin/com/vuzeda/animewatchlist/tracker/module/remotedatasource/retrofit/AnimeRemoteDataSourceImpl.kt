@@ -8,6 +8,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.EpisodeInfo
 import com.vuzeda.animewatchlist.tracker.module.domain.EpisodePage
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchFilterState
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
+import com.vuzeda.animewatchlist.tracker.module.domain.SearchResultPage
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonData
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonalAnimePage
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.AnimeRemoteDataSource
@@ -15,6 +16,7 @@ import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mapper
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mapper.toEpisodeInfo
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mapper.toEpisodePage
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mapper.toSearchResult
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mapper.toSearchResultPage
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mapper.toSeasonDataList
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mapper.toSeasonalAnimePage
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.ChiakiService
@@ -31,10 +33,12 @@ class AnimeRemoteDataSourceImpl @Inject constructor(
 
     override suspend fun searchAnime(
         query: String,
-        filterState: SearchFilterState
-    ): Result<List<SearchResult>> = safeApiCall {
+        filterState: SearchFilterState,
+        page: Int
+    ): Result<SearchResultPage> = safeApiCall {
         jikanApiService.searchAnime(
             query = query,
+            page = page,
             type = filterState.type.apiValue,
             status = filterState.status.apiValue,
             orderBy = filterState.orderBy.apiValue,
@@ -43,9 +47,7 @@ class AnimeRemoteDataSourceImpl @Inject constructor(
             } else {
                 null
             }
-        ).data
-            .map { it.toSearchResult() }
-            .distinctBy { it.malId }
+        ).toSearchResultPage(currentPage = page)
     }
 
     override suspend fun fetchAnimeFullById(malId: Int): Result<AnimeFullDetails> = safeApiCall {

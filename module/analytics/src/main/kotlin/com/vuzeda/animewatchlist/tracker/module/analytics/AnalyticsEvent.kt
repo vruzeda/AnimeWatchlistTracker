@@ -52,6 +52,8 @@ sealed class AnalyticsEvent {
     ) : AnalyticsEvent()
 
     // Discovery
+    data class LoadMoreResults(val screen: String, val page: Int) : AnalyticsEvent()
+
     data class ExecuteSearch(
         val queryLength: Int,
         val resultCount: Int,

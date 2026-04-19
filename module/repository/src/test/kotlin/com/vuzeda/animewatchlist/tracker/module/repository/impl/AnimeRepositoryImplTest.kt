@@ -9,6 +9,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.EpisodeInfo
 import com.vuzeda.animewatchlist.tracker.module.domain.EpisodePage
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
+import com.vuzeda.animewatchlist.tracker.module.domain.SearchResultPage
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonalAnimePage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
@@ -277,10 +278,30 @@ class AnimeRepositoryImplTest {
 
     @Test
     fun `searchAnime delegates to remote data source`() = runTest {
-        val expected = Result.success(listOf(SearchResult(malId = 1, title = "Naruto")))
-        coEvery { animeRemoteDataSource.searchAnime("naruto") } returns expected
+        val page = SearchResultPage(
+            results = listOf(SearchResult(malId = 1, title = "Naruto")),
+            hasNextPage = false,
+            currentPage = 1
+        )
+        val expected = Result.success(page)
+        coEvery { animeRemoteDataSource.searchAnime("naruto", page = 1) } returns expected
 
         val result = repository.searchAnime("naruto")
+
+        assertThat(result).isEqualTo(expected)
+    }
+
+    @Test
+    fun `searchAnime passes page param to remote data source`() = runTest {
+        val page2 = SearchResultPage(
+            results = listOf(SearchResult(malId = 2, title = "Bleach")),
+            hasNextPage = true,
+            currentPage = 2
+        )
+        val expected = Result.success(page2)
+        coEvery { animeRemoteDataSource.searchAnime("bleach", page = 2) } returns expected
+
+        val result = repository.searchAnime("bleach", page = 2)
 
         assertThat(result).isEqualTo(expected)
     }

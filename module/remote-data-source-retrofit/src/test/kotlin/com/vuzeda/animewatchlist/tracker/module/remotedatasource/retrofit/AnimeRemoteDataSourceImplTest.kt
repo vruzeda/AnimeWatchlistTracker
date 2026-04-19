@@ -3,6 +3,7 @@ package com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.domain.DataError
+import com.vuzeda.animewatchlist.tracker.module.domain.SearchResultPage
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.AnimeDataDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.AnimeEpisodesResponseDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.AnimeFullDataDto
@@ -54,9 +55,9 @@ class AnimeRemoteDataSourceImplTest {
 
         val result = repository.searchAnime("naruto").getOrThrow()
 
-        assertThat(result).hasSize(2)
-        assertThat(result[0].malId).isEqualTo(1)
-        assertThat(result[1].malId).isEqualTo(2)
+        assertThat(result.results).hasSize(2)
+        assertThat(result.results[0].malId).isEqualTo(1)
+        assertThat(result.results[1].malId).isEqualTo(2)
     }
 
     @Test
@@ -71,7 +72,7 @@ class AnimeRemoteDataSourceImplTest {
 
         val result = repository.searchAnime("anime").getOrThrow()
 
-        assertThat(result).hasSize(3)
+        assertThat(result.results).hasSize(3)
     }
 
     @Test
@@ -85,8 +86,23 @@ class AnimeRemoteDataSourceImplTest {
 
         val result = repository.searchAnime("naruto").getOrThrow()
 
-        assertThat(result).hasSize(1)
-        assertThat(result[0].title).isEqualTo("Naruto Original")
+        assertThat(result.results).hasSize(1)
+        assertThat(result.results[0].title).isEqualTo("Naruto Original")
+    }
+
+    @Test
+    fun `searchAnime returns paginated page with hasNextPage and currentPage`() = runTest {
+        val response = AnimeSearchResponseDto(
+            pagination = SearchPaginationDto(hasNextPage = true, lastVisiblePage = 5),
+            data = listOf(AnimeDataDto(malId = 1, title = "Naruto"))
+        )
+        coEvery { jikanApiService.searchAnime(query = "naruto", page = 2) } returns response
+
+        val result = repository.searchAnime("naruto", page = 2).getOrThrow()
+
+        assertThat(result.currentPage).isEqualTo(2)
+        assertThat(result.hasNextPage).isTrue()
+        assertThat(result.results).hasSize(1)
     }
 
     @Test

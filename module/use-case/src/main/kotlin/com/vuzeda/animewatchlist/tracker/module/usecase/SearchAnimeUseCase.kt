@@ -1,7 +1,7 @@
 package com.vuzeda.animewatchlist.tracker.module.usecase
 
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchFilterState
-import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
+import com.vuzeda.animewatchlist.tracker.module.domain.SearchResultPage
 import com.vuzeda.animewatchlist.tracker.module.repository.AnimeRepository
 import javax.inject.Inject
 
@@ -12,7 +12,8 @@ class SearchAnimeUseCase @Inject constructor(
 
     suspend operator fun invoke(
         query: String,
-        filterState: SearchFilterState = SearchFilterState()
-    ): Result<List<SearchResult>> =
-        animeRepository.searchAnime(query = query, filterState = filterState)
+        filterState: SearchFilterState = SearchFilterState(),
+        page: Int = 1
+    ): Result<SearchResultPage> =
+        animeRepository.searchAnime(query = query, filterState = filterState, page = page)
 }

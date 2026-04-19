@@ -12,6 +12,7 @@ interface JikanApiService {
     @GET("v4/anime")
     suspend fun searchAnime(
         @Query("q") query: String,
+        @Query("page") page: Int = 1,
         @Query("limit") limit: Int = 20,
         @Query("type") type: String? = null,
         @Query("status") status: String? = null,

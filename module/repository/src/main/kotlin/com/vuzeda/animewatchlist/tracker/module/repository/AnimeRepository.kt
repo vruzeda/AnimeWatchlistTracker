@@ -9,6 +9,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.EpisodePage
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchFilterState
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
+import com.vuzeda.animewatchlist.tracker.module.domain.SearchResultPage
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonData
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonalAnimePage
@@ -41,8 +42,9 @@ interface AnimeRepository {
 
     suspend fun searchAnime(
         query: String,
-        filterState: SearchFilterState = SearchFilterState()
-    ): Result<List<SearchResult>>
+        filterState: SearchFilterState = SearchFilterState(),
+        page: Int = 1
+    ): Result<SearchResultPage>
 
     suspend fun fetchAnimeFullById(malId: Int): Result<AnimeFullDetails>
 

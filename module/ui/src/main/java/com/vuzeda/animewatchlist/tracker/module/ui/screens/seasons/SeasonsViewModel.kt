@@ -169,6 +169,7 @@ class SeasonsViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoadingMore = true) }
             val nextPage = state.currentPage + 1
+            analyticsTracker.track(AnalyticsEvent.LoadMoreResults("seasons", nextPage))
             getSeasonAnimeUseCase(
                 year = state.selectedYear,
                 season = state.selectedSeason,

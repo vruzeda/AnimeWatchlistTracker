@@ -9,6 +9,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.EpisodePage
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchFilterState
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
+import com.vuzeda.animewatchlist.tracker.module.domain.SearchResultPage
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonData
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonalAnimePage
@@ -116,9 +117,10 @@ class AnimeRepositoryImpl @Inject constructor(
 
     override suspend fun searchAnime(
         query: String,
-        filterState: SearchFilterState
-    ): Result<List<SearchResult>> =
-        animeRemoteDataSource.searchAnime(query = query, filterState = filterState)
+        filterState: SearchFilterState,
+        page: Int
+    ): Result<SearchResultPage> =
+        animeRemoteDataSource.searchAnime(query = query, filterState = filterState, page = page)
 
     override suspend fun fetchAnimeFullById(malId: Int): Result<AnimeFullDetails> =
         animeRemoteDataSource.fetchAnimeFullById(malId)
