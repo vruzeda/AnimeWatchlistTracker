@@ -1,6 +1,7 @@
 package com.vuzeda.animewatchlist.tracker.module.usecase
 
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonalAnimePage
 import com.vuzeda.animewatchlist.tracker.module.repository.AnimeRepository
 import javax.inject.Inject
@@ -13,10 +14,12 @@ class GetSeasonAnimeUseCase @Inject constructor(
     suspend operator fun invoke(
         year: Int,
         season: AnimeSeason,
-        page: Int = 1
+        page: Int = 1,
+        filter: AnimeSearchType = AnimeSearchType.ALL
     ): Result<SeasonalAnimePage> = animeRepository.fetchSeasonAnime(
         year = year,
         season = season,
-        page = page
+        page = page,
+        filter = filter
     )
 }

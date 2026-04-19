@@ -5,18 +5,19 @@ import androidx.lifecycle.viewModelScope
 import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsEvent
 import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsTracker
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchOrderBy
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchStatus
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
-import com.vuzeda.animewatchlist.tracker.module.domain.SearchSortOption
-import com.vuzeda.animewatchlist.tracker.module.domain.SearchSortState
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddAnimeFromDetailsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FetchSeasonDetailUseCase
-import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSearchSortStateUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSearchFilterStateUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveWatchlistMalIdsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.RemoveAnimeByMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SearchAnimeUseCase
-import com.vuzeda.animewatchlist.tracker.module.usecase.SetSearchSortStateUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.SetSearchFilterStateUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,12 +35,11 @@ class SearchViewModel @Inject constructor(
     private val removeAnimeByMalIdUseCase: RemoveAnimeByMalIdUseCase,
     private val observeWatchlistMalIdsUseCase: ObserveWatchlistMalIdsUseCase,
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase,
-    private val observeSearchSortStateUseCase: ObserveSearchSortStateUseCase,
-    private val setSearchSortStateUseCase: SetSearchSortStateUseCase,
+    private val observeSearchFilterStateUseCase: ObserveSearchFilterStateUseCase,
+    private val setSearchFilterStateUseCase: SetSearchFilterStateUseCase,
     private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
-    private val _rawResults = MutableStateFlow<List<SearchResult>>(emptyList())
     private val _uiState = MutableStateFlow(SearchUiState())
     val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
 
@@ -48,26 +48,28 @@ class SearchViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             combine(
-                _rawResults,
-                observeSearchSortStateUseCase(),
+                observeSearchFilterStateUseCase(),
                 observeTitleLanguageUseCase(),
                 observeWatchlistMalIdsUseCase()
-            ) { results, sortState, titleLanguage, watchlistMalIds ->
+            ) { filterState, titleLanguage, watchlistMalIds ->
                 SearchDisplayData(
-                    displayedResults = sortResults(results, sortState.option, sortState.isAscending),
-                    sortState = sortState,
+                    filterState = filterState,
                     titleLanguage = titleLanguage,
                     addedMalIds = watchlistMalIds
                 )
             }.collect { data ->
+                val previousFilter = _uiState.value.filterState
+                val hasSearched = _uiState.value.hasSearched
+                val query = _uiState.value.query.trim()
                 _uiState.update {
                     it.copy(
-                        displayedResults = data.displayedResults,
-                        sortOption = data.sortState.option,
-                        isSortAscending = data.sortState.isAscending,
+                        filterState = data.filterState,
                         titleLanguage = data.titleLanguage,
                         addedMalIds = data.addedMalIds
                     )
+                }
+                if (data.filterState != previousFilter && hasSearched && query.isNotBlank()) {
+                    performSearch(query)
                 }
             }
         }
@@ -80,12 +82,15 @@ class SearchViewModel @Inject constructor(
     fun search() {
         val query = _uiState.value.query.trim()
         if (query.isBlank()) return
+        performSearch(query)
+    }
 
+    private fun performSearch(query: String) {
+        val filterState = _uiState.value.filterState
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            searchAnimeUseCase(query)
+            searchAnimeUseCase(query, filterState)
                 .onSuccess { results ->
-                    _rawResults.value = results
                     _uiState.update {
                         it.copy(
                             results = results,
@@ -116,12 +121,12 @@ class SearchViewModel @Inject constructor(
         if (!_uiState.value.hasSearched) return
         val query = _uiState.value.query.trim()
         if (query.isBlank()) return
+        val filterState = _uiState.value.filterState
 
         viewModelScope.launch {
             _uiState.update { it.copy(isRefreshing = true, errorMessage = null) }
-            searchAnimeUseCase(query)
+            searchAnimeUseCase(query, filterState)
                 .onSuccess { results ->
-                    _rawResults.value = results
                     _uiState.update { it.copy(results = results, isRefreshing = false) }
                 }
                 .onFailure { error ->
@@ -130,13 +135,27 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    fun selectSort(option: SearchSortOption) {
-        val currentState = _uiState.value
-        val isAscending = if (option == currentState.sortOption) !currentState.isSortAscending else option.defaultAscending
+    fun selectSort(orderBy: AnimeSearchOrderBy) {
+        val current = _uiState.value.filterState
+        val isAscending = if (orderBy == current.orderBy) !current.isAscending else orderBy.defaultAscending
         viewModelScope.launch {
-            setSearchSortStateUseCase(SearchSortState(option, isAscending))
+            setSearchFilterStateUseCase(current.copy(orderBy = orderBy, isAscending = isAscending))
         }
-        analyticsTracker.track(AnalyticsEvent.SelectSort("search", option.name, isAscending))
+        analyticsTracker.track(AnalyticsEvent.SelectSort("search", orderBy.name, isAscending))
+    }
+
+    fun selectType(type: AnimeSearchType) {
+        viewModelScope.launch {
+            setSearchFilterStateUseCase(_uiState.value.filterState.copy(type = type))
+        }
+        analyticsTracker.track(AnalyticsEvent.SelectFilter("search_type", type.name))
+    }
+
+    fun selectStatus(status: AnimeSearchStatus) {
+        viewModelScope.launch {
+            setSearchFilterStateUseCase(_uiState.value.filterState.copy(status = status))
+        }
+        analyticsTracker.track(AnalyticsEvent.SelectFilter("search_status", status.name))
     }
 
     fun onResultClick(result: SearchResult) {
@@ -216,19 +235,4 @@ class SearchViewModel @Inject constructor(
     fun onNavigated() {
         _uiState.update { it.copy(pendingNavigationMalId = null) }
     }
-
-}
-
-fun sortResults(
-    results: List<SearchResult>,
-    sortOption: SearchSortOption,
-    isAscending: Boolean = sortOption.defaultAscending
-): List<SearchResult> {
-    val sorted = when (sortOption) {
-        SearchSortOption.DEFAULT -> results
-        SearchSortOption.ALPHABETICAL -> results.sortedBy { it.title.lowercase() }
-        SearchSortOption.SCORE -> results.sortedByDescending { it.score ?: 0.0 }
-    }
-    val shouldReverse = isAscending != sortOption.defaultAscending
-    return if (shouldReverse && sortOption != SearchSortOption.DEFAULT) sorted.reversed() else sorted
 }

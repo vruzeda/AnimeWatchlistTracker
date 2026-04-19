@@ -39,8 +39,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.AnimeCard
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.ConfirmationDialog
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.EmptyStateMessage
+import com.vuzeda.animewatchlist.tracker.module.designsystem.component.FilterMenuButton
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.SeasonPickerRow
-import com.vuzeda.animewatchlist.tracker.module.designsystem.component.SortMenuButton
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusOption
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusSelectionSheet
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
@@ -49,13 +49,14 @@ import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.LoadingIndica
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SubtleSpacing
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
-import com.vuzeda.animewatchlist.tracker.module.domain.SeasonsSortOption
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
 import com.vuzeda.animewatchlist.tracker.module.ui.R
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.home.toColor
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.home.toDisplayLabelRes
+import com.vuzeda.animewatchlist.tracker.module.ui.screens.search.displayLabelRes
 
 @Composable
 fun SeasonsScreenRoute(
@@ -76,7 +77,7 @@ fun SeasonsScreenRoute(
         uiState = uiState,
         onPreviousSeason = viewModel::selectPreviousSeason,
         onNextSeason = viewModel::selectNextSeason,
-        onSortSelected = viewModel::selectSort,
+        onFilterSelected = viewModel::selectFilter,
         onResultClick = viewModel::onResultClick,
         onAddClick = viewModel::onAddClick,
         onRemoveClick = viewModel::onRemoveClick,
@@ -96,7 +97,7 @@ fun SeasonsScreen(
     uiState: SeasonsUiState,
     onPreviousSeason: () -> Unit,
     onNextSeason: () -> Unit,
-    onSortSelected: (SeasonsSortOption) -> Unit,
+    onFilterSelected: (AnimeSearchType) -> Unit,
     onResultClick: (SearchResult) -> Unit,
     onAddClick: (SearchResult) -> Unit,
     onRemoveClick: (SearchResult) -> Unit,
@@ -120,7 +121,7 @@ fun SeasonsScreen(
 
     val seasonLabel = seasonDisplayLabel(uiState.selectedSeason)
     val pickerLabel = stringResource(R.string.seasons_picker_label, seasonLabel, uiState.selectedYear)
-    val sortOptions = SeasonsSortOption.entries.map { stringResource(it.displayLabelRes) }
+    val filterOptions = AnimeSearchType.entries.map { stringResource(it.displayLabelRes) }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -130,14 +131,12 @@ fun SeasonsScreen(
                 title = { Text(stringResource(R.string.seasons_title)) },
                 windowInsets = WindowInsets(0, 0, 0, 0),
                 actions = {
-                    if (uiState.animeList.isNotEmpty()) {
-                        SortMenuButton(
-                            options = sortOptions,
-                            selectedIndex = uiState.sortOption.ordinal,
-                            isAscending = uiState.isSortAscending,
-                            onOptionSelected = { index -> onSortSelected(SeasonsSortOption.entries[index]) }
-                        )
-                    }
+                    FilterMenuButton(
+                        options = filterOptions,
+                        selectedIndex = uiState.seasonFilter.ordinal,
+                        isActive = uiState.seasonFilter != AnimeSearchType.TV,
+                        onOptionSelected = { index -> onFilterSelected(AnimeSearchType.entries[index]) }
+                    )
                 }
             )
         }
@@ -204,7 +203,7 @@ fun SeasonsScreen(
                             verticalArrangement = Arrangement.spacedBy(ElementSpacing)
                         ) {
                             items(
-                                items = uiState.displayedAnimeList,
+                                items = uiState.animeList,
                                 key = { it.malId }
                             ) { result ->
                                 val isAdded = result.malId in uiState.addedMalIds

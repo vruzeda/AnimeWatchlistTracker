@@ -2,9 +2,11 @@ package com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit
 
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
 import com.vuzeda.animewatchlist.tracker.module.domain.DataError
 import com.vuzeda.animewatchlist.tracker.module.domain.EpisodeInfo
 import com.vuzeda.animewatchlist.tracker.module.domain.EpisodePage
+import com.vuzeda.animewatchlist.tracker.module.domain.SearchFilterState
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonData
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonalAnimePage
@@ -27,8 +29,21 @@ class AnimeRemoteDataSourceImpl @Inject constructor(
     private val chiakiService: ChiakiService
 ) : AnimeRemoteDataSource {
 
-    override suspend fun searchAnime(query: String): Result<List<SearchResult>> = safeApiCall {
-        jikanApiService.searchAnime(query = query).data
+    override suspend fun searchAnime(
+        query: String,
+        filterState: SearchFilterState
+    ): Result<List<SearchResult>> = safeApiCall {
+        jikanApiService.searchAnime(
+            query = query,
+            type = filterState.type.apiValue,
+            status = filterState.status.apiValue,
+            orderBy = filterState.orderBy.apiValue,
+            sort = if (filterState.orderBy.apiValue != null) {
+                if (filterState.isAscending) "asc" else "desc"
+            } else {
+                null
+            }
+        ).data
             .map { it.toSearchResult() }
             .distinctBy { it.malId }
     }
@@ -83,12 +98,14 @@ class AnimeRemoteDataSourceImpl @Inject constructor(
     override suspend fun fetchSeasonAnime(
         year: Int,
         season: AnimeSeason,
-        page: Int
+        page: Int,
+        filter: AnimeSearchType
     ): Result<SeasonalAnimePage> = safeApiCall {
         jikanApiService.getSeasonAnime(
             year = year,
             season = season.apiValue,
-            page = page
+            page = page,
+            filter = filter.apiValue
         ).toSeasonalAnimePage(currentPage = page)
     }
 }

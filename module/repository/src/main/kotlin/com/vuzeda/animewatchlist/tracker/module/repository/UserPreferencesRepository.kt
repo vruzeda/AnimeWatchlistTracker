@@ -1,9 +1,9 @@
 package com.vuzeda.animewatchlist.tracker.module.repository
 
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeSortState
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
-import com.vuzeda.animewatchlist.tracker.module.domain.SearchSortState
-import com.vuzeda.animewatchlist.tracker.module.domain.SeasonsSortState
+import com.vuzeda.animewatchlist.tracker.module.domain.SearchFilterState
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import kotlinx.coroutines.flow.Flow
@@ -22,13 +22,13 @@ interface UserPreferencesRepository {
 
     suspend fun setHomeSortState(state: HomeSortState)
 
-    fun observeSeasonsSortState(): Flow<SeasonsSortState>
+    fun observeSeasonFilter(): Flow<AnimeSearchType>
 
-    suspend fun setSeasonsSortState(state: SeasonsSortState)
+    suspend fun setSeasonFilter(filter: AnimeSearchType)
 
-    fun observeSearchSortState(): Flow<SearchSortState>
+    fun observeSearchFilterState(): Flow<SearchFilterState>
 
-    suspend fun setSearchSortState(state: SearchSortState)
+    suspend fun setSearchFilterState(state: SearchFilterState)
 
     fun observeHomeStatusFilter(): Flow<Set<WatchStatus>>
 

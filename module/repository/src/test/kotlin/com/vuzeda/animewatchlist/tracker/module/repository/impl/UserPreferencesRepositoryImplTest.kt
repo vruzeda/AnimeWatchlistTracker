@@ -5,10 +5,10 @@ import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeSortOption
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeSortState
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
-import com.vuzeda.animewatchlist.tracker.module.domain.SearchSortOption
-import com.vuzeda.animewatchlist.tracker.module.domain.SearchSortState
-import com.vuzeda.animewatchlist.tracker.module.domain.SeasonsSortOption
-import com.vuzeda.animewatchlist.tracker.module.domain.SeasonsSortState
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchOrderBy
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchStatus
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
+import com.vuzeda.animewatchlist.tracker.module.domain.SearchFilterState
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.UserPreferencesLocalDataSource
@@ -323,83 +323,94 @@ class UserPreferencesRepositoryImplTest {
     }
 
     @Test
-    fun `observeSeasonsSortState returns DEFAULT ascending for default stored value`() = runTest {
-        every { dataSource.observeSeasonsSortState() } returns flowOf("DEFAULT:true")
+    fun `observeSeasonFilter returns TV for stored TV value`() = runTest {
+        every { dataSource.observeSeasonFilter() } returns flowOf("TV")
 
-        repository.observeSeasonsSortState().test {
-            assertThat(awaitItem()).isEqualTo(SeasonsSortState(SeasonsSortOption.DEFAULT, true))
+        repository.observeSeasonFilter().test {
+            assertThat(awaitItem()).isEqualTo(AnimeSearchType.TV)
             awaitComplete()
         }
     }
 
     @Test
-    fun `observeSeasonsSortState returns correct state for SCORE descending`() = runTest {
-        every { dataSource.observeSeasonsSortState() } returns flowOf("SCORE:false")
+    fun `observeSeasonFilter returns MOVIE for stored MOVIE value`() = runTest {
+        every { dataSource.observeSeasonFilter() } returns flowOf("MOVIE")
 
-        repository.observeSeasonsSortState().test {
-            assertThat(awaitItem()).isEqualTo(SeasonsSortState(SeasonsSortOption.SCORE, false))
+        repository.observeSeasonFilter().test {
+            assertThat(awaitItem()).isEqualTo(AnimeSearchType.MOVIE)
             awaitComplete()
         }
     }
 
     @Test
-    fun `observeSeasonsSortState falls back to DEFAULT for unknown option`() = runTest {
-        every { dataSource.observeSeasonsSortState() } returns flowOf("UNKNOWN:true")
+    fun `observeSeasonFilter falls back to TV for unknown value`() = runTest {
+        every { dataSource.observeSeasonFilter() } returns flowOf("UNKNOWN")
 
-        repository.observeSeasonsSortState().test {
+        repository.observeSeasonFilter().test {
+            assertThat(awaitItem()).isEqualTo(AnimeSearchType.TV)
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `setSeasonFilter serialises filter name to data source`() = runTest {
+        coEvery { dataSource.setSeasonFilter(any()) } returns Unit
+
+        repository.setSeasonFilter(AnimeSearchType.OVA)
+
+        coVerify { dataSource.setSeasonFilter("OVA") }
+    }
+
+    @Test
+    fun `observeSearchFilterState returns default state for default stored value`() = runTest {
+        every { dataSource.observeSearchFilterState() } returns flowOf("ALL:ALL:DEFAULT:true")
+
+        repository.observeSearchFilterState().test {
+            assertThat(awaitItem()).isEqualTo(SearchFilterState())
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `observeSearchFilterState parses all fields correctly`() = runTest {
+        every { dataSource.observeSearchFilterState() } returns flowOf("MOVIE:AIRING:SCORE:false")
+
+        repository.observeSearchFilterState().test {
             val result = awaitItem()
-            assertThat(result.option).isEqualTo(SeasonsSortOption.DEFAULT)
+            assertThat(result.type).isEqualTo(AnimeSearchType.MOVIE)
+            assertThat(result.status).isEqualTo(AnimeSearchStatus.AIRING)
+            assertThat(result.orderBy).isEqualTo(AnimeSearchOrderBy.SCORE)
+            assertThat(result.isAscending).isFalse()
             awaitComplete()
         }
     }
 
     @Test
-    fun `setSeasonsSortState serialises option and ascending to data source`() = runTest {
-        coEvery { dataSource.setSeasonsSortState(any()) } returns Unit
+    fun `observeSearchFilterState falls back to defaults for unknown values`() = runTest {
+        every { dataSource.observeSearchFilterState() } returns flowOf("UNKNOWN:UNKNOWN:UNKNOWN:bad")
 
-        repository.setSeasonsSortState(SeasonsSortState(SeasonsSortOption.ALPHABETICAL, true))
-
-        coVerify { dataSource.setSeasonsSortState("ALPHABETICAL:true") }
-    }
-
-    @Test
-    fun `observeSearchSortState returns DEFAULT ascending for default stored value`() = runTest {
-        every { dataSource.observeSearchSortState() } returns flowOf("DEFAULT:true")
-
-        repository.observeSearchSortState().test {
-            assertThat(awaitItem()).isEqualTo(SearchSortState(SearchSortOption.DEFAULT, true))
-            awaitComplete()
-        }
-    }
-
-    @Test
-    fun `observeSearchSortState returns correct state for ALPHABETICAL ascending`() = runTest {
-        every { dataSource.observeSearchSortState() } returns flowOf("ALPHABETICAL:true")
-
-        repository.observeSearchSortState().test {
-            assertThat(awaitItem()).isEqualTo(SearchSortState(SearchSortOption.ALPHABETICAL, true))
-            awaitComplete()
-        }
-    }
-
-    @Test
-    fun `observeSearchSortState falls back to DEFAULT for unknown option`() = runTest {
-        every { dataSource.observeSearchSortState() } returns flowOf("UNKNOWN:false")
-
-        repository.observeSearchSortState().test {
+        repository.observeSearchFilterState().test {
             val result = awaitItem()
-            assertThat(result.option).isEqualTo(SearchSortOption.DEFAULT)
+            assertThat(result.type).isEqualTo(AnimeSearchType.ALL)
+            assertThat(result.status).isEqualTo(AnimeSearchStatus.ALL)
+            assertThat(result.orderBy).isEqualTo(AnimeSearchOrderBy.DEFAULT)
             awaitComplete()
         }
     }
 
     @Test
-    fun `setSearchSortState serialises option and ascending to data source`() = runTest {
-        coEvery { dataSource.setSearchSortState(any()) } returns Unit
+    fun `setSearchFilterState serialises all fields to data source`() = runTest {
+        coEvery { dataSource.setSearchFilterState(any()) } returns Unit
+        val state = SearchFilterState(
+            type = AnimeSearchType.TV,
+            status = AnimeSearchStatus.UPCOMING,
+            orderBy = AnimeSearchOrderBy.POPULARITY,
+            isAscending = true
+        )
 
-        repository.setSearchSortState(SearchSortState(SearchSortOption.SCORE, false))
+        repository.setSearchFilterState(state)
 
-        coVerify { dataSource.setSearchSortState("SCORE:false") }
+        coVerify { dataSource.setSearchFilterState("TV:UPCOMING:POPULARITY:true") }
     }
 
     @Test

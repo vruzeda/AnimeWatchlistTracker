@@ -1,22 +1,11 @@
 package com.vuzeda.animewatchlist.tracker.module.ui.screens.seasons
 
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
-import com.vuzeda.animewatchlist.tracker.module.domain.SeasonsSortOption
-import com.vuzeda.animewatchlist.tracker.module.domain.SeasonsSortState
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
-import com.vuzeda.animewatchlist.tracker.module.ui.R
-
-val SeasonsSortOption.displayLabelRes: Int
-    get() = when (this) {
-        SeasonsSortOption.DEFAULT -> R.string.seasons_sort_default
-        SeasonsSortOption.ALPHABETICAL -> R.string.sort_alphabetical
-        SeasonsSortOption.SCORE -> R.string.sort_score
-    }
 
 data class SeasonsDisplayData(
-    val displayedAnimeList: List<SearchResult>,
-    val sortState: SeasonsSortState,
     val titleLanguage: TitleLanguage,
     val addedMalIds: Set<Int>
 )
@@ -27,9 +16,7 @@ data class SeasonsUiState(
     val currentYear: Int = 0,
     val currentSeason: AnimeSeason = AnimeSeason.WINTER,
     val animeList: List<SearchResult> = emptyList(),
-    val displayedAnimeList: List<SearchResult> = emptyList(),
-    val sortOption: SeasonsSortOption = SeasonsSortOption.DEFAULT,
-    val isSortAscending: Boolean = SeasonsSortOption.DEFAULT.defaultAscending,
+    val seasonFilter: AnimeSearchType = AnimeSearchType.TV,
     val isLoading: Boolean = false,
     val isLoadingMore: Boolean = false,
     val hasNextPage: Boolean = false,

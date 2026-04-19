@@ -5,20 +5,19 @@ import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsTracker
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonalAnimePage
-import com.vuzeda.animewatchlist.tracker.module.domain.SeasonsSortOption
-import com.vuzeda.animewatchlist.tracker.module.domain.SeasonsSortState
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddAnimeFromDetailsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.GetSeasonAnimeUseCase
-import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSeasonsSortStateUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSeasonFilterUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveWatchlistMalIdsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.RemoveAnimeByMalIdUseCase
-import com.vuzeda.animewatchlist.tracker.module.usecase.SetSeasonsSortStateUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.SetSeasonFilterUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -47,9 +46,9 @@ class SeasonsViewModelTest {
     private val watchlistMalIdsFlow = MutableStateFlow<Set<Int>>(emptySet())
     private val observeWatchlistMalIdsUseCase: ObserveWatchlistMalIdsUseCase = mockk()
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
-    private val seasonsSortStateFlow = MutableStateFlow(SeasonsSortState())
-    private val observeSeasonsSortStateUseCase: ObserveSeasonsSortStateUseCase = mockk()
-    private val setSeasonsSortStateUseCase: SetSeasonsSortStateUseCase = mockk()
+    private val seasonFilterFlow = MutableStateFlow(AnimeSearchType.TV)
+    private val observeSeasonFilterUseCase: ObserveSeasonFilterUseCase = mockk()
+    private val setSeasonFilterUseCase: SetSeasonFilterUseCase = mockk()
     private val analyticsTracker: AnalyticsTracker = mockk(relaxed = true)
 
     private val samplePage = SeasonalAnimePage(
@@ -83,12 +82,12 @@ class SeasonsViewModelTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         watchlistMalIdsFlow.value = emptySet()
-        seasonsSortStateFlow.value = SeasonsSortState()
+        seasonFilterFlow.value = AnimeSearchType.TV
         every { observeWatchlistMalIdsUseCase() } returns watchlistMalIdsFlow
         every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
-        every { observeSeasonsSortStateUseCase() } returns seasonsSortStateFlow
-        coEvery { setSeasonsSortStateUseCase(any()) } answers { seasonsSortStateFlow.value = firstArg() }
-        coEvery { getSeasonAnimeUseCase(any(), any(), any()) } returns Result.success(samplePage)
+        every { observeSeasonFilterUseCase() } returns seasonFilterFlow
+        coEvery { setSeasonFilterUseCase(any()) } answers { seasonFilterFlow.value = firstArg() }
+        coEvery { getSeasonAnimeUseCase(any(), any(), any(), any()) } returns Result.success(samplePage)
     }
 
     @AfterEach
@@ -103,8 +102,8 @@ class SeasonsViewModelTest {
         removeAnimeByMalIdUseCase = removeAnimeByMalIdUseCase,
         observeWatchlistMalIdsUseCase = observeWatchlistMalIdsUseCase,
         observeTitleLanguageUseCase = observeTitleLanguageUseCase,
-        observeSeasonsSortStateUseCase = observeSeasonsSortStateUseCase,
-        setSeasonsSortStateUseCase = setSeasonsSortStateUseCase,
+        observeSeasonFilterUseCase = observeSeasonFilterUseCase,
+        setSeasonFilterUseCase = setSeasonFilterUseCase,
         analyticsTracker = analyticsTracker
     )
 
@@ -118,9 +117,25 @@ class SeasonsViewModelTest {
             val loaded = expectMostRecentItem()
             assertThat(loaded.isLoading).isFalse()
             assertThat(loaded.animeList).hasSize(2)
-            assertThat(loaded.displayedAnimeList).hasSize(2)
-            assertThat(loaded.displayedAnimeList[0].title).isEqualTo("Frieren")
+            assertThat(loaded.animeList[0].title).isEqualTo("Frieren")
             assertThat(loaded.hasNextPage).isTrue()
+        }
+    }
+
+    @Test
+    fun `initial load uses stored season filter`() = runTest {
+        seasonFilterFlow.value = AnimeSearchType.MOVIE
+
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val loaded = expectMostRecentItem()
+            assertThat(loaded.seasonFilter).isEqualTo(AnimeSearchType.MOVIE)
+
+            coVerify { getSeasonAnimeUseCase(any(), any(), any(), AnimeSearchType.MOVIE) }
+            cancelAndIgnoreRemainingEvents()
         }
     }
 
@@ -161,7 +176,7 @@ class SeasonsViewModelTest {
     @Test
     fun `loadMore appends results to existing list`() = runTest {
         coEvery {
-            getSeasonAnimeUseCase(any(), any(), page = 2)
+            getSeasonAnimeUseCase(any(), any(), page = 2, any())
         } returns Result.success(samplePageTwo)
 
         val viewModel = createViewModel()
@@ -184,7 +199,7 @@ class SeasonsViewModelTest {
     @Test
     fun `loadMore does nothing when no next page`() = runTest {
         coEvery {
-            getSeasonAnimeUseCase(any(), any(), any())
+            getSeasonAnimeUseCase(any(), any(), any(), any())
         } returns Result.success(samplePage.copy(hasNextPage = false))
 
         val viewModel = createViewModel()
@@ -202,7 +217,7 @@ class SeasonsViewModelTest {
     @Test
     fun `error state is set on fetch failure`() = runTest {
         coEvery {
-            getSeasonAnimeUseCase(any(), any(), any())
+            getSeasonAnimeUseCase(any(), any(), any(), any())
         } returns Result.failure(IOException("Network error"))
 
         val viewModel = createViewModel()
@@ -372,105 +387,57 @@ class SeasonsViewModelTest {
     }
 
     @Test
-    fun `selectSort by alphabetical sorts displayedAnimeList`() = runTest {
+    fun `selectFilter resets list and reloads with new filter`() = runTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
             testDispatcher.scheduler.advanceUntilIdle()
             expectMostRecentItem()
 
-            viewModel.selectSort(SeasonsSortOption.ALPHABETICAL)
+            viewModel.selectFilter(AnimeSearchType.MOVIE)
+            testDispatcher.scheduler.advanceUntilIdle()
 
-            val sorted = awaitItem()
-            assertThat(sorted.sortOption).isEqualTo(SeasonsSortOption.ALPHABETICAL)
-            assertThat(sorted.isSortAscending).isTrue()
-            assertThat(sorted.displayedAnimeList[0].title).isEqualTo("Frieren")
-            assertThat(sorted.displayedAnimeList[1].title).isEqualTo("Jujutsu Kaisen")
+            val filtered = expectMostRecentItem()
+            assertThat(filtered.seasonFilter).isEqualTo(AnimeSearchType.MOVIE)
+            assertThat(filtered.currentPage).isEqualTo(1)
+
+            coVerify { getSeasonAnimeUseCase(any(), any(), 1, AnimeSearchType.MOVIE) }
         }
     }
 
     @Test
-    fun `selectSort alphabetical uses resolved title based on language preference`() = runTest {
-        val pageWithEnglishTitles = SeasonalAnimePage(
-            results = listOf(
-                SearchResult(malId = 1, title = "Sousou no Frieren", titleEnglish = "Frieren: Beyond Journey's End"),
-                SearchResult(malId = 2, title = "Jujutsu Kaisen", titleEnglish = "Jujutsu Kaisen")
-            ),
-            hasNextPage = false,
-            currentPage = 1
-        )
-        coEvery { getSeasonAnimeUseCase(any(), any(), any()) } returns Result.success(pageWithEnglishTitles)
-        every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.ENGLISH)
-
+    fun `selectFilter does nothing when same filter selected again`() = runTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
             testDispatcher.scheduler.advanceUntilIdle()
             expectMostRecentItem()
 
-            viewModel.selectSort(SeasonsSortOption.ALPHABETICAL)
+            viewModel.selectFilter(AnimeSearchType.TV)
 
-            val sorted = awaitItem()
-            assertThat(sorted.displayedAnimeList[0].title).isEqualTo("Sousou no Frieren")
-            assertThat(sorted.displayedAnimeList[1].title).isEqualTo("Jujutsu Kaisen")
+            expectNoEvents()
         }
     }
 
     @Test
-    fun `selectSort by score sorts displayedAnimeList descending`() = runTest {
+    fun `selectNextSeason preserves current filter`() = runTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
             testDispatcher.scheduler.advanceUntilIdle()
             expectMostRecentItem()
 
-            viewModel.selectSort(SeasonsSortOption.SCORE)
-
-            val sorted = awaitItem()
-            assertThat(sorted.sortOption).isEqualTo(SeasonsSortOption.SCORE)
-            assertThat(sorted.isSortAscending).isFalse()
-            assertThat(sorted.displayedAnimeList[0].title).isEqualTo("Frieren")
-            assertThat(sorted.displayedAnimeList[1].title).isEqualTo("Jujutsu Kaisen")
-        }
-    }
-
-    @Test
-    fun `selectSort toggles ascending when same option selected twice`() = runTest {
-        val viewModel = createViewModel()
-
-        viewModel.uiState.test {
+            viewModel.selectFilter(AnimeSearchType.MOVIE)
             testDispatcher.scheduler.advanceUntilIdle()
             expectMostRecentItem()
-
-            viewModel.selectSort(SeasonsSortOption.ALPHABETICAL)
-            val first = awaitItem()
-            assertThat(first.isSortAscending).isTrue()
-
-            viewModel.selectSort(SeasonsSortOption.ALPHABETICAL)
-            val toggled = awaitItem()
-            assertThat(toggled.isSortAscending).isFalse()
-            assertThat(toggled.displayedAnimeList[0].title).isEqualTo("Jujutsu Kaisen")
-            assertThat(toggled.displayedAnimeList[1].title).isEqualTo("Frieren")
-        }
-    }
-
-    @Test
-    fun `selectNextSeason preserves sort option`() = runTest {
-        val viewModel = createViewModel()
-
-        viewModel.uiState.test {
-            testDispatcher.scheduler.advanceUntilIdle()
-            expectMostRecentItem()
-
-            viewModel.selectSort(SeasonsSortOption.SCORE)
-            awaitItem()
 
             viewModel.selectNextSeason()
             testDispatcher.scheduler.advanceUntilIdle()
 
             val loaded = expectMostRecentItem()
-            assertThat(loaded.sortOption).isEqualTo(SeasonsSortOption.SCORE)
-            assertThat(loaded.isSortAscending).isFalse()
+            assertThat(loaded.seasonFilter).isEqualTo(AnimeSearchType.MOVIE)
+
+            coVerify { getSeasonAnimeUseCase(any(), any(), 1, AnimeSearchType.MOVIE) }
         }
     }
 

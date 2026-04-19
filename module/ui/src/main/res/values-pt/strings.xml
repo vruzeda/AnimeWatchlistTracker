@@ -16,6 +16,32 @@
     <!-- Search sort options -->
     <string name="sort_relevance">Relevância</string>
     <string name="sort_score">Pontuação</string>
+    <string name="search_order_default">Padrão</string>
+    <string name="search_order_score">Pontuação</string>
+    <string name="search_order_rank">Ranking</string>
+    <string name="search_order_popularity">Popularidade</string>
+    <string name="search_order_members">Membros</string>
+    <string name="search_order_favorites">Favoritos</string>
+    <string name="search_order_start_date">Data de estreia</string>
+    <string name="search_order_title">Título (Romaji)</string>
+
+    <!-- Search filter groups -->
+    <string name="search_filter_group_type">Tipo</string>
+    <string name="search_filter_group_status">Status</string>
+
+    <!-- Anime type filter options -->
+    <string name="anime_type_all">Todos</string>
+    <string name="anime_type_tv">TV</string>
+    <string name="anime_type_movie">Filme</string>
+    <string name="anime_type_ova">OVA</string>
+    <string name="anime_type_special">Especial</string>
+    <string name="anime_type_ona">ONA</string>
+    <string name="anime_type_music">Música</string>
+
+    <!-- Search status filter options -->
+    <string name="search_status_airing">Em exibição</string>
+    <string name="search_status_complete">Concluído</string>
+    <string name="search_status_upcoming">Em breve</string>
 
     <!-- Search filter tabs -->
     <string name="filter_all">Todos</string>

@@ -1,13 +1,13 @@
 package com.vuzeda.animewatchlist.tracker.module.usecase
 
-import com.vuzeda.animewatchlist.tracker.module.domain.SearchSortState
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
 import com.vuzeda.animewatchlist.tracker.module.repository.UserPreferencesRepository
 import javax.inject.Inject
 
-class SetSearchSortStateUseCase @Inject constructor(
+class SetSeasonFilterUseCase @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository
 ) {
 
-    suspend operator fun invoke(state: SearchSortState) =
-        userPreferencesRepository.setSearchSortState(state)
+    suspend operator fun invoke(filter: AnimeSearchType) =
+        userPreferencesRepository.setSeasonFilter(filter)
 }

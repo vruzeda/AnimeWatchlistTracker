@@ -1,14 +1,14 @@
 package com.vuzeda.animewatchlist.tracker.module.usecase
 
-import com.vuzeda.animewatchlist.tracker.module.domain.SearchSortState
+import com.vuzeda.animewatchlist.tracker.module.domain.SearchFilterState
 import com.vuzeda.animewatchlist.tracker.module.repository.UserPreferencesRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class ObserveSearchSortStateUseCase @Inject constructor(
+class ObserveSearchFilterStateUseCase @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository
 ) {
 
-    operator fun invoke(): Flow<SearchSortState> =
-        userPreferencesRepository.observeSearchSortState()
+    operator fun invoke(): Flow<SearchFilterState> =
+        userPreferencesRepository.observeSearchFilterState()
 }

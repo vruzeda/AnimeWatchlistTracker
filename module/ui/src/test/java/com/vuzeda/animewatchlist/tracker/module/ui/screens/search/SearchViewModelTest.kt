@@ -4,19 +4,21 @@ import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsTracker
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchOrderBy
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchStatus
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
+import com.vuzeda.animewatchlist.tracker.module.domain.SearchFilterState
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
-import com.vuzeda.animewatchlist.tracker.module.domain.SearchSortOption
-import com.vuzeda.animewatchlist.tracker.module.domain.SearchSortState
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddAnimeFromDetailsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FetchSeasonDetailUseCase
-import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSearchSortStateUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSearchFilterStateUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveWatchlistMalIdsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.RemoveAnimeByMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SearchAnimeUseCase
-import com.vuzeda.animewatchlist.tracker.module.usecase.SetSearchSortStateUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.SetSearchFilterStateUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -45,9 +47,9 @@ class SearchViewModelTest {
     private val watchlistMalIdsFlow = MutableStateFlow<Set<Int>>(emptySet())
     private val observeWatchlistMalIdsUseCase: ObserveWatchlistMalIdsUseCase = mockk()
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
-    private val searchSortStateFlow = MutableStateFlow(SearchSortState())
-    private val observeSearchSortStateUseCase: ObserveSearchSortStateUseCase = mockk()
-    private val setSearchSortStateUseCase: SetSearchSortStateUseCase = mockk()
+    private val searchFilterStateFlow = MutableStateFlow(SearchFilterState())
+    private val observeSearchFilterStateUseCase: ObserveSearchFilterStateUseCase = mockk()
+    private val setSearchFilterStateUseCase: SetSearchFilterStateUseCase = mockk()
     private val analyticsTracker: AnalyticsTracker = mockk(relaxed = true)
 
     private lateinit var viewModel: SearchViewModel
@@ -72,11 +74,11 @@ class SearchViewModelTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         watchlistMalIdsFlow.value = emptySet()
-        searchSortStateFlow.value = SearchSortState()
+        searchFilterStateFlow.value = SearchFilterState()
         every { observeWatchlistMalIdsUseCase() } returns watchlistMalIdsFlow
         every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
-        every { observeSearchSortStateUseCase() } returns searchSortStateFlow
-        coEvery { setSearchSortStateUseCase(any()) } answers { searchSortStateFlow.value = firstArg() }
+        every { observeSearchFilterStateUseCase() } returns searchFilterStateFlow
+        coEvery { setSearchFilterStateUseCase(any()) } answers { searchFilterStateFlow.value = firstArg() }
         viewModel = SearchViewModel(
             searchAnimeUseCase = searchAnimeUseCase,
             fetchSeasonDetailUseCase = fetchSeasonDetailUseCase,
@@ -84,8 +86,8 @@ class SearchViewModelTest {
             removeAnimeByMalIdUseCase = removeAnimeByMalIdUseCase,
             observeWatchlistMalIdsUseCase = observeWatchlistMalIdsUseCase,
             observeTitleLanguageUseCase = observeTitleLanguageUseCase,
-            observeSearchSortStateUseCase = observeSearchSortStateUseCase,
-            setSearchSortStateUseCase = setSearchSortStateUseCase,
+            observeSearchFilterStateUseCase = observeSearchFilterStateUseCase,
+            setSearchFilterStateUseCase = setSearchFilterStateUseCase,
             analyticsTracker = analyticsTracker
         )
     }
@@ -120,7 +122,7 @@ class SearchViewModelTest {
 
     @Test
     fun `search with results updates state correctly`() = runTest {
-        coEvery { searchAnimeUseCase("one punch") } returns Result.success(listOf(sampleResult))
+        coEvery { searchAnimeUseCase("one punch", any()) } returns Result.success(listOf(sampleResult))
 
         viewModel.uiState.test {
             awaitItem()
@@ -134,7 +136,6 @@ class SearchViewModelTest {
             val loaded = expectMostRecentItem()
             assertThat(loaded.isLoading).isFalse()
             assertThat(loaded.results).hasSize(1)
-            assertThat(loaded.displayedResults).hasSize(1)
             assertThat(loaded.results[0].title).isEqualTo("One Punch Man")
             assertThat(loaded.hasSearched).isTrue()
         }
@@ -142,7 +143,7 @@ class SearchViewModelTest {
 
     @Test
     fun `search with error updates error state`() = runTest {
-        coEvery { searchAnimeUseCase("test") } returns Result.failure(IOException("Network error"))
+        coEvery { searchAnimeUseCase("test", any()) } returns Result.failure(IOException("Network error"))
 
         viewModel.uiState.test {
             awaitItem()
@@ -276,8 +277,8 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun `selectSort toggles direction when same option is selected again`() = runTest {
-        coEvery { searchAnimeUseCase("anime") } returns Result.success(multiResults)
+    fun `selectSort toggles direction when same orderBy is selected again`() = runTest {
+        coEvery { searchAnimeUseCase("anime", any()) } returns Result.success(multiResults)
 
         viewModel.uiState.test {
             awaitItem()
@@ -288,21 +289,23 @@ class SearchViewModelTest {
             testDispatcher.scheduler.advanceUntilIdle()
             expectMostRecentItem()
 
-            viewModel.selectSort(SearchSortOption.ALPHABETICAL)
-            val ascending = awaitItem()
-            assertThat(ascending.isSortAscending).isTrue()
-            assertThat(ascending.displayedResults[0].title).isEqualTo("Attack on Titan")
+            viewModel.selectSort(AnimeSearchOrderBy.SCORE)
+            testDispatcher.scheduler.advanceUntilIdle()
+            val firstSelect = expectMostRecentItem()
+            assertThat(firstSelect.filterState.orderBy).isEqualTo(AnimeSearchOrderBy.SCORE)
+            assertThat(firstSelect.filterState.isAscending).isFalse()
 
-            viewModel.selectSort(SearchSortOption.ALPHABETICAL)
-            val descending = awaitItem()
-            assertThat(descending.isSortAscending).isFalse()
-            assertThat(descending.displayedResults[0].title).isEqualTo("One Punch Man")
+            viewModel.selectSort(AnimeSearchOrderBy.SCORE)
+            testDispatcher.scheduler.advanceUntilIdle()
+            val toggled = expectMostRecentItem()
+            assertThat(toggled.filterState.orderBy).isEqualTo(AnimeSearchOrderBy.SCORE)
+            assertThat(toggled.filterState.isAscending).isTrue()
         }
     }
 
     @Test
-    fun `selectSort with ALPHABETICAL sorts results by title`() = runTest {
-        coEvery { searchAnimeUseCase("anime") } returns Result.success(multiResults)
+    fun `selectSort with new orderBy uses defaultAscending`() = runTest {
+        coEvery { searchAnimeUseCase("anime", any()) } returns Result.success(multiResults)
 
         viewModel.uiState.test {
             awaitItem()
@@ -313,19 +316,18 @@ class SearchViewModelTest {
             testDispatcher.scheduler.advanceUntilIdle()
             expectMostRecentItem()
 
-            viewModel.selectSort(SearchSortOption.ALPHABETICAL)
+            viewModel.selectSort(AnimeSearchOrderBy.TITLE)
+            testDispatcher.scheduler.advanceUntilIdle()
 
-            val sorted = awaitItem()
-            assertThat(sorted.sortOption).isEqualTo(SearchSortOption.ALPHABETICAL)
-            assertThat(sorted.displayedResults[0].title).isEqualTo("Attack on Titan")
-            assertThat(sorted.displayedResults[1].title).isEqualTo("Bleach")
-            assertThat(sorted.displayedResults[2].title).isEqualTo("One Punch Man")
+            val sorted = expectMostRecentItem()
+            assertThat(sorted.filterState.orderBy).isEqualTo(AnimeSearchOrderBy.TITLE)
+            assertThat(sorted.filterState.isAscending).isTrue()
         }
     }
 
     @Test
-    fun `selectSort with SCORE sorts results by score descending`() = runTest {
-        coEvery { searchAnimeUseCase("anime") } returns Result.success(multiResults)
+    fun `selectType updates filterState type and triggers re-search`() = runTest {
+        coEvery { searchAnimeUseCase("anime", any()) } returns Result.success(multiResults)
 
         viewModel.uiState.test {
             awaitItem()
@@ -336,12 +338,66 @@ class SearchViewModelTest {
             testDispatcher.scheduler.advanceUntilIdle()
             expectMostRecentItem()
 
-            viewModel.selectSort(SearchSortOption.SCORE)
+            viewModel.selectType(AnimeSearchType.MOVIE)
+            testDispatcher.scheduler.advanceUntilIdle()
 
-            val sorted = awaitItem()
-            assertThat(sorted.displayedResults[0].title).isEqualTo("Attack on Titan")
-            assertThat(sorted.displayedResults[1].title).isEqualTo("One Punch Man")
-            assertThat(sorted.displayedResults[2].title).isEqualTo("Bleach")
+            val updated = expectMostRecentItem()
+            assertThat(updated.filterState.type).isEqualTo(AnimeSearchType.MOVIE)
+        }
+    }
+
+    @Test
+    fun `selectStatus updates filterState status and triggers re-search`() = runTest {
+        coEvery { searchAnimeUseCase("anime", any()) } returns Result.success(multiResults)
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            viewModel.updateQuery("anime")
+            awaitItem()
+            viewModel.search()
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.selectStatus(AnimeSearchStatus.AIRING)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val updated = expectMostRecentItem()
+            assertThat(updated.filterState.status).isEqualTo(AnimeSearchStatus.AIRING)
+        }
+    }
+
+    @Test
+    fun `filter change re-triggers search when hasSearched is true`() = runTest {
+        coEvery { searchAnimeUseCase(any(), any()) } returns Result.success(multiResults)
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            viewModel.updateQuery("anime")
+            awaitItem()
+            viewModel.search()
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            searchFilterStateFlow.value = SearchFilterState(type = AnimeSearchType.TV)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            coVerify(atLeast = 2) { searchAnimeUseCase(any(), any()) }
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `filter change does not trigger search when hasSearched is false`() = runTest {
+        viewModel.uiState.test {
+            awaitItem()
+
+            searchFilterStateFlow.value = SearchFilterState(type = AnimeSearchType.MOVIE)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            coVerify(exactly = 0) { searchAnimeUseCase(any(), any()) }
+            cancelAndIgnoreRemainingEvents()
         }
     }
 
@@ -386,7 +442,7 @@ class SearchViewModelTest {
 
     @Test
     fun `refresh re-runs search and updates results`() = runTest {
-        coEvery { searchAnimeUseCase("one punch") } returns Result.success(listOf(sampleResult))
+        coEvery { searchAnimeUseCase("one punch", any()) } returns Result.success(listOf(sampleResult))
 
         viewModel.uiState.test {
             awaitItem()

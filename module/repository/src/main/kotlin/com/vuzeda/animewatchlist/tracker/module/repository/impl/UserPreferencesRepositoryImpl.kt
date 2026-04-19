@@ -1,12 +1,12 @@
 package com.vuzeda.animewatchlist.tracker.module.repository.impl
 
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchOrderBy
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchStatus
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeSortOption
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeSortState
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
-import com.vuzeda.animewatchlist.tracker.module.domain.SearchSortOption
-import com.vuzeda.animewatchlist.tracker.module.domain.SearchSortState
-import com.vuzeda.animewatchlist.tracker.module.domain.SeasonsSortOption
-import com.vuzeda.animewatchlist.tracker.module.domain.SeasonsSortState
+import com.vuzeda.animewatchlist.tracker.module.domain.SearchFilterState
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.UserPreferencesLocalDataSource
@@ -50,30 +50,30 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         dataSource.setHomeSortState("${state.option.name}:${state.isAscending}")
     }
 
-    override fun observeSeasonsSortState(): Flow<SeasonsSortState> =
-        dataSource.observeSeasonsSortState().map { value ->
-            val parts = value.split(":")
-            val option = SeasonsSortOption.entries.firstOrNull { it.name == parts.getOrNull(0) }
-                ?: SeasonsSortOption.DEFAULT
-            val ascending = parts.getOrNull(1)?.toBooleanStrictOrNull() ?: option.defaultAscending
-            SeasonsSortState(option, ascending)
+    override fun observeSeasonFilter(): Flow<AnimeSearchType> =
+        dataSource.observeSeasonFilter().map { value ->
+            AnimeSearchType.entries.firstOrNull { it.name == value } ?: AnimeSearchType.TV
         }
 
-    override suspend fun setSeasonsSortState(state: SeasonsSortState) {
-        dataSource.setSeasonsSortState("${state.option.name}:${state.isAscending}")
+    override suspend fun setSeasonFilter(filter: AnimeSearchType) {
+        dataSource.setSeasonFilter(filter.name)
     }
 
-    override fun observeSearchSortState(): Flow<SearchSortState> =
-        dataSource.observeSearchSortState().map { value ->
+    override fun observeSearchFilterState(): Flow<SearchFilterState> =
+        dataSource.observeSearchFilterState().map { value ->
             val parts = value.split(":")
-            val option = SearchSortOption.entries.firstOrNull { it.name == parts.getOrNull(0) }
-                ?: SearchSortOption.DEFAULT
-            val ascending = parts.getOrNull(1)?.toBooleanStrictOrNull() ?: option.defaultAscending
-            SearchSortState(option, ascending)
+            val type = AnimeSearchType.entries.firstOrNull { it.name == parts.getOrNull(0) }
+                ?: AnimeSearchType.ALL
+            val status = AnimeSearchStatus.entries.firstOrNull { it.name == parts.getOrNull(1) }
+                ?: AnimeSearchStatus.ALL
+            val orderBy = AnimeSearchOrderBy.entries.firstOrNull { it.name == parts.getOrNull(2) }
+                ?: AnimeSearchOrderBy.DEFAULT
+            val ascending = parts.getOrNull(3)?.toBooleanStrictOrNull() ?: orderBy.defaultAscending
+            SearchFilterState(type, status, orderBy, ascending)
         }
 
-    override suspend fun setSearchSortState(state: SearchSortState) {
-        dataSource.setSearchSortState("${state.option.name}:${state.isAscending}")
+    override suspend fun setSearchFilterState(state: SearchFilterState) {
+        dataSource.setSearchFilterState("${state.type.name}:${state.status.name}:${state.orderBy.name}:${state.isAscending}")
     }
 
     override fun observeHomeStatusFilter(): Flow<Set<WatchStatus>> =

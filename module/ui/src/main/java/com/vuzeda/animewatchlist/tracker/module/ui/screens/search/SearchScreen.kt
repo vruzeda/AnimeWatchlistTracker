@@ -40,6 +40,8 @@ import com.vuzeda.animewatchlist.tracker.module.designsystem.component.AnimeCard
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.AnimeSearchBar
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.ConfirmationDialog
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.EmptyStateMessage
+import com.vuzeda.animewatchlist.tracker.module.designsystem.component.FilterGroup
+import com.vuzeda.animewatchlist.tracker.module.designsystem.component.NestedFilterMenuButton
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.SortMenuButton
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusOption
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusSelectionSheet
@@ -47,8 +49,10 @@ import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacin
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.LoadingIndicatorSize
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SubtleSpacing
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchOrderBy
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchStatus
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
-import com.vuzeda.animewatchlist.tracker.module.domain.SearchSortOption
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
 import com.vuzeda.animewatchlist.tracker.module.ui.R
@@ -82,6 +86,8 @@ fun SearchScreenRoute(
         onConfirmRemove = viewModel::confirmRemoveFromWatchlist,
         onDismissRemoveConfirmation = viewModel::dismissDeleteConfirmation,
         onSortSelected = viewModel::selectSort,
+        onTypeSelected = viewModel::selectType,
+        onStatusSelected = viewModel::selectStatus,
         onSnackbarDismissed = viewModel::clearSnackbar,
         onRefresh = viewModel::refresh
     )
@@ -100,12 +106,16 @@ fun SearchScreen(
     onDismissAddSheet: () -> Unit,
     onConfirmRemove: () -> Unit,
     onDismissRemoveConfirmation: () -> Unit,
-    onSortSelected: (SearchSortOption) -> Unit,
+    onSortSelected: (AnimeSearchOrderBy) -> Unit,
+    onTypeSelected: (AnimeSearchType) -> Unit,
+    onStatusSelected: (AnimeSearchStatus) -> Unit,
     onSnackbarDismissed: () -> Unit,
     onRefresh: () -> Unit = {}
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
-    val sortOptions = SearchSortOption.entries.map { stringResource(it.displayLabelRes) }
+    val sortOptions = AnimeSearchOrderBy.entries.map { stringResource(it.displayLabelRes) }
+    val typeOptions = AnimeSearchType.entries.map { stringResource(it.displayLabelRes) }
+    val statusOptions = AnimeSearchStatus.entries.map { stringResource(it.displayLabelRes) }
 
     val addedFormat = stringResource(R.string.search_added_to_watchlist, uiState.snackbarMessage ?: "")
     LaunchedEffect(uiState.snackbarMessage) {
@@ -115,6 +125,9 @@ fun SearchScreen(
         }
     }
 
+    val filterState = uiState.filterState
+    val isFilterActive = filterState.type != AnimeSearchType.ALL || filterState.status != AnimeSearchStatus.ALL
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -123,12 +136,38 @@ fun SearchScreen(
                 title = { Text(stringResource(R.string.search_title)) },
                 windowInsets = WindowInsets(0, 0, 0, 0),
                 actions = {
-                    if (uiState.hasSearched && uiState.results.isNotEmpty()) {
+                    if (uiState.hasSearched) {
                         SortMenuButton(
                             options = sortOptions,
-                            selectedIndex = uiState.sortOption.ordinal,
-                            isAscending = uiState.isSortAscending,
-                            onOptionSelected = { index -> onSortSelected(SearchSortOption.entries[index]) }
+                            selectedIndex = filterState.orderBy.ordinal,
+                            isAscending = filterState.isAscending,
+                            onOptionSelected = { index -> onSortSelected(AnimeSearchOrderBy.entries[index]) }
+                        )
+                        NestedFilterMenuButton(
+                            filterGroups = listOf(
+                                FilterGroup(
+                                    label = stringResource(R.string.search_filter_group_type),
+                                    options = typeOptions,
+                                    selectedIndices = setOf(filterState.type.ordinal)
+                                ),
+                                FilterGroup(
+                                    label = stringResource(R.string.search_filter_group_status),
+                                    options = statusOptions,
+                                    selectedIndices = setOf(filterState.status.ordinal)
+                                )
+                            ),
+                            isActive = isFilterActive,
+                            onOptionSelected = { groupIndex, optionIndex ->
+                                when (groupIndex) {
+                                    0 -> onTypeSelected(AnimeSearchType.entries[optionIndex])
+                                    1 -> onStatusSelected(AnimeSearchStatus.entries[optionIndex])
+                                }
+                            },
+                            resetLabel = stringResource(R.string.filter_reset),
+                            onReset = {
+                                onTypeSelected(AnimeSearchType.ALL)
+                                onStatusSelected(AnimeSearchStatus.ALL)
+                            }
                         )
                     }
                 }
@@ -180,13 +219,6 @@ fun SearchScreen(
                         subtitle = stringResource(R.string.search_initial_subtitle)
                     )
                 }
-                uiState.displayedResults.isEmpty() -> {
-                    EmptyStateMessage(
-                        modifier = Modifier.fillMaxSize(),
-                        title = stringResource(R.string.search_no_filter_match_title),
-                        subtitle = stringResource(R.string.search_no_filter_match_subtitle)
-                    )
-                }
                 else -> {
                     PullToRefreshBox(
                         isRefreshing = uiState.isRefreshing,
@@ -198,7 +230,7 @@ fun SearchScreen(
                             verticalArrangement = Arrangement.spacedBy(ElementSpacing)
                         ) {
                             items(
-                                items = uiState.displayedResults,
+                                items = uiState.results,
                                 key = { it.malId }
                             ) { result ->
                                 val isAdded = result.malId in uiState.addedMalIds
@@ -247,7 +279,7 @@ fun SearchScreen(
                     }
 
                     if (uiState.selectedResultForAdd != null) {
-                        val statusOptions = WatchStatus.entries.map {
+                        val sheetStatusOptions = WatchStatus.entries.map {
                             StatusOption(stringResource(it.toDisplayLabelRes()), it.toColor())
                         }
                         val sheetSubtitle = resolveDisplayTitle(
@@ -259,7 +291,7 @@ fun SearchScreen(
                         StatusSelectionSheet(
                             title = stringResource(R.string.search_add_sheet_title),
                             subtitle = sheetSubtitle,
-                            options = statusOptions,
+                            options = sheetStatusOptions,
                             onOptionSelected = { index ->
                                 onAddStatusSelected(WatchStatus.entries[index])
                             },

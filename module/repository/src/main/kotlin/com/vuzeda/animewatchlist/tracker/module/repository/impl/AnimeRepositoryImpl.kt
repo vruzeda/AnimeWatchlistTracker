@@ -3,9 +3,11 @@ package com.vuzeda.animewatchlist.tracker.module.repository.impl
 import com.vuzeda.animewatchlist.tracker.module.domain.Anime
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
 import com.vuzeda.animewatchlist.tracker.module.domain.EpisodeInfo
 import com.vuzeda.animewatchlist.tracker.module.domain.EpisodePage
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
+import com.vuzeda.animewatchlist.tracker.module.domain.SearchFilterState
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonData
@@ -112,8 +114,11 @@ class AnimeRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun searchAnime(query: String): Result<List<SearchResult>> =
-        animeRemoteDataSource.searchAnime(query)
+    override suspend fun searchAnime(
+        query: String,
+        filterState: SearchFilterState
+    ): Result<List<SearchResult>> =
+        animeRemoteDataSource.searchAnime(query = query, filterState = filterState)
 
     override suspend fun fetchAnimeFullById(malId: Int): Result<AnimeFullDetails> =
         animeRemoteDataSource.fetchAnimeFullById(malId)
@@ -137,8 +142,13 @@ class AnimeRepositoryImpl @Inject constructor(
     override suspend fun fetchWatchOrder(malId: Int): Result<List<SeasonData>> =
         animeRemoteDataSource.fetchWatchOrder(malId)
 
-    override suspend fun fetchSeasonAnime(year: Int, season: AnimeSeason, page: Int): Result<SeasonalAnimePage> =
-        animeRemoteDataSource.fetchSeasonAnime(year = year, season = season, page = page)
+    override suspend fun fetchSeasonAnime(
+        year: Int,
+        season: AnimeSeason,
+        page: Int,
+        filter: AnimeSearchType
+    ): Result<SeasonalAnimePage> =
+        animeRemoteDataSource.fetchSeasonAnime(year = year, season = season, page = page, filter = filter)
 
     override suspend fun updateLastSeasonCheckDate(animeId: Long, date: LocalDate) {
         animeLocalDataSource.updateLastSeasonCheckDate(animeId = animeId, date = date)

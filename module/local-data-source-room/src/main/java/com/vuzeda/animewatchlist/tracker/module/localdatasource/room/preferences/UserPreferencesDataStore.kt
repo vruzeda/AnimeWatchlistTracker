@@ -72,25 +72,25 @@ class UserPreferencesDataStore(
         }
     }
 
-    override fun observeSeasonsSortState(): Flow<String> =
+    override fun observeSeasonFilter(): Flow<String> =
         context.dataStore.data.map { preferences ->
-            preferences[SEASONS_SORT_STATE_KEY] ?: DEFAULT_SEASONS_SORT_STATE
+            preferences[SEASONS_FILTER_KEY] ?: DEFAULT_SEASONS_FILTER
         }
 
-    override suspend fun setSeasonsSortState(state: String) {
+    override suspend fun setSeasonFilter(filter: String) {
         context.dataStore.edit { preferences ->
-            preferences[SEASONS_SORT_STATE_KEY] = state
+            preferences[SEASONS_FILTER_KEY] = filter
         }
     }
 
-    override fun observeSearchSortState(): Flow<String> =
+    override fun observeSearchFilterState(): Flow<String> =
         context.dataStore.data.map { preferences ->
-            preferences[SEARCH_SORT_STATE_KEY] ?: DEFAULT_SEARCH_SORT_STATE
+            preferences[SEARCH_FILTER_STATE_KEY] ?: DEFAULT_SEARCH_FILTER_STATE
         }
 
-    override suspend fun setSearchSortState(state: String) {
+    override suspend fun setSearchFilterState(state: String) {
         context.dataStore.edit { preferences ->
-            preferences[SEARCH_SORT_STATE_KEY] = state
+            preferences[SEARCH_FILTER_STATE_KEY] = state
         }
     }
 
@@ -134,10 +134,10 @@ class UserPreferencesDataStore(
         const val DEFAULT_HOME_VIEW_MODE = "ANIME"
         private val HOME_SORT_STATE_KEY = stringPreferencesKey("home_sort_state")
         const val DEFAULT_HOME_SORT_STATE = "ALPHABETICAL:true"
-        private val SEASONS_SORT_STATE_KEY = stringPreferencesKey("seasons_sort_state")
-        const val DEFAULT_SEASONS_SORT_STATE = "DEFAULT:true"
-        private val SEARCH_SORT_STATE_KEY = stringPreferencesKey("search_sort_state")
-        const val DEFAULT_SEARCH_SORT_STATE = "DEFAULT:true"
+        private val SEASONS_FILTER_KEY = stringPreferencesKey("seasons_filter")
+        const val DEFAULT_SEASONS_FILTER = "TV"
+        private val SEARCH_FILTER_STATE_KEY = stringPreferencesKey("search_filter_state")
+        const val DEFAULT_SEARCH_FILTER_STATE = "ALL:ALL:DEFAULT:true"
         private val HOME_STATUS_FILTER_KEY = stringPreferencesKey("home_status_filter")
         private val HOME_NOTIFICATION_FILTER_KEY = stringPreferencesKey("home_notification_filter")
         private val ANIME_DETAIL_TYPE_FILTER_KEY = stringPreferencesKey("anime_detail_type_filter")

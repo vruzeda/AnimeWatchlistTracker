@@ -3,9 +3,11 @@ package com.vuzeda.animewatchlist.tracker.module.repository
 import com.vuzeda.animewatchlist.tracker.module.domain.Anime
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
 import com.vuzeda.animewatchlist.tracker.module.domain.EpisodeInfo
 import com.vuzeda.animewatchlist.tracker.module.domain.EpisodePage
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
+import com.vuzeda.animewatchlist.tracker.module.domain.SearchFilterState
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonData
@@ -37,7 +39,10 @@ interface AnimeRepository {
 
     suspend fun deleteAllData()
 
-    suspend fun searchAnime(query: String): Result<List<SearchResult>>
+    suspend fun searchAnime(
+        query: String,
+        filterState: SearchFilterState = SearchFilterState()
+    ): Result<List<SearchResult>>
 
     suspend fun fetchAnimeFullById(malId: Int): Result<AnimeFullDetails>
 
@@ -52,7 +57,12 @@ interface AnimeRepository {
 
     suspend fun fetchWatchOrder(malId: Int): Result<List<SeasonData>>
 
-    suspend fun fetchSeasonAnime(year: Int, season: AnimeSeason, page: Int): Result<SeasonalAnimePage>
+    suspend fun fetchSeasonAnime(
+        year: Int,
+        season: AnimeSeason,
+        page: Int,
+        filter: AnimeSearchType = AnimeSearchType.ALL
+    ): Result<SeasonalAnimePage>
 
     suspend fun updateLastSeasonCheckDate(animeId: Long, date: LocalDate)
 

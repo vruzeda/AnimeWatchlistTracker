@@ -12,7 +12,11 @@ interface JikanApiService {
     @GET("v4/anime")
     suspend fun searchAnime(
         @Query("q") query: String,
-        @Query("limit") limit: Int = 20
+        @Query("limit") limit: Int = 20,
+        @Query("type") type: String? = null,
+        @Query("status") status: String? = null,
+        @Query("order_by") orderBy: String? = null,
+        @Query("sort") sort: String? = null
     ): AnimeSearchResponseDto
 
     @GET("v4/anime/{id}/full")
@@ -29,7 +33,7 @@ interface JikanApiService {
         @Path("year") year: Int,
         @Path("season") season: String,
         @Query("page") page: Int = 1,
-        @Query("filter") filter: String = "tv",
+        @Query("filter") filter: String? = null,
         @Query("continuing") continuing: Boolean = true
     ): AnimeSearchResponseDto
 

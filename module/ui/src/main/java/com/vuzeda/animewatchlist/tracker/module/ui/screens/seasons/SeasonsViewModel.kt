@@ -6,25 +6,23 @@ import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsEvent
 import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsTracker
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
-import com.vuzeda.animewatchlist.tracker.module.domain.SeasonsSortOption
-import com.vuzeda.animewatchlist.tracker.module.domain.SeasonsSortState
-import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
-import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddAnimeFromDetailsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.GetSeasonAnimeUseCase
-import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSeasonsSortStateUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSeasonFilterUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveWatchlistMalIdsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.RemoveAnimeByMalIdUseCase
-import com.vuzeda.animewatchlist.tracker.module.usecase.SetSeasonsSortStateUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.SetSeasonFilterUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -38,12 +36,11 @@ class SeasonsViewModel @Inject constructor(
     private val removeAnimeByMalIdUseCase: RemoveAnimeByMalIdUseCase,
     private val observeWatchlistMalIdsUseCase: ObserveWatchlistMalIdsUseCase,
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase,
-    private val observeSeasonsSortStateUseCase: ObserveSeasonsSortStateUseCase,
-    private val setSeasonsSortStateUseCase: SetSeasonsSortStateUseCase,
+    private val observeSeasonFilterUseCase: ObserveSeasonFilterUseCase,
+    private val setSeasonFilterUseCase: SetSeasonFilterUseCase,
     private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
-    private val _rawAnimeList = MutableStateFlow<List<SearchResult>>(emptyList())
     private val _uiState = MutableStateFlow(SeasonsUiState())
     val uiState: StateFlow<SeasonsUiState> = _uiState.asStateFlow()
 
@@ -65,23 +62,13 @@ class SeasonsViewModel @Inject constructor(
 
         viewModelScope.launch {
             combine(
-                _rawAnimeList,
-                observeSeasonsSortStateUseCase(),
                 observeTitleLanguageUseCase(),
                 observeWatchlistMalIdsUseCase()
-            ) { animeList, sortState, titleLanguage, watchlistMalIds ->
-                SeasonsDisplayData(
-                    displayedAnimeList = sortSeasonResults(animeList, sortState.option, sortState.isAscending, titleLanguage),
-                    sortState = sortState,
-                    titleLanguage = titleLanguage,
-                    addedMalIds = watchlistMalIds
-                )
+            ) { titleLanguage, watchlistMalIds ->
+                SeasonsDisplayData(titleLanguage = titleLanguage, addedMalIds = watchlistMalIds)
             }.collect { data ->
                 _uiState.update {
                     it.copy(
-                        displayedAnimeList = data.displayedAnimeList,
-                        sortOption = data.sortState.option,
-                        isSortAscending = data.sortState.isAscending,
                         titleLanguage = data.titleLanguage,
                         addedMalIds = data.addedMalIds
                     )
@@ -89,19 +76,21 @@ class SeasonsViewModel @Inject constructor(
             }
         }
 
-        loadSeason(year = currentYear, season = currentSeason)
+        viewModelScope.launch {
+            val initialFilter = observeSeasonFilterUseCase().first()
+            _uiState.update { it.copy(seasonFilter = initialFilter) }
+            loadSeason(year = currentYear, season = currentSeason, filter = initialFilter)
+        }
     }
 
     fun refresh() {
         val state = _uiState.value
-        _rawAnimeList.value = emptyList()
         _uiState.update {
             it.copy(animeList = emptyList(), hasNextPage = false, currentPage = 1, errorMessage = null, isRefreshing = true)
         }
         viewModelScope.launch {
-            getSeasonAnimeUseCase(year = state.selectedYear, season = state.selectedSeason, page = 1)
+            getSeasonAnimeUseCase(year = state.selectedYear, season = state.selectedSeason, page = 1, filter = state.seasonFilter)
                 .onSuccess { page ->
-                    _rawAnimeList.value = page.results
                     _uiState.update {
                         it.copy(
                             animeList = page.results,
@@ -117,20 +106,32 @@ class SeasonsViewModel @Inject constructor(
         }
     }
 
-    fun selectSort(option: SeasonsSortOption) {
-        val currentState = _uiState.value
-        val isAscending = if (option == currentState.sortOption) !currentState.isSortAscending else option.defaultAscending
+    fun selectFilter(filter: AnimeSearchType) {
+        if (_uiState.value.seasonFilter == filter) return
         viewModelScope.launch {
-            setSeasonsSortStateUseCase(SeasonsSortState(option, isAscending))
+            setSeasonFilterUseCase(filter)
         }
-        analyticsTracker.track(AnalyticsEvent.SelectSort("seasons", option.name, isAscending))
+        analyticsTracker.track(AnalyticsEvent.SelectFilter("seasons_type", filter.name))
+        _uiState.update {
+            it.copy(
+                seasonFilter = filter,
+                animeList = emptyList(),
+                hasNextPage = false,
+                currentPage = 1,
+                errorMessage = null
+            )
+        }
+        loadSeason(
+            year = _uiState.value.selectedYear,
+            season = _uiState.value.selectedSeason,
+            filter = filter
+        )
     }
 
     fun selectNextSeason() {
         val state = _uiState.value
         val (nextSeason, yearDelta) = state.selectedSeason.next()
         val nextYear = state.selectedYear + yearDelta
-        _rawAnimeList.value = emptyList()
         _uiState.update {
             it.copy(
                 selectedYear = nextYear,
@@ -141,14 +142,13 @@ class SeasonsViewModel @Inject constructor(
                 errorMessage = null
             )
         }
-        loadSeason(year = nextYear, season = nextSeason)
+        loadSeason(year = nextYear, season = nextSeason, filter = state.seasonFilter)
     }
 
     fun selectPreviousSeason() {
         val state = _uiState.value
         val (prevSeason, yearDelta) = state.selectedSeason.previous()
         val prevYear = state.selectedYear + yearDelta
-        _rawAnimeList.value = emptyList()
         _uiState.update {
             it.copy(
                 selectedYear = prevYear,
@@ -159,7 +159,7 @@ class SeasonsViewModel @Inject constructor(
                 errorMessage = null
             )
         }
-        loadSeason(year = prevYear, season = prevSeason)
+        loadSeason(year = prevYear, season = prevSeason, filter = state.seasonFilter)
     }
 
     fun loadMore() {
@@ -172,10 +172,10 @@ class SeasonsViewModel @Inject constructor(
             getSeasonAnimeUseCase(
                 year = state.selectedYear,
                 season = state.selectedSeason,
-                page = nextPage
+                page = nextPage,
+                filter = state.seasonFilter
             )
                 .onSuccess { page ->
-                    _rawAnimeList.update { (it + page.results).distinctBy { item -> item.malId } }
                     _uiState.update {
                         it.copy(
                             animeList = (it.animeList + page.results).distinctBy { item -> item.malId },
@@ -266,12 +266,11 @@ class SeasonsViewModel @Inject constructor(
         _uiState.update { it.copy(snackbarMessage = null) }
     }
 
-    private fun loadSeason(year: Int, season: AnimeSeason) {
+    private fun loadSeason(year: Int, season: AnimeSeason, filter: AnimeSearchType) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            getSeasonAnimeUseCase(year = year, season = season, page = 1)
+            getSeasonAnimeUseCase(year = year, season = season, page = 1, filter = filter)
                 .onSuccess { page ->
-                    _rawAnimeList.value = page.results
                     _uiState.update {
                         it.copy(
                             animeList = page.results,
@@ -300,21 +299,4 @@ class SeasonsViewModel @Inject constructor(
             else -> AnimeSeason.FALL
         }
     }
-}
-
-fun sortSeasonResults(
-    results: List<SearchResult>,
-    sortOption: SeasonsSortOption,
-    isAscending: Boolean = sortOption.defaultAscending,
-    titleLanguage: TitleLanguage = TitleLanguage.DEFAULT
-): List<SearchResult> {
-    val sorted = when (sortOption) {
-        SeasonsSortOption.DEFAULT -> results
-        SeasonsSortOption.ALPHABETICAL -> results.sortedBy {
-            resolveDisplayTitle(it.title, it.titleEnglish, it.titleJapanese, titleLanguage).lowercase()
-        }
-        SeasonsSortOption.SCORE -> results.sortedByDescending { it.score ?: 0.0 }
-    }
-    val shouldReverse = isAscending != sortOption.defaultAscending
-    return if (shouldReverse && sortOption != SeasonsSortOption.DEFAULT) sorted.reversed() else sorted
 }

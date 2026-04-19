@@ -2,6 +2,7 @@ package com.vuzeda.animewatchlist.tracker.module.usecase
 
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonalAnimePage
 import com.vuzeda.animewatchlist.tracker.module.repository.AnimeRepository
@@ -27,7 +28,8 @@ class GetSeasonAnimeUseCaseTest {
             animeRepository.fetchSeasonAnime(
                 year = 2026,
                 season = AnimeSeason.WINTER,
-                page = 1
+                page = 1,
+                filter = AnimeSearchType.ALL
             )
         } returns Result.success(page)
 
@@ -39,7 +41,8 @@ class GetSeasonAnimeUseCaseTest {
             animeRepository.fetchSeasonAnime(
                 year = 2026,
                 season = AnimeSeason.WINTER,
-                page = 1
+                page = 1,
+                filter = AnimeSearchType.ALL
             )
         }
     }
@@ -51,7 +54,8 @@ class GetSeasonAnimeUseCaseTest {
             animeRepository.fetchSeasonAnime(
                 year = 2025,
                 season = AnimeSeason.FALL,
-                page = 1
+                page = 1,
+                filter = AnimeSearchType.ALL
             )
         } returns Result.failure(exception)
 
@@ -67,7 +71,8 @@ class GetSeasonAnimeUseCaseTest {
             animeRepository.fetchSeasonAnime(
                 year = 2026,
                 season = AnimeSeason.SPRING,
-                page = 1
+                page = 1,
+                filter = AnimeSearchType.ALL
             )
         } returns Result.success(
             SeasonalAnimePage(results = emptyList(), hasNextPage = false, currentPage = 1)
@@ -79,7 +84,37 @@ class GetSeasonAnimeUseCaseTest {
             animeRepository.fetchSeasonAnime(
                 year = 2026,
                 season = AnimeSeason.SPRING,
-                page = 1
+                page = 1,
+                filter = AnimeSearchType.ALL
+            )
+        }
+    }
+
+    @Test
+    fun `passes filter param to repository`() = runTest {
+        val page = SeasonalAnimePage(
+            results = listOf(SearchResult(malId = 5, title = "Movie Anime")),
+            hasNextPage = false,
+            currentPage = 1
+        )
+        coEvery {
+            animeRepository.fetchSeasonAnime(
+                year = 2026,
+                season = AnimeSeason.SPRING,
+                page = 1,
+                filter = AnimeSearchType.MOVIE
+            )
+        } returns Result.success(page)
+
+        val result = useCase(year = 2026, season = AnimeSeason.SPRING, filter = AnimeSearchType.MOVIE)
+
+        assertThat(result.isSuccess).isTrue()
+        coVerify {
+            animeRepository.fetchSeasonAnime(
+                year = 2026,
+                season = AnimeSeason.SPRING,
+                page = 1,
+                filter = AnimeSearchType.MOVIE
             )
         }
     }
