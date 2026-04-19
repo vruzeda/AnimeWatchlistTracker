@@ -29,7 +29,8 @@ interface JikanApiService {
         @Path("year") year: Int,
         @Path("season") season: String,
         @Query("page") page: Int = 1,
-        @Query("filter") filter: String = "tv"
+        @Query("filter") filter: String = "tv",
+        @Query("continuing") continuing: Boolean = true
     ): AnimeSearchResponseDto
 
     companion object {

@@ -51,7 +51,8 @@ class FakeJikanApiService : JikanApiService {
         year: Int,
         season: String,
         page: Int,
-        filter: String
+        filter: String,
+        continuing: Boolean
     ): AnimeSearchResponseDto = AnimeSearchResponseDto(
         pagination = SearchPaginationDto(hasNextPage = false, lastVisiblePage = 1),
         data = fakeResults.take(4)
