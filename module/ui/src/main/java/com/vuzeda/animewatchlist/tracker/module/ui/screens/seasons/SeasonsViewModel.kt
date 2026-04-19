@@ -7,7 +7,9 @@ import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsTracker
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
+import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
+import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddAnimeFromDetailsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.GetSeasonAnimeUseCase
@@ -64,7 +66,7 @@ class SeasonsViewModel @Inject constructor(
                 observeWatchlistMalIdsUseCase()
             ) { animeList, sortState, titleLanguage, watchlistMalIds ->
                 SeasonsDisplayData(
-                    displayedAnimeList = sortSeasonResults(animeList, sortState.option, sortState.isAscending),
+                    displayedAnimeList = sortSeasonResults(animeList, sortState.option, sortState.isAscending, titleLanguage),
                     sortState = sortState,
                     titleLanguage = titleLanguage,
                     addedMalIds = watchlistMalIds
@@ -298,11 +300,14 @@ class SeasonsViewModel @Inject constructor(
 fun sortSeasonResults(
     results: List<SearchResult>,
     sortOption: SeasonsSortOption,
-    isAscending: Boolean = sortOption.defaultAscending
+    isAscending: Boolean = sortOption.defaultAscending,
+    titleLanguage: TitleLanguage = TitleLanguage.DEFAULT
 ): List<SearchResult> {
     val sorted = when (sortOption) {
         SeasonsSortOption.DEFAULT -> results
-        SeasonsSortOption.ALPHABETICAL -> results.sortedBy { it.title.lowercase() }
+        SeasonsSortOption.ALPHABETICAL -> results.sortedBy {
+            resolveDisplayTitle(it.title, it.titleEnglish, it.titleJapanese, titleLanguage).lowercase()
+        }
         SeasonsSortOption.SCORE -> results.sortedByDescending { it.score ?: 0.0 }
     }
     val shouldReverse = isAscending != sortOption.defaultAscending

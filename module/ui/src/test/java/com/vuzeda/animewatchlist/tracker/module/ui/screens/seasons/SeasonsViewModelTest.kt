@@ -378,6 +378,33 @@ class SeasonsViewModelTest {
     }
 
     @Test
+    fun `selectSort alphabetical uses resolved title based on language preference`() = runTest {
+        val pageWithEnglishTitles = SeasonalAnimePage(
+            results = listOf(
+                SearchResult(malId = 1, title = "Sousou no Frieren", titleEnglish = "Frieren: Beyond Journey's End"),
+                SearchResult(malId = 2, title = "Jujutsu Kaisen", titleEnglish = "Jujutsu Kaisen")
+            ),
+            hasNextPage = false,
+            currentPage = 1
+        )
+        coEvery { getSeasonAnimeUseCase(any(), any(), any()) } returns Result.success(pageWithEnglishTitles)
+        every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.ENGLISH)
+
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.selectSort(SeasonsSortOption.ALPHABETICAL)
+
+            val sorted = awaitItem()
+            assertThat(sorted.displayedAnimeList[0].title).isEqualTo("Sousou no Frieren")
+            assertThat(sorted.displayedAnimeList[1].title).isEqualTo("Jujutsu Kaisen")
+        }
+    }
+
+    @Test
     fun `selectSort by score sorts displayedAnimeList descending`() = runTest {
         val viewModel = createViewModel()
 
