@@ -10,6 +10,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,12 +34,14 @@ fun SortMenuButton(
     onOptionSelected: (Int) -> Unit
 ) {
     var isExpanded by remember { mutableStateOf(false) }
+    val isActive = selectedIndex != 0
 
     Box(modifier = modifier) {
         IconButton(onClick = { isExpanded = true }) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.Sort,
-                contentDescription = stringResource(R.string.cd_sort)
+                contentDescription = stringResource(R.string.cd_sort),
+                tint = if (isActive) MaterialTheme.colorScheme.primary else LocalContentColor.current
             )
         }
 
