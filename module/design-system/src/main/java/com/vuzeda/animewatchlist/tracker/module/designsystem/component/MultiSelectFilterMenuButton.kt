@@ -2,6 +2,7 @@ package com.vuzeda.animewatchlist.tracker.module.designsystem.component
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.FilterList
@@ -53,7 +54,8 @@ fun MultiSelectFilterMenuButton(
 
         DropdownMenu(
             expanded = isExpanded,
-            onDismissRequest = { isExpanded = false }
+            onDismissRequest = { isExpanded = false },
+            scrollState = rememberScrollState()
         ) {
             DropdownMenuItem(
                 text = {
