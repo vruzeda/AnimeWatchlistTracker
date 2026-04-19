@@ -109,9 +109,25 @@ fun MultiSelectFilterMenuButton(
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, name = "Inactive")
 @Composable
-private fun MultiSelectFilterMenuButtonPreview() {
+private fun MultiSelectFilterMenuButtonInactivePreview() {
+    AnimeWatchlistTrackerTheme(dynamicColor = false) {
+        MultiSelectFilterMenuButton(
+            modifier = Modifier.padding(SectionSpacing),
+            label = "By Type",
+            options = listOf("TV", "OVA", "Movie", "Special", "ONA"),
+            selectedOptions = emptySet(),
+            onOptionToggled = {},
+            resetLabel = "Reset Filters",
+            onReset = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Active")
+@Composable
+private fun MultiSelectFilterMenuButtonActivePreview() {
     AnimeWatchlistTrackerTheme(dynamicColor = false) {
         MultiSelectFilterMenuButton(
             modifier = Modifier.padding(SectionSpacing),

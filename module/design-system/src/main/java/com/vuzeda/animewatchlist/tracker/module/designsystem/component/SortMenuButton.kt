@@ -79,14 +79,28 @@ fun SortMenuButton(
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, name = "Inactive")
 @Composable
-private fun SortMenuButtonPreview() {
+private fun SortMenuButtonInactivePreview() {
     AnimeWatchlistTrackerTheme(dynamicColor = false) {
         SortMenuButton(
             modifier = Modifier.padding(SectionSpacing),
             options = listOf("Alphabetical", "MAL Score", "Your Rating", "Progress"),
             selectedIndex = 0,
+            isAscending = true,
+            onOptionSelected = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Active")
+@Composable
+private fun SortMenuButtonActivePreview() {
+    AnimeWatchlistTrackerTheme(dynamicColor = false) {
+        SortMenuButton(
+            modifier = Modifier.padding(SectionSpacing),
+            options = listOf("Alphabetical", "MAL Score", "Your Rating", "Progress"),
+            selectedIndex = 1,
             isAscending = true,
             onOptionSelected = {}
         )

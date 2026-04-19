@@ -71,14 +71,27 @@ fun FilterMenuButton(
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, name = "Inactive")
 @Composable
-private fun FilterMenuButtonPreview() {
+private fun FilterMenuButtonInactivePreview() {
     AnimeWatchlistTrackerTheme(dynamicColor = false) {
         FilterMenuButton(
             modifier = Modifier.padding(SectionSpacing),
             options = listOf("All", "Watching", "Completed", "Plan to Watch", "On Hold", "Dropped"),
             selectedIndex = 0,
+            onOptionSelected = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Active")
+@Composable
+private fun FilterMenuButtonActivePreview() {
+    AnimeWatchlistTrackerTheme(dynamicColor = false) {
+        FilterMenuButton(
+            modifier = Modifier.padding(SectionSpacing),
+            options = listOf("All", "Watching", "Completed", "Plan to Watch", "On Hold", "Dropped"),
+            selectedIndex = 1,
             onOptionSelected = {}
         )
     }
