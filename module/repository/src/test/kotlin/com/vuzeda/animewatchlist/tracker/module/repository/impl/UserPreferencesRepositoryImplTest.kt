@@ -5,6 +5,10 @@ import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeSortOption
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeSortState
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
+import com.vuzeda.animewatchlist.tracker.module.domain.SearchSortOption
+import com.vuzeda.animewatchlist.tracker.module.domain.SearchSortState
+import com.vuzeda.animewatchlist.tracker.module.domain.SeasonsSortOption
+import com.vuzeda.animewatchlist.tracker.module.domain.SeasonsSortState
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.UserPreferencesLocalDataSource
@@ -316,6 +320,86 @@ class UserPreferencesRepositoryImplTest {
         repository.setHomeNotificationFilter(null)
 
         coVerify { dataSource.setHomeNotificationFilter("") }
+    }
+
+    @Test
+    fun `observeSeasonsSortState returns DEFAULT ascending for default stored value`() = runTest {
+        every { dataSource.observeSeasonsSortState() } returns flowOf("DEFAULT:true")
+
+        repository.observeSeasonsSortState().test {
+            assertThat(awaitItem()).isEqualTo(SeasonsSortState(SeasonsSortOption.DEFAULT, true))
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `observeSeasonsSortState returns correct state for SCORE descending`() = runTest {
+        every { dataSource.observeSeasonsSortState() } returns flowOf("SCORE:false")
+
+        repository.observeSeasonsSortState().test {
+            assertThat(awaitItem()).isEqualTo(SeasonsSortState(SeasonsSortOption.SCORE, false))
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `observeSeasonsSortState falls back to DEFAULT for unknown option`() = runTest {
+        every { dataSource.observeSeasonsSortState() } returns flowOf("UNKNOWN:true")
+
+        repository.observeSeasonsSortState().test {
+            val result = awaitItem()
+            assertThat(result.option).isEqualTo(SeasonsSortOption.DEFAULT)
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `setSeasonsSortState serialises option and ascending to data source`() = runTest {
+        coEvery { dataSource.setSeasonsSortState(any()) } returns Unit
+
+        repository.setSeasonsSortState(SeasonsSortState(SeasonsSortOption.ALPHABETICAL, true))
+
+        coVerify { dataSource.setSeasonsSortState("ALPHABETICAL:true") }
+    }
+
+    @Test
+    fun `observeSearchSortState returns DEFAULT ascending for default stored value`() = runTest {
+        every { dataSource.observeSearchSortState() } returns flowOf("DEFAULT:true")
+
+        repository.observeSearchSortState().test {
+            assertThat(awaitItem()).isEqualTo(SearchSortState(SearchSortOption.DEFAULT, true))
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `observeSearchSortState returns correct state for ALPHABETICAL ascending`() = runTest {
+        every { dataSource.observeSearchSortState() } returns flowOf("ALPHABETICAL:true")
+
+        repository.observeSearchSortState().test {
+            assertThat(awaitItem()).isEqualTo(SearchSortState(SearchSortOption.ALPHABETICAL, true))
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `observeSearchSortState falls back to DEFAULT for unknown option`() = runTest {
+        every { dataSource.observeSearchSortState() } returns flowOf("UNKNOWN:false")
+
+        repository.observeSearchSortState().test {
+            val result = awaitItem()
+            assertThat(result.option).isEqualTo(SearchSortOption.DEFAULT)
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `setSearchSortState serialises option and ascending to data source`() = runTest {
+        coEvery { dataSource.setSearchSortState(any()) } returns Unit
+
+        repository.setSearchSortState(SearchSortState(SearchSortOption.SCORE, false))
+
+        coVerify { dataSource.setSearchSortState("SCORE:false") }
     }
 
     @Test

@@ -5,14 +5,18 @@ import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsTracker
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
+import com.vuzeda.animewatchlist.tracker.module.domain.SearchSortOption
+import com.vuzeda.animewatchlist.tracker.module.domain.SearchSortState
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddAnimeFromDetailsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FetchSeasonDetailUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSearchSortStateUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveWatchlistMalIdsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.RemoveAnimeByMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SearchAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.SetSearchSortStateUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -41,6 +45,9 @@ class SearchViewModelTest {
     private val watchlistMalIdsFlow = MutableStateFlow<Set<Int>>(emptySet())
     private val observeWatchlistMalIdsUseCase: ObserveWatchlistMalIdsUseCase = mockk()
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
+    private val searchSortStateFlow = MutableStateFlow(SearchSortState())
+    private val observeSearchSortStateUseCase: ObserveSearchSortStateUseCase = mockk()
+    private val setSearchSortStateUseCase: SetSearchSortStateUseCase = mockk()
     private val analyticsTracker: AnalyticsTracker = mockk(relaxed = true)
 
     private lateinit var viewModel: SearchViewModel
@@ -65,8 +72,11 @@ class SearchViewModelTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         watchlistMalIdsFlow.value = emptySet()
+        searchSortStateFlow.value = SearchSortState()
         every { observeWatchlistMalIdsUseCase() } returns watchlistMalIdsFlow
         every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
+        every { observeSearchSortStateUseCase() } returns searchSortStateFlow
+        coEvery { setSearchSortStateUseCase(any()) } answers { searchSortStateFlow.value = firstArg() }
         viewModel = SearchViewModel(
             searchAnimeUseCase = searchAnimeUseCase,
             fetchSeasonDetailUseCase = fetchSeasonDetailUseCase,
@@ -74,6 +84,8 @@ class SearchViewModelTest {
             removeAnimeByMalIdUseCase = removeAnimeByMalIdUseCase,
             observeWatchlistMalIdsUseCase = observeWatchlistMalIdsUseCase,
             observeTitleLanguageUseCase = observeTitleLanguageUseCase,
+            observeSearchSortStateUseCase = observeSearchSortStateUseCase,
+            setSearchSortStateUseCase = setSearchSortStateUseCase,
             analyticsTracker = analyticsTracker
         )
     }

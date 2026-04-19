@@ -1,21 +1,18 @@
 package com.vuzeda.animewatchlist.tracker.module.ui.screens.seasons
 
-import androidx.annotation.StringRes
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
+import com.vuzeda.animewatchlist.tracker.module.domain.SeasonsSortOption
+import com.vuzeda.animewatchlist.tracker.module.domain.SeasonsSortState
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.ui.R
 
-enum class SeasonsSortOption(@StringRes val displayLabelRes: Int, val defaultAscending: Boolean) {
-    DEFAULT(R.string.seasons_sort_default, true),
-    ALPHABETICAL(R.string.sort_alphabetical, true),
-    SCORE(R.string.sort_score, false)
-}
-
-data class SeasonsSortState(
-    val option: SeasonsSortOption = SeasonsSortOption.DEFAULT,
-    val isAscending: Boolean = SeasonsSortOption.DEFAULT.defaultAscending
-)
+val SeasonsSortOption.displayLabelRes: Int
+    get() = when (this) {
+        SeasonsSortOption.DEFAULT -> R.string.seasons_sort_default
+        SeasonsSortOption.ALPHABETICAL -> R.string.sort_alphabetical
+        SeasonsSortOption.SCORE -> R.string.sort_score
+    }
 
 data class SeasonsDisplayData(
     val displayedAnimeList: List<SearchResult>,

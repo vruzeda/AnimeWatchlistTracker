@@ -72,6 +72,28 @@ class UserPreferencesDataStore(
         }
     }
 
+    override fun observeSeasonsSortState(): Flow<String> =
+        context.dataStore.data.map { preferences ->
+            preferences[SEASONS_SORT_STATE_KEY] ?: DEFAULT_SEASONS_SORT_STATE
+        }
+
+    override suspend fun setSeasonsSortState(state: String) {
+        context.dataStore.edit { preferences ->
+            preferences[SEASONS_SORT_STATE_KEY] = state
+        }
+    }
+
+    override fun observeSearchSortState(): Flow<String> =
+        context.dataStore.data.map { preferences ->
+            preferences[SEARCH_SORT_STATE_KEY] ?: DEFAULT_SEARCH_SORT_STATE
+        }
+
+    override suspend fun setSearchSortState(state: String) {
+        context.dataStore.edit { preferences ->
+            preferences[SEARCH_SORT_STATE_KEY] = state
+        }
+    }
+
     override fun observeAnimeDetailTypeFilter(): Flow<String> =
         context.dataStore.data.map { preferences ->
             preferences[ANIME_DETAIL_TYPE_FILTER_KEY] ?: ""
@@ -112,6 +134,10 @@ class UserPreferencesDataStore(
         const val DEFAULT_HOME_VIEW_MODE = "ANIME"
         private val HOME_SORT_STATE_KEY = stringPreferencesKey("home_sort_state")
         const val DEFAULT_HOME_SORT_STATE = "ALPHABETICAL:true"
+        private val SEASONS_SORT_STATE_KEY = stringPreferencesKey("seasons_sort_state")
+        const val DEFAULT_SEASONS_SORT_STATE = "DEFAULT:true"
+        private val SEARCH_SORT_STATE_KEY = stringPreferencesKey("search_sort_state")
+        const val DEFAULT_SEARCH_SORT_STATE = "DEFAULT:true"
         private val HOME_STATUS_FILTER_KEY = stringPreferencesKey("home_status_filter")
         private val HOME_NOTIFICATION_FILTER_KEY = stringPreferencesKey("home_notification_filter")
         private val ANIME_DETAIL_TYPE_FILTER_KEY = stringPreferencesKey("anime_detail_type_filter")

@@ -7,15 +7,19 @@ import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsTracker
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
+import com.vuzeda.animewatchlist.tracker.module.domain.SeasonsSortOption
+import com.vuzeda.animewatchlist.tracker.module.domain.SeasonsSortState
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddAnimeFromDetailsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.GetSeasonAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSeasonsSortStateUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveWatchlistMalIdsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.RemoveAnimeByMalIdUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.SetSeasonsSortStateUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,11 +38,12 @@ class SeasonsViewModel @Inject constructor(
     private val removeAnimeByMalIdUseCase: RemoveAnimeByMalIdUseCase,
     private val observeWatchlistMalIdsUseCase: ObserveWatchlistMalIdsUseCase,
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase,
+    private val observeSeasonsSortStateUseCase: ObserveSeasonsSortStateUseCase,
+    private val setSeasonsSortStateUseCase: SetSeasonsSortStateUseCase,
     private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
     private val _rawAnimeList = MutableStateFlow<List<SearchResult>>(emptyList())
-    private val _sortState = MutableStateFlow(SeasonsSortState())
     private val _uiState = MutableStateFlow(SeasonsUiState())
     val uiState: StateFlow<SeasonsUiState> = _uiState.asStateFlow()
 
@@ -61,7 +66,7 @@ class SeasonsViewModel @Inject constructor(
         viewModelScope.launch {
             combine(
                 _rawAnimeList,
-                _sortState,
+                observeSeasonsSortStateUseCase(),
                 observeTitleLanguageUseCase(),
                 observeWatchlistMalIdsUseCase()
             ) { animeList, sortState, titleLanguage, watchlistMalIds ->
@@ -113,10 +118,10 @@ class SeasonsViewModel @Inject constructor(
     }
 
     fun selectSort(option: SeasonsSortOption) {
-        var isAscending = option.defaultAscending
-        _sortState.update { current ->
-            isAscending = if (option == current.option) !current.isAscending else option.defaultAscending
-            current.copy(option = option, isAscending = isAscending)
+        val currentState = _uiState.value
+        val isAscending = if (option == currentState.sortOption) !currentState.isSortAscending else option.defaultAscending
+        viewModelScope.launch {
+            setSeasonsSortStateUseCase(SeasonsSortState(option, isAscending))
         }
         analyticsTracker.track(AnalyticsEvent.SelectSort("seasons", option.name, isAscending))
     }

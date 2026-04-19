@@ -7,14 +7,18 @@ import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonalAnimePage
+import com.vuzeda.animewatchlist.tracker.module.domain.SeasonsSortOption
+import com.vuzeda.animewatchlist.tracker.module.domain.SeasonsSortState
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddAnimeFromDetailsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.GetSeasonAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSeasonsSortStateUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveWatchlistMalIdsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.RemoveAnimeByMalIdUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.SetSeasonsSortStateUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -43,6 +47,9 @@ class SeasonsViewModelTest {
     private val watchlistMalIdsFlow = MutableStateFlow<Set<Int>>(emptySet())
     private val observeWatchlistMalIdsUseCase: ObserveWatchlistMalIdsUseCase = mockk()
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
+    private val seasonsSortStateFlow = MutableStateFlow(SeasonsSortState())
+    private val observeSeasonsSortStateUseCase: ObserveSeasonsSortStateUseCase = mockk()
+    private val setSeasonsSortStateUseCase: SetSeasonsSortStateUseCase = mockk()
     private val analyticsTracker: AnalyticsTracker = mockk(relaxed = true)
 
     private val samplePage = SeasonalAnimePage(
@@ -76,8 +83,11 @@ class SeasonsViewModelTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         watchlistMalIdsFlow.value = emptySet()
+        seasonsSortStateFlow.value = SeasonsSortState()
         every { observeWatchlistMalIdsUseCase() } returns watchlistMalIdsFlow
         every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
+        every { observeSeasonsSortStateUseCase() } returns seasonsSortStateFlow
+        coEvery { setSeasonsSortStateUseCase(any()) } answers { seasonsSortStateFlow.value = firstArg() }
         coEvery { getSeasonAnimeUseCase(any(), any(), any()) } returns Result.success(samplePage)
     }
 
@@ -93,6 +103,8 @@ class SeasonsViewModelTest {
         removeAnimeByMalIdUseCase = removeAnimeByMalIdUseCase,
         observeWatchlistMalIdsUseCase = observeWatchlistMalIdsUseCase,
         observeTitleLanguageUseCase = observeTitleLanguageUseCase,
+        observeSeasonsSortStateUseCase = observeSeasonsSortStateUseCase,
+        setSeasonsSortStateUseCase = setSeasonsSortStateUseCase,
         analyticsTracker = analyticsTracker
     )
 
