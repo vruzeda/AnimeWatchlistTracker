@@ -21,6 +21,7 @@ mockk = "1.14.9"
 moshi = "1.15.2"
 navigationCompose = "2.9.7"
 okhttp = "5.3.2"
+play-services-auth = "21.5.1"
 retrofit = "3.0.0"
 room = "2.8.4"
 timber = "5.0.1"
@@ -107,6 +108,7 @@ firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
 firebase-installations = { group = "com.google.firebase", name = "firebase-installations" }
 kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "coroutines" }
+play-services-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "play-services-auth" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
