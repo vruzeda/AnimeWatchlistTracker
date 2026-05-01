@@ -21,6 +21,12 @@ subprojects {
 
     pluginManager.withPlugin("jacoco") {
         afterEvaluate {
+            tasks.withType<JacocoReport>().configureEach {
+                reports {
+                    xml.required.set(true)
+                }
+            }
+
             val verificationTask = tasks.findByName("jacocoTestCoverageVerification")
                 as? JacocoCoverageVerification ?: return@afterEvaluate
             verificationTask.dependsOn(tasks.withType<Test>())

@@ -31,8 +31,12 @@ jobs:
       - name: Generate coverage reports
         run: ./gradlew jacocoTestReport
 
+      - name: Collect Jacoco XML reports
+        id: jacoco
+        run: echo "files=$(find . -name 'jacocoTestReport.xml' | tr '\n' ',')" >> $GITHUB_OUTPUT
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: "**/build/reports/jacoco/**/*.xml"
+          files: ${{ steps.jacoco.outputs.files }}
