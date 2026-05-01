@@ -175,6 +175,8 @@
     <string name="settings_delete_dialog_message">Esto eliminará permanentemente todo el anime y las temporadas de tu lista. Esta acción no se puede deshacer.</string>
     <string name="settings_delete_dialog_confirm">Eliminar</string>
     <string name="settings_delete_dialog_dismiss">Cancelar</string>
+    <string name="settings_delete_dialog_confirmation_phrase">ELIMINAR</string>
+    <string name="settings_delete_dialog_confirmation_hint">Escribe ELIMINAR para confirmar</string>
     <string name="settings_data_deleted">Todos los datos eliminados</string>
     <string name="settings_version">Versión %1$s (%2$d)</string>
     <string name="settings_developer_options_enabled">Opciones de desarrollador activadas</string>

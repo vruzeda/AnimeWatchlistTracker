@@ -37,7 +37,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.vuzeda.animewatchlist.tracker.module.designsystem.component.ConfirmationDialog
+import com.vuzeda.animewatchlist.tracker.module.designsystem.component.TypeToConfirmDialog
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.MinTouchTarget
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
@@ -304,9 +304,11 @@ fun SettingsScreen(
         }
 
         if (uiState.isDeleteConfirmationVisible) {
-            ConfirmationDialog(
+            TypeToConfirmDialog(
                 title = stringResource(R.string.settings_delete_dialog_title),
                 message = stringResource(R.string.settings_delete_dialog_message),
+                confirmationPhrase = stringResource(R.string.settings_delete_dialog_confirmation_phrase),
+                confirmationHint = stringResource(R.string.settings_delete_dialog_confirmation_hint),
                 confirmText = stringResource(R.string.settings_delete_dialog_confirm),
                 dismissText = stringResource(R.string.settings_delete_dialog_dismiss),
                 onConfirm = onConfirmDelete,

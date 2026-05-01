@@ -175,6 +175,8 @@
     <string name="settings_delete_dialog_message">This will permanently remove all anime and seasons from your watchlist. This action cannot be undone.</string>
     <string name="settings_delete_dialog_confirm">Delete</string>
     <string name="settings_delete_dialog_dismiss">Cancel</string>
+    <string name="settings_delete_dialog_confirmation_phrase">DELETE</string>
+    <string name="settings_delete_dialog_confirmation_hint">Type DELETE to confirm</string>
     <string name="settings_data_deleted">All data deleted</string>
     <string name="developer_title">Developer</string>
     <string name="developer_last_update_run">Last anime update check</string>
