@@ -80,4 +80,11 @@ lane :release do |options|
 
   deploy(track: deploy_track, rollout: rollout)
   push_to_git_remote
+  set_github_release(
+    repository_name: "vruzeda/AnimeWatchlistTracker",
+    api_token: ENV["GITHUB_TOKEN"] || ENV["GITHUB_API_TOKEN"],
+    tag_name: tag,
+    name: tag,
+    is_generate_release_notes: true
+  )
 end
