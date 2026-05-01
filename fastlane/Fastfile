@@ -74,7 +74,8 @@ lane :release do |options|
   content      = File.read("../app/build.gradle.kts")
   version_code = content.match(/versionCode\s*=\s*(\d+)/)[1]
   version_name = content.match(/versionName\s*=\s*"([^"]+)"/)[1]
-  tag          = options[:version_name] ? "v#{version_name}" : "v#{version_name}+#{version_code}"
+  tag_exists   = !`git tag -l "v#{version_name}"`.strip.empty?
+  tag          = tag_exists ? "v#{version_name}+#{version_code}" : "v#{version_name}"
   add_git_tag(tag: tag)
 
   deploy(track: deploy_track, rollout: rollout)
