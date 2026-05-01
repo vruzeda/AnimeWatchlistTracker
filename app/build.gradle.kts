@@ -19,15 +19,13 @@ val keystoreProperties = Properties().apply {
 android {
     namespace = "com.vuzeda.animewatchlist.tracker"
     compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
+        version = release(37)
     }
 
     defaultConfig {
         applicationId = "com.vuzeda.animewatchlist.tracker"
         minSdk = 26
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 37
         versionName = "6.5"
 
