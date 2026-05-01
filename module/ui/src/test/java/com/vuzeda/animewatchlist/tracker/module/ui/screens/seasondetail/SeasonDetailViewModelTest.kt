@@ -486,6 +486,26 @@ class SeasonDetailViewModelTest {
     }
 
     @Test
+    fun `loadFromApi with existing non-watchlist season reflects isInWatchlist false`() = runTest {
+        val nonWatchlistSeason = sampleSeason.copy(id = 5L, malId = 16498, isInWatchlist = false)
+        coEvery { findSeasonIdByMalIdUseCase(16498) } returns 5L
+        every { observeSeasonByIdUseCase(5L) } returns MutableStateFlow<Season?>(nonWatchlistSeason)
+        every { observeWatchedEpisodesUseCase(5L) } returns flowOf(emptySet())
+        every { observeSeasonsForAnimeUseCase(nonWatchlistSeason.animeId) } returns flowOf(listOf(nonWatchlistSeason))
+
+        val viewModel = createViewModel(seasonId = 0L, malId = 16498)
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val state = expectMostRecentItem()
+            assertThat(state.isInWatchlist).isFalse()
+            assertThat(state.season?.id).isEqualTo(5L)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `showStatusSheet and dismissStatusSheet toggle visibility`() = runTest {
         val viewModel = createViewModel()
 

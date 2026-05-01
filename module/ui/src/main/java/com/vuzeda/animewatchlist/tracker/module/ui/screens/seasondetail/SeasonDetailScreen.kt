@@ -313,6 +313,7 @@ fun SeasonDetailScreen(
                             options = statusOptions,
                             onOptionSelected = { index ->
                                 onAddStatusSelected(WatchStatus.entries[index])
+                                onDismissAddSheet()
                             },
                             onDismiss = onDismissAddSheet
                         )

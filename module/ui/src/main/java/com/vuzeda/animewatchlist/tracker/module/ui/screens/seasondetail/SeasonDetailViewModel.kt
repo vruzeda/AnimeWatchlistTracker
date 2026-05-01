@@ -465,7 +465,7 @@ open class SeasonDetailViewModel @Inject constructor(
                             isLoading = false,
                             isNotFound = false,
                             season = season,
-                            isInWatchlist = true,
+                            isInWatchlist = season.isInWatchlist,
                             isEpisodeNotificationsEnabled = season.isEpisodeNotificationsEnabled,
                             watchedEpisodes = watchedEpisodes,
                             titleLanguage = titleLanguage,
@@ -476,7 +476,7 @@ open class SeasonDetailViewModel @Inject constructor(
                     } else {
                         currentState.copy(
                             season = season,
-                            isInWatchlist = true,
+                            isInWatchlist = season.isInWatchlist,
                             isEpisodeNotificationsEnabled = season.isEpisodeNotificationsEnabled,
                             watchedEpisodes = watchedEpisodes,
                             titleLanguage = titleLanguage,
