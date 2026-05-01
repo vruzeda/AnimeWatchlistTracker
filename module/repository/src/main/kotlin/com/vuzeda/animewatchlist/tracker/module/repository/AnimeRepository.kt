@@ -50,6 +50,8 @@ interface AnimeRepository {
 
     suspend fun fetchAnimeEpisodes(malId: Int, page: Int): Result<EpisodePage>
 
+    suspend fun getCachedEpisodes(malId: Int): List<EpisodeInfo>
+
     suspend fun fetchEpisodesAiredBetween(
         malId: Int,
         after: LocalDate,

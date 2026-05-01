@@ -13,6 +13,7 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.AddAnimeFromDetailsUseCa
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddSeasonToWatchlistUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.DeleteSeasonUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FetchEpisodesUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.GetCachedEpisodesUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FillEpisodeGapsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FindSeasonIdByMalIdUseCase
@@ -50,6 +51,7 @@ open class SeasonDetailViewModel @Inject constructor(
     private val observeSeasonsForAnimeUseCase: ObserveSeasonsForAnimeUseCase,
     private val fetchSeasonDetailUseCase: FetchSeasonDetailUseCase,
     private val fetchEpisodesUseCase: FetchEpisodesUseCase,
+    private val getCachedEpisodesUseCase: GetCachedEpisodesUseCase,
     private val fillEpisodeGapsUseCase: FillEpisodeGapsUseCase,
     private val updateSeasonStatusUseCase: UpdateSeasonStatusUseCase,
     private val deleteSeasonUseCase: DeleteSeasonUseCase,
@@ -277,10 +279,14 @@ open class SeasonDetailViewModel @Inject constructor(
                     }
                 }
                 .onFailure {
-                    _uiState.update { it.copy(
-                        isLoadingEpisodes = false,
-                        snackbarEvent = SeasonDetailSnackbarEvent.EpisodeLoadFailed
-                    ) }
+                    val cached = getCachedEpisodesUseCase(malId)
+                    _uiState.update { state ->
+                        state.copy(
+                            episodes = cached.ifEmpty { state.episodes },
+                            isLoadingEpisodes = false,
+                            snackbarEvent = SeasonDetailSnackbarEvent.EpisodeLoadFailed
+                        )
+                    }
                 }
         }
     }

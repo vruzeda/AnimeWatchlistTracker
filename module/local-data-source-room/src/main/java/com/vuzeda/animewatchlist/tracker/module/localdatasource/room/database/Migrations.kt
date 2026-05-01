@@ -3,6 +3,17 @@ package com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val MIGRATION_17_18 = object : Migration(17, 18) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `episode_info` " +
+                "(`malId` INTEGER NOT NULL, `number` INTEGER NOT NULL, " +
+                "`title` TEXT, `aired` TEXT, `isFiller` INTEGER NOT NULL, `isRecap` INTEGER NOT NULL, " +
+                "PRIMARY KEY(`malId`, `number`))"
+        )
+    }
+}
+
 val MIGRATION_16_17 = object : Migration(16, 17) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("ALTER TABLE season ADD COLUMN addedAt INTEGER NOT NULL DEFAULT 0")

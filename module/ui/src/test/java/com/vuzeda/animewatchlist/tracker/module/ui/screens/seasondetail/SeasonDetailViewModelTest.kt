@@ -14,6 +14,7 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.AddAnimeFromDetailsUseCa
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddSeasonToWatchlistUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.DeleteSeasonUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FetchEpisodesUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.GetCachedEpisodesUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FillEpisodeGapsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FindSeasonIdByMalIdUseCase
@@ -52,6 +53,7 @@ class SeasonDetailViewModelTest {
     private val observeSeasonsForAnimeUseCase: ObserveSeasonsForAnimeUseCase = mockk()
     private val fetchSeasonDetailUseCase: FetchSeasonDetailUseCase = mockk()
     private val fetchEpisodesUseCase: FetchEpisodesUseCase = mockk()
+    private val getCachedEpisodesUseCase: GetCachedEpisodesUseCase = mockk()
     private val fillEpisodeGapsUseCase: FillEpisodeGapsUseCase = FillEpisodeGapsUseCase()
     private val updateSeasonStatusUseCase: UpdateSeasonStatusUseCase = mockk(relaxed = true)
     private val deleteSeasonUseCase: DeleteSeasonUseCase = mockk(relaxed = true)
@@ -98,6 +100,7 @@ class SeasonDetailViewModelTest {
         coEvery { fetchEpisodesUseCase(malId = 16498, page = 1) } returns Result.success(
             EpisodePage(episodes = sampleEpisodes, hasNextPage = true, nextPage = 2)
         )
+        coEvery { getCachedEpisodesUseCase(any()) } returns emptyList()
     }
 
     @AfterEach
@@ -122,6 +125,7 @@ class SeasonDetailViewModelTest {
             observeSeasonsForAnimeUseCase = observeSeasonsForAnimeUseCase,
             fetchSeasonDetailUseCase = fetchSeasonDetailUseCase,
             fetchEpisodesUseCase = fetchEpisodesUseCase,
+            getCachedEpisodesUseCase = getCachedEpisodesUseCase,
             fillEpisodeGapsUseCase = fillEpisodeGapsUseCase,
             updateSeasonStatusUseCase = updateSeasonStatusUseCase,
             deleteSeasonUseCase = deleteSeasonUseCase,
@@ -609,6 +613,24 @@ class SeasonDetailViewModelTest {
             testDispatcher.scheduler.advanceUntilIdle()
 
             val state = expectMostRecentItem()
+            assertThat(state.snackbarEvent).isEqualTo(SeasonDetailSnackbarEvent.EpisodeLoadFailed)
+            assertThat(state.isLoadingEpisodes).isFalse()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `loads cached episodes when initial fetch fails`() = runTest {
+        coEvery { fetchEpisodesUseCase(malId = 16498, page = 1) } returns Result.failure(Exception("rate limited"))
+        coEvery { getCachedEpisodesUseCase(16498) } returns sampleEpisodes
+
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val state = expectMostRecentItem()
+            assertThat(state.episodes).isEqualTo(sampleEpisodes)
             assertThat(state.snackbarEvent).isEqualTo(SeasonDetailSnackbarEvent.EpisodeLoadFailed)
             assertThat(state.isLoadingEpisodes).isFalse()
             cancelAndIgnoreRemainingEvents()

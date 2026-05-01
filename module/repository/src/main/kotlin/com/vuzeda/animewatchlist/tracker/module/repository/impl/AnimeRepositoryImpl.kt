@@ -15,6 +15,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.SeasonData
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonalAnimePage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.AnimeLocalDataSource
+import com.vuzeda.animewatchlist.tracker.module.localdatasource.EpisodeLocalDataSource
 import com.vuzeda.animewatchlist.tracker.module.notification.AnimeUpdateNotifier
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.AnimeRemoteDataSource
 import com.vuzeda.animewatchlist.tracker.module.repository.AnimeRepository
@@ -31,6 +32,7 @@ import kotlin.time.Instant
 
 class AnimeRepositoryImpl @Inject constructor(
     private val animeLocalDataSource: AnimeLocalDataSource,
+    private val episodeLocalDataSource: EpisodeLocalDataSource,
     private val animeRemoteDataSource: AnimeRemoteDataSource,
     private val animeUpdateNotifier: AnimeUpdateNotifier,
     private val animeUpdateScheduler: AnimeUpdateScheduler,
@@ -127,6 +129,12 @@ class AnimeRepositoryImpl @Inject constructor(
 
     override suspend fun fetchAnimeEpisodes(malId: Int, page: Int): Result<EpisodePage> =
         animeRemoteDataSource.fetchAnimeEpisodes(malId = malId, page = page)
+            .onSuccess { episodePage ->
+                episodeLocalDataSource.upsertEpisodes(malId, episodePage.episodes)
+            }
+
+    override suspend fun getCachedEpisodes(malId: Int): List<EpisodeInfo> =
+        episodeLocalDataSource.getEpisodes(malId)
 
     override suspend fun fetchEpisodesAiredBetween(
         malId: Int,

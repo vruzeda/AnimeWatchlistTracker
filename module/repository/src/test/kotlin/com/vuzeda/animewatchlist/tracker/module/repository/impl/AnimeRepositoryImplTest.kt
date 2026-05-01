@@ -14,6 +14,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonalAnimePage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.AnimeLocalDataSource
+import com.vuzeda.animewatchlist.tracker.module.localdatasource.EpisodeLocalDataSource
 import com.vuzeda.animewatchlist.tracker.module.notification.AnimeUpdateNotifier
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.AnimeRemoteDataSource
 import com.vuzeda.animewatchlist.tracker.module.repository.SeasonRepository
@@ -34,6 +35,7 @@ import kotlin.time.Instant
 class AnimeRepositoryImplTest {
 
     private val animeLocalDataSource: AnimeLocalDataSource = mockk()
+    private val episodeLocalDataSource: EpisodeLocalDataSource = mockk(relaxed = true)
     private val animeRemoteDataSource: AnimeRemoteDataSource = mockk(relaxed = true)
     private val animeUpdateNotifier: AnimeUpdateNotifier = mockk(relaxUnitFun = true)
     private val animeUpdateScheduler: AnimeUpdateScheduler = mockk(relaxUnitFun = true)
@@ -47,6 +49,7 @@ class AnimeRepositoryImplTest {
     }
     private val repository = AnimeRepositoryImpl(
         animeLocalDataSource,
+        episodeLocalDataSource,
         animeRemoteDataSource,
         animeUpdateNotifier,
         animeUpdateScheduler,
