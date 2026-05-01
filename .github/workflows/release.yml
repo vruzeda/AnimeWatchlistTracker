@@ -1,0 +1,80 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_track:
+        description: Google Play track
+        required: true
+        default: production
+        type: choice
+        options:
+          - production
+          - alpha
+          - internal
+      rollout:
+        description: Rollout fraction (e.g. 1.0 for 100%)
+        required: true
+        default: '1.0'
+      version_name:
+        description: Version name (e.g. 6.8 — use the current name to only bump versionCode)
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment: release
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Decode keystore
+        run: echo "${{ secrets.KEYSTORE_FILE }}" | base64 -d > keystore.jks
+
+      - name: Write keystore.properties
+        run: |
+          cat > keystore.properties <<EOF
+          storeFile=$GITHUB_WORKSPACE/keystore.jks
+          storePassword=${{ secrets.KEYSTORE_STORE_PASSWORD }}
+          keyAlias=${{ secrets.KEYSTORE_KEY_ALIAS }}
+          keyPassword=${{ secrets.KEYSTORE_KEY_PASSWORD }}
+          EOF
+
+      - name: Write Play Store key
+        run: echo '${{ secrets.PLAY_STORE_JSON_KEY }}' > fastlane/play-store-key.json
+
+      - name: Release
+        run: |
+          bundle exec fastlane release \
+            deploy_track:${{ inputs.deploy_track }} \
+            rollout:${{ inputs.rollout }} \
+            version_name:${{ inputs.version_name }}
+
+      - name: Create GitHub Release
+        run: |
+          TAG=$(git describe --tags --abbrev=0)
+          gh release create "$TAG" --title "$TAG" --generate-notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

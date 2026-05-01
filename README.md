@@ -1,5 +1,10 @@
 # 🎌 Anime Watchlist Tracker
 
+[![CI](https://github.com/vruzeda/AnimeWatchlistTracker/actions/workflows/ci.yml/badge.svg)](https://github.com/vruzeda/AnimeWatchlistTracker/actions/workflows/ci.yml)
+[![Coverage](https://codecov.io/gh/vruzeda/AnimeWatchlistTracker/graph/badge.svg)](https://codecov.io/gh/vruzeda/AnimeWatchlistTracker)
+[![Release](https://img.shields.io/github/v/release/vruzeda/AnimeWatchlistTracker)](https://github.com/vruzeda/AnimeWatchlistTracker/releases/latest)
+[![Min SDK](https://img.shields.io/badge/minSdk-26-brightgreen)](https://developer.android.com/about/versions/oreo)
+
 A clean, offline-first Android app for tracking your anime journey. Organize what you're watching, what you've completed, and what's next — all from your pocket.
 
 ## About
