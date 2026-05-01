@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.ksp)
-    jacoco
+    id("jacoco-android")
 }
 
 android {
@@ -55,25 +55,12 @@ dependencies {
     testImplementation(libs.truth)
 }
 
-val jacocoExclude = listOf(
-    "**/R.class", "**/R\$*.class", "**/BuildConfig.*", "**/Manifest*.*",
-    "**/dao/**",
-    "**/database/AnimeDatabase*",
-    "**/database/Migrations*",
-    "**/database/RoomTransactionRunner*",
-    "**/preferences/**"
-)
-
-tasks.register<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
-    dependsOn("testDebugUnitTest")
-    classDirectories.setFrom(
-        fileTree(layout.buildDirectory.dir("intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes")) {
-            exclude(jacocoExclude)
-        }
-    )
-    executionData.setFrom(
-        fileTree(layout.buildDirectory) {
-            include("**/*.exec", "**/*.ec")
-        }
+jacocoAndroid {
+    excludes.addAll(
+        "**/dao/**",
+        "**/database/AnimeDatabase*",
+        "**/database/Migrations*",
+        "**/database/RoomTransactionRunner*",
+        "**/preferences/**"
     )
 }

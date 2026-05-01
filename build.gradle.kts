@@ -20,17 +20,14 @@ subprojects {
     }
 
     pluginManager.withPlugin("jacoco") {
-        afterEvaluate {
-            tasks.withType<JacocoReport>().configureEach {
-                reports {
-                    xml.required.set(true)
-                }
+        tasks.withType<JacocoReport>().configureEach {
+            reports {
+                xml.required.set(true)
             }
-
-            val verificationTask = tasks.findByName("jacocoTestCoverageVerification")
-                as? JacocoCoverageVerification ?: return@afterEvaluate
-            verificationTask.dependsOn(tasks.withType<Test>())
-            verificationTask.violationRules {
+        }
+        tasks.withType<JacocoCoverageVerification>().configureEach {
+            dependsOn(tasks.withType<Test>())
+            violationRules {
                 rule {
                     limit {
                         counter = "BRANCH"
