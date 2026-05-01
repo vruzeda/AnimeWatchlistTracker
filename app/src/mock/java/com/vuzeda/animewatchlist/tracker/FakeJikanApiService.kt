@@ -22,7 +22,15 @@ import kotlin.time.Duration.Companion.seconds
 
 class FakeJikanApiService : JikanApiService {
 
-    override suspend fun searchAnime(query: String, limit: Int): AnimeSearchResponseDto =
+    override suspend fun searchAnime(
+        query: String,
+        page: Int,
+        limit: Int,
+        type: String?,
+        status: String?,
+        orderBy: String?,
+        sort: String?
+    ): AnimeSearchResponseDto =
         AnimeSearchResponseDto(data = fakeResults)
 
     override suspend fun getAnimeFullById(malId: Int): AnimeFullResponseDto {
@@ -51,7 +59,7 @@ class FakeJikanApiService : JikanApiService {
         year: Int,
         season: String,
         page: Int,
-        filter: String,
+        filter: String?,
         continuing: Boolean
     ): AnimeSearchResponseDto = AnimeSearchResponseDto(
         pagination = SearchPaginationDto(hasNextPage = false, lastVisiblePage = 1),
