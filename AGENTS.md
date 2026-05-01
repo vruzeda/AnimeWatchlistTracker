@@ -18,16 +18,23 @@ Prefer **pure Kotlin library modules** (`java-library` + `kotlin` plugins) whene
 All modules except `:app` live under the `module/` root directory.
 
 ```
-:module:domain                → Pure Kotlin library (models only)
-:module:local-data-source     → Pure Kotlin library (local data source interfaces, uses domain types)
-:module:local-data-source-room → Android library (Room entities, DAOs, DataStore)
-:module:remote-data-source    → Pure Kotlin library (AnimeRemoteDataSource interface)
+:module:domain                      → Pure Kotlin library (domain models)
+:module:local-data-source           → Pure Kotlin library (local data source interfaces)
+:module:local-data-source-room      → Android library (Room entities, DAOs, DataStore)
+:module:remote-data-source          → Pure Kotlin library (remote data source interfaces)
 :module:remote-data-source-retrofit → Pure Kotlin library (Retrofit impl, DTOs, interceptors)
-:module:repository            → Pure Kotlin library (repository interfaces + implementations, mappers)
-:module:use-case              → Pure Kotlin library (use cases)
-:module:design-system         → Android library (design tokens, theme, reusable Compose components)
-:module:ui                    → Android library (Compose screens, ViewModels, navigation)
-:app                          → Android application (Hilt entry point, wires all modules together)
+:module:remote-data-source-firebase → Android library (Firebase Firestore impl; prod flavor only)
+:module:repository                  → Pure Kotlin library (repository interfaces + implementations)
+:module:use-case                    → Pure Kotlin library (use cases)
+:module:analytics                   → Pure Kotlin library (AnalyticsTracker interface, NoOpAnalyticsTracker)
+:module:analytics-firebase          → Android library (FirebaseAnalyticsTracker; prod flavor only)
+:module:notification                → Pure Kotlin library (AnimeUpdateNotifier interface)
+:module:notification-android        → Android library (Android notification implementation)
+:module:scheduler                   → Pure Kotlin library (AnimeUpdateScheduler interface)
+:module:scheduler-work              → Android library (WorkManager scheduler implementation)
+:module:design-system               → Android library (design tokens, theme, reusable Compose components)
+:module:ui                          → Android library (Compose screens, ViewModels, navigation)
+:app                                → Android application (Hilt entry point, wires all modules together)
 ```
 
 ### Layer Rules
@@ -40,7 +47,7 @@ All modules except `:app` live under the `module/` root directory.
 - Dependencies: `kotlinx-coroutines-core` only.
 
 **`:module:local-data-source`** — Pure Kotlin Library
-- Contains: local data source interfaces (`AnimeLocalDataSource`, `SeasonLocalDataSource`, `UserPreferencesLocalDataSource`). These interfaces use domain models directly as their parameter and return types.
+- Contains: local data source interfaces (`AnimeLocalDataSource`, `EpisodeLocalDataSource`, `SeasonLocalDataSource`, `UserPreferencesLocalDataSource`, `WatchedEpisodeLocalDataSource`). These interfaces use domain models directly as their parameter and return types.
 - These interfaces form the contract between `:module:repository` (consumer) and `:module:local-data-source-room` (provider).
 - Package: `com.vuzeda.animewatchlist.tracker.module.localdatasource`
 - Dependencies: `:module:domain`, `kotlinx-coroutines-core`. No Android, no Room.
@@ -52,7 +59,7 @@ All modules except `:app` live under the `module/` root directory.
 - Dependencies: `:module:local-data-source`, `:module:domain`, `:module:repository` (for `TransactionRunner` interface), Room, DataStore, KSP.
 
 **`:module:remote-data-source`** — Pure Kotlin Library
-- Contains: the single `AnimeRemoteDataSource` interface, which defines the remote data access contract.
+- Contains: `AnimeRemoteDataSource` and `FeedbackRemoteDataSource` interfaces, which define the remote data access contracts.
 - Package: `com.vuzeda.animewatchlist.tracker.module.remotedatasource`
 - Dependencies: `:module:domain`, `kotlinx-coroutines-core`.
 
@@ -62,18 +69,56 @@ All modules except `:app` live under the `module/` root directory.
 - Package: `com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit`
 - Dependencies: `:module:remote-data-source`, `:module:domain`, Retrofit, OkHttp, Moshi, KSP.
 
+**`:module:remote-data-source-firebase`** — Android Library
+- Contains: `FirestoreFeedbackRemoteDataSource` (implements `FeedbackRemoteDataSource` using Firebase Firestore and Firebase Installations).
+- Used in the `prod` product flavor only — the `mock` flavor provides a stub via `MockFeedbackModule`.
+- Package: `com.vuzeda.animewatchlist.tracker.module.remotedatasource.firebase`
+- Dependencies: `:module:remote-data-source`, `:module:domain`, Firebase Firestore, Firebase Auth, Firebase Installations, Hilt.
+
 **`:module:repository`** — Pure Kotlin Library
-- Contains: repository interfaces (`AnimeRepository`, `SeasonRepository`, `UserPreferencesRepository`, `TransactionRunner`) and repository implementations (`AnimeRepositoryImpl`, `SeasonRepositoryImpl`, `UserPreferencesRepositoryImpl`).
+- Contains: repository interfaces (`AnimeRepository`, `FeedbackRepository`, `SeasonRepository`, `UserPreferencesRepository`, `TransactionRunner`) and repository implementations (`AnimeRepositoryImpl`, `FeedbackRepositoryImpl`, `SeasonRepositoryImpl`, `UserPreferencesRepositoryImpl`).
 - `AnimeRepositoryImpl` delegates all remote-fetching operations to `AnimeRemoteDataSource` internally; `AnimeRemoteDataSource` is not exposed to consumers.
 - Implementations are the only classes that coordinate between local and remote data sources.
 - Package: `com.vuzeda.animewatchlist.tracker.module.repository`
-- Dependencies: `:module:remote-data-source` (implementation), `:module:local-data-source`, `:module:domain`.
+- Dependencies: `:module:remote-data-source`, `:module:local-data-source`, `:module:domain`, `:module:notification`, `:module:scheduler`.
 
 **`:module:use-case`** — Pure Kotlin Library
 - Contains: all use cases. Each represents a single business operation with a single `operator fun invoke(...)` method.
 - Use cases receive repository interfaces via constructor injection. They must not call other use cases — compose at the ViewModel level.
 - Package: `com.vuzeda.animewatchlist.tracker.module.usecase`
 - Dependencies: `:module:repository`, `:module:domain`.
+
+**`:module:analytics`** — Pure Kotlin Library
+- Contains: `AnalyticsTracker` interface, `AnalyticsEvent` sealed type, and `NoOpAnalyticsTracker` (used in the `mock` flavor and as a default safe implementation).
+- Consumers (e.g., `:module:ui`) call `AnalyticsTracker.track(event)` without knowing the underlying implementation.
+- Package: `com.vuzeda.animewatchlist.tracker.module.analytics`
+- Dependencies: none.
+
+**`:module:analytics-firebase`** — Android Library
+- Contains: `FirebaseAnalyticsTracker` (implements `AnalyticsTracker` using Firebase Analytics).
+- Used in the `prod` product flavor only — the `mock` flavor provides `NoOpAnalyticsTracker` via `MockAnalyticsModule`.
+- Package: `com.vuzeda.animewatchlist.tracker.module.analytics.firebase`
+- Dependencies: `:module:analytics`, Firebase Analytics BOM.
+
+**`:module:notification`** — Pure Kotlin Library
+- Contains: `AnimeUpdateNotifier` interface, which defines the contract for displaying anime update notifications.
+- Package: `com.vuzeda.animewatchlist.tracker.module.notification`
+- Dependencies: `:module:domain`.
+
+**`:module:notification-android`** — Android Library
+- Contains: `NotificationHelper` (implements `AnimeUpdateNotifier` using the Android notification system) and `NotificationLaunchActivity`.
+- Package: `com.vuzeda.animewatchlist.tracker.module.notification.android`
+- Dependencies: `:module:notification`, `:module:domain`, Hilt, AndroidX Core.
+
+**`:module:scheduler`** — Pure Kotlin Library
+- Contains: `AnimeUpdateScheduler` interface, which defines the contract for scheduling periodic and immediate anime update jobs.
+- Package: `com.vuzeda.animewatchlist.tracker.module.scheduler`
+- Dependencies: none.
+
+**`:module:scheduler-work`** — Android Library
+- Contains: `AnimeUpdateWorker`, `AnimeUpdateWorkerScheduler` (implements `AnimeUpdateScheduler`), and `BackfillAiringSeasonWorker`. Uses WorkManager for scheduling.
+- Package: `com.vuzeda.animewatchlist.tracker.module.scheduler.work`
+- Dependencies: `:module:scheduler`, `:module:notification`, `:module:use-case`, `:module:domain`, WorkManager, Hilt.
 
 **`:module:design-system`** — Android Library
 - The app's design system. All visual building blocks live here.
@@ -93,15 +138,14 @@ All modules except `:app` live under the `module/` root directory.
 - ViewModels must observe local data reactively via `Flow` rather than performing one-shot fetches. Write operations should update the database and let the `Flow` deliver the new state — never manually reconstruct UI state after a write.
 - Composable functions are stateless whenever possible. They receive state and callbacks as parameters.
 - Package: `com.vuzeda.animewatchlist.tracker.module.ui`
-- Dependencies: `:module:use-case`, `:module:design-system`, `:module:domain`. Never depend on any `:module:local-data-source*` or `:module:remote-data-source*` module.
+- Dependencies: `:module:use-case`, `:module:design-system`, `:module:domain`, `:module:analytics`. Never depend on any `:module:local-data-source*` or `:module:remote-data-source*` module.
 
 **`:app`** — Android Application
 - The entry point. Contains the `Application` class, `MainActivity`, and all Hilt wiring.
 - This is the only module that knows about every other module.
-- Contains Hilt `@Module` classes that bind implementations to interfaces: `RepositoryModule`, `DatabaseModule`, `NetworkModule`, `PreferencesModule`, `WorkManagerModule`, and `ClockModule` (provides `kotlin.time.Clock` as an injectable abstraction for testability).
-- Also contains `notification/NotificationHelper` and `worker/AnimeUpdateWorker`.
+- Contains Hilt `@Module` classes that bind implementations to interfaces: `RepositoryModule`, `LocalDataSourceModule`, `RemoteDataSourceModule`, `PreferencesModule`, `NotificationModule`, `SchedulerModule`, `WorkManagerModule`, and `ClockModule` (provides `kotlin.time.Clock` as an injectable abstraction for testability).
 - No business logic, no UI screens, no data access — only DI configuration and app-level setup.
-- **Product flavors** (`environment` dimension): `prod` (real `JikanApiService` + `ChiakiServiceImpl` via `ApiServiceModule`) and `mock` (`FakeJikanApiService` + `FakeChiakiService` via `MockApiServiceModule`, plus `MockMainActivity` and `ScreenshotSeeder` for screenshot testing).
+- **Product flavors** (`environment` dimension): `prod` (real `JikanApiService` + `ChiakiServiceImpl` via `ApiServiceModule`, plus Firebase implementations via `analytics-firebase` and `remote-data-source-firebase`) and `mock` (`FakeJikanApiService` + `FakeChiakiService` via `MockApiServiceModule`, plus `MockAnalyticsModule`, `MockFeedbackModule`, `MockMainActivity`, and `ScreenshotSeeder` for screenshot testing).
 - Dependencies: all modules.
 
 ### Dependency Injection Across Modules
@@ -118,29 +162,37 @@ All modules except `:app` live under the `module/` root directory.
 :module:domain               — no module deps
 :module:local-data-source    → :module:domain
 :module:remote-data-source   → :module:domain
+:module:analytics            — no module deps
+:module:notification         → :module:domain
+:module:scheduler            — no module deps
 :module:repository           → :module:remote-data-source
                              → :module:local-data-source
                              → :module:domain
+                             → :module:notification
+                             → :module:scheduler
 :module:use-case             → :module:repository
                              → :module:domain
-:module:design-system        — no module deps
-:module:ui                   → :module:use-case
-                             → :module:design-system
+:module:analytics-firebase   → :module:analytics
+:module:notification-android → :module:notification
                              → :module:domain
+:module:remote-data-source-firebase → :module:remote-data-source
+                                    → :module:domain
 :module:local-data-source-room → :module:local-data-source
                                → :module:domain
                                → :module:repository (TransactionRunner)
 :module:remote-data-source-retrofit → :module:remote-data-source
                                     → :module:domain
-:app → :module:domain
-     → :module:design-system
-     → :module:ui
-     → :module:use-case
-     → :module:repository
-     → :module:local-data-source
-     → :module:local-data-source-room
-     → :module:remote-data-source
-     → :module:remote-data-source-retrofit
+:module:scheduler-work       → :module:scheduler
+                             → :module:notification
+                             → :module:use-case
+                             → :module:domain
+:module:design-system        — no module deps
+:module:ui                   → :module:use-case
+                             → :module:design-system
+                             → :module:domain
+                             → :module:analytics
+:app → all modules
+     (analytics-firebase and remote-data-source-firebase are prodImplementation only)
 ```
 
 **Critical boundary rules:**
@@ -148,13 +200,14 @@ All modules except `:app` live under the `module/` root directory.
 - `:module:ui` never imports any `:module:local-data-source*` or `:module:remote-data-source*` module
 - `:module:design-system` never imports `:module:domain` or any other module
 - Only `:app` sees all modules (cross-module Hilt bindings live here)
+- `:module:analytics-firebase` and `:module:remote-data-source-firebase` are `prodImplementation` only in `:app`
 
 ### Module Gradle Configuration
 
 - Pure Kotlin modules apply `java-library` and `org.jetbrains.kotlin.jvm` plugins only.
-  Current pure Kotlin modules: `:module:domain`, `:module:local-data-source`, `:module:remote-data-source`, `:module:remote-data-source-retrofit`, `:module:repository`, `:module:use-case`.
+  Current pure Kotlin modules: `:module:domain`, `:module:local-data-source`, `:module:remote-data-source`, `:module:remote-data-source-retrofit`, `:module:repository`, `:module:use-case`, `:module:analytics`, `:module:notification`, `:module:scheduler`.
 - Android library modules apply `com.android.library` and related plugins.
-  Current Android library modules: `:module:local-data-source-room`, `:module:design-system`, `:module:ui`.
+  Current Android library modules: `:module:local-data-source-room`, `:module:remote-data-source-firebase`, `:module:analytics-firebase`, `:module:notification-android`, `:module:scheduler-work`, `:module:design-system`, `:module:ui`.
 - The `:app` module applies `com.android.application`, `org.jetbrains.kotlin.android`, and `com.google.dagger.hilt.android`.
 - Use version catalogs (`libs.versions.toml`) for all dependency versions.
 
@@ -170,80 +223,55 @@ The `:app` module defines a `mock` product flavor (alongside `prod`) under the `
 
 ## Project Structure
 
+| Module | Type | Description |
+|--------|------|-------------|
+| `:module:domain` | Pure Kotlin lib | Domain models only |
+| `:module:local-data-source` | Pure Kotlin lib | Local data source interfaces (using domain types) |
+| `:module:local-data-source-room` | Android lib | Room entities, DAOs, DataStore, migrations |
+| `:module:remote-data-source` | Pure Kotlin lib | Remote data source interfaces |
+| `:module:remote-data-source-retrofit` | Pure Kotlin lib | Retrofit impl, DTOs, DTO mappers, interceptors |
+| `:module:remote-data-source-firebase` | Android lib | Firebase Firestore impl (prod only) |
+| `:module:repository` | Pure Kotlin lib | Repository interfaces + implementations |
+| `:module:use-case` | Pure Kotlin lib | All use cases |
+| `:module:analytics` | Pure Kotlin lib | AnalyticsTracker interface, NoOpAnalyticsTracker |
+| `:module:analytics-firebase` | Android lib | FirebaseAnalyticsTracker (prod only) |
+| `:module:notification` | Pure Kotlin lib | AnimeUpdateNotifier interface |
+| `:module:notification-android` | Android lib | Android notification implementation |
+| `:module:scheduler` | Pure Kotlin lib | AnimeUpdateScheduler interface |
+| `:module:scheduler-work` | Android lib | WorkManager scheduler implementation |
+| `:module:design-system` | Android lib | Material 3 theme, reusable Compose components |
+| `:module:ui` | Android lib | Compose screens, ViewModels, navigation (MVVM) |
+| `:app` | Android app | Hilt entry point, DI wiring |
+
+## Commands
+
+If `JAVA_HOME` is not set and `/usr/libexec/java_home` cannot locate a suitable JDK, use Android Studio's bundled JRE:
+```bash
+export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
+export PATH="$JAVA_HOME/bin:$PATH"
 ```
-AnimeWatchlistTracker/
-├── app/                          # :app — Android Application module
-│   └── src/
-│       ├── main/java/.../
-│       │   ├── AnimeWatchlistApp.kt
-│       │   ├── MainActivity.kt
-│       │   ├── di/
-│       │   │   ├── RepositoryModule.kt
-│       │   │   ├── DatabaseModule.kt
-│       │   │   ├── NetworkModule.kt
-│       │   │   ├── PreferencesModule.kt
-│       │   │   ├── WorkManagerModule.kt
-│       │   │   └── ClockModule.kt
-│       │   ├── notification/
-│       │   │   └── NotificationHelper.kt
-│       │   └── worker/
-│       │       └── AnimeUpdateWorker.kt
-│       ├── prod/java/.../
-│       │   └── di/
-│       │       └── ApiServiceModule.kt
-│       └── mock/java/.../
-│           ├── MockMainActivity.kt
-│           ├── ScreenshotSeeder.kt
-│           └── di/
-│               └── MockApiServiceModule.kt
-├── module/
-│   ├── domain/                   # :module:domain — Pure Kotlin library
-│   │   └── src/main/kotlin/.../module/domain/
-│   │       └── (16 model files: Anime, AnimeFullDetails, AnimeSeason, ...)
-│   ├── local-data-source/        # :module:local-data-source — Pure Kotlin library
-│   │   └── src/main/kotlin/.../module/localdatasource/
-│   │       ├── AnimeLocalDataSource.kt
-│   │       ├── SeasonLocalDataSource.kt
-│   │       └── UserPreferencesLocalDataSource.kt
-│   ├── local-data-source-room/   # :module:local-data-source-room — Android library
-│   │   └── src/main/java/.../module/localdatasource/room/
-│   │       ├── dao/
-│   │       ├── entity/
-│   │       ├── preferences/
-│   │       └── database/
-│   ├── remote-data-source/       # :module:remote-data-source — Pure Kotlin library
-│   │   └── src/main/kotlin/.../module/remotedatasource/
-│   │       └── AnimeRemoteDataSource.kt
-│   ├── remote-data-source-retrofit/ # :module:remote-data-source-retrofit — Pure Kotlin library
-│   │   └── src/main/kotlin/.../module/remotedatasource/retrofit/
-│   │       ├── AnimeRemoteDataSourceImpl.kt
-│   │       ├── dto/
-│   │       ├── mapper/
-│   │       ├── service/
-│   │       └── interceptor/
-│   ├── repository/               # :module:repository — Pure Kotlin library
-│   │   └── src/main/kotlin/.../module/repository/
-│   │       ├── AnimeRepository.kt
-│   │       ├── SeasonRepository.kt
-│   │       ├── UserPreferencesRepository.kt
-│   │       ├── TransactionRunner.kt
-│   │       └── impl/
-│   ├── use-case/                 # :module:use-case — Pure Kotlin library
-│   │   └── src/main/kotlin/.../module/usecase/
-│   │       └── (27 use case files)
-│   ├── design-system/            # :module:design-system — Android library
-│   │   └── src/main/java/.../module/designsystem/
-│   │       ├── theme/
-│   │       └── component/
-│   └── ui/                       # :module:ui — Android library
-│       └── src/main/java/.../module/ui/
-│           ├── navigation/
-│           └── screens/
-├── build.gradle.kts
-├── settings.gradle.kts
-└── gradle/
-    └── libs.versions.toml
+If Android Studio is installed elsewhere, locate it with: `find /Applications -name "java" -path "*/jbr/*" -maxdepth 6`
+
+```bash
+# Build
+./gradlew build
+./gradlew assembleRelease
+
+# Run all unit tests
+./gradlew test
+
+# Run branch-coverage verification (≥80%) across all jacoco-enabled modules
+# To opt a module in, apply the `jacoco` plugin in its build.gradle.kts
+./gradlew jacocoTestCoverageVerification
+
+# Run tests for a specific module
+./gradlew :module:<name>:test
+
+# Run a single test class
+./gradlew :module:<name>:test --tests "com.fully.qualified.ClassName"
 ```
+
+All test modules use JUnit 5 — `useJUnitPlatform()` is configured in each module's `build.gradle.kts`.
 
 ## Coding Standards
 
@@ -303,6 +331,16 @@ If you feel the need to write a comment, refactor the code until the comment is 
 - The UI layer translates domain errors into user-facing messages. Error mapping lives in the ViewModel, not in Composables.
 - Network errors, database errors, and validation errors must all be handled gracefully — the app should never crash from expected error scenarios.
 
+## Localization
+
+The app supports English (default), Brazilian Portuguese (`values-pt`), Latin American Spanish (`values-es`), and French (`values-fr`).
+
+**Rules:**
+- All user-visible strings must live in `strings.xml` — never hardcode text in Kotlin or XML layout files.
+- Every new string added to `values/strings.xml` must be translated in all four language files.
+- ViewModels must not build display strings by concatenating literals — return structured data to the Composable and format with `stringResource` there.
+- String modules: `:module:ui`, `:module:design-system`, `:module:notification-android` each have their own `res/values*/strings.xml` files — keep strings in the module that owns the UI.
+
 ## Dependencies
 
 Use only well-established, Google-recommended, or widely-adopted industry-standard libraries:
@@ -317,9 +355,21 @@ Use only well-established, Google-recommended, or widely-adopted industry-standa
 - **Coil** — Image loading (Compose-native)
 - **Jetpack Navigation Compose** — Navigation
 - **Kotlin Coroutines + Flow** — Async and reactive programming
+- **Firebase** (Analytics, Firestore, Auth, Crashlytics) — Prod-flavor analytics, feedback, and crash reporting
+- **WorkManager** — Background task scheduling
 - **Timber** — Logging (debug builds only)
 
 Do NOT introduce any dependency that is not listed above without explicit approval. Do not use experimental or alpha-stage libraries in production code.
+
+## Technology Stack
+
+- Kotlin 2.3.21 · AGP 9.2.0 · Gradle 9.5.0
+- Jetpack Compose BOM 2026.04.01 · Material 3
+- Hilt 2.59.2 · Room 2.8.4 · DataStore 1.2.1
+- Retrofit 3.0.0 · OkHttp 5.3.2 · Moshi 1.15.2
+- Coil 2.7.0 · WorkManager 2.11.2 · Navigation Compose 2.9.8
+- External APIs: Jikan v4 (MyAnimeList), chiaki.site (watch order, HTML scraping)
+- Min SDK 26 · Target SDK 37
 
 ## Testing
 
@@ -380,8 +430,14 @@ Every component must have unit tests. This is non-negotiable.
 You MUST commit at each meaningful milestone during development — do NOT wait until the end or wait to be asked. At each meaningful step, the project must be built and all unit tests must pass before committing. Follow this workflow:
 
 1. Complete a logical unit of work (e.g., a new module, a feature, a layer of the architecture).
-2. Build the project — ensure it compiles without errors or warnings.
-3. Run all existing unit tests — ensure they all pass.
+2. Build the project and run all unit tests:
+   ```bash
+   ./gradlew :module:domain:test :module:remote-data-source-retrofit:test :module:repository:test :module:use-case:test :module:ui:test
+   ```
+3. Run coverage verification:
+   ```bash
+   ./gradlew jacocoTestCoverageVerification
+   ```
 4. If anything fails, fix it before proceeding.
 5. Once the build and tests succeed, commit with a clear, descriptive message.
 6. Continue to the next unit of work and repeat.
@@ -394,11 +450,6 @@ This ensures that every commit in the history represents a working, verified sta
 2. New code has corresponding unit tests.
 3. **Branch coverage ≥ 80%** in every tested module — run the aggregate Jacoco verification task and fix any violations before committing:
    ```bash
-   export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
-   export PATH="$JAVA_HOME/bin:$PATH"
-   ```
-   If `JAVA_HOME` is not already set and `/usr/libexec/java_home` fails to locate a suitable JDK, use Android Studio's bundled JRE at the path above. If Android Studio is installed in a non-standard location, search for `jbr` inside the Android Studio app bundle (e.g., `find /Applications -name "java" -path "*/jbr/*" -maxdepth 6`).
-   ```bash
    ./gradlew jacocoTestCoverageVerification
    ```
    Coverage enforcement is opt-in per module: any module that applies the `jacoco` Gradle plugin is automatically discovered by the root, which injects the 80% violation rule into its `jacocoTestCoverageVerification` task. Gradle's task-name resolution runs the task across all subprojects that have it — no custom aggregate task is needed. To add a new JVM module to coverage enforcement, apply the `jacoco` plugin in that module's `build.gradle.kts`; no other changes are needed. Modules that need to exclude generated or untestable classes (e.g., Moshi adapters, Room DAOs, coroutine state-machine code) configure only `classDirectories` in their `jacocoTestCoverageVerification` task — they do not set the ratio. Android library modules additionally register the `jacocoTestCoverageVerification` task manually because AGP does not create it automatically. Modules with interface-only code (`:module:local-data-source`, `:module:remote-data-source`) have no testable implementation and intentionally do not apply the `jacoco` plugin.
@@ -406,5 +457,4 @@ This ensures that every commit in the history represents a working, verified sta
 5. Code follows the naming and style conventions above.
 6. No unnecessary comments in the code.
 7. Architecture layer boundaries are respected — no cross-layer imports.
-8. No hardcoded strings in the UI — use string resources.
-9. `README.md` is updated to reflect any user-facing changes, new features, new dependencies, or architectural additions.
+8. `README.md` is updated to reflect any user-facing changes, new features, new dependencies, or architectural additions.

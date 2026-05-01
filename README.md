@@ -42,71 +42,55 @@ _Coming soon_
 
 ## Tech Stack
 
-- **Language** — Kotlin 2.3.10
-- **UI Framework** — Jetpack Compose (BOM 2026.02.01) + Material 3
+- **Language** — Kotlin 2.3.21
+- **UI Framework** — Jetpack Compose (BOM 2026.04.01) + Material 3
 - **Architecture** — Clean Architecture (multi-module) + MVVM
-- **Build System** — Gradle 9.2.1, AGP 9.0.1
+- **Build System** — Gradle 9.5.0, AGP 9.2.0
 - **Local Database** — Room 2.8.4
-- **Preferences** — DataStore 1.1.7
+- **Preferences** — DataStore 1.2.1
 - **Dependency Injection** — Hilt 2.59.2
 - **Networking** — Retrofit 3.0.0 + OkHttp 5.3.2
 - **JSON Parsing** — Moshi 1.15.2
-- **Serialization** — Kotlinx Serialization 1.8.1
+- **Serialization** — Kotlinx Serialization 1.11.0
 - **Image Loading** — Coil 2.7.0
-- **Navigation** — Jetpack Navigation Compose 2.9.7
-- **Background Work** — WorkManager 2.11.1
+- **Navigation** — Jetpack Navigation Compose 2.9.8
+- **Background Work** — WorkManager 2.11.2
+- **Analytics & Crash Reporting** — Firebase Analytics, Firebase Crashlytics
 - **Async** — Kotlin Coroutines 1.10.2 + Flow
 - **Logging** — Timber 5.0.1
 - **API** — Jikan v4 (MyAnimeList unofficial API), chiaki.site (watch order scraping)
 - **Testing** — JUnit 5, MockK, Turbine, Truth
 - **Min SDK** — API 26 (Android 8.0)
-- **Target SDK** — API 36 (Android 16)
+- **Target SDK** — API 37 (Android 15)
 
 ## Architecture
 
 The project follows **Clean Architecture** with strict layer separation enforced at the **Gradle module level**, and **MVVM** in the UI layer. Each layer is its own independent module. Dependencies point inward only.
 
-```
-AnimeWatchlistTracker/
-├── app/                              # :app — Android Application (Hilt wiring, DI modules)
-└── module/
-    ├── design-system/                # :module:designsystem — Android library (theme, reusable Compose components)
-    ├── domain/                       # :module:domain — Pure Kotlin library (models)
-    ├── local-data-source/            # :module:local-data-source — Pure Kotlin library (local data source interfaces)
-    ├── local-data-source-room/       # :module:local-data-source-room — Android library (Room entities, DAOs, DataStore, domain mappers)
-    ├── remote-data-source/           # :module:remote-data-source — Pure Kotlin library (remote data source interfaces)
-    ├── remote-data-source-retrofit/  # :module:remote-data-source-retrofit — Android library (Retrofit services, domain mappers)
-    ├── repository/                   # :module:repository — Pure Kotlin library (repositories)
-    ├── use-case/                     # :module:use-case — Pure Kotlin library (use cases)
-    └── ui/                           # :module:ui — Android library (screens, ViewModels, navigation)
-```
+| Module | Type | Description |
+|--------|------|-------------|
+| `:module:domain` | Pure Kotlin lib | Domain models only |
+| `:module:local-data-source` | Pure Kotlin lib | Local data source interfaces |
+| `:module:local-data-source-room` | Android lib | Room entities, DAOs, DataStore, migrations |
+| `:module:remote-data-source` | Pure Kotlin lib | Remote data source interfaces |
+| `:module:remote-data-source-retrofit` | Pure Kotlin lib | Retrofit impl, DTOs, DTO mappers, interceptors |
+| `:module:remote-data-source-firebase` | Android lib | Firebase Firestore impl (prod only) |
+| `:module:repository` | Pure Kotlin lib | Repository interfaces + implementations |
+| `:module:use-case` | Pure Kotlin lib | All use cases |
+| `:module:analytics` | Pure Kotlin lib | Analytics interface + no-op impl |
+| `:module:analytics-firebase` | Android lib | Firebase Analytics impl (prod only) |
+| `:module:notification` | Pure Kotlin lib | Notification interface |
+| `:module:notification-android` | Android lib | Android notification implementation |
+| `:module:scheduler` | Pure Kotlin lib | Scheduler interface |
+| `:module:scheduler-work` | Android lib | WorkManager scheduler implementation |
+| `:module:design-system` | Android lib | Material 3 theme, reusable Compose components |
+| `:module:ui` | Android lib | Compose screens, ViewModels, navigation (MVVM) |
+| `:app` | Android app | Hilt entry point, DI wiring |
 
-### Module Dependency Graph
-
-```
-:app
-├── :module:ui
-│   ├── :module:design-system
-│   └── :module:use-case
-│       └── :module:repository
-│           ├── :module:local-data-source
-│           │   └── :module:domain
-│           └── :module:remote-data-source
-│               └── :module:domain
-├── :module:local-data-source-room (for injection)
-│   └── `:module:local-data-source`
-└── :module:remote-data-source-retrofit (for injection)
-    └── `:module:remote-data-source`
-```
-
-- `:module:ui` have screens build with composables from `:module:design-system`, and ViewModels that interact with use cases from `:module:use-case`.
-- `:module:use-case` have use cases that communicate with repositories from `:module:repository`.
-- `:module:repository` have repositories that orchestrate local and remote data retrieval using `:module:local-data-source` and `:module:remote-data-source`.
-- `:module:local-data-source` contains interfaces for local data manipulation, using the models from `:module:domain`.
-- `:module:local-data-source-room` implements the interfaces in `:module:local-data-source`, mapping Room Entities to models from `:module:domain`.
-- `:module:remote-data-source` contains interfaces for remote data retrieval, using the models from `:module:domain`.
-- `:module:remote-data-source-retrofit` implements the interfaces in `:module:remote-data-source`, mapping network reponse models to models from `:module:domain`.
-- `:app` sees everything needs to wire things together using Hilt for dependency injection.
+- `:module:ui` screens are built from `:module:design-system` components; ViewModels call use cases from `:module:use-case`.
+- `:module:repository` is the only layer that coordinates local (Room) and remote (Retrofit/Firebase) data sources.
+- `:module:domain` has zero dependencies — it is the innermost layer.
+- `:app` is the only module that sees everything; all Hilt cross-module bindings live here.
 
 ### Screens
 
@@ -140,9 +124,9 @@ This app uses two external data sources:
 
 ### Prerequisites
 
-- [Android Studio](https://developer.android.com/studio) Meerkat (2025.1.1) or newer (AGP 9.0.1 required)
+- [Android Studio](https://developer.android.com/studio) Meerkat (2025.1.1) or newer (AGP 9.2.0 required)
 - JDK 17+
-- Android SDK with API 36
+- Android SDK with API 37
 
 ### Build & Run
 
@@ -158,7 +142,7 @@ This app uses two external data sources:
 ### Run Tests
 
 ```bash
-./gradlew :domain:test :data:api:test :data:repository:test :ui:test
+./gradlew :module:domain:test :module:remote-data-source-retrofit:test :module:repository:test :module:use-case:test :module:ui:test
 ```
 
 ### Build Release APK
