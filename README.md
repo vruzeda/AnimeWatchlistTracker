@@ -142,7 +142,7 @@ This app uses two external data sources:
 ### Run Tests
 
 ```bash
-./gradlew :module:domain:test :module:remote-data-source-retrofit:test :module:repository:test :module:use-case:test :module:ui:test
+./gradlew test
 ```
 
 ### Build Release APK
