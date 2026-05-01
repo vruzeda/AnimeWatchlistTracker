@@ -5,6 +5,12 @@ import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 
+sealed interface SeasonsSnackbarEvent {
+    data object RefreshFailed : SeasonsSnackbarEvent
+    data object LoadMoreFailed : SeasonsSnackbarEvent
+    data object DetailFetchFailed : SeasonsSnackbarEvent
+}
+
 data class SeasonsDisplayData(
     val titleLanguage: TitleLanguage,
     val addedMalIds: Set<Int>
@@ -29,7 +35,8 @@ data class SeasonsUiState(
     val pendingNavigationMalId: Int? = null,
     val addedMalIds: Set<Int> = emptySet(),
     val resolvingMalId: Int? = null,
-    val isRefreshing: Boolean = false
+    val isRefreshing: Boolean = false,
+    val snackbarEvent: SeasonsSnackbarEvent? = null
 ) {
 
     val isNextSeasonEnabled: Boolean

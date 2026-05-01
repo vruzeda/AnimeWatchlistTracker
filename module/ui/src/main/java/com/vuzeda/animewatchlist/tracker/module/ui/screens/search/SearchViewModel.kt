@@ -149,7 +149,7 @@ class SearchViewModel @Inject constructor(
                     }
                 }
                 .onFailure {
-                    _uiState.update { it.copy(isLoadingMore = false) }
+                    _uiState.update { it.copy(isLoadingMore = false, snackbarEvent = SearchSnackbarEvent.LoadMoreFailed) }
                 }
         }
     }
@@ -161,15 +161,7 @@ class SearchViewModel @Inject constructor(
         val filterState = _uiState.value.filterState
 
         viewModelScope.launch {
-            _uiState.update {
-                it.copy(
-                    isRefreshing = true,
-                    errorMessage = null,
-                    results = emptyList(),
-                    hasNextPage = false,
-                    currentPage = 1
-                )
-            }
+            _uiState.update { it.copy(isRefreshing = true, errorMessage = null) }
             searchAnimeUseCase(query, filterState, page = 1)
                 .onSuccess { page ->
                     _uiState.update {
@@ -181,8 +173,8 @@ class SearchViewModel @Inject constructor(
                         )
                     }
                 }
-                .onFailure { error ->
-                    _uiState.update { it.copy(isRefreshing = false, errorMessage = error.message) }
+                .onFailure {
+                    _uiState.update { it.copy(isRefreshing = false, snackbarEvent = SearchSnackbarEvent.RefreshFailed) }
                 }
         }
     }
@@ -230,10 +222,7 @@ class SearchViewModel @Inject constructor(
                 }
                 .onFailure {
                     _uiState.update {
-                        it.copy(
-                            resolvingMalId = null,
-                            snackbarMessage = it.snackbarMessage
-                        )
+                        it.copy(resolvingMalId = null, snackbarEvent = SearchSnackbarEvent.DetailFetchFailed)
                     }
                 }
         }
@@ -282,6 +271,10 @@ class SearchViewModel @Inject constructor(
 
     fun clearSnackbar() {
         _uiState.update { it.copy(snackbarMessage = null) }
+    }
+
+    fun clearSnackbarEvent() {
+        _uiState.update { it.copy(snackbarEvent = null) }
     }
 
     fun onNavigated() {

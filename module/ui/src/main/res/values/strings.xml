@@ -84,6 +84,9 @@
     <!-- Common -->
     <string name="cd_back">Back</string>
     <string name="notification_permission_denied">Notification permission not granted</string>
+    <string name="error_refresh_failed">Couldn\'t refresh. Showing cached data.</string>
+    <string name="error_load_more_failed">Couldn\'t load more results. Try again.</string>
+    <string name="error_detail_fetch_failed">Couldn\'t load details. Try again.</string>
     <string name="delete_anime_dialog_title">Remove from watchlist?</string>
     <string name="delete_anime_dialog_message">This will remove the anime and all its seasons from your watchlist. This action cannot be undone.</string>
     <string name="delete_anime_dialog_confirm">Remove</string>

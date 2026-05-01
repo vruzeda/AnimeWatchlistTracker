@@ -93,6 +93,7 @@ fun SearchScreenRoute(
         onTypeSelected = viewModel::selectType,
         onStatusSelected = viewModel::selectStatus,
         onSnackbarDismissed = viewModel::clearSnackbar,
+        onSnackbarEventDismissed = viewModel::clearSnackbarEvent,
         onLoadMore = viewModel::loadMore,
         onRefresh = viewModel::refresh
     )
@@ -115,6 +116,7 @@ fun SearchScreen(
     onTypeSelected: (AnimeSearchType) -> Unit,
     onStatusSelected: (AnimeSearchStatus) -> Unit,
     onSnackbarDismissed: () -> Unit,
+    onSnackbarEventDismissed: () -> Unit = {},
     onLoadMore: () -> Unit = {},
     onRefresh: () -> Unit = {}
 ) {
@@ -128,6 +130,14 @@ fun SearchScreen(
         if (uiState.snackbarMessage != null) {
             snackbarHostState.showSnackbar(addedFormat)
             onSnackbarDismissed()
+        }
+    }
+
+    if (uiState.snackbarEvent != null) {
+        val errorMessage = resolveSnackbarEventMessage(uiState.snackbarEvent)
+        LaunchedEffect(uiState.snackbarEvent) {
+            snackbarHostState.showSnackbar(errorMessage)
+            onSnackbarEventDismissed()
         }
     }
 
@@ -345,4 +355,11 @@ fun SearchScreen(
             }
         }
     }
+}
+
+@Composable
+private fun resolveSnackbarEventMessage(event: SearchSnackbarEvent): String = when (event) {
+    is SearchSnackbarEvent.RefreshFailed -> stringResource(R.string.error_refresh_failed)
+    is SearchSnackbarEvent.LoadMoreFailed -> stringResource(R.string.error_load_more_failed)
+    is SearchSnackbarEvent.DetailFetchFailed -> stringResource(R.string.error_detail_fetch_failed)
 }

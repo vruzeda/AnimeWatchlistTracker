@@ -590,6 +590,8 @@ private fun resolveSnackbarMessage(event: AnimeDetailSnackbarEvent): String = wh
         stringResource(R.string.anime_detail_notifications_disabled)
     is AnimeDetailSnackbarEvent.NotificationPermissionDenied ->
         stringResource(R.string.notification_permission_denied)
+    is AnimeDetailSnackbarEvent.RefreshFailed ->
+        stringResource(R.string.error_refresh_failed)
 }
 
 @OptIn(ExperimentalSharedTransitionApi::class)

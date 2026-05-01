@@ -84,6 +84,9 @@
     <!-- Common -->
     <string name="cd_back">Voltar</string>
     <string name="notification_permission_denied">Permissão de notificação não concedida</string>
+    <string name="error_refresh_failed">Não foi possível atualizar. Exibindo dados em cache.</string>
+    <string name="error_load_more_failed">Não foi possível carregar mais resultados. Tente novamente.</string>
+    <string name="error_detail_fetch_failed">Não foi possível carregar os detalhes. Tente novamente.</string>
     <string name="delete_anime_dialog_title">Remover da lista?</string>
     <string name="delete_anime_dialog_message">Isso removerá o anime e todas as suas temporadas da sua lista. Esta ação não pode ser desfeita.</string>
     <string name="delete_anime_dialog_confirm">Remover</string>

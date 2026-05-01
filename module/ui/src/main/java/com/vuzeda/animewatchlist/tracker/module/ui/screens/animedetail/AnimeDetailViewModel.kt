@@ -192,7 +192,7 @@ class AnimeDetailViewModel @Inject constructor(
                 }
                 .onFailure {
                     if (isRefresh) {
-                        _uiState.update { it.copy(isRefreshing = false) }
+                        _uiState.update { it.copy(isRefreshing = false, snackbarEvent = AnimeDetailSnackbarEvent.RefreshFailed) }
                     } else {
                         _uiState.update { it.copy(isLoading = false, isNotFound = true) }
                     }
@@ -205,10 +205,13 @@ class AnimeDetailViewModel @Inject constructor(
         _uiState.update { it.copy(isRefreshing = true) }
         if (animeId > 0) {
             viewModelScope.launch {
-                runCatching { refreshAnimeSeasonsUseCase(animeId) }
+                val refreshFailed = runCatching { refreshAnimeSeasonsUseCase(animeId) }.isFailure
                 val seasons = observeSeasonsForAnimeUseCase(animeId).first()
                 seasons.forEach { season -> runCatching { refreshSeasonDataUseCase(season) } }
-                _uiState.update { it.copy(isRefreshing = false) }
+                _uiState.update {
+                    if (refreshFailed) it.copy(isRefreshing = false, snackbarEvent = AnimeDetailSnackbarEvent.RefreshFailed)
+                    else it.copy(isRefreshing = false)
+                }
             }
         } else if (malId > 0) {
             resolveFromApi(isRefresh = true)

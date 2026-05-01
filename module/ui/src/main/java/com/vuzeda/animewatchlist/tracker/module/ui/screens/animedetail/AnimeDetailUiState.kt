@@ -34,4 +34,5 @@ sealed interface AnimeDetailSnackbarEvent {
     data class NotificationsEnabled(val type: NotificationType) : AnimeDetailSnackbarEvent
     data object NotificationsDisabled : AnimeDetailSnackbarEvent
     data object NotificationPermissionDenied : AnimeDetailSnackbarEvent
+    data object RefreshFailed : AnimeDetailSnackbarEvent
 }

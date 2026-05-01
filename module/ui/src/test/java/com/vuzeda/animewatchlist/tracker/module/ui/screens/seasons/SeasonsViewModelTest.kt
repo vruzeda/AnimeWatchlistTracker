@@ -460,6 +460,65 @@ class SeasonsViewModelTest {
     }
 
     @Test
+    fun `refresh keeps cached list and emits RefreshFailed snackbar event on failure`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            val initial = expectMostRecentItem()
+            assertThat(initial.animeList).hasSize(2)
+
+            coEvery { getSeasonAnimeUseCase(any(), any(), 1, any()) } returns Result.failure(IOException("rate limited"))
+            viewModel.refresh()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val refreshed = expectMostRecentItem()
+            assertThat(refreshed.isRefreshing).isFalse()
+            assertThat(refreshed.animeList).hasSize(2)
+            assertThat(refreshed.snackbarEvent).isEqualTo(SeasonsSnackbarEvent.RefreshFailed)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `loadMore failure emits LoadMoreFailed snackbar event`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            coEvery { getSeasonAnimeUseCase(any(), any(), 2, any()) } returns Result.failure(IOException("rate limited"))
+            viewModel.loadMore()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val state = expectMostRecentItem()
+            assertThat(state.isLoadingMore).isFalse()
+            assertThat(state.snackbarEvent).isEqualTo(SeasonsSnackbarEvent.LoadMoreFailed)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `onAddClick failure emits DetailFetchFailed snackbar event`() = runTest {
+        coEvery { fetchSeasonDetailUseCase(any()) } returns Result.failure(IOException("rate limited"))
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.onAddClick(samplePage.results[0])
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val state = expectMostRecentItem()
+            assertThat(state.resolvingMalId).isNull()
+            assertThat(state.snackbarEvent).isEqualTo(SeasonsSnackbarEvent.DetailFetchFailed)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `seasonFromMonth maps months correctly`() {
         assertThat(SeasonsViewModel.seasonFromMonth(1)).isEqualTo(AnimeSeason.WINTER)
         assertThat(SeasonsViewModel.seasonFromMonth(3)).isEqualTo(AnimeSeason.WINTER)

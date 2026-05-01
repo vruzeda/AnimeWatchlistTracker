@@ -591,6 +591,54 @@ class AnimeDetailViewModelTest {
     }
 
     @Test
+    fun `refresh emits RefreshFailed snackbar event when API resolve fails`() = runTest {
+        coEvery { findAnimeBySeasonMalIdUseCase(50) } returns null
+        coEvery { resolveAnimeUseCase(50) } returns Result.success(
+            ResolvedSeries(
+                title = "Spy x Family",
+                seasons = listOf(SeasonData(malId = 50, title = "Season 1", type = "TV"))
+            )
+        )
+
+        val viewModel = createViewModel(animeId = 0L, malId = 50)
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            val initial = expectMostRecentItem()
+            assertThat(initial.anime).isNotNull()
+
+            coEvery { resolveAnimeUseCase(50) } returns Result.failure(Exception("rate limited"))
+            viewModel.refresh()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val refreshed = expectMostRecentItem()
+            assertThat(refreshed.isRefreshing).isFalse()
+            assertThat(refreshed.snackbarEvent).isEqualTo(AnimeDetailSnackbarEvent.RefreshFailed)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `refresh emits RefreshFailed snackbar event when season sync fails for local anime`() = runTest {
+        coEvery { refreshAnimeSeasonsUseCase(1L) } throws Exception("rate limited")
+
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.refresh()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val refreshed = expectMostRecentItem()
+            assertThat(refreshed.isRefreshing).isFalse()
+            assertThat(refreshed.snackbarEvent).isEqualTo(AnimeDetailSnackbarEvent.RefreshFailed)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `add scope flow with first only passes single season`() = runTest {
         coEvery { findAnimeBySeasonMalIdUseCase(50) } returns null
         coEvery { resolveAnimeUseCase(50) } returns Result.success(

@@ -85,9 +85,7 @@ class SeasonsViewModel @Inject constructor(
 
     fun refresh() {
         val state = _uiState.value
-        _uiState.update {
-            it.copy(animeList = emptyList(), hasNextPage = false, currentPage = 1, errorMessage = null, isRefreshing = true)
-        }
+        _uiState.update { it.copy(isRefreshing = true, errorMessage = null) }
         viewModelScope.launch {
             getSeasonAnimeUseCase(year = state.selectedYear, season = state.selectedSeason, page = 1, filter = state.seasonFilter)
                 .onSuccess { page ->
@@ -100,8 +98,8 @@ class SeasonsViewModel @Inject constructor(
                         )
                     }
                 }
-                .onFailure { error ->
-                    _uiState.update { it.copy(isRefreshing = false, errorMessage = error.message) }
+                .onFailure {
+                    _uiState.update { it.copy(isRefreshing = false, snackbarEvent = SeasonsSnackbarEvent.RefreshFailed) }
                 }
         }
     }
@@ -187,7 +185,7 @@ class SeasonsViewModel @Inject constructor(
                     }
                 }
                 .onFailure {
-                    _uiState.update { it.copy(isLoadingMore = false) }
+                    _uiState.update { it.copy(isLoadingMore = false, snackbarEvent = SeasonsSnackbarEvent.LoadMoreFailed) }
                 }
         }
     }
@@ -216,7 +214,7 @@ class SeasonsViewModel @Inject constructor(
                 }
                 .onFailure {
                     _uiState.update {
-                        it.copy(resolvingMalId = null)
+                        it.copy(resolvingMalId = null, snackbarEvent = SeasonsSnackbarEvent.DetailFetchFailed)
                     }
                 }
         }
@@ -265,6 +263,10 @@ class SeasonsViewModel @Inject constructor(
 
     fun clearSnackbar() {
         _uiState.update { it.copy(snackbarMessage = null) }
+    }
+
+    fun clearSnackbarEvent() {
+        _uiState.update { it.copy(snackbarEvent = null) }
     }
 
     private fun loadSeason(year: Int, season: AnimeSeason, filter: AnimeSearchType) {

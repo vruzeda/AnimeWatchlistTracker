@@ -625,6 +625,74 @@ class SearchViewModelTest {
     }
 
     @Test
+    fun `refresh keeps cached results and emits RefreshFailed snackbar event on failure`() = runTest {
+        coEvery { searchAnimeUseCase("one punch", any(), 1) } returns Result.success(pageOf(listOf(sampleResult)))
+
+        viewModel.uiState.test {
+            awaitItem()
+            viewModel.updateQuery("one punch")
+            awaitItem()
+            viewModel.search()
+            testDispatcher.scheduler.advanceUntilIdle()
+            val initial = expectMostRecentItem()
+            assertThat(initial.results).hasSize(1)
+
+            coEvery { searchAnimeUseCase("one punch", any(), 1) } returns Result.failure(IOException("rate limited"))
+            viewModel.refresh()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val refreshed = expectMostRecentItem()
+            assertThat(refreshed.isRefreshing).isFalse()
+            assertThat(refreshed.results).hasSize(1)
+            assertThat(refreshed.snackbarEvent).isEqualTo(SearchSnackbarEvent.RefreshFailed)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `loadMore failure emits LoadMoreFailed snackbar event`() = runTest {
+        coEvery { searchAnimeUseCase("one punch", any(), 1) } returns Result.success(
+            pageOf(listOf(sampleResult), hasNextPage = true, currentPage = 1)
+        )
+
+        viewModel.uiState.test {
+            awaitItem()
+            viewModel.updateQuery("one punch")
+            awaitItem()
+            viewModel.search()
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            coEvery { searchAnimeUseCase("one punch", any(), 2) } returns Result.failure(IOException("rate limited"))
+            viewModel.loadMore()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val state = expectMostRecentItem()
+            assertThat(state.isLoadingMore).isFalse()
+            assertThat(state.snackbarEvent).isEqualTo(SearchSnackbarEvent.LoadMoreFailed)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `onAddClick failure emits DetailFetchFailed snackbar event`() = runTest {
+        coEvery { fetchSeasonDetailUseCase(any()) } returns Result.failure(IOException("rate limited"))
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.onAddClick(sampleResult)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val state = expectMostRecentItem()
+            assertThat(state.resolvingMalId).isNull()
+            assertThat(state.snackbarEvent).isEqualTo(SearchSnackbarEvent.DetailFetchFailed)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `refresh does nothing when hasSearched is false`() = runTest {
         viewModel.uiState.test {
             awaitItem()

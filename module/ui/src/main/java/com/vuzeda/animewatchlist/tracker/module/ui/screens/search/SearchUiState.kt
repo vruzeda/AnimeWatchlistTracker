@@ -39,6 +39,12 @@ val AnimeSearchStatus.displayLabelRes: Int
         AnimeSearchStatus.UPCOMING -> R.string.search_status_upcoming
     }
 
+sealed interface SearchSnackbarEvent {
+    data object RefreshFailed : SearchSnackbarEvent
+    data object LoadMoreFailed : SearchSnackbarEvent
+    data object DetailFetchFailed : SearchSnackbarEvent
+}
+
 data class SearchDisplayData(
     val filterState: SearchFilterState,
     val titleLanguage: TitleLanguage,
@@ -62,5 +68,6 @@ data class SearchUiState(
     val pendingNavigationMalId: Int? = null,
     val addedMalIds: Set<Int> = emptySet(),
     val resolvingMalId: Int? = null,
-    val isRefreshing: Boolean = false
+    val isRefreshing: Boolean = false,
+    val snackbarEvent: SearchSnackbarEvent? = null
 )

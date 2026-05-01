@@ -87,6 +87,7 @@ fun SeasonsScreenRoute(
         onDismissRemoveConfirmation = viewModel::dismissDeleteConfirmation,
         onLoadMore = viewModel::loadMore,
         onSnackbarDismissed = viewModel::clearSnackbar,
+        onSnackbarEventDismissed = viewModel::clearSnackbarEvent,
         onRefresh = viewModel::refresh
     )
 }
@@ -107,6 +108,7 @@ fun SeasonsScreen(
     onDismissRemoveConfirmation: () -> Unit,
     onLoadMore: () -> Unit,
     onSnackbarDismissed: () -> Unit,
+    onSnackbarEventDismissed: () -> Unit = {},
     onRefresh: () -> Unit = {}
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
@@ -116,6 +118,14 @@ fun SeasonsScreen(
         if (uiState.snackbarMessage != null) {
             snackbarHostState.showSnackbar(addedFormat)
             onSnackbarDismissed()
+        }
+    }
+
+    if (uiState.snackbarEvent != null) {
+        val errorMessage = resolveSnackbarEventMessage(uiState.snackbarEvent)
+        LaunchedEffect(uiState.snackbarEvent) {
+            snackbarHostState.showSnackbar(errorMessage)
+            onSnackbarEventDismissed()
         }
     }
 
@@ -300,6 +310,13 @@ fun SeasonsScreen(
             }
         }
     }
+}
+
+@Composable
+private fun resolveSnackbarEventMessage(event: SeasonsSnackbarEvent): String = when (event) {
+    is SeasonsSnackbarEvent.RefreshFailed -> stringResource(R.string.error_refresh_failed)
+    is SeasonsSnackbarEvent.LoadMoreFailed -> stringResource(R.string.error_load_more_failed)
+    is SeasonsSnackbarEvent.DetailFetchFailed -> stringResource(R.string.error_detail_fetch_failed)
 }
 
 @Composable
