@@ -7,4 +7,5 @@ interface WatchedEpisodeLocalDataSource {
     fun observeWatchedCountsForAllSeasons(): Flow<Map<Long, Int>>
     suspend fun markWatched(seasonId: Long, episodeNumber: Int)
     suspend fun markUnwatched(seasonId: Long, episodeNumber: Int)
+    suspend fun clearWatchedEpisodes(seasonId: Long)
 }

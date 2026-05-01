@@ -1,6 +1,7 @@
 package com.vuzeda.animewatchlist.tracker.module.repository.impl
 
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
+import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.SeasonLocalDataSource
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.WatchedEpisodeLocalDataSource
 import com.vuzeda.animewatchlist.tracker.module.repository.SeasonRepository
@@ -60,6 +61,22 @@ class SeasonRepositoryImpl @Inject constructor(
 
     override suspend fun deleteSeason(id: Long) {
         seasonLocalDataSource.deleteById(id)
+    }
+
+    override suspend fun removeSeasonFromWatchlist(season: Season) {
+        transactionRunner.runInTransaction {
+            seasonLocalDataSource.update(
+                season.copy(
+                    isInWatchlist = false,
+                    status = WatchStatus.PLAN_TO_WATCH,
+                    isEpisodeNotificationsEnabled = false,
+                    lastCheckedAiredEpisodeCount = null,
+                    lastEpisodeCheckDate = null,
+                    addedAt = 0
+                )
+            )
+            watchedEpisodeLocalDataSource.clearWatchedEpisodes(season.id)
+        }
     }
 
     override suspend fun addSeasonsToAnime(animeId: Long, seasons: List<Season>) {

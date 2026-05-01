@@ -23,6 +23,8 @@ interface SeasonRepository {
 
     suspend fun deleteSeason(id: Long)
 
+    suspend fun removeSeasonFromWatchlist(season: Season)
+
     suspend fun addSeasonsToAnime(animeId: Long, seasons: List<Season>)
 
     suspend fun updateSeason(season: Season)

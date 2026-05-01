@@ -17,7 +17,7 @@ class DeleteSeasonUseCase @Inject constructor(
         if (watchlistSiblings.size <= 1) {
             animeRepository.deleteAnime(season.animeId)
         } else {
-            seasonRepository.deleteSeason(season.id)
+            seasonRepository.removeSeasonFromWatchlist(season)
         }
     }
 }

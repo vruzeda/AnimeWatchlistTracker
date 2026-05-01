@@ -3,10 +3,12 @@ package com.vuzeda.animewatchlist.tracker.module.repository.impl
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
+import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.SeasonLocalDataSource
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.WatchedEpisodeLocalDataSource
 import com.vuzeda.animewatchlist.tracker.module.repository.TransactionRunner
 import io.mockk.coEvery
+import io.mockk.coJustRun
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -298,5 +300,44 @@ class SeasonRepositoryImplTest {
 
         coVerify { watchedEpisodeLocalDataSource.markUnwatched(1L, 5) }
         coVerify(exactly = 0) { watchedEpisodeLocalDataSource.markWatched(any(), any()) }
+    }
+
+    @Test
+    fun `removeSeasonFromWatchlist resets watchlist fields and clears watched episodes`() = runTest {
+        val watchlistSeason = sampleSeason.copy(
+            isInWatchlist = true,
+            isEpisodeNotificationsEnabled = true,
+            addedAt = 1000L
+        )
+        coEvery { seasonLocalDataSource.update(any()) } returns Unit
+        coJustRun { watchedEpisodeLocalDataSource.clearWatchedEpisodes(1L) }
+
+        repository.removeSeasonFromWatchlist(watchlistSeason)
+
+        val seasonSlot = slot<Season>()
+        coVerify { seasonLocalDataSource.update(capture(seasonSlot)) }
+        assertThat(seasonSlot.captured.isInWatchlist).isFalse()
+        assertThat(seasonSlot.captured.status).isEqualTo(WatchStatus.PLAN_TO_WATCH)
+        assertThat(seasonSlot.captured.isEpisodeNotificationsEnabled).isFalse()
+        assertThat(seasonSlot.captured.lastCheckedAiredEpisodeCount).isNull()
+        assertThat(seasonSlot.captured.lastEpisodeCheckDate).isNull()
+        assertThat(seasonSlot.captured.addedAt).isEqualTo(0L)
+        coVerify { watchedEpisodeLocalDataSource.clearWatchedEpisodes(1L) }
+    }
+
+    @Test
+    fun `removeSeasonFromWatchlist preserves api data`() = runTest {
+        val watchlistSeason = sampleSeason.copy(isInWatchlist = true)
+        coEvery { seasonLocalDataSource.update(any()) } returns Unit
+        coJustRun { watchedEpisodeLocalDataSource.clearWatchedEpisodes(1L) }
+
+        repository.removeSeasonFromWatchlist(watchlistSeason)
+
+        val seasonSlot = slot<Season>()
+        coVerify { seasonLocalDataSource.update(capture(seasonSlot)) }
+        assertThat(seasonSlot.captured.malId).isEqualTo(16498)
+        assertThat(seasonSlot.captured.title).isEqualTo("Attack on Titan")
+        assertThat(seasonSlot.captured.type).isEqualTo("TV")
+        assertThat(seasonSlot.captured.episodeCount).isEqualTo(25)
     }
 }

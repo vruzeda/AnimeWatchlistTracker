@@ -19,14 +19,14 @@ class DeleteSeasonUseCaseTest {
     private val season = Season(id = 1L, animeId = 10L, malId = 100, title = "S1", isInWatchlist = true)
 
     @Test
-    fun `deletes only the season when other in-watchlist seasons remain`() = runTest {
+    fun `removes season from watchlist when other in-watchlist seasons remain`() = runTest {
         val sibling = Season(id = 2L, animeId = 10L, malId = 200, title = "S2", isInWatchlist = true)
         coEvery { seasonRepository.getSeasonsForAnime(10L) } returns listOf(season, sibling)
-        coJustRun { seasonRepository.deleteSeason(1L) }
+        coJustRun { seasonRepository.removeSeasonFromWatchlist(season) }
 
         useCase(season)
 
-        coVerify { seasonRepository.deleteSeason(1L) }
+        coVerify { seasonRepository.removeSeasonFromWatchlist(season) }
         coVerify(exactly = 0) { animeRepository.deleteAnime(any()) }
     }
 
