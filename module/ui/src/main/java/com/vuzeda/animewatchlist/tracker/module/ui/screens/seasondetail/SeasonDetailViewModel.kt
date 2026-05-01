@@ -106,12 +106,13 @@ open class SeasonDetailViewModel @Inject constructor(
                 SeasonCombinedData(season, watchedEpisodes, titleLanguage, isNotificationDebugInfoEnabled)
             }.collect { (season, watchedEpisodes, titleLanguage, isNotificationDebugInfoEnabled) ->
                 if (season != null) observeSiblingCount(season.animeId)
+                var malIdToLoad: Int? = null
                 _uiState.update { currentState ->
                     if (season == null) {
                         if (currentState.season != null && !currentState.isInWatchlist) currentState
                         else currentState.copy(isLoading = false, isNotFound = true, season = null)
                     } else if (currentState.season == null) {
-                        loadEpisodes(season.malId, page = 1)
+                        malIdToLoad = season.malId
                         currentState.copy(
                             isLoading = false,
                             isNotFound = false,
@@ -134,6 +135,7 @@ open class SeasonDetailViewModel @Inject constructor(
                         )
                     }
                 }
+                malIdToLoad?.let { loadEpisodes(it, page = 1) }
             }
         }
         viewModelScope.launch {
@@ -242,7 +244,14 @@ open class SeasonDetailViewModel @Inject constructor(
             viewModelScope.launch {
                 val season = observeSeasonByIdUseCase(seasonId).first()
                 if (season != null) runCatching { refreshSeasonDataUseCase(season) }
-                _uiState.update { it.copy(isRefreshing = false) }
+                _uiState.update { it.copy(
+                    isRefreshing = false,
+                    episodes = emptyList(),
+                    isLoadingEpisodes = season != null,
+                    hasMoreEpisodes = false,
+                    nextEpisodePage = 1
+                ) }
+                if (season != null) loadEpisodes(season.malId, page = 1)
             }
         } else if (malId > 0) {
             loadFromApi(isRefresh = true)
@@ -437,11 +446,12 @@ open class SeasonDetailViewModel @Inject constructor(
                 SeasonCombinedData(season, watchedEpisodes, titleLanguage, isNotificationDebugInfoEnabled)
             }.collect { (season, watchedEpisodes, titleLanguage, isNotificationDebugInfoEnabled) ->
                 if (season != null) observeSiblingCount(season.animeId)
+                var malIdToLoad: Int? = null
                 _uiState.update { currentState ->
                     if (season == null) {
                         currentState.copy(isLoading = false, isNotFound = true, season = null)
                     } else if (currentState.season == null) {
-                        loadEpisodes(season.malId, page = 1)
+                        malIdToLoad = season.malId
                         currentState.copy(
                             isLoading = false,
                             isNotFound = false,
@@ -465,6 +475,7 @@ open class SeasonDetailViewModel @Inject constructor(
                         )
                     }
                 }
+                malIdToLoad?.let { loadEpisodes(it, page = 1) }
             }
         }
         viewModelScope.launch {

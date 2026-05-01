@@ -579,6 +579,27 @@ class SeasonDetailViewModelTest {
     }
 
     @Test
+    fun `refresh reloads episodes for local season`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            val initial = expectMostRecentItem()
+            assertThat(initial.episodes).hasSize(2)
+
+            viewModel.refresh()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val refreshed = expectMostRecentItem()
+            assertThat(refreshed.isRefreshing).isFalse()
+            assertThat(refreshed.isLoadingEpisodes).isFalse()
+            assertThat(refreshed.episodes).hasSize(2)
+            coVerify(atLeast = 2) { fetchEpisodesUseCase(malId = 16498, page = 1) }
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `refresh re-fetches from API for remote season and updates state`() = runTest {
         val details = AnimeFullDetails(
             malId = 16498,
