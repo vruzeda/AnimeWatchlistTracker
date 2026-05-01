@@ -662,4 +662,6 @@ private fun resolveSnackbarMessage(event: SeasonDetailSnackbarEvent): String = w
     )
     is SeasonDetailSnackbarEvent.NotificationPermissionDenied ->
         stringResource(R.string.notification_permission_denied)
+    is SeasonDetailSnackbarEvent.EpisodeLoadFailed ->
+        stringResource(R.string.season_detail_episode_load_failed)
 }

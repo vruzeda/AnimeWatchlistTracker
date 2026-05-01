@@ -600,6 +600,43 @@ class SeasonDetailViewModelTest {
     }
 
     @Test
+    fun `episode load failure emits EpisodeLoadFailed snackbar event`() = runTest {
+        coEvery { fetchEpisodesUseCase(malId = 16498, page = 1) } returns Result.failure(Exception("rate limited"))
+
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val state = expectMostRecentItem()
+            assertThat(state.snackbarEvent).isEqualTo(SeasonDetailSnackbarEvent.EpisodeLoadFailed)
+            assertThat(state.isLoadingEpisodes).isFalse()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `refresh keeps cached episodes when episode reload fails`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            val initial = expectMostRecentItem()
+            assertThat(initial.episodes).hasSize(2)
+
+            coEvery { fetchEpisodesUseCase(malId = 16498, page = 1) } returns Result.failure(Exception("rate limited"))
+            viewModel.refresh()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val refreshed = expectMostRecentItem()
+            assertThat(refreshed.isRefreshing).isFalse()
+            assertThat(refreshed.episodes).hasSize(2)
+            assertThat(refreshed.snackbarEvent).isEqualTo(SeasonDetailSnackbarEvent.EpisodeLoadFailed)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `refresh re-fetches from API for remote season and updates state`() = runTest {
         val details = AnimeFullDetails(
             malId = 16498,

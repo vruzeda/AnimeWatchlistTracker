@@ -140,6 +140,7 @@
     <string name="season_detail_view_full_series">View Full Series</string>
     <string name="season_detail_episode_notifications_enabled">Episode notifications enabled</string>
     <string name="season_detail_episode_notifications_disabled">Episode notifications disabled</string>
+    <string name="season_detail_episode_load_failed">Couldn\'t load episodes. Showing cached data.</string>
 
     <!-- SeasonsScreen -->
     <string name="seasons_title">Seasons</string>

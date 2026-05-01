@@ -37,4 +37,5 @@ sealed interface SeasonDetailSnackbarEvent {
     data class AddedToWatchlist(val title: String) : SeasonDetailSnackbarEvent
     data class EpisodeNotificationsToggled(val enabled: Boolean) : SeasonDetailSnackbarEvent
     data object NotificationPermissionDenied : SeasonDetailSnackbarEvent
+    data object EpisodeLoadFailed : SeasonDetailSnackbarEvent
 }

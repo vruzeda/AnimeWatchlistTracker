@@ -246,24 +246,24 @@ open class SeasonDetailViewModel @Inject constructor(
                 if (season != null) runCatching { refreshSeasonDataUseCase(season) }
                 _uiState.update { it.copy(
                     isRefreshing = false,
-                    episodes = emptyList(),
                     isLoadingEpisodes = season != null,
                     hasMoreEpisodes = false,
                     nextEpisodePage = 1
                 ) }
-                if (season != null) loadEpisodes(season.malId, page = 1)
+                if (season != null) loadEpisodes(season.malId, page = 1, resetOnSuccess = true)
             }
         } else if (malId > 0) {
             loadFromApi(isRefresh = true)
         }
     }
 
-    private fun loadEpisodes(malId: Int, page: Int) {
+    private fun loadEpisodes(malId: Int, page: Int, resetOnSuccess: Boolean = false) {
         viewModelScope.launch {
             fetchEpisodesUseCase(malId = malId, page = page)
                 .onSuccess { episodePage ->
                     _uiState.update { state ->
-                        val accumulated = state.episodes + episodePage.episodes
+                        val base = if (resetOnSuccess) emptyList() else state.episodes
+                        val accumulated = base + episodePage.episodes
                         val resolved = if (!episodePage.hasNextPage)
                             fillEpisodeGapsUseCase(accumulated, state.season?.episodeCount)
                         else
@@ -277,7 +277,10 @@ open class SeasonDetailViewModel @Inject constructor(
                     }
                 }
                 .onFailure {
-                    _uiState.update { it.copy(isLoadingEpisodes = false) }
+                    _uiState.update { it.copy(
+                        isLoadingEpisodes = false,
+                        snackbarEvent = SeasonDetailSnackbarEvent.EpisodeLoadFailed
+                    ) }
                 }
         }
     }
