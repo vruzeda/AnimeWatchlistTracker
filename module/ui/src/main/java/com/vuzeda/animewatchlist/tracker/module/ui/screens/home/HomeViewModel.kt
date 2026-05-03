@@ -22,11 +22,13 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseC
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetHomeNotificationFilterUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetHomeSortStateUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetHomeStatusFilterUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonStatusUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.text.Collator
 import java.util.Locale
@@ -44,8 +46,11 @@ class HomeViewModel @Inject constructor(
     private val setHomeStatusFilterUseCase: SetHomeStatusFilterUseCase,
     private val observeHomeNotificationFilterUseCase: ObserveHomeNotificationFilterUseCase,
     private val setHomeNotificationFilterUseCase: SetHomeNotificationFilterUseCase,
+    private val updateSeasonStatusUseCase: UpdateSeasonStatusUseCase,
     private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
+
+    private var cachedSeasons: List<Season> = emptyList()
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
@@ -75,6 +80,8 @@ class HomeViewModel @Inject constructor(
                 @Suppress("UNCHECKED_CAST")
                 val typedAnimeList = animeList as List<Anime>
                 @Suppress("UNCHECKED_CAST") val typedSeasonList = seasonList as List<Season>
+
+                cachedSeasons = typedSeasonList
 
                 val filteredAnime = sortAnimeList(
                     list = applyFilters(typedAnimeList, filterState),
@@ -106,7 +113,12 @@ class HomeViewModel @Inject constructor(
                     isLoading = false
                 )
             }.collect { state ->
-                _uiState.value = state
+                _uiState.update { current ->
+                    state.copy(
+                        isStatusSheetVisible = current.isStatusSheetVisible,
+                        pendingStatusSeason = current.pendingStatusSeason
+                    )
+                }
             }
         }
     }
@@ -136,6 +148,30 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             setHomeStatusFilterUseCase(emptySet())
             setHomeNotificationFilterUseCase(null)
+        }
+    }
+
+    fun showStatusSheetForSeason(season: Season) {
+        _uiState.update { it.copy(isStatusSheetVisible = true, pendingStatusSeason = season) }
+    }
+
+    fun showStatusSheetForAnime(animeId: Long) {
+        val season = cachedSeasons
+            .filter { it.isInWatchlist && it.animeId == animeId }
+            .maxByOrNull { it.orderIndex } ?: return
+        _uiState.update { it.copy(isStatusSheetVisible = true, pendingStatusSeason = season) }
+    }
+
+    fun dismissStatusSheet() {
+        _uiState.update { it.copy(isStatusSheetVisible = false, pendingStatusSeason = null) }
+    }
+
+    fun updateStatus(status: WatchStatus) {
+        val season = _uiState.value.pendingStatusSeason ?: return
+        _uiState.update { it.copy(isStatusSheetVisible = false, pendingStatusSeason = null) }
+        viewModelScope.launch {
+            updateSeasonStatusUseCase(season, status)
+            analyticsTracker.track(AnalyticsEvent.UpdateSeasonStatus(status.name))
         }
     }
 

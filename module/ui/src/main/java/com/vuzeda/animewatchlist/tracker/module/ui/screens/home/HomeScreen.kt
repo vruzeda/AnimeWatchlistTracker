@@ -29,7 +29,9 @@ import com.vuzeda.animewatchlist.tracker.module.designsystem.component.EmptyStat
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.FilterGroup
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.NestedFilterMenuButton
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.SortMenuButton
-import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusChip
+import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusChipButton
+import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusOption
+import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusSelectionSheet
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusCompleted
@@ -39,6 +41,7 @@ import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusPlanToW
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusWatching
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeSortOption
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
+import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
 import com.vuzeda.animewatchlist.tracker.module.ui.R
@@ -65,7 +68,11 @@ fun HomeScreenRoute(
         onSortSelected = viewModel::selectSort,
         onAnimeClick = onAnimeClick,
         onSeasonClick = onSeasonClick,
-        onScheduleClick = onScheduleClick
+        onScheduleClick = onScheduleClick,
+        onSeasonStatusChipClicked = viewModel::showStatusSheetForSeason,
+        onAnimeStatusChipClicked = viewModel::showStatusSheetForAnime,
+        onStatusSelected = viewModel::updateStatus,
+        onDismissStatusSheet = viewModel::dismissStatusSheet
     )
 }
 
@@ -79,7 +86,11 @@ fun HomeScreen(
     onSortSelected: (HomeSortOption) -> Unit,
     onAnimeClick: (Long) -> Unit,
     onSeasonClick: (Long) -> Unit,
-    onScheduleClick: () -> Unit
+    onScheduleClick: () -> Unit,
+    onSeasonStatusChipClicked: (Season) -> Unit,
+    onAnimeStatusChipClicked: (Long) -> Unit,
+    onStatusSelected: (WatchStatus) -> Unit,
+    onDismissStatusSheet: () -> Unit
 ) {
     val sortOptions = HomeSortOption.entries.map { stringResource(it.displayLabelRes) }
 
@@ -187,9 +198,10 @@ fun HomeScreen(
                             imageSharedElementKey = "anime_cover_${anime.id}",
                             genresText = anime.genres.takeIf { it.isNotEmpty() }?.joinToString(", "),
                             trailingContent = {
-                                StatusChip(
+                                StatusChipButton(
                                     label = stringResource(anime.status.toDisplayLabelRes()),
-                                    color = anime.status.toColor()
+                                    color = anime.status.toColor(),
+                                    onClick = { onAnimeStatusChipClicked(anime.id) }
                                 )
                             }
                         )
@@ -229,9 +241,10 @@ fun HomeScreen(
                             episodeText = episodeText,
                             score = item.season.score,
                             trailingContent = {
-                                StatusChip(
+                                StatusChipButton(
                                     label = stringResource(item.season.status.toDisplayLabelRes()),
-                                    color = item.season.status.toColor()
+                                    color = item.season.status.toColor(),
+                                    onClick = { onSeasonStatusChipClicked(item.season) }
                                 )
                             }
                         )
@@ -239,6 +252,19 @@ fun HomeScreen(
                 }
             }
         }
+    }
+
+    if (uiState.isStatusSheetVisible) {
+        val statusOptions = WatchStatus.entries.map {
+            StatusOption(stringResource(it.toDisplayLabelRes()), it.toColor())
+        }
+        StatusSelectionSheet(
+            title = stringResource(R.string.anime_detail_change_status_title),
+            subtitle = uiState.pendingStatusSeason?.title ?: "",
+            options = statusOptions,
+            onOptionSelected = { index -> onStatusSelected(WatchStatus.entries[index]) },
+            onDismiss = onDismissStatusSheet
+        )
     }
 }
 

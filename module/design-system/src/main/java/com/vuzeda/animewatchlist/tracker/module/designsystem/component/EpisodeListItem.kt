@@ -96,13 +96,13 @@ fun EpisodeListItem(
                 Spacer(modifier = Modifier.width(ElementSpacing))
                 Row(horizontalArrangement = Arrangement.spacedBy(SmallSpacing)) {
                     if (isFiller) {
-                        StatusChip(
+                        PillLabel(
                             label = stringResource(R.string.episode_badge_filler),
                             color = MaterialTheme.colorScheme.tertiary
                         )
                     }
                     if (isRecap) {
-                        StatusChip(
+                        PillLabel(
                             label = stringResource(R.string.episode_badge_recap),
                             color = MaterialTheme.colorScheme.outline
                         )

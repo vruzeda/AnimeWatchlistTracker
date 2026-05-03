@@ -25,6 +25,7 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.ResolveAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetAnimeDetailTypeFilterUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ToggleAnimeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonStatusUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -54,6 +55,7 @@ class AnimeDetailViewModel @Inject constructor(
     private val observeIsNotificationDebugInfoEnabledUseCase: ObserveIsNotificationDebugInfoEnabledUseCase,
     private val observeAnimeDetailTypeFilterUseCase: ObserveAnimeDetailTypeFilterUseCase,
     private val setAnimeDetailTypeFilterUseCase: SetAnimeDetailTypeFilterUseCase,
+    private val updateSeasonStatusUseCase: UpdateSeasonStatusUseCase,
     private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
@@ -303,6 +305,29 @@ class AnimeDetailViewModel @Inject constructor(
                 snackbarEvent = AnimeDetailSnackbarEvent.AddedToWatchlist(title)
             ) }
             observeAnime(newId)
+        }
+    }
+
+    fun showAnimeStatusSheet() {
+        val season = _uiState.value.seasons
+            .filter { it.isInWatchlist }.maxByOrNull { it.orderIndex } ?: return
+        _uiState.update { it.copy(isUpdateStatusSheetVisible = true, pendingUpdateSeason = season) }
+    }
+
+    fun showSeasonStatusSheet(season: Season) {
+        _uiState.update { it.copy(isUpdateStatusSheetVisible = true, pendingUpdateSeason = season) }
+    }
+
+    fun dismissUpdateStatusSheet() {
+        _uiState.update { it.copy(isUpdateStatusSheetVisible = false, pendingUpdateSeason = null) }
+    }
+
+    fun updateSeasonStatus(status: WatchStatus) {
+        val season = _uiState.value.pendingUpdateSeason ?: return
+        _uiState.update { it.copy(isUpdateStatusSheetVisible = false, pendingUpdateSeason = null) }
+        viewModelScope.launch {
+            updateSeasonStatusUseCase(season, status)
+            analyticsTracker.track(AnalyticsEvent.UpdateSeasonStatus(status.name))
         }
     }
 

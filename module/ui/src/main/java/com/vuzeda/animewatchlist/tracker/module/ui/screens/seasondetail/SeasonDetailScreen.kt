@@ -20,10 +20,8 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -69,11 +67,10 @@ import com.vuzeda.animewatchlist.tracker.module.designsystem.component.FullScree
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.LocalNavAnimatedVisibilityScope
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.LocalSharedTransitionScope
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.NotificationButton
-import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusChip
+import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusChipButton
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusOption
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusSelectionSheet
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
-import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.MinTouchTarget
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.PosterHeight
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.PosterWidth
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
@@ -630,18 +627,11 @@ private fun SeasonHeaderSection(
 
             Spacer(modifier = Modifier.height(ElementSpacing))
             if (isInWatchlist) {
-                Box(
-                    modifier = Modifier
-                        .heightIn(min = MinTouchTarget)
-                        .wrapContentWidth()
-                        .clickable(onClick = onStatusChipClick),
-                    contentAlignment = Alignment.Center
-                ) {
-                    StatusChip(
-                        label = stringResource(season.status.toDisplayLabelRes()),
-                        color = season.status.toColor()
-                    )
-                }
+                StatusChipButton(
+                    label = stringResource(season.status.toDisplayLabelRes()),
+                    color = season.status.toColor(),
+                    onClick = onStatusChipClick
+                )
             } else {
                 Button(onClick = onAddToWatchlistClick) {
                     Text(stringResource(R.string.season_detail_add_to_watchlist))

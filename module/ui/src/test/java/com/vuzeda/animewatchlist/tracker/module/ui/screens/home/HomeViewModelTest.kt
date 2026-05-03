@@ -21,7 +21,9 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseC
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetHomeNotificationFilterUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetHomeSortStateUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetHomeStatusFilterUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonStatusUseCase
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -50,6 +52,7 @@ class HomeViewModelTest {
     private val setHomeStatusFilterUseCase: SetHomeStatusFilterUseCase = mockk()
     private val observeHomeNotificationFilterUseCase: ObserveHomeNotificationFilterUseCase = mockk()
     private val setHomeNotificationFilterUseCase: SetHomeNotificationFilterUseCase = mockk()
+    private val updateSeasonStatusUseCase: UpdateSeasonStatusUseCase = mockk(relaxed = true)
     private val analyticsTracker: AnalyticsTracker = mockk(relaxed = true)
 
     private val sortStateFlow = MutableStateFlow(HomeSortState())
@@ -63,8 +66,8 @@ class HomeViewModelTest {
     )
 
     private val sampleSeasonList = listOf(
-        Season(id = 10L, animeId = 1L, malId = 100, title = "Attack on Titan S1", score = 9.0, episodeCount = 25, watchedEpisodeCount = 25, status = WatchStatus.COMPLETED, addedAt = 500L, isEpisodeNotificationsEnabled = false),
-        Season(id = 11L, animeId = 1L, malId = 101, title = "Attack on Titan S2", score = 8.5, episodeCount = 12, watchedEpisodeCount = 6, status = WatchStatus.WATCHING, addedAt = 1500L, isEpisodeNotificationsEnabled = true),
+        Season(id = 10L, animeId = 1L, malId = 100, title = "Attack on Titan S1", score = 9.0, episodeCount = 25, watchedEpisodeCount = 25, status = WatchStatus.COMPLETED, addedAt = 500L, isEpisodeNotificationsEnabled = false, orderIndex = 0),
+        Season(id = 11L, animeId = 1L, malId = 101, title = "Attack on Titan S2", score = 8.5, episodeCount = 12, watchedEpisodeCount = 6, status = WatchStatus.WATCHING, addedAt = 1500L, isEpisodeNotificationsEnabled = true, orderIndex = 1),
         Season(id = 20L, animeId = 2L, malId = 200, title = "One Punch Man S1", score = 8.8, episodeCount = 12, watchedEpisodeCount = 12, status = WatchStatus.COMPLETED, addedAt = 3000L, isEpisodeNotificationsEnabled = false),
         Season(id = 30L, animeId = 3L, malId = 300, title = "Bleach S1", score = 7.5, episodeCount = 50, watchedEpisodeCount = 10, status = WatchStatus.WATCHING, addedAt = 2000L, isEpisodeNotificationsEnabled = true)
     )
@@ -101,6 +104,7 @@ class HomeViewModelTest {
             setHomeStatusFilterUseCase,
             observeHomeNotificationFilterUseCase,
             setHomeNotificationFilterUseCase,
+            updateSeasonStatusUseCase,
             analyticsTracker
         )
     }
@@ -371,6 +375,7 @@ class HomeViewModelTest {
             setHomeStatusFilterUseCase,
             observeHomeNotificationFilterUseCase,
             setHomeNotificationFilterUseCase,
+            updateSeasonStatusUseCase,
             analyticsTracker
         )
 
@@ -410,6 +415,7 @@ class HomeViewModelTest {
             setHomeStatusFilterUseCase,
             observeHomeNotificationFilterUseCase,
             setHomeNotificationFilterUseCase,
+            updateSeasonStatusUseCase,
             analyticsTracker
         )
 
@@ -444,6 +450,7 @@ class HomeViewModelTest {
             setHomeStatusFilterUseCase,
             observeHomeNotificationFilterUseCase,
             setHomeNotificationFilterUseCase,
+            updateSeasonStatusUseCase,
             analyticsTracker
         )
 
@@ -479,6 +486,7 @@ class HomeViewModelTest {
             setHomeStatusFilterUseCase,
             observeHomeNotificationFilterUseCase,
             setHomeNotificationFilterUseCase,
+            updateSeasonStatusUseCase,
             analyticsTracker
         )
 
@@ -509,6 +517,7 @@ class HomeViewModelTest {
             setHomeStatusFilterUseCase,
             observeHomeNotificationFilterUseCase,
             setHomeNotificationFilterUseCase,
+            updateSeasonStatusUseCase,
             analyticsTracker
         )
 
@@ -568,6 +577,7 @@ class HomeViewModelTest {
             setHomeStatusFilterUseCase,
             observeHomeNotificationFilterUseCase,
             setHomeNotificationFilterUseCase,
+            updateSeasonStatusUseCase,
             analyticsTracker
         )
 
@@ -601,6 +611,7 @@ class HomeViewModelTest {
             setHomeStatusFilterUseCase,
             observeHomeNotificationFilterUseCase,
             setHomeNotificationFilterUseCase,
+            updateSeasonStatusUseCase,
             analyticsTracker
         )
 
@@ -634,6 +645,7 @@ class HomeViewModelTest {
             setHomeStatusFilterUseCase,
             observeHomeNotificationFilterUseCase,
             setHomeNotificationFilterUseCase,
+            updateSeasonStatusUseCase,
             analyticsTracker
         )
 
@@ -651,6 +663,105 @@ class HomeViewModelTest {
             val filteredOff = awaitItem()
             assertThat(filteredOff.seasonItems).hasSize(2)
             assertThat(filteredOff.seasonItems.none { it.season.isEpisodeNotificationsEnabled }).isTrue()
+        }
+    }
+
+    @Test
+    fun `showStatusSheetForSeason sets sheet visible with correct season`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            skipItems(2)
+
+            val season = sampleSeasonList[0]
+            viewModel.showStatusSheetForSeason(season)
+
+            val state = awaitItem()
+            assertThat(state.isStatusSheetVisible).isTrue()
+            assertThat(state.pendingStatusSeason).isEqualTo(season)
+        }
+    }
+
+    @Test
+    fun `showStatusSheetForAnime resolves correct latest watchlisted season`() = runTest {
+        every { observeAnimeListUseCase() } returns flowOf(sampleAnimeList)
+        every { observeAllSeasonsUseCase() } returns flowOf(sampleSeasonList)
+        val viewModel = HomeViewModel(
+            observeAnimeListUseCase,
+            observeTitleLanguageUseCase,
+            observeHomeViewModeUseCase,
+            observeAllSeasonsUseCase,
+            observeHomeSortStateUseCase,
+            setHomeSortStateUseCase,
+            observeHomeStatusFilterUseCase,
+            setHomeStatusFilterUseCase,
+            observeHomeNotificationFilterUseCase,
+            setHomeNotificationFilterUseCase,
+            updateSeasonStatusUseCase,
+            analyticsTracker
+        )
+
+        viewModel.uiState.test {
+            skipItems(2)
+
+            viewModel.showStatusSheetForAnime(animeId = 1L)
+
+            val state = awaitItem()
+            assertThat(state.isStatusSheetVisible).isTrue()
+            assertThat(state.pendingStatusSeason?.id).isEqualTo(11L)
+        }
+    }
+
+    @Test
+    fun `showStatusSheetForAnime with no watchlisted season does nothing`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            skipItems(2)
+
+            viewModel.showStatusSheetForAnime(animeId = 999L)
+
+            expectNoEvents()
+        }
+    }
+
+    @Test
+    fun `dismissStatusSheet clears sheet state`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            skipItems(2)
+
+            viewModel.showStatusSheetForSeason(sampleSeasonList[0])
+            awaitItem()
+
+            viewModel.dismissStatusSheet()
+
+            val state = awaitItem()
+            assertThat(state.isStatusSheetVisible).isFalse()
+            assertThat(state.pendingStatusSeason).isNull()
+        }
+    }
+
+    @Test
+    fun `updateStatus calls use case with correct args and clears state`() = runTest {
+        val viewModel = createViewModel()
+        val season = sampleSeasonList[0]
+
+        viewModel.uiState.test {
+            skipItems(2)
+
+            viewModel.showStatusSheetForSeason(season)
+            awaitItem()
+
+            viewModel.updateStatus(WatchStatus.COMPLETED)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val state = expectMostRecentItem()
+            assertThat(state.isStatusSheetVisible).isFalse()
+            assertThat(state.pendingStatusSeason).isNull()
+            coVerify { updateSeasonStatusUseCase(season, WatchStatus.COMPLETED) }
+            cancelAndIgnoreRemainingEvents()
         }
     }
 }

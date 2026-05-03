@@ -24,7 +24,9 @@ data class AnimeDetailUiState(
     val snackbarEvent: AnimeDetailSnackbarEvent? = null,
     val isRefreshing: Boolean = false,
     val isNotificationDebugInfoEnabled: Boolean = false,
-    val typeFilter: Set<String> = emptySet()
+    val typeFilter: Set<String> = emptySet(),
+    val isUpdateStatusSheetVisible: Boolean = false,
+    val pendingUpdateSeason: Season? = null
 ) {
     val isNotificationsEnabled: Boolean get() = notificationType != NotificationType.NONE
 }

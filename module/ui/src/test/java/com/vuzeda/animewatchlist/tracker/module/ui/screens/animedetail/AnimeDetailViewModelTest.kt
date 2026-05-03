@@ -26,6 +26,7 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.ResolveAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetAnimeDetailTypeFilterUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ToggleAnimeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonStatusUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -61,6 +62,7 @@ class AnimeDetailViewModelTest {
     private val observeIsNotificationDebugInfoEnabledUseCase: ObserveIsNotificationDebugInfoEnabledUseCase = mockk()
     private val observeAnimeDetailTypeFilterUseCase: ObserveAnimeDetailTypeFilterUseCase = mockk()
     private val setAnimeDetailTypeFilterUseCase: SetAnimeDetailTypeFilterUseCase = mockk()
+    private val updateSeasonStatusUseCase: UpdateSeasonStatusUseCase = mockk(relaxed = true)
     private val analyticsTracker: AnalyticsTracker = mockk(relaxed = true)
 
     private val typeFilterFlow = MutableStateFlow<Set<String>>(emptySet())
@@ -122,6 +124,7 @@ class AnimeDetailViewModelTest {
             observeIsNotificationDebugInfoEnabledUseCase = observeIsNotificationDebugInfoEnabledUseCase,
             observeAnimeDetailTypeFilterUseCase = observeAnimeDetailTypeFilterUseCase,
             setAnimeDetailTypeFilterUseCase = setAnimeDetailTypeFilterUseCase,
+            updateSeasonStatusUseCase = updateSeasonStatusUseCase,
             analyticsTracker = analyticsTracker
         )
     }
@@ -757,6 +760,91 @@ class AnimeDetailViewModelTest {
 
             val state = awaitItem()
             assertThat(state.typeFilter).isEmpty()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `showAnimeStatusSheet finds latest watchlisted season by orderIndex`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            skipItems(2)
+
+            viewModel.showAnimeStatusSheet()
+
+            val state = awaitItem()
+            assertThat(state.isUpdateStatusSheetVisible).isTrue()
+            assertThat(state.pendingUpdateSeason?.id).isEqualTo(2L)
+        }
+    }
+
+    @Test
+    fun `showAnimeStatusSheet does nothing when no watchlisted seasons`() = runTest {
+        seasonsFlow.value = sampleSeasons.map { it.copy(isInWatchlist = false) }
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            skipItems(2)
+
+            viewModel.showAnimeStatusSheet()
+
+            expectNoEvents()
+        }
+    }
+
+    @Test
+    fun `showSeasonStatusSheet uses the passed season`() = runTest {
+        val viewModel = createViewModel()
+        val season = sampleSeasons[0]
+
+        viewModel.uiState.test {
+            skipItems(2)
+
+            viewModel.showSeasonStatusSheet(season)
+
+            val state = awaitItem()
+            assertThat(state.isUpdateStatusSheetVisible).isTrue()
+            assertThat(state.pendingUpdateSeason).isEqualTo(season)
+        }
+    }
+
+    @Test
+    fun `dismissUpdateStatusSheet clears sheet state`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            skipItems(2)
+
+            viewModel.showSeasonStatusSheet(sampleSeasons[0])
+            awaitItem()
+
+            viewModel.dismissUpdateStatusSheet()
+
+            val state = awaitItem()
+            assertThat(state.isUpdateStatusSheetVisible).isFalse()
+            assertThat(state.pendingUpdateSeason).isNull()
+        }
+    }
+
+    @Test
+    fun `updateSeasonStatus calls use case with correct args and clears state`() = runTest {
+        val viewModel = createViewModel()
+        val season = sampleSeasons[0]
+
+        viewModel.uiState.test {
+            skipItems(2)
+
+            viewModel.showSeasonStatusSheet(season)
+            awaitItem()
+
+            viewModel.updateSeasonStatus(WatchStatus.COMPLETED)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val state = expectMostRecentItem()
+            assertThat(state.isUpdateStatusSheetVisible).isFalse()
+            assertThat(state.pendingUpdateSeason).isNull()
+            coVerify { updateSeasonStatusUseCase(season, WatchStatus.COMPLETED) }
             cancelAndIgnoreRemainingEvents()
         }
     }

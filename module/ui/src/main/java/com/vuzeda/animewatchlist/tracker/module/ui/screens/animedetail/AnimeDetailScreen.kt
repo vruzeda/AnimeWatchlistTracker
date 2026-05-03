@@ -66,7 +66,7 @@ import com.vuzeda.animewatchlist.tracker.module.designsystem.component.MultiSele
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.NotificationButton
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.OptionSelectionSheet
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.RatingBar
-import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusChip
+import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusChipButton
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusOption
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusSelectionSheet
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
@@ -114,7 +114,11 @@ fun AnimeDetailScreenRoute(
         onNotificationPermissionDenied = viewModel::notifyPermissionDenied,
         onRefresh = viewModel::refresh,
         onTypeFilterToggled = viewModel::toggleTypeFilter,
-        onResetTypeFilter = viewModel::resetTypeFilter
+        onResetTypeFilter = viewModel::resetTypeFilter,
+        onAnimeStatusChipClick = viewModel::showAnimeStatusSheet,
+        onSeasonStatusChipClick = viewModel::showSeasonStatusSheet,
+        onUpdateStatusSelected = viewModel::updateSeasonStatus,
+        onDismissUpdateStatusSheet = viewModel::dismissUpdateStatusSheet
     )
 }
 
@@ -143,7 +147,11 @@ fun AnimeDetailScreen(
     onNotificationPermissionDenied: () -> Unit,
     onRefresh: () -> Unit = {},
     onTypeFilterToggled: (String) -> Unit = {},
-    onResetTypeFilter: () -> Unit = {}
+    onResetTypeFilter: () -> Unit = {},
+    onAnimeStatusChipClick: () -> Unit = {},
+    onSeasonStatusChipClick: (Season) -> Unit = {},
+    onUpdateStatusSelected: (WatchStatus) -> Unit = {},
+    onDismissUpdateStatusSheet: () -> Unit = {}
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -277,7 +285,9 @@ fun AnimeDetailScreen(
                                         onSeasonClick = onSeasonClick,
                                         onSeasonAddClick = onSeasonAddClick,
                                         onTypeFilterToggled = onTypeFilterToggled,
-                                        onResetTypeFilter = onResetTypeFilter
+                                        onResetTypeFilter = onResetTypeFilter,
+                                        onAnimeStatusChipClick = onAnimeStatusChipClick,
+                                        onSeasonStatusChipClick = onSeasonStatusChipClick
                                     )
                                 }
                             }
@@ -369,6 +379,29 @@ fun AnimeDetailScreen(
                             onDismiss = onDismissDeleteConfirmation
                         )
                     }
+
+                    if (uiState.isUpdateStatusSheetVisible) {
+                        val statusOptions = WatchStatus.entries.map {
+                            StatusOption(stringResource(it.toDisplayLabelRes()), it.toColor())
+                        }
+                        val pendingSeason = uiState.pendingUpdateSeason
+                        StatusSelectionSheet(
+                            title = stringResource(R.string.anime_detail_change_status_title),
+                            subtitle = if (pendingSeason != null) {
+                                resolveDisplayTitle(
+                                    title = pendingSeason.title,
+                                    titleEnglish = pendingSeason.titleEnglish,
+                                    titleJapanese = pendingSeason.titleJapanese,
+                                    language = uiState.titleLanguage
+                                )
+                            } else animeDisplayTitle,
+                            options = statusOptions,
+                            onOptionSelected = { index ->
+                                onUpdateStatusSelected(WatchStatus.entries[index])
+                            },
+                            onDismiss = onDismissUpdateStatusSheet
+                        )
+                    }
                 }
             }
         }
@@ -386,7 +419,9 @@ private fun AnimeDetailContent(
     onSeasonClick: (seasonId: Long, malId: Int) -> Unit,
     onSeasonAddClick: (Season) -> Unit,
     onTypeFilterToggled: (String) -> Unit,
-    onResetTypeFilter: () -> Unit
+    onResetTypeFilter: () -> Unit,
+    onAnimeStatusChipClick: () -> Unit = {},
+    onSeasonStatusChipClick: (Season) -> Unit = {}
 ) {
     val anime = checkNotNull(state.anime)
     val displayedSeasons = if (state.typeFilter.isEmpty()) state.seasons
@@ -406,7 +441,8 @@ private fun AnimeDetailContent(
                 isInWatchlist = state.isInWatchlist,
                 imageModifier = imageModifier,
                 onImageClick = onImageClick,
-                onAddToWatchlistClick = onAddToWatchlistClick
+                onAddToWatchlistClick = onAddToWatchlistClick,
+                onStatusChipClick = onAnimeStatusChipClick
             )
         }
 
@@ -483,6 +519,7 @@ private fun AnimeDetailContent(
                         titleLanguage = state.titleLanguage,
                         onClick = { onSeasonClick(season.id, season.malId) },
                         onAddClick = { onSeasonAddClick(season) },
+                        onStatusChipClick = { onSeasonStatusChipClick(season) },
                         animeImageUrl = anime.imageUrl
                     )
                     Spacer(modifier = Modifier.height(ElementSpacing))
@@ -516,7 +553,8 @@ private fun AnimeHeaderSection(
     isInWatchlist: Boolean,
     imageModifier: Modifier = Modifier,
     onImageClick: () -> Unit,
-    onAddToWatchlistClick: () -> Unit
+    onAddToWatchlistClick: () -> Unit,
+    onStatusChipClick: () -> Unit = {}
 ) {
     val displayTitle = resolveDisplayTitle(
         title = anime.title,
@@ -553,9 +591,10 @@ private fun AnimeHeaderSection(
             Spacer(modifier = Modifier.height(ElementSpacing))
 
             if (isInWatchlist) {
-                StatusChip(
+                StatusChipButton(
                     label = stringResource(anime.status.toDisplayLabelRes()),
-                    color = anime.status.toColor()
+                    color = anime.status.toColor(),
+                    onClick = onStatusChipClick
                 )
             } else {
                 Button(onClick = onAddToWatchlistClick) {
@@ -601,6 +640,7 @@ private fun SeasonCardItem(
     titleLanguage: TitleLanguage,
     onClick: () -> Unit,
     onAddClick: () -> Unit,
+    onStatusChipClick: () -> Unit = {},
     animeImageUrl: String? = null
 ) {
     val displayTitle = resolveDisplayTitle(
@@ -635,9 +675,10 @@ private fun SeasonCardItem(
         progress = progress,
         trailingContent = if (season.isInWatchlist) {
             {
-                StatusChip(
+                StatusChipButton(
                     label = stringResource(season.status.toDisplayLabelRes()),
-                    color = season.status.toColor()
+                    color = season.status.toColor(),
+                    onClick = onStatusChipClick
                 )
             }
         } else {

@@ -34,6 +34,8 @@ data class HomeUiState(
     val sortOption: HomeSortOption = HomeSortOption.ALPHABETICAL,
     val isSortAscending: Boolean = HomeSortOption.ALPHABETICAL.defaultAscending,
     val titleLanguage: TitleLanguage = TitleLanguage.DEFAULT,
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val isStatusSheetVisible: Boolean = false,
+    val pendingStatusSeason: Season? = null
 )
 
