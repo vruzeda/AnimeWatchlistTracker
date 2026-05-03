@@ -1,5 +1,6 @@
 package com.vuzeda.animewatchlist.tracker.module.scheduler.work
 
+import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
@@ -25,6 +26,7 @@ class AnimeUpdateWorkerScheduler @Inject constructor(
                         .setRequiredNetworkType(NetworkType.CONNECTED)
                         .build()
                 )
+                .setBackoffCriteria(BackoffPolicy.LINEAR, 1, TimeUnit.MINUTES)
                 .build()
         )
     }
@@ -39,6 +41,7 @@ class AnimeUpdateWorkerScheduler @Inject constructor(
                         .setRequiredNetworkType(NetworkType.CONNECTED)
                         .build()
                 )
+                .setBackoffCriteria(BackoffPolicy.LINEAR, 1, TimeUnit.MINUTES)
                 .build()
         )
     }

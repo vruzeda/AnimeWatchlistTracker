@@ -3,6 +3,7 @@ package com.vuzeda.animewatchlist.tracker.module.usecase
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.domain.Anime
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdate
+import com.vuzeda.animewatchlist.tracker.module.domain.DataError
 import com.vuzeda.animewatchlist.tracker.module.domain.EpisodeInfo
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
@@ -15,6 +16,7 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
 import java.time.ZoneOffset
 import kotlin.time.Clock
@@ -38,7 +40,7 @@ class CheckAnimeUpdatesUseCaseTest {
         title = "Test Anime",
         status = WatchStatus.WATCHING,
         notificationType = NotificationType.BOTH,
-        lastSeasonCheckDate = yesterday
+        latestKnownSeasonStartDate = yesterday
     )
 
     private val sampleSeason = Season(
@@ -49,7 +51,7 @@ class CheckAnimeUpdatesUseCaseTest {
         type = "TV",
         orderIndex = 0,
         lastCheckedAiredEpisodeCount = 12,
-        lastEpisodeCheckDate = yesterday,
+        latestKnownEpisodeAirDate = yesterday,
         isInWatchlist = true
     )
 
@@ -108,8 +110,8 @@ class CheckAnimeUpdatesUseCaseTest {
     }
 
     @Test
-    fun `does not notify on first episode check run when lastEpisodeCheckDate is null`() = runTest {
-        val firstRunSeason = sampleSeason.copy(lastEpisodeCheckDate = null)
+    fun `does not notify on first episode check run when latestKnownEpisodeAirDate is null`() = runTest {
+        val firstRunSeason = sampleSeason.copy(latestKnownEpisodeAirDate = null)
         coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
         coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(firstRunSeason)
         coEvery {
@@ -123,8 +125,8 @@ class CheckAnimeUpdatesUseCaseTest {
     }
 
     @Test
-    fun `initializes lastEpisodeCheckDate to last aired date on first run`() = runTest {
-        val firstRunSeason = sampleSeason.copy(lastEpisodeCheckDate = null)
+    fun `initializes latestKnownEpisodeAirDate to last aired date on first run`() = runTest {
+        val firstRunSeason = sampleSeason.copy(latestKnownEpisodeAirDate = null)
         val lastAiredDate = LocalDate.of(2026, 3, 10)
         coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
         coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(firstRunSeason)
@@ -135,12 +137,12 @@ class CheckAnimeUpdatesUseCaseTest {
 
         useCase()
 
-        coVerify { seasonRepository.updateLastEpisodeCheckDate(10L, lastAiredDate) }
+        coVerify { seasonRepository.updateLatestKnownEpisodeAirDate(10L, lastAiredDate) }
     }
 
     @Test
-    fun `initializes lastEpisodeCheckDate to fast past when no episodes have aired dates on first run`() = runTest {
-        val firstRunSeason = sampleSeason.copy(lastEpisodeCheckDate = null)
+    fun `initializes latestKnownEpisodeAirDate to far past when no episodes have aired dates on first run`() = runTest {
+        val firstRunSeason = sampleSeason.copy(latestKnownEpisodeAirDate = null)
         coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
         coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(firstRunSeason)
         coEvery {
@@ -150,12 +152,12 @@ class CheckAnimeUpdatesUseCaseTest {
 
         useCase()
 
-        coVerify { seasonRepository.updateLastEpisodeCheckDate(10L, LocalDate.MIN) }
+        coVerify { seasonRepository.updateLatestKnownEpisodeAirDate(10L, LocalDate.MIN) }
     }
 
     @Test
-    fun `initializes lastEpisodeCheckDate to far past on first run when no episodes found`() = runTest {
-        val firstRunSeason = sampleSeason.copy(lastEpisodeCheckDate = null)
+    fun `initializes latestKnownEpisodeAirDate to far past on first run when no episodes found`() = runTest {
+        val firstRunSeason = sampleSeason.copy(latestKnownEpisodeAirDate = null)
         coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
         coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(firstRunSeason)
         coEvery {
@@ -165,11 +167,11 @@ class CheckAnimeUpdatesUseCaseTest {
 
         useCase()
 
-        coVerify { seasonRepository.updateLastEpisodeCheckDate(10L, LocalDate.MIN) }
+        coVerify { seasonRepository.updateLatestKnownEpisodeAirDate(10L, LocalDate.MIN) }
     }
 
     @Test
-    fun `updates lastCheckedAiredEpisodeCount and lastEpisodeCheckDate after finding new episodes`() = runTest {
+    fun `updates lastCheckedAiredEpisodeCount and latestKnownEpisodeAirDate after finding new episodes`() = runTest {
         coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
         coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
         coEvery {
@@ -182,11 +184,11 @@ class CheckAnimeUpdatesUseCaseTest {
         coVerify {
             seasonRepository.updateSeasonNotificationData(seasonId = 10L, lastCheckedAiredEpisodeCount = 14)
         }
-        coVerify { seasonRepository.updateLastEpisodeCheckDate(10L, LocalDate.of(2026, 3, 15)) }
+        coVerify { seasonRepository.updateLatestKnownEpisodeAirDate(10L, LocalDate.of(2026, 3, 15)) }
     }
 
     @Test
-    fun `does not update lastCheckedAiredEpisodeCount or lastEpisodeCheckDate when no episodes returned`() = runTest {
+    fun `does not update lastCheckedAiredEpisodeCount or latestKnownEpisodeAirDate when no episodes returned`() = runTest {
         coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
         coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
         coEvery {
@@ -197,11 +199,37 @@ class CheckAnimeUpdatesUseCaseTest {
         useCase()
 
         coVerify(exactly = 0) { seasonRepository.updateSeasonNotificationData(any(), any()) }
-        coVerify(exactly = 0) { seasonRepository.updateLastEpisodeCheckDate(any(), any()) }
+        coVerify(exactly = 0) { seasonRepository.updateLatestKnownEpisodeAirDate(any(), any()) }
     }
 
     @Test
-    fun `detects new season when Chiaki entry has startDate after lastSeasonCheckDate`() = runTest {
+    fun `updates lastEpisodeCheckPerformedDate to today after successful episode check`() = runTest {
+        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
+        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
+        coEvery {
+            animeRepository.fetchEpisodesAiredBetween(100, yesterday, fixedDate, 12)
+        } returns Result.success(emptyList())
+        coEvery { animeRepository.fetchWatchOrder(100) } returns Result.success(emptyList())
+
+        useCase()
+
+        coVerify { seasonRepository.updateLastEpisodeCheckPerformedDate(10L, fixedDate) }
+    }
+
+    @Test
+    fun `skips episode check when lastEpisodeCheckPerformedDate equals today`() = runTest {
+        val alreadyCheckedSeason = sampleSeason.copy(lastEpisodeCheckPerformedDate = fixedDate)
+        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
+        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(alreadyCheckedSeason)
+        coEvery { animeRepository.fetchWatchOrder(100) } returns Result.success(emptyList())
+
+        useCase()
+
+        coVerify(exactly = 0) { animeRepository.fetchEpisodesAiredBetween(any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `detects new season when Chiaki entry has startDate after latestKnownSeasonStartDate`() = runTest {
         coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
         coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
         coEvery {
@@ -255,7 +283,7 @@ class CheckAnimeUpdatesUseCaseTest {
 
     @Test
     fun `does not notify for new season on first run and initializes check date to last known season start`() = runTest {
-        val firstRunAnime = sampleAnime.copy(lastSeasonCheckDate = null)
+        val firstRunAnime = sampleAnime.copy(latestKnownSeasonStartDate = null)
         coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(firstRunAnime)
         coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
         coEvery {
@@ -271,7 +299,7 @@ class CheckAnimeUpdatesUseCaseTest {
         val updates = useCase()
 
         assertThat(updates.filterIsInstance<AnimeUpdate.NewSeason>()).isEmpty()
-        coVerify { animeRepository.updateLastSeasonCheckDate(1L, LocalDate.of(2003, 10, 4)) }
+        coVerify { animeRepository.updateLatestKnownSeasonStartDate(1L, LocalDate.of(2003, 10, 4)) }
     }
 
     @Test
@@ -294,7 +322,7 @@ class CheckAnimeUpdatesUseCaseTest {
     }
 
     @Test
-    fun `does not notify for new season when startDate is not after lastSeasonCheckDate`() = runTest {
+    fun `does not notify for new season when startDate is not after latestKnownSeasonStartDate`() = runTest {
         coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
         coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
         coEvery {
@@ -381,8 +409,8 @@ class CheckAnimeUpdatesUseCaseTest {
     }
 
     @Test
-    fun `initializes lastSeasonCheckDate to last known season start date on first run`() = runTest {
-        val firstRunAnime = sampleAnime.copy(lastSeasonCheckDate = null)
+    fun `initializes latestKnownSeasonStartDate to last known season start date on first run`() = runTest {
+        val firstRunAnime = sampleAnime.copy(latestKnownSeasonStartDate = null)
         val lastKnownStartDate = LocalDate.of(2003, 10, 4)
         coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(firstRunAnime)
         coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
@@ -393,12 +421,12 @@ class CheckAnimeUpdatesUseCaseTest {
 
         useCase()
 
-        coVerify { animeRepository.updateLastSeasonCheckDate(1L, lastKnownStartDate) }
+        coVerify { animeRepository.updateLatestKnownSeasonStartDate(1L, lastKnownStartDate) }
     }
 
     @Test
-    fun `initializes lastSeasonCheckDate to today when no known season has a start date on first run`() = runTest {
-        val firstRunAnime = sampleAnime.copy(lastSeasonCheckDate = null)
+    fun `initializes latestKnownSeasonStartDate to today when no known season has a start date on first run`() = runTest {
+        val firstRunAnime = sampleAnime.copy(latestKnownSeasonStartDate = null)
         coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(firstRunAnime)
         coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
         coEvery { animeRepository.fetchEpisodesAiredBetween(any(), any(), any(), any()) } returns Result.success(emptyList())
@@ -408,11 +436,11 @@ class CheckAnimeUpdatesUseCaseTest {
 
         useCase()
 
-        coVerify { animeRepository.updateLastSeasonCheckDate(1L, fixedDate) }
+        coVerify { animeRepository.updateLatestKnownSeasonStartDate(1L, fixedDate) }
     }
 
     @Test
-    fun `updates lastSeasonCheckDate to new season start date when new season is found`() = runTest {
+    fun `updates latestKnownSeasonStartDate to new season start date when new season is found`() = runTest {
         coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
         coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
         coEvery { animeRepository.fetchEpisodesAiredBetween(any(), any(), any(), any()) } returns Result.success(emptyList())
@@ -425,11 +453,11 @@ class CheckAnimeUpdatesUseCaseTest {
 
         useCase()
 
-        coVerify { animeRepository.updateLastSeasonCheckDate(1L, fixedDate) }
+        coVerify { animeRepository.updateLatestKnownSeasonStartDate(1L, fixedDate) }
     }
 
     @Test
-    fun `does not update lastSeasonCheckDate when no new season is found`() = runTest {
+    fun `does not update latestKnownSeasonStartDate when no new season is found`() = runTest {
         coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
         coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
         coEvery { animeRepository.fetchEpisodesAiredBetween(any(), any(), any(), any()) } returns Result.success(emptyList())
@@ -439,14 +467,85 @@ class CheckAnimeUpdatesUseCaseTest {
 
         useCase()
 
-        coVerify(exactly = 0) { animeRepository.updateLastSeasonCheckDate(any(), any()) }
+        coVerify(exactly = 0) { animeRepository.updateLatestKnownSeasonStartDate(any(), any()) }
+    }
+
+    @Test
+    fun `updates lastSeasonCheckPerformedDate to today after successful season check`() = runTest {
+        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
+        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
+        coEvery { animeRepository.fetchEpisodesAiredBetween(any(), any(), any(), any()) } returns Result.success(emptyList())
+        coEvery { animeRepository.fetchWatchOrder(100) } returns Result.success(emptyList())
+
+        useCase()
+
+        coVerify { animeRepository.updateLastSeasonCheckPerformedDate(1L, fixedDate) }
+    }
+
+    @Test
+    fun `skips season check when lastSeasonCheckPerformedDate equals today`() = runTest {
+        val alreadyCheckedAnime = sampleAnime.copy(lastSeasonCheckPerformedDate = fixedDate)
+        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(alreadyCheckedAnime)
+        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
+        coEvery { animeRepository.fetchEpisodesAiredBetween(any(), any(), any(), any()) } returns Result.success(emptyList())
+
+        useCase()
+
+        coVerify(exactly = 0) { animeRepository.fetchWatchOrder(any()) }
+    }
+
+    @Test
+    fun `throws DataError RateLimited when episode fetch is rate limited`() = runTest {
+        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
+        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
+        coEvery {
+            animeRepository.fetchEpisodesAiredBetween(100, yesterday, fixedDate, 12)
+        } returns Result.failure(DataError.RateLimited())
+
+        assertThrows<DataError.RateLimited> { useCase() }
+    }
+
+    @Test
+    fun `throws DataError Network when episode fetch has network error`() = runTest {
+        val networkError = DataError.Network(throwable = RuntimeException("no connection"))
+        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
+        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
+        coEvery {
+            animeRepository.fetchEpisodesAiredBetween(100, yesterday, fixedDate, 12)
+        } returns Result.failure(networkError)
+
+        assertThrows<DataError.Network> { useCase() }
+    }
+
+    @Test
+    fun `skips episode check gracefully on non-retriable errors`() = runTest {
+        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
+        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
+        coEvery {
+            animeRepository.fetchEpisodesAiredBetween(100, yesterday, fixedDate, 12)
+        } returns Result.failure(DataError.NotFound(errorMessage = "404"))
+        coEvery { animeRepository.fetchWatchOrder(100) } returns Result.success(emptyList())
+
+        val updates = useCase()
+
+        assertThat(updates).isEmpty()
+    }
+
+    @Test
+    fun `throws DataError RateLimited when watch order fetch is rate limited`() = runTest {
+        val seasonsOnlyAnime = sampleAnime.copy(notificationType = NotificationType.NEW_SEASONS)
+        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(seasonsOnlyAnime)
+        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(sampleSeason)
+        coEvery { animeRepository.fetchWatchOrder(100) } returns Result.failure(DataError.RateLimited())
+
+        assertThrows<DataError.RateLimited> { useCase() }
     }
 
     @Test
     fun `checks per-season episode notifications for seasons not covered by anime-level check`() = runTest {
         val perSeasonSeason = Season(
             id = 20L, animeId = 2L, malId = 200, title = "Standalone",
-            lastCheckedAiredEpisodeCount = 5, lastEpisodeCheckDate = yesterday, isInWatchlist = true
+            lastCheckedAiredEpisodeCount = 5, latestKnownEpisodeAirDate = yesterday, isInWatchlist = true
         )
         coEvery { animeRepository.getNotificationEnabledAnime() } returns emptyList()
         coEvery { seasonRepository.getSeasonsWithEpisodeNotifications() } returns listOf(perSeasonSeason)
@@ -481,7 +580,7 @@ class CheckAnimeUpdatesUseCaseTest {
     fun `skips per-season notification when anime cannot be found`() = runTest {
         val perSeasonSeason = Season(
             id = 20L, animeId = 99L, malId = 200, title = "Unknown",
-            lastEpisodeCheckDate = yesterday, isInWatchlist = true
+            latestKnownEpisodeAirDate = yesterday, isInWatchlist = true
         )
         coEvery { animeRepository.getNotificationEnabledAnime() } returns emptyList()
         coEvery { seasonRepository.getSeasonsWithEpisodeNotifications() } returns listOf(perSeasonSeason)

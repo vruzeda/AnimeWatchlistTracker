@@ -68,7 +68,9 @@ interface AnimeRepository {
         filter: AnimeSearchType = AnimeSearchType.ALL
     ): Result<SeasonalAnimePage>
 
-    suspend fun updateLastSeasonCheckDate(animeId: Long, date: LocalDate)
+    suspend fun updateLatestKnownSeasonStartDate(animeId: Long, date: LocalDate)
+
+    suspend fun updateLastSeasonCheckPerformedDate(animeId: Long, date: LocalDate)
 
     fun configureAnimeUpdateNotification()
 

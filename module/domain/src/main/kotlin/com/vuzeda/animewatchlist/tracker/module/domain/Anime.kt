@@ -13,7 +13,8 @@ data class Anime(
     val status: WatchStatus = WatchStatus.PLAN_TO_WATCH,
     val userRating: Int? = null,
     val notificationType: NotificationType = NotificationType.NONE,
-    val lastSeasonCheckDate: LocalDate? = null,
+    val latestKnownSeasonStartDate: LocalDate? = null,
+    val lastSeasonCheckPerformedDate: LocalDate? = null,
     val addedAt: Long = 0
 ) {
     val isNotificationsEnabled: Boolean get() = notificationType != NotificationType.NONE

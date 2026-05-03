@@ -64,8 +64,11 @@ abstract class AnimeRoomDao : AnimeLocalDataSource {
     override suspend fun updateNotificationType(id: Long, notificationType: NotificationType) =
         updateNotificationTypeByName(id, notificationType.name)
 
-    @Query("UPDATE anime SET lastSeasonCheckDate = :date WHERE id = :animeId")
-    override abstract suspend fun updateLastSeasonCheckDate(animeId: Long, date: LocalDate)
+    @Query("UPDATE anime SET latestKnownSeasonStartDate = :date WHERE id = :animeId")
+    override abstract suspend fun updateLatestKnownSeasonStartDate(animeId: Long, date: LocalDate)
+
+    @Query("UPDATE anime SET lastSeasonCheckPerformedDate = :date WHERE id = :animeId")
+    override abstract suspend fun updateLastSeasonCheckPerformedDate(animeId: Long, date: LocalDate)
 
     @Query("SELECT lastAnimeUpdateRunAt FROM scheduler_state WHERE id = 1")
     override abstract fun observeLastAnimeUpdateRun(): Flow<Long?>

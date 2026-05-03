@@ -72,7 +72,7 @@ class AnimeEntityTest {
             genres = "Action,Drama",
             userRating = 9,
             notificationType = "BOTH",
-            lastSeasonCheckDate = checkDate,
+            latestKnownSeasonStartDate = checkDate,
             addedAt = 1000L
         )
 
@@ -87,7 +87,7 @@ class AnimeEntityTest {
         assertThat(result.genres).containsExactly("Action", "Drama").inOrder()
         assertThat(result.userRating).isEqualTo(9)
         assertThat(result.notificationType).isEqualTo(NotificationType.BOTH)
-        assertThat(result.lastSeasonCheckDate).isEqualTo(checkDate)
+        assertThat(result.latestKnownSeasonStartDate).isEqualTo(checkDate)
         assertThat(result.addedAt).isEqualTo(1000L)
     }
 
@@ -105,7 +105,7 @@ class AnimeEntityTest {
             status = WatchStatus.COMPLETED,
             userRating = 10,
             notificationType = NotificationType.NEW_EPISODES,
-            lastSeasonCheckDate = checkDate,
+            latestKnownSeasonStartDate = checkDate,
             addedAt = 2000L
         )
 
@@ -120,7 +120,7 @@ class AnimeEntityTest {
         assertThat(result.genres).isEqualTo("Adventure,Comedy")
         assertThat(result.userRating).isEqualTo(10)
         assertThat(result.notificationType).isEqualTo("NEW_EPISODES")
-        assertThat(result.lastSeasonCheckDate).isEqualTo(checkDate)
+        assertThat(result.latestKnownSeasonStartDate).isEqualTo(checkDate)
         assertThat(result.addedAt).isEqualTo(2000L)
     }
 

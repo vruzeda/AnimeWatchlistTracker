@@ -367,13 +367,23 @@ class AnimeRepositoryImplTest {
     }
 
     @Test
-    fun `updateLastSeasonCheckDate delegates to local data source`() = runTest {
+    fun `updateLatestKnownSeasonStartDate delegates to local data source`() = runTest {
         val date = LocalDate.of(2026, 3, 15)
-        coEvery { animeLocalDataSource.updateLastSeasonCheckDate(1L, date) } returns Unit
+        coEvery { animeLocalDataSource.updateLatestKnownSeasonStartDate(1L, date) } returns Unit
 
-        repository.updateLastSeasonCheckDate(1L, date)
+        repository.updateLatestKnownSeasonStartDate(1L, date)
 
-        coVerify { animeLocalDataSource.updateLastSeasonCheckDate(1L, date) }
+        coVerify { animeLocalDataSource.updateLatestKnownSeasonStartDate(1L, date) }
+    }
+
+    @Test
+    fun `updateLastSeasonCheckPerformedDate delegates to local data source`() = runTest {
+        val date = LocalDate.of(2026, 3, 15)
+        coEvery { animeLocalDataSource.updateLastSeasonCheckPerformedDate(1L, date) } returns Unit
+
+        repository.updateLastSeasonCheckPerformedDate(1L, date)
+
+        coVerify { animeLocalDataSource.updateLastSeasonCheckPerformedDate(1L, date) }
     }
 
     @Test

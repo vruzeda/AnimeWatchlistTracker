@@ -71,7 +71,8 @@ class SeasonRepositoryImpl @Inject constructor(
                     status = WatchStatus.PLAN_TO_WATCH,
                     isEpisodeNotificationsEnabled = false,
                     lastCheckedAiredEpisodeCount = null,
-                    lastEpisodeCheckDate = null,
+                    latestKnownEpisodeAirDate = null,
+                    lastEpisodeCheckPerformedDate = null,
                     addedAt = 0
                 )
             )
@@ -107,8 +108,12 @@ class SeasonRepositoryImpl @Inject constructor(
     override suspend fun getSeasonsWithEpisodeNotifications(): List<Season> =
         seasonLocalDataSource.getSeasonsWithEpisodeNotifications()
 
-    override suspend fun updateLastEpisodeCheckDate(seasonId: Long, date: LocalDate) {
-        seasonLocalDataSource.updateLastEpisodeCheckDate(seasonId = seasonId, date = date)
+    override suspend fun updateLatestKnownEpisodeAirDate(seasonId: Long, date: LocalDate) {
+        seasonLocalDataSource.updateLatestKnownEpisodeAirDate(seasonId = seasonId, date = date)
+    }
+
+    override suspend fun updateLastEpisodeCheckPerformedDate(seasonId: Long, date: LocalDate) {
+        seasonLocalDataSource.updateLastEpisodeCheckPerformedDate(seasonId = seasonId, date = date)
     }
 
     override fun observeWatchedEpisodesForSeason(seasonId: Long): Flow<Set<Int>> =

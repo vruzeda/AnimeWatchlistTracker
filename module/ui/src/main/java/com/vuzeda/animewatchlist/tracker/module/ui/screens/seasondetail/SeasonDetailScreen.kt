@@ -508,7 +508,7 @@ private fun SeasonDetailContent(
             Text(
                 text = stringResource(
                     R.string.developer_last_episode_check,
-                    season.lastEpisodeCheckDate?.toString()
+                    season.latestKnownEpisodeAirDate?.toString()
                         ?: stringResource(R.string.developer_value_never)
                 ),
                 style = MaterialTheme.typography.bodySmall,

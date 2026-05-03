@@ -17,5 +17,6 @@ interface SeasonLocalDataSource {
     suspend fun updateEpisodeNotificationsEnabled(seasonId: Long, enabled: Boolean)
     suspend fun getSeasonsWithEpisodeNotifications(): List<Season>
     fun observeAllMalIds(): Flow<List<Int>>
-    suspend fun updateLastEpisodeCheckDate(seasonId: Long, date: LocalDate)
+    suspend fun updateLatestKnownEpisodeAirDate(seasonId: Long, date: LocalDate)
+    suspend fun updateLastEpisodeCheckPerformedDate(seasonId: Long, date: LocalDate)
 }

@@ -17,7 +17,8 @@ data class AnimeEntity(
     val genres: String = "",
     val userRating: Int? = null,
     val notificationType: String = "NONE",
-    val lastSeasonCheckDate: LocalDate? = null,
+    val latestKnownSeasonStartDate: LocalDate? = null,
+    val lastSeasonCheckPerformedDate: LocalDate? = null,
     val addedAt: Long = 0
 )
 
@@ -31,7 +32,8 @@ fun AnimeEntity.toDomainModel(): Anime = Anime(
     genres = if (genres.isBlank()) emptyList() else genres.split(",").map { it.trim() },
     userRating = userRating,
     notificationType = NotificationType.entries.firstOrNull { it.name == notificationType } ?: NotificationType.NONE,
-    lastSeasonCheckDate = lastSeasonCheckDate,
+    latestKnownSeasonStartDate = latestKnownSeasonStartDate,
+    lastSeasonCheckPerformedDate = lastSeasonCheckPerformedDate,
     addedAt = addedAt
 )
 
@@ -45,6 +47,7 @@ fun Anime.toEntity(): AnimeEntity = AnimeEntity(
     genres = genres.joinToString(","),
     userRating = userRating,
     notificationType = notificationType.name,
-    lastSeasonCheckDate = lastSeasonCheckDate,
+    latestKnownSeasonStartDate = latestKnownSeasonStartDate,
+    lastSeasonCheckPerformedDate = lastSeasonCheckPerformedDate,
     addedAt = addedAt
 )

@@ -160,8 +160,12 @@ class AnimeRepositoryImpl @Inject constructor(
     ): Result<SeasonalAnimePage> =
         animeRemoteDataSource.fetchSeasonAnime(year = year, season = season, page = page, filter = filter)
 
-    override suspend fun updateLastSeasonCheckDate(animeId: Long, date: LocalDate) {
-        animeLocalDataSource.updateLastSeasonCheckDate(animeId = animeId, date = date)
+    override suspend fun updateLatestKnownSeasonStartDate(animeId: Long, date: LocalDate) {
+        animeLocalDataSource.updateLatestKnownSeasonStartDate(animeId = animeId, date = date)
+    }
+
+    override suspend fun updateLastSeasonCheckPerformedDate(animeId: Long, date: LocalDate) {
+        animeLocalDataSource.updateLastSeasonCheckPerformedDate(animeId = animeId, date = date)
     }
 
     override fun configureAnimeUpdateNotification() {

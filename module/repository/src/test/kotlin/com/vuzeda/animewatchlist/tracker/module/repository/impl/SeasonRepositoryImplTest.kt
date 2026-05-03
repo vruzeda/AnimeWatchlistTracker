@@ -261,13 +261,23 @@ class SeasonRepositoryImplTest {
     }
 
     @Test
-    fun `updateLastEpisodeCheckDate delegates to data source`() = runTest {
+    fun `updateLatestKnownEpisodeAirDate delegates to data source`() = runTest {
         val date = LocalDate.of(2026, 3, 15)
-        coEvery { seasonLocalDataSource.updateLastEpisodeCheckDate(1L, date) } returns Unit
+        coEvery { seasonLocalDataSource.updateLatestKnownEpisodeAirDate(1L, date) } returns Unit
 
-        repository.updateLastEpisodeCheckDate(1L, date)
+        repository.updateLatestKnownEpisodeAirDate(1L, date)
 
-        coVerify { seasonLocalDataSource.updateLastEpisodeCheckDate(1L, date) }
+        coVerify { seasonLocalDataSource.updateLatestKnownEpisodeAirDate(1L, date) }
+    }
+
+    @Test
+    fun `updateLastEpisodeCheckPerformedDate delegates to data source`() = runTest {
+        val date = LocalDate.of(2026, 3, 15)
+        coEvery { seasonLocalDataSource.updateLastEpisodeCheckPerformedDate(1L, date) } returns Unit
+
+        repository.updateLastEpisodeCheckPerformedDate(1L, date)
+
+        coVerify { seasonLocalDataSource.updateLastEpisodeCheckPerformedDate(1L, date) }
     }
 
     @Test
@@ -320,7 +330,8 @@ class SeasonRepositoryImplTest {
         assertThat(seasonSlot.captured.status).isEqualTo(WatchStatus.PLAN_TO_WATCH)
         assertThat(seasonSlot.captured.isEpisodeNotificationsEnabled).isFalse()
         assertThat(seasonSlot.captured.lastCheckedAiredEpisodeCount).isNull()
-        assertThat(seasonSlot.captured.lastEpisodeCheckDate).isNull()
+        assertThat(seasonSlot.captured.latestKnownEpisodeAirDate).isNull()
+        assertThat(seasonSlot.captured.lastEpisodeCheckPerformedDate).isNull()
         assertThat(seasonSlot.captured.addedAt).isEqualTo(0L)
         coVerify { watchedEpisodeLocalDataSource.clearWatchedEpisodes(1L) }
     }

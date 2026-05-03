@@ -15,7 +15,7 @@ import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.Watc
 
 @Database(
     entities = [AnimeEntity::class, SeasonEntity::class, AnimeUpdateSchedulerStateEntity::class, WatchedEpisodeEntity::class, EpisodeInfoEntity::class],
-    version = 18,
+    version = 19,
     exportSchema = true
 )
 @TypeConverters(Converters::class)

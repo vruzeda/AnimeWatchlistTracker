@@ -76,6 +76,9 @@ abstract class SeasonRoomDao : SeasonLocalDataSource {
     override suspend fun getSeasonsWithEpisodeNotifications(): List<Season> =
         getSeasonsWithEpisodeNotificationsEntities().map { it.toDomainModel() }
 
-    @Query("UPDATE season SET lastEpisodeCheckDate = :date WHERE id = :seasonId")
-    override abstract suspend fun updateLastEpisodeCheckDate(seasonId: Long, date: LocalDate)
+    @Query("UPDATE season SET latestKnownEpisodeAirDate = :date WHERE id = :seasonId")
+    override abstract suspend fun updateLatestKnownEpisodeAirDate(seasonId: Long, date: LocalDate)
+
+    @Query("UPDATE season SET lastEpisodeCheckPerformedDate = :date WHERE id = :seasonId")
+    override abstract suspend fun updateLastEpisodeCheckPerformedDate(seasonId: Long, date: LocalDate)
 }

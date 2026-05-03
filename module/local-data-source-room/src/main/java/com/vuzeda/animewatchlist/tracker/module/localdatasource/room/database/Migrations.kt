@@ -3,6 +3,95 @@ package com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val MIGRATION_18_19 = object : Migration(18, 19) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `anime_new` (
+                `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                `title` TEXT NOT NULL,
+                `titleEnglish` TEXT,
+                `titleJapanese` TEXT,
+                `imageUrl` TEXT,
+                `synopsis` TEXT,
+                `genres` TEXT NOT NULL DEFAULT '',
+                `userRating` INTEGER,
+                `notificationType` TEXT NOT NULL DEFAULT 'NONE',
+                `latestKnownSeasonStartDate` TEXT,
+                `lastSeasonCheckPerformedDate` TEXT,
+                `addedAt` INTEGER NOT NULL DEFAULT 0
+            )
+            """.trimIndent()
+        )
+        db.execSQL(
+            """
+            INSERT INTO anime_new
+                (id, title, titleEnglish, titleJapanese, imageUrl, synopsis, genres, userRating,
+                 notificationType, latestKnownSeasonStartDate, lastSeasonCheckPerformedDate, addedAt)
+            SELECT id, title, titleEnglish, titleJapanese, imageUrl, synopsis, genres, userRating,
+                   notificationType, lastSeasonCheckDate, NULL, addedAt
+            FROM anime
+            """.trimIndent()
+        )
+        db.execSQL("DROP TABLE anime")
+        db.execSQL("ALTER TABLE anime_new RENAME TO anime")
+
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `season_new` (
+                `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                `animeId` INTEGER NOT NULL,
+                `malId` INTEGER NOT NULL,
+                `title` TEXT NOT NULL,
+                `titleEnglish` TEXT,
+                `titleJapanese` TEXT,
+                `imageUrl` TEXT,
+                `type` TEXT NOT NULL DEFAULT 'TV',
+                `episodeCount` INTEGER,
+                `currentEpisode` INTEGER NOT NULL DEFAULT 0,
+                `status` TEXT NOT NULL DEFAULT 'PLAN_TO_WATCH',
+                `score` REAL,
+                `orderIndex` INTEGER NOT NULL DEFAULT 0,
+                `airingStatus` TEXT,
+                `broadcastInfo` TEXT,
+                `broadcastDay` TEXT,
+                `broadcastTime` TEXT,
+                `broadcastTimezone` TEXT,
+                `streamingLinks` TEXT NOT NULL DEFAULT '',
+                `lastCheckedAiredEpisodeCount` INTEGER,
+                `latestKnownEpisodeAirDate` TEXT,
+                `lastEpisodeCheckPerformedDate` TEXT,
+                `isEpisodeNotificationsEnabled` INTEGER NOT NULL DEFAULT 0,
+                `isInWatchlist` INTEGER NOT NULL DEFAULT 1,
+                `airingSeasonName` TEXT,
+                `airingSeasonYear` INTEGER,
+                `addedAt` INTEGER NOT NULL DEFAULT 0,
+                FOREIGN KEY(`animeId`) REFERENCES `anime`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
+            )
+            """.trimIndent()
+        )
+        db.execSQL(
+            """
+            INSERT INTO season_new
+                (id, animeId, malId, title, titleEnglish, titleJapanese, imageUrl, type, episodeCount,
+                 currentEpisode, status, score, orderIndex, airingStatus, broadcastInfo, broadcastDay,
+                 broadcastTime, broadcastTimezone, streamingLinks, lastCheckedAiredEpisodeCount,
+                 latestKnownEpisodeAirDate, lastEpisodeCheckPerformedDate,
+                 isEpisodeNotificationsEnabled, isInWatchlist, airingSeasonName, airingSeasonYear, addedAt)
+            SELECT id, animeId, malId, title, titleEnglish, titleJapanese, imageUrl, type, episodeCount,
+                   currentEpisode, status, score, orderIndex, airingStatus, broadcastInfo, broadcastDay,
+                   broadcastTime, broadcastTimezone, streamingLinks, lastCheckedAiredEpisodeCount,
+                   lastEpisodeCheckDate, NULL,
+                   isEpisodeNotificationsEnabled, isInWatchlist, airingSeasonName, airingSeasonYear, addedAt
+            FROM season
+            """.trimIndent()
+        )
+        db.execSQL("DROP TABLE season")
+        db.execSQL("ALTER TABLE season_new RENAME TO season")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_season_animeId` ON `season` (`animeId`)")
+    }
+}
+
 val MIGRATION_17_18 = object : Migration(17, 18) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL(

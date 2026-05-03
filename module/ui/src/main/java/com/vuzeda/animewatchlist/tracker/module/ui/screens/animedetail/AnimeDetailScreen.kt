@@ -495,7 +495,7 @@ private fun AnimeDetailContent(
                 Text(
                     text = stringResource(
                         R.string.developer_last_season_check,
-                        anime.lastSeasonCheckDate?.toString()
+                        anime.latestKnownSeasonStartDate?.toString()
                             ?: stringResource(R.string.developer_value_never)
                     ),
                     style = MaterialTheme.typography.bodySmall,

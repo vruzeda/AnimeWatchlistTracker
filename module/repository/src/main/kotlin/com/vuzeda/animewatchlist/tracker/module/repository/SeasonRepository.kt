@@ -38,7 +38,9 @@ interface SeasonRepository {
 
     suspend fun getSeasonsWithEpisodeNotifications(): List<Season>
 
-    suspend fun updateLastEpisodeCheckDate(seasonId: Long, date: LocalDate)
+    suspend fun updateLatestKnownEpisodeAirDate(seasonId: Long, date: LocalDate)
+
+    suspend fun updateLastEpisodeCheckPerformedDate(seasonId: Long, date: LocalDate)
 
     fun observeWatchedEpisodesForSeason(seasonId: Long): Flow<Set<Int>>
 

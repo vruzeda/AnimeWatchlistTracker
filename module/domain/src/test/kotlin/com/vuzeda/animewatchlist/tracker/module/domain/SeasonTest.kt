@@ -57,7 +57,7 @@ class SeasonTest {
             broadcastTimezone = "Asia/Tokyo",
             streamingLinks = listOf(StreamingInfo("Crunchyroll", "https://crunchyroll.com")),
             lastCheckedAiredEpisodeCount = 64,
-            lastEpisodeCheckDate = checkDate,
+            latestKnownEpisodeAirDate = checkDate,
             isEpisodeNotificationsEnabled = true,
             isInWatchlist = true,
             airingSeasonName = "spring",
@@ -68,7 +68,7 @@ class SeasonTest {
         assertThat(season.watchedEpisodeCount).isEqualTo(32)
         assertThat(season.status).isEqualTo(WatchStatus.WATCHING)
         assertThat(season.isEpisodeNotificationsEnabled).isTrue()
-        assertThat(season.lastEpisodeCheckDate).isEqualTo(checkDate)
+        assertThat(season.latestKnownEpisodeAirDate).isEqualTo(checkDate)
         assertThat(season.airingSeasonYear).isEqualTo(2009)
     }
 

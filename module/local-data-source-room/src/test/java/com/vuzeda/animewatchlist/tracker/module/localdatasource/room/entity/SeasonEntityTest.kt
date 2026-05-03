@@ -33,7 +33,7 @@ class SeasonEntityTest {
             broadcastTimezone = "Asia/Tokyo",
             streamingLinks = "Crunchyroll\thttps://crunchyroll.com/fma\nNetflix\thttps://netflix.com/title/121",
             lastCheckedAiredEpisodeCount = 25,
-            lastEpisodeCheckDate = checkDate,
+            latestKnownEpisodeAirDate = checkDate,
             isEpisodeNotificationsEnabled = true,
             isInWatchlist = false,
             addedAt = 9000L
@@ -62,7 +62,7 @@ class SeasonEntityTest {
         assertThat(result.streamingLinks[0]).isEqualTo(StreamingInfo("Crunchyroll", "https://crunchyroll.com/fma"))
         assertThat(result.streamingLinks[1]).isEqualTo(StreamingInfo("Netflix", "https://netflix.com/title/121"))
         assertThat(result.lastCheckedAiredEpisodeCount).isEqualTo(25)
-        assertThat(result.lastEpisodeCheckDate).isEqualTo(checkDate)
+        assertThat(result.latestKnownEpisodeAirDate).isEqualTo(checkDate)
         assertThat(result.isEpisodeNotificationsEnabled).isTrue()
         assertThat(result.isInWatchlist).isFalse()
         assertThat(result.addedAt).isEqualTo(9000L)
@@ -99,7 +99,7 @@ class SeasonEntityTest {
             score = null,
             airingStatus = null,
             lastCheckedAiredEpisodeCount = null,
-            lastEpisodeCheckDate = null
+            latestKnownEpisodeAirDate = null
         )
 
         val result = entity.toDomainModel()
@@ -116,7 +116,7 @@ class SeasonEntityTest {
         assertThat(result.broadcastTimezone).isNull()
         assertThat(result.streamingLinks).isEmpty()
         assertThat(result.lastCheckedAiredEpisodeCount).isNull()
-        assertThat(result.lastEpisodeCheckDate).isNull()
+        assertThat(result.latestKnownEpisodeAirDate).isNull()
     }
 
     @Test
@@ -145,7 +145,7 @@ class SeasonEntityTest {
                 StreamingInfo("Netflix", "https://netflix.com/title/121")
             ),
             lastCheckedAiredEpisodeCount = 10,
-            lastEpisodeCheckDate = checkDate,
+            latestKnownEpisodeAirDate = checkDate,
             isEpisodeNotificationsEnabled = true,
             isInWatchlist = false,
             addedAt = 8500L
@@ -172,7 +172,7 @@ class SeasonEntityTest {
         assertThat(result.broadcastTimezone).isEqualTo("Asia/Tokyo")
         assertThat(result.streamingLinks).isEqualTo("Crunchyroll\thttps://crunchyroll.com/fma\nNetflix\thttps://netflix.com/title/121")
         assertThat(result.lastCheckedAiredEpisodeCount).isEqualTo(10)
-        assertThat(result.lastEpisodeCheckDate).isEqualTo(checkDate)
+        assertThat(result.latestKnownEpisodeAirDate).isEqualTo(checkDate)
         assertThat(result.isEpisodeNotificationsEnabled).isTrue()
         assertThat(result.isInWatchlist).isFalse()
         assertThat(result.addedAt).isEqualTo(8500L)

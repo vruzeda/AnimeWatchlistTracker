@@ -2,6 +2,7 @@ package com.vuzeda.animewatchlist.tracker.module.usecase
 
 import com.vuzeda.animewatchlist.tracker.module.domain.Anime
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdate
+import com.vuzeda.animewatchlist.tracker.module.domain.DataError
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.repository.AnimeRepository
@@ -67,14 +68,21 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
         season: Season,
         today: LocalDate
     ): AnimeUpdate.NewEpisodes? {
-        val isFirstRun = season.lastEpisodeCheckDate == null
-        val after = season.lastEpisodeCheckDate ?: LocalDate.MIN
-        val episodes = animeRepository.fetchEpisodesAiredBetween(
+        if (season.lastEpisodeCheckPerformedDate == today) return null
+
+        val isFirstRun = season.latestKnownEpisodeAirDate == null
+        val after = season.latestKnownEpisodeAirDate ?: LocalDate.MIN
+        val episodesResult = animeRepository.fetchEpisodesAiredBetween(
             malId = season.malId,
             after = after,
             upTo = today,
             startingFromEpisode = season.lastCheckedAiredEpisodeCount
-        ).getOrNull() ?: return null
+        )
+        val episodes = when (val err = episodesResult.exceptionOrNull()) {
+            is DataError.RateLimited, is DataError.Network -> throw err
+            null -> episodesResult.getOrThrow()
+            else -> return null
+        }
 
         val lastEpisodeNumber = episodes.maxByOrNull { it.number }?.number
         if (lastEpisodeNumber != null) {
@@ -86,9 +94,11 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
 
         val lastAiredDate = episodes.mapNotNull { parseLocalDate(it.aired) }.maxOrNull()
         when {
-            lastAiredDate != null -> seasonRepository.updateLastEpisodeCheckDate(season.id, lastAiredDate)
-            isFirstRun -> seasonRepository.updateLastEpisodeCheckDate(season.id, LocalDate.MIN)
+            lastAiredDate != null -> seasonRepository.updateLatestKnownEpisodeAirDate(season.id, lastAiredDate)
+            isFirstRun -> seasonRepository.updateLatestKnownEpisodeAirDate(season.id, LocalDate.MIN)
         }
+
+        seasonRepository.updateLastEpisodeCheckPerformedDate(season.id, today)
 
         if (isFirstRun) return null
 
@@ -106,19 +116,27 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
         seasons: List<Season>,
         today: LocalDate
     ): AnimeUpdate.NewSeason? {
+        if (anime.lastSeasonCheckPerformedDate == today) return null
+
         val watchlistedSeasons = seasons.filter { it.isInWatchlist }
         val lastSeason = watchlistedSeasons.maxByOrNull { it.orderIndex } ?: return null
-        val watchOrder = animeRepository.fetchWatchOrder(lastSeason.malId).getOrNull() ?: return null
+        val watchOrderResult = animeRepository.fetchWatchOrder(lastSeason.malId)
+        val watchOrder = when (val err = watchOrderResult.exceptionOrNull()) {
+            is DataError.RateLimited, is DataError.Network -> throw err
+            null -> watchOrderResult.getOrThrow()
+            else -> return null
+        }
 
         val knownMalIds = seasons.map { it.malId }.toSet()
 
-        if (anime.lastSeasonCheckDate == null) {
+        if (anime.latestKnownSeasonStartDate == null) {
             val lastKnownStartDate = watchOrder
                 .filter { it.malId in knownMalIds }
                 .mapNotNull { it.startDate }
                 .filter { !it.isAfter(today) }
                 .maxOrNull()
-            animeRepository.updateLastSeasonCheckDate(anime.id, lastKnownStartDate ?: today)
+            animeRepository.updateLatestKnownSeasonStartDate(anime.id, lastKnownStartDate ?: today)
+            animeRepository.updateLastSeasonCheckPerformedDate(anime.id, today)
             return null
         }
 
@@ -126,10 +144,11 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
             if (entry.malId in knownMalIds) continue
 
             val startDate = entry.startDate ?: continue
-            if (!startDate.isAfter(anime.lastSeasonCheckDate)) continue
+            if (!startDate.isAfter(anime.latestKnownSeasonStartDate)) continue
             if (startDate.isAfter(today)) continue
 
-            animeRepository.updateLastSeasonCheckDate(anime.id, startDate)
+            animeRepository.updateLatestKnownSeasonStartDate(anime.id, startDate)
+            animeRepository.updateLastSeasonCheckPerformedDate(anime.id, today)
             return AnimeUpdate.NewSeason(
                 anime = anime,
                 sequelMalId = entry.malId,
@@ -138,6 +157,8 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
                 sequelTitleJapanese = entry.titleJapanese,
             )
         }
+
+        animeRepository.updateLastSeasonCheckPerformedDate(anime.id, today)
         return null
     }
 }
