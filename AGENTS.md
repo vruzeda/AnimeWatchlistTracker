@@ -444,6 +444,19 @@ You MUST commit at each meaningful milestone during development — do NOT wait 
 
 This ensures that every commit in the history represents a working, verified state of the project. Never commit code that does not compile or has failing tests.
 
+## Room Database Migrations
+
+When introducing a new database version:
+
+1. **Write the migration** in `Migrations.kt` (e.g., `MIGRATION_18_19`). SQLite on min SDK 26 does not support `ALTER TABLE … RENAME COLUMN` (requires SQLite 3.25 / API 29+), so column renames require full table recreation: create the new table, copy all rows, drop the old table, rename the new one. Recreate foreign-key targets before the tables that reference them.
+2. **Register the migration** in `AnimeDatabase.kt` — bump `version` and add the new migration to `.addMigrations(...)` in the Hilt module.
+3. **Generate the schema export** by running the tests (KSP runs during compilation and writes the JSON automatically):
+   ```bash
+   ./gradlew :module:local-data-source-room:test
+   ```
+   Room writes the export to `module/local-data-source-room/schemas/com.vuzeda.animewatchlist.tracker.module.localdatasource.room.AnimeDatabase/{version}.json`.
+4. **Commit the schema JSON alongside the migration code** in the same commit — the JSON file is the authoritative record of the schema at that version and must not be left uncommitted.
+
 ## Before Submitting Code
 
 1. All existing tests pass.
