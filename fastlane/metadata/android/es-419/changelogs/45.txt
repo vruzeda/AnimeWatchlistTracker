@@ -1,0 +1,5 @@
+• Las portadas se guardan en caché para verlas sin conexión, con controles de almacenamiento
+• Episodios y detalles de temporada se almacenan durante las verificaciones de actualización
+• Las nuevas temporadas encontradas al verificar el orden de visualización se guardan automáticamente
+• Botón de reintento y pull-to-refresh en todas las pantallas de error
+• Corregido: las notificaciones ya no se envían para episodios ya vistos

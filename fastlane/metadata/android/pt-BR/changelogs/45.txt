@@ -1,0 +1,5 @@
+• Capas agora são armazenadas em cache para visualização offline, com controle de espaço
+• Episódios e detalhes de temporadas são armazenados durante verificações de atualização
+• Novas temporadas encontradas ao verificar a ordem de exibição são salvas automaticamente
+• Botão de tentar novamente e pull-to-refresh em todas as telas de erro
+• Corrigido: notificações não são mais enviadas para episódios já assistidos

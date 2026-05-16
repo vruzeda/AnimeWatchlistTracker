@@ -1,0 +1,5 @@
+• Covers are now cached for offline viewing, with storage controls to manage space
+• Episodes and season details are cached during update checks for faster offline access
+• New seasons found while checking watch order are saved automatically
+• Added retry button and pull-to-refresh on all error screens
+• Fixed: notifications no longer trigger for episodes you've already watched

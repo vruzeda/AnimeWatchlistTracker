@@ -1,0 +1,5 @@
+• Les pochettes sont mises en cache pour une consultation hors ligne, avec gestion du stockage
+• Les épisodes et détails de saison sont mis en cache lors des vérifications de mises à jour
+• Les nouvelles saisons trouvées lors de la vérification de l'ordre de visionnage sont sauvegardées automatiquement
+• Bouton de réessai et pull-to-refresh ajoutés sur tous les écrans d'erreur
+• Corrigé : les notifications ne se déclenchent plus pour les épisodes déjà regardés
