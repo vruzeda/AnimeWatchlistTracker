@@ -22,7 +22,8 @@ class FirestoreFeedbackRemoteDataSource @Inject constructor(
             "androidVersion" to feedback.androidVersion,
             "installationId" to installationId,
             "titleLanguage"  to feedback.titleLanguage,
-            "homeViewMode"   to feedback.homeViewMode
+            "homeViewMode"   to feedback.homeViewMode,
+            "archived"       to false
         )
         firestore.collection("feedback").add(document).await()
         Unit
