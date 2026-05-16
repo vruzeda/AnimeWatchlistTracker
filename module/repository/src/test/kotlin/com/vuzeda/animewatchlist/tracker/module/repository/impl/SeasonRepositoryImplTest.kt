@@ -3,6 +3,7 @@ package com.vuzeda.animewatchlist.tracker.module.repository.impl
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
+import com.vuzeda.animewatchlist.tracker.module.domain.SeasonData
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.SeasonLocalDataSource
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.WatchedEpisodeLocalDataSource
@@ -334,6 +335,20 @@ class SeasonRepositoryImplTest {
         assertThat(seasonSlot.captured.lastEpisodeCheckPerformedDate).isNull()
         assertThat(seasonSlot.captured.addedAt).isEqualTo(0L)
         coVerify { watchedEpisodeLocalDataSource.clearWatchedEpisodes(1L) }
+    }
+
+    @Test
+    fun `updateSeasonsMetadata updates each season by mal id in local data source`() = runTest {
+        val seasons = listOf(
+            SeasonData(malId = 100, title = "Title A", type = "TV"),
+            SeasonData(malId = 200, title = "Title B", type = "TV")
+        )
+        coEvery { seasonLocalDataSource.updateSeasonMetadata(any()) } returns Unit
+
+        repository.updateSeasonsMetadata(seasons)
+
+        coVerify { seasonLocalDataSource.updateSeasonMetadata(seasons[0]) }
+        coVerify { seasonLocalDataSource.updateSeasonMetadata(seasons[1]) }
     }
 
     @Test

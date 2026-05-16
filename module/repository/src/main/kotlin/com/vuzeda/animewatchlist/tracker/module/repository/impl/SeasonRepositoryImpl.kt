@@ -1,6 +1,7 @@
 package com.vuzeda.animewatchlist.tracker.module.repository.impl
 
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
+import com.vuzeda.animewatchlist.tracker.module.domain.SeasonData
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.SeasonLocalDataSource
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.WatchedEpisodeLocalDataSource
@@ -122,5 +123,11 @@ class SeasonRepositoryImpl @Inject constructor(
     override suspend fun setEpisodeWatched(seasonId: Long, episodeNumber: Int, isWatched: Boolean) {
         if (isWatched) watchedEpisodeLocalDataSource.markWatched(seasonId, episodeNumber)
         else watchedEpisodeLocalDataSource.markUnwatched(seasonId, episodeNumber)
+    }
+
+    override suspend fun updateSeasonsMetadata(seasons: List<SeasonData>) {
+        for (season in seasons) {
+            seasonLocalDataSource.updateSeasonMetadata(season)
+        }
     }
 }

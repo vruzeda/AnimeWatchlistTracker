@@ -11,6 +11,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResultPage
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
+import com.vuzeda.animewatchlist.tracker.module.domain.SeasonData
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonalAnimePage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.AnimeLocalDataSource
@@ -364,6 +365,20 @@ class AnimeRepositoryImplTest {
         val result = repository.fetchEpisodesAiredBetween(100, after, upTo, 12)
 
         assertThat(result).isEqualTo(expected)
+        coVerify { episodeLocalDataSource.upsertEpisodes(100, expected.getOrThrow()) }
+    }
+
+    @Test
+    fun `fetchEpisodesAiredBetween does not cache episodes when remote fails`() = runTest {
+        val after = LocalDate.of(2026, 3, 14)
+        val upTo = LocalDate.of(2026, 3, 15)
+        coEvery {
+            animeRemoteDataSource.fetchEpisodesAiredBetween(100, after, upTo, 12)
+        } returns Result.failure(Exception())
+
+        repository.fetchEpisodesAiredBetween(100, after, upTo, 12)
+
+        coVerify(exactly = 0) { episodeLocalDataSource.upsertEpisodes(any(), any()) }
     }
 
     @Test
@@ -388,13 +403,24 @@ class AnimeRepositoryImplTest {
 
     @Test
     fun `fetchWatchOrder delegates to remote data source`() = runTest {
-        val expected =
-            Result.success(emptyList<com.vuzeda.animewatchlist.tracker.module.domain.SeasonData>())
+        val expected = Result.success(
+            listOf(SeasonData(malId = 100, title = "Attack on Titan", type = "TV"))
+        )
         coEvery { animeRemoteDataSource.fetchWatchOrder(100) } returns expected
 
         val result = repository.fetchWatchOrder(100)
 
         assertThat(result).isEqualTo(expected)
+        coVerify { seasonRepository.updateSeasonsMetadata(expected.getOrThrow()) }
+    }
+
+    @Test
+    fun `fetchWatchOrder does not update seasons metadata when remote fails`() = runTest {
+        coEvery { animeRemoteDataSource.fetchWatchOrder(100) } returns Result.failure(Exception())
+
+        repository.fetchWatchOrder(100)
+
+        coVerify(exactly = 0) { seasonRepository.updateSeasonsMetadata(any()) }
     }
 
     @Test

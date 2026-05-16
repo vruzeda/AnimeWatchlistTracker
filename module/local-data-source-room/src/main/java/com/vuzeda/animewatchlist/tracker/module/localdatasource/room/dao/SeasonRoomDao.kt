@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
+import com.vuzeda.animewatchlist.tracker.module.domain.SeasonData
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.SeasonLocalDataSource
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.SeasonEntity
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.toDomainModel
@@ -81,4 +82,41 @@ abstract class SeasonRoomDao : SeasonLocalDataSource {
 
     @Query("UPDATE season SET lastEpisodeCheckPerformedDate = :date WHERE id = :seasonId")
     override abstract suspend fun updateLastEpisodeCheckPerformedDate(seasonId: Long, date: LocalDate)
+
+    @Query("""
+        UPDATE season
+        SET title = :title,
+            titleEnglish = :titleEnglish,
+            titleJapanese = :titleJapanese,
+            imageUrl = :imageUrl,
+            type = :type,
+            episodeCount = :episodeCount,
+            score = :score,
+            airingStatus = :airingStatus
+        WHERE malId = :malId
+    """)
+    abstract suspend fun updateMetadataByMalIdEntity(
+        malId: Int,
+        title: String,
+        titleEnglish: String?,
+        titleJapanese: String?,
+        imageUrl: String?,
+        type: String,
+        episodeCount: Int?,
+        score: Double?,
+        airingStatus: String?
+    )
+
+    override suspend fun updateSeasonMetadata(season: SeasonData) =
+        updateMetadataByMalIdEntity(
+            malId = season.malId,
+            title = season.title,
+            titleEnglish = season.titleEnglish,
+            titleJapanese = season.titleJapanese,
+            imageUrl = season.imageUrl,
+            type = season.type,
+            episodeCount = season.episodeCount,
+            score = season.score,
+            airingStatus = season.airingStatus
+        )
 }

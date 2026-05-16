@@ -1,6 +1,7 @@
 package com.vuzeda.animewatchlist.tracker.module.repository
 
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
+import com.vuzeda.animewatchlist.tracker.module.domain.SeasonData
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 
@@ -41,6 +42,8 @@ interface SeasonRepository {
     suspend fun updateLatestKnownEpisodeAirDate(seasonId: Long, date: LocalDate)
 
     suspend fun updateLastEpisodeCheckPerformedDate(seasonId: Long, date: LocalDate)
+
+    suspend fun updateSeasonsMetadata(seasons: List<SeasonData>)
 
     fun observeWatchedEpisodesForSeason(seasonId: Long): Flow<Set<Int>>
 

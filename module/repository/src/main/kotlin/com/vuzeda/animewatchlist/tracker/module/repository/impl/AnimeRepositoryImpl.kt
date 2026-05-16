@@ -147,10 +147,13 @@ class AnimeRepositoryImpl @Inject constructor(
             after = after,
             upTo = upTo,
             startingFromEpisode = startingFromEpisode
-        )
+        ).onSuccess { episodes ->
+            episodeLocalDataSource.upsertEpisodes(malId, episodes)
+        }
 
     override suspend fun fetchWatchOrder(malId: Int): Result<List<SeasonData>> =
         animeRemoteDataSource.fetchWatchOrder(malId)
+            .onSuccess { seasonRepository.updateSeasonsMetadata(it) }
 
     override suspend fun fetchSeasonAnime(
         year: Int,
