@@ -104,10 +104,14 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
 
         if (episodes.isEmpty()) return null
 
+        val watchedNumbers = seasonRepository.getWatchedEpisodeNumbers(season.id)
+        val unwatchedEpisodes = episodes.filter { it.number !in watchedNumbers }
+        if (unwatchedEpisodes.isEmpty()) return null
+
         return AnimeUpdate.NewEpisodes(
             anime = anime,
             season = season,
-            newEpisodeCount = episodes.size
+            newEpisodeCount = unwatchedEpisodes.size
         )
     }
 

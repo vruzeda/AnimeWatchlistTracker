@@ -16,6 +16,9 @@ abstract class WatchedEpisodeRoomDao : WatchedEpisodeLocalDataSource {
     @Query("SELECT episodeNumber FROM watched_episode WHERE seasonId = :seasonId")
     abstract fun observeEpisodeNumbers(seasonId: Long): Flow<List<Int>>
 
+    @Query("SELECT episodeNumber FROM watched_episode WHERE seasonId = :seasonId")
+    abstract suspend fun getEpisodeNumbersOnce(seasonId: Long): List<Int>
+
     @Query("SELECT seasonId, COUNT(*) AS count FROM watched_episode GROUP BY seasonId")
     abstract fun observeWatchedCountsBySeasonId(): Flow<Map<@MapColumn("seasonId") Long, @MapColumn("count") Int>>
 
@@ -36,4 +39,7 @@ abstract class WatchedEpisodeRoomDao : WatchedEpisodeLocalDataSource {
 
     override suspend fun markWatched(seasonId: Long, episodeNumber: Int) =
         insertEntity(WatchedEpisodeEntity(seasonId = seasonId, episodeNumber = episodeNumber))
+
+    override suspend fun getWatchedEpisodeNumbers(seasonId: Long): Set<Int> =
+        getEpisodeNumbersOnce(seasonId).toSet()
 }

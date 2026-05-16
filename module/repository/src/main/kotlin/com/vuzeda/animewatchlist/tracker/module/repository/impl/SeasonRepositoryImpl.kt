@@ -125,6 +125,9 @@ class SeasonRepositoryImpl @Inject constructor(
         else watchedEpisodeLocalDataSource.markUnwatched(seasonId, episodeNumber)
     }
 
+    override suspend fun getWatchedEpisodeNumbers(seasonId: Long): Set<Int> =
+        watchedEpisodeLocalDataSource.getWatchedEpisodeNumbers(seasonId)
+
     override suspend fun upsertSeasonsFromWatchOrder(animeId: Long, seasons: List<SeasonData>) {
         val existingMalIds = seasonLocalDataSource.getByAnimeId(animeId).map { it.malId }.toSet()
         val now = clock.now().toEpochMilliseconds()

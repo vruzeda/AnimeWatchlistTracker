@@ -8,4 +8,5 @@ interface WatchedEpisodeLocalDataSource {
     suspend fun markWatched(seasonId: Long, episodeNumber: Int)
     suspend fun markUnwatched(seasonId: Long, episodeNumber: Int)
     suspend fun clearWatchedEpisodes(seasonId: Long)
+    suspend fun getWatchedEpisodeNumbers(seasonId: Long): Set<Int>
 }

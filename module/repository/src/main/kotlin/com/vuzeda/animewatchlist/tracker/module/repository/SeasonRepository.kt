@@ -48,4 +48,6 @@ interface SeasonRepository {
     fun observeWatchedEpisodesForSeason(seasonId: Long): Flow<Set<Int>>
 
     suspend fun setEpisodeWatched(seasonId: Long, episodeNumber: Int, isWatched: Boolean)
+
+    suspend fun getWatchedEpisodeNumbers(seasonId: Long): Set<Int>
 }

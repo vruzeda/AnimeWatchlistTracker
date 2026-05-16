@@ -386,6 +386,15 @@ class SeasonRepositoryImplTest {
     }
 
     @Test
+    fun `getWatchedEpisodeNumbers delegates to watched episode local data source`() = runTest {
+        coEvery { watchedEpisodeLocalDataSource.getWatchedEpisodeNumbers(10L) } returns setOf(1, 2, 3)
+
+        val result = repository.getWatchedEpisodeNumbers(10L)
+
+        assertThat(result).containsExactly(1, 2, 3)
+    }
+
+    @Test
     fun `removeSeasonFromWatchlist preserves api data`() = runTest {
         val watchlistSeason = sampleSeason.copy(isInWatchlist = true)
         coEvery { seasonLocalDataSource.update(any()) } returns Unit
