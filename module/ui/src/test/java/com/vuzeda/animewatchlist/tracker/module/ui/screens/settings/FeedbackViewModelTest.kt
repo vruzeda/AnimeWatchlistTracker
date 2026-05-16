@@ -234,4 +234,124 @@ class FeedbackViewModelTest {
             cancelAndIgnoreRemainingEvents()
         }
     }
+
+    @Test
+    fun `updateContactName updates contactName in state`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.updateContactName("Alice")
+
+        viewModel.uiState.test {
+            val state = awaitItem()
+            assertThat(state.contactName).isEqualTo("Alice")
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `updateContactEmail updates contactEmail in state`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.updateContactEmail("alice@example.com")
+
+        viewModel.uiState.test {
+            val state = awaitItem()
+            assertThat(state.contactEmail).isEqualTo("alice@example.com")
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `isValid is false when contactEmail is invalid`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.selectCategory(FeedbackCategory.GENERAL.name)
+        viewModel.updateMessage("A".repeat(10))
+        viewModel.updateContactEmail("not-an-email")
+
+        viewModel.uiState.test {
+            val state = awaitItem()
+            assertThat(state.isValid).isFalse()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `isValid is true when contactEmail is empty`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.selectCategory(FeedbackCategory.GENERAL.name)
+        viewModel.updateMessage("A".repeat(10))
+
+        viewModel.uiState.test {
+            val state = awaitItem()
+            assertThat(state.isValid).isTrue()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `isValid is true when contactEmail is valid`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.selectCategory(FeedbackCategory.GENERAL.name)
+        viewModel.updateMessage("A".repeat(10))
+        viewModel.updateContactEmail("alice@example.com")
+
+        viewModel.uiState.test {
+            val state = awaitItem()
+            assertThat(state.isValid).isTrue()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `submitFeedback passes trimmed contact fields to use case`() = runTest {
+        var capturedFeedback: Feedback? = null
+        coEvery { submitFeedbackUseCase(any<Feedback>()) } answers {
+            capturedFeedback = firstArg()
+            Result.success(Unit)
+        }
+        val viewModel = createViewModel()
+        viewModel.selectCategory(FeedbackCategory.GENERAL.name)
+        viewModel.updateMessage("A".repeat(20))
+        viewModel.updateContactName("  Alice  ")
+        viewModel.updateContactEmail("  alice@example.com  ")
+
+        viewModel.uiState.test {
+            awaitItem()
+            viewModel.submitFeedback()
+            testDispatcher.scheduler.advanceUntilIdle()
+            awaitItem() // isSubmitting = true
+            awaitItem() // done
+
+            assertThat(capturedFeedback?.contactName).isEqualTo("Alice")
+            assertThat(capturedFeedback?.contactEmail).isEqualTo("alice@example.com")
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `submitFeedback sends null contact fields when inputs are blank`() = runTest {
+        var capturedFeedback: Feedback? = null
+        coEvery { submitFeedbackUseCase(any<Feedback>()) } answers {
+            capturedFeedback = firstArg()
+            Result.success(Unit)
+        }
+        val viewModel = createViewModel()
+        viewModel.selectCategory(FeedbackCategory.GENERAL.name)
+        viewModel.updateMessage("A".repeat(20))
+
+        viewModel.uiState.test {
+            awaitItem()
+            viewModel.submitFeedback()
+            testDispatcher.scheduler.advanceUntilIdle()
+            awaitItem()
+            awaitItem()
+
+            assertThat(capturedFeedback?.contactName).isNull()
+            assertThat(capturedFeedback?.contactEmail).isNull()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
 }

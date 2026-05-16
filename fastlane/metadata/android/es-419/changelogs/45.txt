@@ -3,3 +3,4 @@
 • Las nuevas temporadas encontradas al verificar el orden de visualización se guardan automáticamente
 • Botón de reintento y pull-to-refresh en todas las pantallas de error
 • Corregido: las notificaciones ya no se envían para episodios ya vistos
+• Nombre y correo opcionales al enviar comentarios

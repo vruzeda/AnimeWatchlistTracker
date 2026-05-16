@@ -54,6 +54,14 @@ class FeedbackViewModel @Inject constructor(
         _uiState.update { it.copy(message = message) }
     }
 
+    fun updateContactName(name: String) {
+        _uiState.update { it.copy(contactName = name) }
+    }
+
+    fun updateContactEmail(email: String) {
+        _uiState.update { it.copy(contactEmail = email) }
+    }
+
     fun submitFeedback() {
         val state = _uiState.value
         val category = state.category?.let { runCatching { FeedbackCategory.valueOf(it) }.getOrNull() }
@@ -69,7 +77,9 @@ class FeedbackViewModel @Inject constructor(
                 androidVersion = Build.VERSION.SDK_INT,
                 installationId = "",
                 titleLanguage = titleLanguage.name,
-                homeViewMode = homeViewMode.name
+                homeViewMode = homeViewMode.name,
+                contactName = state.contactName.trim().ifEmpty { null },
+                contactEmail = state.contactEmail.trim().ifEmpty { null }
             )
             submitFeedbackUseCase(feedback)
                 .onSuccess {

@@ -1,12 +1,18 @@
 package com.vuzeda.animewatchlist.tracker.module.ui.screens.settings
 
+private val EMAIL_REGEX = Regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")
+
 data class FeedbackUiState(
     val category: String? = null,
     val message: String = "",
+    val contactName: String = "",
+    val contactEmail: String = "",
     val isSubmitting: Boolean = false,
     val snackbarEvent: FeedbackSnackbarEvent? = null
 ) {
-    val isValid: Boolean get() = category != null && message.length in 10..500
+    val isEmailValid: Boolean
+        get() = contactEmail.isEmpty() || EMAIL_REGEX.matches(contactEmail)
+    val isValid: Boolean get() = category != null && message.length in 10..500 && isEmailValid
     val charCount: Int get() = message.length
 }
 

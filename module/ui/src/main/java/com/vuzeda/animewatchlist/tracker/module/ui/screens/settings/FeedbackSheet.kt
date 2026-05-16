@@ -29,6 +29,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.foundation.text.KeyboardOptions
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SectionSpacing
@@ -44,6 +46,8 @@ fun FeedbackSheet(
     uiState: FeedbackUiState,
     onCategorySelected: (String) -> Unit,
     onMessageChanged: (String) -> Unit,
+    onContactNameChanged: (String) -> Unit,
+    onContactEmailChanged: (String) -> Unit,
     onSubmit: () -> Unit,
     onEventConsumed: () -> Unit,
     onDismiss: () -> Unit
@@ -115,6 +119,32 @@ fun FeedbackSheet(
                     },
                     minLines = 4,
                     maxLines = 8
+                )
+
+                Spacer(modifier = Modifier.height(ElementSpacing))
+
+                OutlinedTextField(
+                    value = uiState.contactName,
+                    onValueChange = onContactNameChanged,
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(stringResource(R.string.feedback_contact_name_hint)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
+                )
+
+                Spacer(modifier = Modifier.height(ElementSpacing))
+
+                OutlinedTextField(
+                    value = uiState.contactEmail,
+                    onValueChange = onContactEmailChanged,
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(stringResource(R.string.feedback_contact_email_hint)) },
+                    singleLine = true,
+                    isError = uiState.contactEmail.isNotEmpty() && !uiState.isEmailValid,
+                    supportingText = if (uiState.contactEmail.isNotEmpty() && !uiState.isEmailValid) {
+                        { Text(stringResource(R.string.feedback_contact_email_error)) }
+                    } else null,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
                 )
 
                 Spacer(modifier = Modifier.height(ElementSpacing))

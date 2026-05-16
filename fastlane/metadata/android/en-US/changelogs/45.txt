@@ -3,3 +3,4 @@
 • New seasons found while checking watch order are saved automatically
 • Added retry button and pull-to-refresh on all error screens
 • Fixed: notifications no longer trigger for episodes you've already watched
+• You can now add your name and email when sending feedback

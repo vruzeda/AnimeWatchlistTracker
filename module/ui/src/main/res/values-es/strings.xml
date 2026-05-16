@@ -226,4 +226,7 @@
     <string name="feedback_success">Comentario enviado. ¡Gracias!</string>
     <string name="feedback_error">Error al enviar comentario. Inténtalo de nuevo.</string>
     <string name="feedback_char_count">%1$d / 500</string>
+    <string name="feedback_contact_name_hint">Nombre (opcional)</string>
+    <string name="feedback_contact_email_hint">Correo electrónico (opcional)</string>
+    <string name="feedback_contact_email_error">Ingresa un correo electrónico válido</string>
 </resources>

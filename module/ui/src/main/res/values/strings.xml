@@ -226,4 +226,7 @@
     <string name="feedback_success">Feedback sent. Thank you!</string>
     <string name="feedback_error">Failed to send feedback. Please try again.</string>
     <string name="feedback_char_count">%1$d / 500</string>
+    <string name="feedback_contact_name_hint">Name (optional)</string>
+    <string name="feedback_contact_email_hint">Email (optional)</string>
+    <string name="feedback_contact_email_error">Enter a valid email address</string>
 </resources>

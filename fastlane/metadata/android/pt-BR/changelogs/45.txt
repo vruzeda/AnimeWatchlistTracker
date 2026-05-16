@@ -3,3 +3,4 @@
 • Novas temporadas encontradas ao verificar a ordem de exibição são salvas automaticamente
 • Botão de tentar novamente e pull-to-refresh em todas as telas de erro
 • Corrigido: notificações não são mais enviadas para episódios já assistidos
+• Nome e e-mail opcionais ao enviar feedback

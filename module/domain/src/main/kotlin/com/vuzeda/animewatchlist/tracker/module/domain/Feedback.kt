@@ -9,7 +9,9 @@ data class Feedback(
     val androidVersion: Int,
     val installationId: String,
     val titleLanguage: String,
-    val homeViewMode: String
+    val homeViewMode: String,
+    val contactName: String? = null,
+    val contactEmail: String? = null
 )
 
 enum class FeedbackCategory {
