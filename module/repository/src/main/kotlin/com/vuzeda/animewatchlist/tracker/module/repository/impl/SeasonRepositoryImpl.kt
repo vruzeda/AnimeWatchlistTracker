@@ -125,9 +125,46 @@ class SeasonRepositoryImpl @Inject constructor(
         else watchedEpisodeLocalDataSource.markUnwatched(seasonId, episodeNumber)
     }
 
-    override suspend fun updateSeasonsMetadata(seasons: List<SeasonData>) {
-        for (season in seasons) {
-            seasonLocalDataSource.updateSeasonMetadata(season)
+    override suspend fun upsertSeasonsFromWatchOrder(animeId: Long, seasons: List<SeasonData>) {
+        val existingMalIds = seasonLocalDataSource.getByAnimeId(animeId).map { it.malId }.toSet()
+        val now = clock.now().toEpochMilliseconds()
+        val newSeasons = mutableListOf<Season>()
+
+        for ((index, season) in seasons.withIndex()) {
+            if (season.malId in existingMalIds) {
+                seasonLocalDataSource.updateSeasonMetadata(season)
+            } else {
+                newSeasons += season.toSeason(animeId = animeId, orderIndex = index, addedAt = now)
+            }
+        }
+
+        if (newSeasons.isNotEmpty()) {
+            seasonLocalDataSource.insertAll(newSeasons)
         }
     }
+}
+
+private fun SeasonData.toSeason(animeId: Long, orderIndex: Int, addedAt: Long): Season = Season(
+    animeId = animeId,
+    malId = malId,
+    title = title,
+    titleEnglish = titleEnglish,
+    titleJapanese = titleJapanese,
+    imageUrl = imageUrl,
+    type = type,
+    episodeCount = episodeCount,
+    score = score,
+    airingStatus = airingStatus,
+    airingSeasonName = startDate?.toAiringSeasonName(),
+    airingSeasonYear = startDate?.year,
+    orderIndex = orderIndex,
+    isInWatchlist = false,
+    addedAt = addedAt
+)
+
+private fun java.time.LocalDate.toAiringSeasonName(): String = when (monthValue) {
+    in 1..3 -> "winter"
+    in 4..6 -> "spring"
+    in 7..9 -> "summer"
+    else -> "fall"
 }

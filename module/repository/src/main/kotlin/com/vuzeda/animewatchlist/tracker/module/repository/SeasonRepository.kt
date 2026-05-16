@@ -43,7 +43,7 @@ interface SeasonRepository {
 
     suspend fun updateLastEpisodeCheckPerformedDate(seasonId: Long, date: LocalDate)
 
-    suspend fun updateSeasonsMetadata(seasons: List<SeasonData>)
+    suspend fun upsertSeasonsFromWatchOrder(animeId: Long, seasons: List<SeasonData>)
 
     fun observeWatchedEpisodesForSeason(seasonId: Long): Flow<Set<Int>>
 

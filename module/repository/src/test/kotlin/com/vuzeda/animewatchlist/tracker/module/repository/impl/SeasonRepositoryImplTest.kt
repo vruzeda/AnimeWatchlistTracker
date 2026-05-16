@@ -338,17 +338,51 @@ class SeasonRepositoryImplTest {
     }
 
     @Test
-    fun `updateSeasonsMetadata updates each season by mal id in local data source`() = runTest {
-        val seasons = listOf(
-            SeasonData(malId = 100, title = "Title A", type = "TV"),
-            SeasonData(malId = 200, title = "Title B", type = "TV")
-        )
+    fun `upsertSeasonsFromWatchOrder updates metadata for seasons already in the database`() = runTest {
+        val season = SeasonData(malId = 16498, title = "New Title", type = "TV")
+        coEvery { seasonLocalDataSource.getByAnimeId(1L) } returns listOf(sampleSeason)
         coEvery { seasonLocalDataSource.updateSeasonMetadata(any()) } returns Unit
 
-        repository.updateSeasonsMetadata(seasons)
+        repository.upsertSeasonsFromWatchOrder(animeId = 1L, seasons = listOf(season))
 
-        coVerify { seasonLocalDataSource.updateSeasonMetadata(seasons[0]) }
-        coVerify { seasonLocalDataSource.updateSeasonMetadata(seasons[1]) }
+        coVerify { seasonLocalDataSource.updateSeasonMetadata(season) }
+        coVerify(exactly = 0) { seasonLocalDataSource.insertAll(any()) }
+    }
+
+    @Test
+    fun `upsertSeasonsFromWatchOrder inserts unknown seasons with isInWatchlist false`() = runTest {
+        val season = SeasonData(malId = 999, title = "New Season", type = "TV")
+        coEvery { seasonLocalDataSource.getByAnimeId(1L) } returns listOf(sampleSeason)
+        coEvery { seasonLocalDataSource.insertAll(any()) } returns Unit
+
+        repository.upsertSeasonsFromWatchOrder(animeId = 1L, seasons = listOf(season))
+
+        val slot = slot<List<Season>>()
+        coVerify { seasonLocalDataSource.insertAll(capture(slot)) }
+        assertThat(slot.captured).hasSize(1)
+        assertThat(slot.captured[0].malId).isEqualTo(999)
+        assertThat(slot.captured[0].animeId).isEqualTo(1L)
+        assertThat(slot.captured[0].isInWatchlist).isFalse()
+        coVerify(exactly = 0) { seasonLocalDataSource.updateSeasonMetadata(any()) }
+    }
+
+    @Test
+    fun `upsertSeasonsFromWatchOrder maps start date to airing season name`() = runTest {
+        coEvery { seasonLocalDataSource.getByAnimeId(1L) } returns emptyList()
+        coEvery { seasonLocalDataSource.insertAll(any()) } returns Unit
+
+        val seasons = listOf(
+            SeasonData(malId = 1, title = "W", type = "TV", startDate = LocalDate.of(2026, 1, 1)),
+            SeasonData(malId = 2, title = "Sp", type = "TV", startDate = LocalDate.of(2026, 4, 1)),
+            SeasonData(malId = 3, title = "Su", type = "TV", startDate = LocalDate.of(2026, 7, 1)),
+            SeasonData(malId = 4, title = "F", type = "TV", startDate = LocalDate.of(2026, 10, 1)),
+        )
+        repository.upsertSeasonsFromWatchOrder(animeId = 1L, seasons)
+
+        val captured = slot<List<Season>>()
+        coVerify { seasonLocalDataSource.insertAll(capture(captured)) }
+        assertThat(captured.captured.map { it.airingSeasonName })
+            .containsExactly("winter", "spring", "summer", "fall").inOrder()
     }
 
     @Test

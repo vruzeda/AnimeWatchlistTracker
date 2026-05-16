@@ -403,24 +403,35 @@ class AnimeRepositoryImplTest {
 
     @Test
     fun `fetchWatchOrder delegates to remote data source`() = runTest {
-        val expected = Result.success(
-            listOf(SeasonData(malId = 100, title = "Attack on Titan", type = "TV"))
-        )
+        val seasons = listOf(SeasonData(malId = 100, title = "Attack on Titan", type = "TV"))
+        val expected = Result.success(seasons)
         coEvery { animeRemoteDataSource.fetchWatchOrder(100) } returns expected
+        coEvery { seasonRepository.findAnimeIdBySeasonMalId(100) } returns 1L
 
         val result = repository.fetchWatchOrder(100)
 
         assertThat(result).isEqualTo(expected)
-        coVerify { seasonRepository.updateSeasonsMetadata(expected.getOrThrow()) }
+        coVerify { seasonRepository.upsertSeasonsFromWatchOrder(1L, seasons) }
     }
 
     @Test
-    fun `fetchWatchOrder does not update seasons metadata when remote fails`() = runTest {
+    fun `fetchWatchOrder does not upsert seasons when remote fails`() = runTest {
         coEvery { animeRemoteDataSource.fetchWatchOrder(100) } returns Result.failure(Exception())
 
         repository.fetchWatchOrder(100)
 
-        coVerify(exactly = 0) { seasonRepository.updateSeasonsMetadata(any()) }
+        coVerify(exactly = 0) { seasonRepository.upsertSeasonsFromWatchOrder(any(), any()) }
+    }
+
+    @Test
+    fun `fetchWatchOrder does not upsert seasons when anime not found locally`() = runTest {
+        val seasons = listOf(SeasonData(malId = 100, title = "Attack on Titan", type = "TV"))
+        coEvery { animeRemoteDataSource.fetchWatchOrder(100) } returns Result.success(seasons)
+        coEvery { seasonRepository.findAnimeIdBySeasonMalId(100) } returns null
+
+        repository.fetchWatchOrder(100)
+
+        coVerify(exactly = 0) { seasonRepository.upsertSeasonsFromWatchOrder(any(), any()) }
     }
 
     @Test
