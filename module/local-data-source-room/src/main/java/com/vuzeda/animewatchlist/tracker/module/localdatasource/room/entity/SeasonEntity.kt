@@ -31,7 +31,6 @@ data class SeasonEntity(
     val imageUrl: String? = null,
     val type: String = "TV",
     val episodeCount: Int? = null,
-    val currentEpisode: Int = 0,
     val status: String = "PLAN_TO_WATCH",
     val score: Double? = null,
     val orderIndex: Int = 0,

@@ -22,7 +22,6 @@ class SeasonEntityTest {
             imageUrl = "https://example.com/aot.jpg",
             type = "TV",
             episodeCount = 25,
-            currentEpisode = 12,
             status = "WATCHING",
             score = 8.54,
             orderIndex = 0,

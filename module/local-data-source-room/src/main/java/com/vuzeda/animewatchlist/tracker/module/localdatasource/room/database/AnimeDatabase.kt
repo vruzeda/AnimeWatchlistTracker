@@ -1,8 +1,11 @@
 package com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database
 
+import androidx.room.AutoMigration
 import androidx.room.Database
+import androidx.room.DeleteColumn
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.AutoMigrationSpec
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.dao.AnimeRoomDao
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.dao.EpisodeInfoRoomDao
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.dao.SeasonRoomDao
@@ -13,10 +16,16 @@ import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.Epis
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.SeasonEntity
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.WatchedEpisodeEntity
 
+@DeleteColumn(tableName = "season", columnName = "currentEpisode")
+class SeasonDropCurrentEpisodeMigration : AutoMigrationSpec
+
 @Database(
     entities = [AnimeEntity::class, SeasonEntity::class, AnimeUpdateSchedulerStateEntity::class, WatchedEpisodeEntity::class, EpisodeInfoEntity::class],
-    version = 19,
-    exportSchema = true
+    version = 20,
+    exportSchema = true,
+    autoMigrations = [
+        AutoMigration(from = 19, to = 20, spec = SeasonDropCurrentEpisodeMigration::class)
+    ]
 )
 @TypeConverters(Converters::class)
 abstract class AnimeDatabase : RoomDatabase() {
