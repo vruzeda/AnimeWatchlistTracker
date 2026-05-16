@@ -444,6 +444,23 @@ You MUST commit at each meaningful milestone during development — do NOT wait 
 
 This ensures that every commit in the history represents a working, verified state of the project. Never commit code that does not compile or has failing tests.
 
+### Changelog Maintenance
+
+Every `feat:` or `fix:` commit must also update the Play Store changelogs. Include the changelog changes in the **same commit** as the code — do not create a separate changelog commit.
+
+**Files:** `fastlane/metadata/android/{locale}/changelogs/{nextVersionCode}.txt`
+Locales: `en-US`, `pt-BR`, `es-419`, `fr-FR`
+
+**Steps:**
+1. Read `versionCode` from `app/build.gradle.kts`. The target filename is `{versionCode + 1}.txt`.
+2. If `{versionCode + 1}.txt` already exists in a locale directory, append a new bullet (`• ...`) for this change.
+3. If it does not exist yet, create it with a single bullet point.
+4. Write a concise, user-facing description — not the raw commit message. Translate it accurately into all four languages.
+5. Keep each file under 500 characters total (Google Play hard limit).
+6. Stage all four changelog files alongside the code changes in the same commit.
+
+Only include changes that affect what a user experiences in the app. Skip changelog updates for changes to documentation (`AGENTS.md`, `README.md`), CI/CD workflows (`.github/`), Fastlane configuration, build scripts, or test code — regardless of the commit type prefix.
+
 ## Room Database Migrations
 
 When introducing a new database version:
