@@ -205,7 +205,8 @@ fun SeasonDetailScreen(
                 uiState.isNotFound -> {
                     EmptyStateMessage(
                         modifier = Modifier.fillMaxSize(),
-                        title = stringResource(R.string.season_detail_not_found)
+                        title = stringResource(R.string.season_detail_not_found),
+                        onRetry = onRefresh
                     )
                 }
                 else -> {

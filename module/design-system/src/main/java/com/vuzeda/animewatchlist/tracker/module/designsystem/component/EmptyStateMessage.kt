@@ -11,13 +11,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.VideoLibrary
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import com.vuzeda.animewatchlist.tracker.module.designsystem.R
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.EmptyStateIconSize
@@ -29,7 +32,8 @@ fun EmptyStateMessage(
     modifier: Modifier = Modifier,
     icon: ImageVector = Icons.Outlined.VideoLibrary,
     title: String,
-    subtitle: String? = null
+    subtitle: String? = null,
+    onRetry: (() -> Unit)? = null
 ) {
     Column(
         modifier = modifier
@@ -62,6 +66,13 @@ fun EmptyStateMessage(
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
             )
+        }
+
+        if (onRetry != null) {
+            Spacer(modifier = Modifier.height(ElementSpacing))
+            OutlinedButton(onClick = onRetry) {
+                Text(stringResource(R.string.retry))
+            }
         }
     }
 }

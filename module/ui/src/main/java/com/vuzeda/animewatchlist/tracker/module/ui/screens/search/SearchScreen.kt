@@ -202,43 +202,44 @@ fun SearchScreen(
 
             Spacer(modifier = Modifier.height(ElementSpacing))
 
-            when {
-                uiState.isLoading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
+            PullToRefreshBox(
+                isRefreshing = uiState.isRefreshing,
+                onRefresh = onRefresh,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                when {
+                    uiState.isLoading -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
                     }
-                }
-                uiState.errorMessage != null -> {
-                    EmptyStateMessage(
-                        modifier = Modifier.fillMaxSize(),
-                        title = stringResource(R.string.search_error_title),
-                        subtitle = uiState.errorMessage
-                    )
-                }
-                uiState.hasSearched && uiState.results.isEmpty() -> {
-                    EmptyStateMessage(
-                        modifier = Modifier.fillMaxSize(),
-                        title = stringResource(R.string.search_no_results_title),
-                        subtitle = stringResource(R.string.search_no_results_subtitle)
-                    )
-                }
-                !uiState.hasSearched -> {
-                    EmptyStateMessage(
-                        modifier = Modifier.fillMaxSize(),
-                        icon = Icons.Outlined.Search,
-                        title = stringResource(R.string.search_initial_title),
-                        subtitle = stringResource(R.string.search_initial_subtitle)
-                    )
-                }
-                else -> {
-                    PullToRefreshBox(
-                        isRefreshing = uiState.isRefreshing,
-                        onRefresh = onRefresh,
-                        modifier = Modifier.fillMaxSize()
-                    ) {
+                    uiState.errorMessage != null -> {
+                        EmptyStateMessage(
+                            modifier = Modifier.fillMaxSize(),
+                            title = stringResource(R.string.search_error_title),
+                            subtitle = uiState.errorMessage,
+                            onRetry = onRefresh
+                        )
+                    }
+                    uiState.hasSearched && uiState.results.isEmpty() -> {
+                        EmptyStateMessage(
+                            modifier = Modifier.fillMaxSize(),
+                            title = stringResource(R.string.search_no_results_title),
+                            subtitle = stringResource(R.string.search_no_results_subtitle)
+                        )
+                    }
+                    !uiState.hasSearched -> {
+                        EmptyStateMessage(
+                            modifier = Modifier.fillMaxSize(),
+                            icon = Icons.Outlined.Search,
+                            title = stringResource(R.string.search_initial_title),
+                            subtitle = stringResource(R.string.search_initial_subtitle)
+                        )
+                    }
+                    else -> {
                         val listState = rememberLazyListState()
 
                         val shouldLoadMore by remember {
@@ -319,39 +320,39 @@ fun SearchScreen(
                             }
                         }
                     }
-
-                    if (uiState.selectedResultForAdd != null) {
-                        val sheetStatusOptions = WatchStatus.entries.map {
-                            StatusOption(stringResource(it.toDisplayLabelRes()), it.toColor())
-                        }
-                        val sheetSubtitle = resolveDisplayTitle(
-                            title = uiState.selectedResultForAdd.title,
-                            titleEnglish = uiState.selectedResultForAdd.titleEnglish,
-                            titleJapanese = uiState.selectedResultForAdd.titleJapanese,
-                            language = uiState.titleLanguage
-                        )
-                        StatusSelectionSheet(
-                            title = stringResource(R.string.search_add_sheet_title),
-                            subtitle = sheetSubtitle,
-                            options = sheetStatusOptions,
-                            onOptionSelected = { index ->
-                                onAddStatusSelected(WatchStatus.entries[index])
-                            },
-                            onDismiss = onDismissAddSheet
-                        )
-                    }
-
-                    if (uiState.selectedResultForDelete != null) {
-                        ConfirmationDialog(
-                            title = stringResource(R.string.delete_anime_dialog_title),
-                            message = stringResource(R.string.delete_anime_dialog_message),
-                            confirmText = stringResource(R.string.delete_anime_dialog_confirm),
-                            dismissText = stringResource(R.string.delete_anime_dialog_dismiss),
-                            onConfirm = onConfirmRemove,
-                            onDismiss = onDismissRemoveConfirmation
-                        )
-                    }
                 }
+            }
+
+            if (uiState.selectedResultForAdd != null) {
+                val sheetStatusOptions = WatchStatus.entries.map {
+                    StatusOption(stringResource(it.toDisplayLabelRes()), it.toColor())
+                }
+                val sheetSubtitle = resolveDisplayTitle(
+                    title = uiState.selectedResultForAdd.title,
+                    titleEnglish = uiState.selectedResultForAdd.titleEnglish,
+                    titleJapanese = uiState.selectedResultForAdd.titleJapanese,
+                    language = uiState.titleLanguage
+                )
+                StatusSelectionSheet(
+                    title = stringResource(R.string.search_add_sheet_title),
+                    subtitle = sheetSubtitle,
+                    options = sheetStatusOptions,
+                    onOptionSelected = { index ->
+                        onAddStatusSelected(WatchStatus.entries[index])
+                    },
+                    onDismiss = onDismissAddSheet
+                )
+            }
+
+            if (uiState.selectedResultForDelete != null) {
+                ConfirmationDialog(
+                    title = stringResource(R.string.delete_anime_dialog_title),
+                    message = stringResource(R.string.delete_anime_dialog_message),
+                    confirmText = stringResource(R.string.delete_anime_dialog_confirm),
+                    dismissText = stringResource(R.string.delete_anime_dialog_dismiss),
+                    onConfirm = onConfirmRemove,
+                    onDismiss = onDismissRemoveConfirmation
+                )
             }
         }
     }

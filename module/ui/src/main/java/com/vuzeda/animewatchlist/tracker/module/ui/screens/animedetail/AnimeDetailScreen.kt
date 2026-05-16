@@ -213,7 +213,8 @@ fun AnimeDetailScreen(
                 uiState.isNotFound -> {
                     EmptyStateMessage(
                         modifier = Modifier.fillMaxSize(),
-                        title = stringResource(R.string.anime_detail_not_found)
+                        title = stringResource(R.string.anime_detail_not_found),
+                        onRetry = onRefresh
                     )
                 }
                 else -> {

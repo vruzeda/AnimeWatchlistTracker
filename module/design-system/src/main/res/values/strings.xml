@@ -35,6 +35,9 @@
     <string name="cd_previous_season">Previous season</string>
     <string name="cd_next_season">Next season</string>
 
+    <!-- EmptyStateMessage -->
+    <string name="retry">Retry</string>
+
     <!-- FullScreenImageViewer -->
     <string name="cd_close">Close</string>
 
