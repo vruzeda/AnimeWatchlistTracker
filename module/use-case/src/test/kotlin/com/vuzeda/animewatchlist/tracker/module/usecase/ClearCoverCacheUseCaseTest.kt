@@ -1,0 +1,20 @@
+package com.vuzeda.animewatchlist.tracker.module.usecase
+
+import com.vuzeda.animewatchlist.tracker.module.repository.CoverCacheRepository
+import io.mockk.coVerify
+import io.mockk.mockk
+import kotlinx.coroutines.test.runTest
+import org.junit.jupiter.api.Test
+
+class ClearCoverCacheUseCaseTest {
+
+    private val coverCacheRepository: CoverCacheRepository = mockk(relaxUnitFun = true)
+    private val useCase = ClearCoverCacheUseCase(coverCacheRepository)
+
+    @Test
+    fun `delegates to repository`() = runTest {
+        useCase()
+
+        coVerify(exactly = 1) { coverCacheRepository.clearCoverCache() }
+    }
+}

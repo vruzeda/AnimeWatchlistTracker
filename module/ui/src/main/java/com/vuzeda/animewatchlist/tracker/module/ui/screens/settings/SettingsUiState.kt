@@ -6,6 +6,8 @@ import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 data class SettingsUiState(
     val titleLanguage: TitleLanguage = TitleLanguage.DEFAULT,
     val homeViewMode: HomeViewMode = HomeViewMode.ANIME,
+    val isOfflineCoverCachingEnabled: Boolean = false,
+    val coverCacheSizeBytes: Long = 0L,
     val isDeleteConfirmationVisible: Boolean = false,
     val isDataDeleted: Boolean = false,
     val developerTapCount: Int = 0,

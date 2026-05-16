@@ -5,13 +5,18 @@ import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsTracker
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
+import com.vuzeda.animewatchlist.tracker.module.usecase.ClearCoverCacheUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.DeleteAllDataUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.GetCoverCacheSizeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveHomeViewModeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveIsDeveloperOptionsEnabledUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveIsOfflineCoverCachingEnabledUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetHomeViewModeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetIsDeveloperOptionsEnabledUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.SetIsOfflineCoverCachingEnabledUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetTitleLanguageUseCase
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -37,6 +42,10 @@ class SettingsViewModelTest {
     private val setHomeViewModeUseCase: SetHomeViewModeUseCase = mockk(relaxUnitFun = true)
     private val observeIsDeveloperOptionsEnabledUseCase: ObserveIsDeveloperOptionsEnabledUseCase = mockk()
     private val setIsDeveloperOptionsEnabledUseCase: SetIsDeveloperOptionsEnabledUseCase = mockk(relaxUnitFun = true)
+    private val observeIsOfflineCoverCachingEnabledUseCase: ObserveIsOfflineCoverCachingEnabledUseCase = mockk()
+    private val setIsOfflineCoverCachingEnabledUseCase: SetIsOfflineCoverCachingEnabledUseCase = mockk(relaxUnitFun = true)
+    private val getCoverCacheSizeUseCase: GetCoverCacheSizeUseCase = mockk()
+    private val clearCoverCacheUseCase: ClearCoverCacheUseCase = mockk(relaxUnitFun = true)
     private val analyticsTracker: AnalyticsTracker = mockk(relaxed = true)
 
     @BeforeEach
@@ -45,6 +54,8 @@ class SettingsViewModelTest {
         every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
         every { observeHomeViewModeUseCase() } returns flowOf(HomeViewMode.ANIME)
         every { observeIsDeveloperOptionsEnabledUseCase() } returns flowOf(false)
+        every { observeIsOfflineCoverCachingEnabledUseCase() } returns flowOf(false)
+        coEvery { getCoverCacheSizeUseCase() } returns 0L
     }
 
     @AfterEach
@@ -60,6 +71,10 @@ class SettingsViewModelTest {
         setHomeViewModeUseCase,
         observeIsDeveloperOptionsEnabledUseCase,
         setIsDeveloperOptionsEnabledUseCase,
+        observeIsOfflineCoverCachingEnabledUseCase,
+        setIsOfflineCoverCachingEnabledUseCase,
+        getCoverCacheSizeUseCase,
+        clearCoverCacheUseCase,
         analyticsTracker
     )
 
@@ -269,6 +284,67 @@ class SettingsViewModelTest {
             viewModel.onVersionTap()
 
             expectNoEvents()
+        }
+    }
+
+    @Test
+    fun `initial state has offline cover caching disabled`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            val initial = awaitItem()
+            assertThat(initial.isOfflineCoverCachingEnabled).isFalse()
+            assertThat(initial.coverCacheSizeBytes).isEqualTo(0L)
+        }
+    }
+
+    @Test
+    fun `setOfflineCoverCaching delegates to use case`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            viewModel.setOfflineCoverCaching(true)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            coVerify(exactly = 1) { setIsOfflineCoverCachingEnabledUseCase(true) }
+        }
+    }
+
+    @Test
+    fun `clearCoverCache calls use case and reloads cache size`() = runTest {
+        coEvery { getCoverCacheSizeUseCase() } returns 1024L
+
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            awaitItem()
+            val withSize = awaitItem()
+            assertThat(withSize.coverCacheSizeBytes).isEqualTo(1024L)
+
+            coEvery { getCoverCacheSizeUseCase() } returns 0L
+            viewModel.clearCoverCache()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val cleared = awaitItem()
+            assertThat(cleared.coverCacheSizeBytes).isEqualTo(0L)
+
+            coVerify(exactly = 1) { clearCoverCacheUseCase() }
+        }
+    }
+
+    @Test
+    fun `observes offline cover caching enabled state`() = runTest {
+        every { observeIsOfflineCoverCachingEnabledUseCase() } returns flowOf(true)
+
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            val updated = awaitItem()
+            assertThat(updated.isOfflineCoverCachingEnabled).isTrue()
         }
     }
 }

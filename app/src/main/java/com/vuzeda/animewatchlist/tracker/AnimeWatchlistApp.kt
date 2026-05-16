@@ -4,10 +4,17 @@ import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import coil.ImageLoader
+import coil.disk.DiskCache
 import coil.ImageLoaderFactory
+import com.vuzeda.animewatchlist.tracker.module.localdatasource.UserPreferencesLocalDataSource
 import com.vuzeda.animewatchlist.tracker.module.usecase.ConfigureAnimeUpdateNotificationUseCase
 import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 @HiltAndroidApp
@@ -19,6 +26,12 @@ class AnimeWatchlistApp : Application(), Configuration.Provider, ImageLoaderFact
     @Inject
     lateinit var configureAnimeUpdateNotificationUseCase: ConfigureAnimeUpdateNotificationUseCase
 
+    @Inject
+    lateinit var userPreferencesLocalDataSource: UserPreferencesLocalDataSource
+
+    private val offlineCoverCachingEnabled = AtomicBoolean(false)
+    private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
             .setWorkerFactory(workerFactory)
@@ -26,6 +39,14 @@ class AnimeWatchlistApp : Application(), Configuration.Provider, ImageLoaderFact
 
     override fun newImageLoader(): ImageLoader =
         ImageLoader.Builder(this)
+            .diskCache {
+                DiskCache.Builder()
+                    .directory(filesDir.resolve("image_cache"))
+                    .build()
+            }
+            .components {
+                add(DiskCachePolicyInterceptor(offlineCoverCachingEnabled))
+            }
             .okHttpClient {
                 OkHttpClient.Builder()
                     .addInterceptor { chain ->
@@ -43,6 +64,10 @@ class AnimeWatchlistApp : Application(), Configuration.Provider, ImageLoaderFact
         super.onCreate()
         initializeFirebase()
         configureAnimeUpdateNotificationUseCase()
+        appScope.launch {
+            userPreferencesLocalDataSource.observeIsOfflineCoverCachingEnabled()
+                .collect { enabled -> offlineCoverCachingEnabled.set(enabled) }
+        }
     }
 
     companion object {

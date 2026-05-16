@@ -1,5 +1,6 @@
 package com.vuzeda.animewatchlist.tracker.module.ui.screens.settings
 
+import android.text.format.Formatter
 import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
@@ -37,6 +38,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.vuzeda.animewatchlist.tracker.module.designsystem.component.SettingsSwitchRow
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.TypeToConfirmDialog
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.MinTouchTarget
@@ -79,6 +81,8 @@ fun SettingsScreenRoute(
         feedbackUiState = feedbackUiState,
         onTitleLanguageSelected = viewModel::setTitleLanguage,
         onHomeViewModeSelected = viewModel::setHomeViewMode,
+        onOfflineCoverCachingToggled = viewModel::setOfflineCoverCaching,
+        onClearCoverCache = viewModel::clearCoverCache,
         onDeleteAllClick = viewModel::requestDeleteAllData,
         onConfirmDelete = viewModel::confirmDeleteAllData,
         onDismissDelete = viewModel::dismissDeleteConfirmation,
@@ -106,6 +110,8 @@ fun SettingsScreen(
     feedbackUiState: FeedbackUiState = FeedbackUiState(),
     onTitleLanguageSelected: (TitleLanguage) -> Unit,
     onHomeViewModeSelected: (HomeViewMode) -> Unit,
+    onOfflineCoverCachingToggled: (Boolean) -> Unit,
+    onClearCoverCache: () -> Unit,
     onDeleteAllClick: () -> Unit,
     onConfirmDelete: () -> Unit,
     onDismissDelete: () -> Unit,
@@ -223,6 +229,43 @@ fun SettingsScreen(
                         text = stringResource(option.labelRes),
                         style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.padding(start = SmallSpacing)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(ElementSpacing))
+            HorizontalDivider(modifier = Modifier.padding(horizontal = ScreenPadding))
+            Spacer(modifier = Modifier.height(ElementSpacing))
+
+            Text(
+                text = stringResource(R.string.settings_offline_covers_title),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(horizontal = ScreenPadding, vertical = ElementSpacing)
+            )
+
+            SettingsSwitchRow(
+                label = stringResource(R.string.settings_offline_covers_enabled),
+                checked = uiState.isOfflineCoverCachingEnabled,
+                onCheckedChange = onOfflineCoverCachingToggled,
+            )
+
+            if (uiState.coverCacheSizeBytes > 0L) {
+                val formattedSize = Formatter.formatShortFileSize(context, uiState.coverCacheSizeBytes)
+                Text(
+                    text = stringResource(R.string.settings_offline_covers_size, formattedSize),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = ScreenPadding)
+                )
+                TextButton(
+                    onClick = onClearCoverCache,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = ScreenPadding)
+                ) {
+                    Text(
+                        text = stringResource(R.string.settings_offline_covers_clear),
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }

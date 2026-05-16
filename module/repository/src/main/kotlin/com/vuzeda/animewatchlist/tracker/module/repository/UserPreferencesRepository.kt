@@ -49,4 +49,8 @@ interface UserPreferencesRepository {
     fun observeIsNotificationDebugInfoEnabled(): Flow<Boolean>
 
     suspend fun setIsNotificationDebugInfoEnabled(enabled: Boolean)
+
+    fun observeIsOfflineCoverCachingEnabled(): Flow<Boolean>
+
+    suspend fun setIsOfflineCoverCachingEnabled(enabled: Boolean)
 }

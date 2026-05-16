@@ -170,6 +170,10 @@
     <string name="settings_title_language_default">Padrão (Romaji)</string>
     <string name="settings_title_language_english">Inglês</string>
     <string name="settings_title_language_japanese">Japonês</string>
+    <string name="settings_offline_covers_title">Capas Offline</string>
+    <string name="settings_offline_covers_enabled">Salvar capas para uso offline</string>
+    <string name="settings_offline_covers_size">%1$s em uso</string>
+    <string name="settings_offline_covers_clear">Limpar cache de capas</string>
     <string name="settings_delete_all_data">Excluir todos os dados</string>
     <string name="settings_delete_dialog_title">Excluir todos os dados?</string>
     <string name="settings_delete_dialog_message">Isso removerá permanentemente todos os animes e temporadas da sua lista. Esta ação não pode ser desfeita.</string>

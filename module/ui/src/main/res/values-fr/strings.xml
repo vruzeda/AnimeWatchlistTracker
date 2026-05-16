@@ -170,6 +170,10 @@
     <string name="settings_title_language_default">Par défaut (Romaji)</string>
     <string name="settings_title_language_english">Anglais</string>
     <string name="settings_title_language_japanese">Japonais</string>
+    <string name="settings_offline_covers_title">Couvertures hors ligne</string>
+    <string name="settings_offline_covers_enabled">Mettre en cache les couvertures pour une utilisation hors ligne</string>
+    <string name="settings_offline_covers_size">%1$s utilisé</string>
+    <string name="settings_offline_covers_clear">Vider le cache des couvertures</string>
     <string name="settings_delete_all_data">Supprimer toutes les données</string>
     <string name="settings_delete_dialog_title">Supprimer toutes les données ?</string>
     <string name="settings_delete_dialog_message">Cela supprimera définitivement tous les animes et saisons de votre liste. Cette action est irréversible.</string>

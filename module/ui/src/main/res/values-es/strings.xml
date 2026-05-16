@@ -170,6 +170,10 @@
     <string name="settings_title_language_default">Predeterminado (Romaji)</string>
     <string name="settings_title_language_english">Inglés</string>
     <string name="settings_title_language_japanese">Japonés</string>
+    <string name="settings_offline_covers_title">Portadas sin conexión</string>
+    <string name="settings_offline_covers_enabled">Guardar portadas para uso sin conexión</string>
+    <string name="settings_offline_covers_size">%1$s en uso</string>
+    <string name="settings_offline_covers_clear">Borrar caché de portadas</string>
     <string name="settings_delete_all_data">Eliminar todos los datos</string>
     <string name="settings_delete_dialog_title">¿Eliminar todos los datos?</string>
     <string name="settings_delete_dialog_message">Esto eliminará permanentemente todo el anime y las temporadas de tu lista. Esta acción no se puede deshacer.</string>

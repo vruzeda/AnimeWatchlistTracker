@@ -117,4 +117,11 @@ class UserPreferencesRepositoryImpl @Inject constructor(
     override suspend fun setIsNotificationDebugInfoEnabled(enabled: Boolean) {
         dataSource.setIsNotificationDebugInfoEnabled(enabled)
     }
+
+    override fun observeIsOfflineCoverCachingEnabled(): Flow<Boolean> =
+        dataSource.observeIsOfflineCoverCachingEnabled()
+
+    override suspend fun setIsOfflineCoverCachingEnabled(enabled: Boolean) {
+        dataSource.setIsOfflineCoverCachingEnabled(enabled)
+    }
 }

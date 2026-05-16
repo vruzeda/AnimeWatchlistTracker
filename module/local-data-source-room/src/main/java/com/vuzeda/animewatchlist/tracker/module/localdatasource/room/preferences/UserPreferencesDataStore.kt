@@ -127,6 +127,17 @@ class UserPreferencesDataStore(
         }
     }
 
+    override fun observeIsOfflineCoverCachingEnabled(): Flow<Boolean> =
+        context.dataStore.data.map { preferences ->
+            preferences[OFFLINE_COVER_CACHING_KEY] ?: false
+        }
+
+    override suspend fun setIsOfflineCoverCachingEnabled(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[OFFLINE_COVER_CACHING_KEY] = enabled
+        }
+    }
+
     companion object {
         private val TITLE_LANGUAGE_KEY = stringPreferencesKey("title_language")
         const val DEFAULT_TITLE_LANGUAGE = "DEFAULT"
@@ -143,5 +154,6 @@ class UserPreferencesDataStore(
         private val ANIME_DETAIL_TYPE_FILTER_KEY = stringPreferencesKey("anime_detail_type_filter")
         private val DEVELOPER_OPTIONS_ENABLED_KEY = booleanPreferencesKey("developer_options_enabled")
         private val NOTIFICATION_DEBUG_INFO_ENABLED_KEY = booleanPreferencesKey("notification_debug_info_enabled")
+        private val OFFLINE_COVER_CACHING_KEY = booleanPreferencesKey("offline_cover_caching_enabled")
     }
 }

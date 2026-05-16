@@ -6,12 +6,16 @@ import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsEvent
 import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsTracker
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
+import com.vuzeda.animewatchlist.tracker.module.usecase.ClearCoverCacheUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.DeleteAllDataUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.GetCoverCacheSizeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveHomeViewModeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveIsDeveloperOptionsEnabledUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveIsOfflineCoverCachingEnabledUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetHomeViewModeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetIsDeveloperOptionsEnabledUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.SetIsOfflineCoverCachingEnabledUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetTitleLanguageUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,6 +35,10 @@ class SettingsViewModel @Inject constructor(
     private val setHomeViewModeUseCase: SetHomeViewModeUseCase,
     private val observeIsDeveloperOptionsEnabledUseCase: ObserveIsDeveloperOptionsEnabledUseCase,
     private val setIsDeveloperOptionsEnabledUseCase: SetIsDeveloperOptionsEnabledUseCase,
+    private val observeIsOfflineCoverCachingEnabledUseCase: ObserveIsOfflineCoverCachingEnabledUseCase,
+    private val setIsOfflineCoverCachingEnabledUseCase: SetIsOfflineCoverCachingEnabledUseCase,
+    private val getCoverCacheSizeUseCase: GetCoverCacheSizeUseCase,
+    private val clearCoverCacheUseCase: ClearCoverCacheUseCase,
     private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
@@ -42,19 +50,20 @@ class SettingsViewModel @Inject constructor(
             combine(
                 observeTitleLanguageUseCase(),
                 observeHomeViewModeUseCase(),
-                observeIsDeveloperOptionsEnabledUseCase()
-            ) { titleLanguage, homeViewMode, isDeveloperOptionsEnabled ->
-                Triple(titleLanguage, homeViewMode, isDeveloperOptionsEnabled)
-            }.collect { (titleLanguage, homeViewMode, isDeveloperOptionsEnabled) ->
+                observeIsDeveloperOptionsEnabledUseCase(),
+                observeIsOfflineCoverCachingEnabledUseCase()
+            ) { titleLanguage, homeViewMode, isDeveloperOptionsEnabled, isOfflineCoverCachingEnabled ->
                 _uiState.update {
                     it.copy(
                         titleLanguage = titleLanguage,
                         homeViewMode = homeViewMode,
-                        isDeveloperOptionsEnabled = isDeveloperOptionsEnabled
+                        isDeveloperOptionsEnabled = isDeveloperOptionsEnabled,
+                        isOfflineCoverCachingEnabled = isOfflineCoverCachingEnabled
                     )
                 }
-            }
+            }.collect {}
         }
+        loadCoverCacheSize()
     }
 
     fun setTitleLanguage(language: TitleLanguage) {
@@ -68,6 +77,17 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             setHomeViewModeUseCase(mode)
             analyticsTracker.track(AnalyticsEvent.SetHomeViewMode(mode.name))
+        }
+    }
+
+    fun setOfflineCoverCaching(enabled: Boolean) {
+        viewModelScope.launch { setIsOfflineCoverCachingEnabledUseCase(enabled) }
+    }
+
+    fun clearCoverCache() {
+        viewModelScope.launch {
+            clearCoverCacheUseCase()
+            loadCoverCacheSize()
         }
     }
 
@@ -112,6 +132,12 @@ class SettingsViewModel @Inject constructor(
         }
         if (newCount >= 5) {
             viewModelScope.launch { setIsDeveloperOptionsEnabledUseCase(true) }
+        }
+    }
+
+    private fun loadCoverCacheSize() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(coverCacheSizeBytes = getCoverCacheSizeUseCase()) }
         }
     }
 }
