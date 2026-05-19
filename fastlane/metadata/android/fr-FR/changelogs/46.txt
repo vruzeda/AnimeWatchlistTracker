@@ -1,1 +1,2 @@
 • Corrigé : les épisodes réservés s'affichent désormais même en cas d'échec de chargement
+• Pour les séries en cours avec un nombre d'épisodes inconnu, un épisode réservé est toujours disponible à marquer comme vu

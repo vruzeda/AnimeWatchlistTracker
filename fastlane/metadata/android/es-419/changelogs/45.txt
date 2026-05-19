@@ -4,5 +4,3 @@
 • Botón de reintento y pull-to-refresh en todas las pantallas de error
 • Corregido: las notificaciones ya no se envían para episodios ya vistos
 • Nombre y correo opcionales al enviar comentarios
-• Corregido: los episodios reservados ahora se muestran aunque la lista de episodios no se cargue
-• Para series en emisión sin conteo de episodios confirmado, siempre habrá un episodio reservado disponible para marcar como visto

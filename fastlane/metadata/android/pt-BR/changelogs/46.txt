@@ -1,1 +1,2 @@
 • Corrigido: episódios reservados agora são exibidos mesmo quando a lista de episódios falha ao carregar
+• Para séries em exibição sem contagem de episódios confirmada, um episódio reservado estará sempre disponível para marcar como assistido

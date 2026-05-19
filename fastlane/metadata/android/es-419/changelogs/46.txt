@@ -1,1 +1,2 @@
 • Corregido: los episodios reservados ahora se muestran aunque la lista de episodios no se cargue
+• Para series en emisión sin conteo de episodios confirmado, siempre habrá un episodio reservado disponible para marcar como visto
