@@ -49,5 +49,7 @@ interface SeasonRepository {
 
     suspend fun setEpisodeWatched(seasonId: Long, episodeNumber: Int, isWatched: Boolean)
 
+    suspend fun deleteOrphanedWatchedEpisodes(seasonId: Long, episodeCount: Int)
+
     suspend fun getWatchedEpisodeNumbers(seasonId: Long): Set<Int>
 }

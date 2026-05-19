@@ -1,2 +1,3 @@
 • Corrigido: episódios reservados agora são exibidos mesmo quando a lista de episódios falha ao carregar
 • Para séries em exibição sem contagem de episódios confirmada, um episódio reservado estará sempre disponível para marcar como assistido
+• Corrigido: o progresso de episódios assistidos não conta mais episódios marcados além do total confirmado da temporada

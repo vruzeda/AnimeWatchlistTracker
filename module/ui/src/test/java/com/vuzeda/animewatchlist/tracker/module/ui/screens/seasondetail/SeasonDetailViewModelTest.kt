@@ -12,6 +12,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddAnimeFromDetailsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddSeasonToWatchlistUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.DeleteOrphanedWatchedEpisodesUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.DeleteSeasonUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FetchEpisodesUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.GetCachedEpisodesUseCase
@@ -55,6 +56,7 @@ class SeasonDetailViewModelTest {
     private val fetchEpisodesUseCase: FetchEpisodesUseCase = mockk()
     private val getCachedEpisodesUseCase: GetCachedEpisodesUseCase = mockk()
     private val fillEpisodeGapsUseCase: FillEpisodeGapsUseCase = FillEpisodeGapsUseCase()
+    private val deleteOrphanedWatchedEpisodesUseCase: DeleteOrphanedWatchedEpisodesUseCase = mockk(relaxed = true)
     private val updateSeasonStatusUseCase: UpdateSeasonStatusUseCase = mockk(relaxed = true)
     private val deleteSeasonUseCase: DeleteSeasonUseCase = mockk(relaxed = true)
     private val addSeasonToWatchlistUseCase: AddSeasonToWatchlistUseCase = mockk(relaxed = true)
@@ -137,6 +139,7 @@ class SeasonDetailViewModelTest {
             fetchEpisodesUseCase = fetchEpisodesUseCase,
             getCachedEpisodesUseCase = getCachedEpisodesUseCase,
             fillEpisodeGapsUseCase = fillEpisodeGapsUseCase,
+            deleteOrphanedWatchedEpisodesUseCase = deleteOrphanedWatchedEpisodesUseCase,
             updateSeasonStatusUseCase = updateSeasonStatusUseCase,
             deleteSeasonUseCase = deleteSeasonUseCase,
             addSeasonToWatchlistUseCase = addSeasonToWatchlistUseCase,
@@ -1098,6 +1101,67 @@ class SeasonDetailViewModelTest {
             assertThat(refreshed.episodes).hasSize(3)
             assertThat(refreshed.episodes.last().number).isEqualTo(3)
             assertThat(refreshed.episodes.last().isPlaceholder).isTrue()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    // --- Orphaned watched episode cleanup tests ---
+
+    @Test
+    fun `orphaned watched episodes are cleaned up on first load when episode count is known`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            coVerify { deleteOrphanedWatchedEpisodesUseCase(sampleSeason.id, sampleSeason.episodeCount!!) }
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `orphaned watched episodes are cleaned up when episode count transitions from null to non-null`() = runTest {
+        val nullCountSeason = airingSeasonUnknownCount
+        val confirmedCountSeason = airingSeasonUnknownCount.copy(episodeCount = 13)
+        val flow = MutableStateFlow<Season?>(nullCountSeason)
+        every { observeSeasonByIdUseCase(2L) } returns flow
+        every { observeWatchedEpisodesUseCase(2L) } returns flowOf(emptySet())
+        every { observeSeasonsForAnimeUseCase(2L) } returns flowOf(listOf(nullCountSeason))
+        coEvery { fetchEpisodesUseCase(malId = 55555, page = 1) } returns Result.success(
+            EpisodePage(episodes = emptyList(), hasNextPage = false, nextPage = 2)
+        )
+
+        val viewModel = createViewModel(seasonId = 2L)
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            coVerify(exactly = 0) { deleteOrphanedWatchedEpisodesUseCase(any(), any()) }
+
+            flow.value = confirmedCountSeason
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            coVerify { deleteOrphanedWatchedEpisodesUseCase(confirmedCountSeason.id, 13) }
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `orphaned watched episodes are not cleaned up when episode count remains null`() = runTest {
+        setupAiringSeasonFlow()
+        coEvery { fetchEpisodesUseCase(malId = 55555, page = 1) } returns Result.success(
+            EpisodePage(episodes = emptyList(), hasNextPage = false, nextPage = 2)
+        )
+
+        val viewModel = createViewModel(seasonId = 2L)
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            coVerify(exactly = 0) { deleteOrphanedWatchedEpisodesUseCase(any(), any()) }
             cancelAndIgnoreRemainingEvents()
         }
     }

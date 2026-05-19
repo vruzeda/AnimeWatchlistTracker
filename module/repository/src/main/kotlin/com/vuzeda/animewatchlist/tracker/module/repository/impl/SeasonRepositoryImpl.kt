@@ -125,6 +125,10 @@ class SeasonRepositoryImpl @Inject constructor(
         else watchedEpisodeLocalDataSource.markUnwatched(seasonId, episodeNumber)
     }
 
+    override suspend fun deleteOrphanedWatchedEpisodes(seasonId: Long, episodeCount: Int) {
+        watchedEpisodeLocalDataSource.deleteWatchedEpisodesAbove(seasonId, episodeCount)
+    }
+
     override suspend fun getWatchedEpisodeNumbers(seasonId: Long): Set<Int> =
         watchedEpisodeLocalDataSource.getWatchedEpisodeNumbers(seasonId)
 

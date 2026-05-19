@@ -12,6 +12,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddAnimeFromDetailsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddSeasonToWatchlistUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.DeleteOrphanedWatchedEpisodesUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.DeleteSeasonUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FetchEpisodesUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.GetCachedEpisodesUseCase
@@ -54,6 +55,7 @@ open class SeasonDetailViewModel @Inject constructor(
     private val fetchEpisodesUseCase: FetchEpisodesUseCase,
     private val getCachedEpisodesUseCase: GetCachedEpisodesUseCase,
     private val fillEpisodeGapsUseCase: FillEpisodeGapsUseCase,
+    private val deleteOrphanedWatchedEpisodesUseCase: DeleteOrphanedWatchedEpisodesUseCase,
     private val updateSeasonStatusUseCase: UpdateSeasonStatusUseCase,
     private val deleteSeasonUseCase: DeleteSeasonUseCase,
     private val addSeasonToWatchlistUseCase: AddSeasonToWatchlistUseCase,
@@ -110,12 +112,18 @@ open class SeasonDetailViewModel @Inject constructor(
             }.collect { (season, watchedEpisodes, titleLanguage, isNotificationDebugInfoEnabled) ->
                 if (season != null) observeSiblingCount(season.animeId)
                 var malIdToLoad: Int? = null
+                var orphanSeasonId: Long? = null
+                var orphanEpisodeCount: Int? = null
                 _uiState.update { currentState ->
                     if (season == null) {
                         if (currentState.season != null && !currentState.isInWatchlist) currentState
                         else currentState.copy(isLoading = false, isNotFound = true, season = null)
                     } else if (currentState.season == null) {
                         malIdToLoad = season.malId
+                        if (season.episodeCount != null) {
+                            orphanSeasonId = season.id
+                            orphanEpisodeCount = season.episodeCount
+                        }
                         currentState.copy(
                             isLoading = false,
                             isNotFound = false,
@@ -129,6 +137,12 @@ open class SeasonDetailViewModel @Inject constructor(
                             broadcastLocalTime = computeBroadcastLocalTime(season)
                         )
                     } else {
+                        val prevEpisodeCount = currentState.season!!.episodeCount
+                        val newEpisodeCount = season.episodeCount
+                        if (prevEpisodeCount == null && newEpisodeCount != null) {
+                            orphanSeasonId = season.id
+                            orphanEpisodeCount = newEpisodeCount
+                        }
                         val updatedEpisodes = withAiringTrailingPlaceholder(
                             episodes = currentState.episodes,
                             watchedEpisodes = watchedEpisodes,
@@ -147,6 +161,11 @@ open class SeasonDetailViewModel @Inject constructor(
                     }
                 }
                 malIdToLoad?.let { loadEpisodes(it, page = 1) }
+                val capturedOrphanSeasonId = orphanSeasonId
+                val capturedOrphanEpisodeCount = orphanEpisodeCount
+                if (capturedOrphanSeasonId != null && capturedOrphanEpisodeCount != null) {
+                    viewModelScope.launch { deleteOrphanedWatchedEpisodesUseCase(capturedOrphanSeasonId, capturedOrphanEpisodeCount) }
+                }
             }
         }
         viewModelScope.launch {
@@ -497,11 +516,17 @@ open class SeasonDetailViewModel @Inject constructor(
             }.collect { (season, watchedEpisodes, titleLanguage, isNotificationDebugInfoEnabled) ->
                 if (season != null) observeSiblingCount(season.animeId)
                 var malIdToLoad: Int? = null
+                var orphanSeasonId: Long? = null
+                var orphanEpisodeCount: Int? = null
                 _uiState.update { currentState ->
                     if (season == null) {
                         currentState.copy(isLoading = false, isNotFound = true, season = null)
                     } else if (currentState.season == null) {
                         malIdToLoad = season.malId
+                        if (season.episodeCount != null) {
+                            orphanSeasonId = season.id
+                            orphanEpisodeCount = season.episodeCount
+                        }
                         currentState.copy(
                             isLoading = false,
                             isNotFound = false,
@@ -515,6 +540,12 @@ open class SeasonDetailViewModel @Inject constructor(
                             broadcastLocalTime = computeBroadcastLocalTime(season)
                         )
                     } else {
+                        val prevEpisodeCount = currentState.season!!.episodeCount
+                        val newEpisodeCount = season.episodeCount
+                        if (prevEpisodeCount == null && newEpisodeCount != null) {
+                            orphanSeasonId = season.id
+                            orphanEpisodeCount = newEpisodeCount
+                        }
                         val updatedEpisodes = withAiringTrailingPlaceholder(
                             episodes = currentState.episodes,
                             watchedEpisodes = watchedEpisodes,
@@ -534,6 +565,11 @@ open class SeasonDetailViewModel @Inject constructor(
                     }
                 }
                 malIdToLoad?.let { loadEpisodes(it, page = 1) }
+                val capturedOrphanSeasonId = orphanSeasonId
+                val capturedOrphanEpisodeCount = orphanEpisodeCount
+                if (capturedOrphanSeasonId != null && capturedOrphanEpisodeCount != null) {
+                    viewModelScope.launch { deleteOrphanedWatchedEpisodesUseCase(capturedOrphanSeasonId, capturedOrphanEpisodeCount) }
+                }
             }
         }
         viewModelScope.launch {

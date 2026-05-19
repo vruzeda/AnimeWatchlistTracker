@@ -1,2 +1,3 @@
 • Fixed: placeholder episodes are now shown even when the episode list fails to load
 • For currently airing shows with no confirmed episode count, a placeholder episode is always available to mark as watched
+• Fixed: watched episode progress no longer counts episodes marked beyond a season's confirmed total

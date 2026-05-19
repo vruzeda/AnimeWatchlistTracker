@@ -31,6 +31,9 @@ abstract class WatchedEpisodeRoomDao : WatchedEpisodeLocalDataSource {
     @Query("DELETE FROM watched_episode WHERE seasonId = :seasonId")
     abstract override suspend fun clearWatchedEpisodes(seasonId: Long)
 
+    @Query("DELETE FROM watched_episode WHERE seasonId = :seasonId AND episodeNumber > :episodeCount")
+    abstract override suspend fun deleteWatchedEpisodesAbove(seasonId: Long, episodeCount: Int)
+
     override fun observeWatchedEpisodeNumbers(seasonId: Long): Flow<Set<Int>> =
         observeEpisodeNumbers(seasonId).map { it.toSet() }
 
