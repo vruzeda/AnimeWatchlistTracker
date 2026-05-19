@@ -1,3 +1,4 @@
 • Corrigé : les épisodes réservés s'affichent désormais même en cas d'échec de chargement
 • Pour les séries en cours avec un nombre d'épisodes inconnu, un épisode réservé est toujours disponible à marquer comme vu
 • Corrigé : la progression des épisodes vus ne compte plus les épisodes marqués au-delà du total confirmé de la saison
+• Corrigé : les couvertures sont désormais mises en cache sur le disque par défaut, améliorant le chargement et la consultation hors ligne

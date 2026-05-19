@@ -129,7 +129,7 @@ class UserPreferencesDataStore(
 
     override fun observeIsOfflineCoverCachingEnabled(): Flow<Boolean> =
         context.dataStore.data.map { preferences ->
-            preferences[OFFLINE_COVER_CACHING_KEY] ?: false
+            preferences[OFFLINE_COVER_CACHING_KEY] ?: true
         }
 
     override suspend fun setIsOfflineCoverCachingEnabled(enabled: Boolean) {

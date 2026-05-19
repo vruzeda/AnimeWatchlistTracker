@@ -1,3 +1,4 @@
 • Corregido: los episodios reservados ahora se muestran aunque la lista de episodios no se cargue
 • Para series en emisión sin conteo de episodios confirmado, siempre habrá un episodio reservado disponible para marcar como visto
 • Corregido: el progreso de episodios vistos ya no cuenta episodios marcados más allá del total confirmado de la temporada
+• Corregido: las portadas ahora se guardan en disco de forma predeterminada, mejorando la carga y la visualización sin conexión

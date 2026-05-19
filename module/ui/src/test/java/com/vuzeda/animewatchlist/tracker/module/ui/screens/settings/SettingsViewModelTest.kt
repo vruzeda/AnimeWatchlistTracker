@@ -54,7 +54,7 @@ class SettingsViewModelTest {
         every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
         every { observeHomeViewModeUseCase() } returns flowOf(HomeViewMode.ANIME)
         every { observeIsDeveloperOptionsEnabledUseCase() } returns flowOf(false)
-        every { observeIsOfflineCoverCachingEnabledUseCase() } returns flowOf(false)
+        every { observeIsOfflineCoverCachingEnabledUseCase() } returns flowOf(true)
         coEvery { getCoverCacheSizeUseCase() } returns 0L
     }
 
@@ -288,12 +288,12 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `initial state has offline cover caching disabled`() = runTest {
+    fun `initial state has offline cover caching enabled`() = runTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
             val initial = awaitItem()
-            assertThat(initial.isOfflineCoverCachingEnabled).isFalse()
+            assertThat(initial.isOfflineCoverCachingEnabled).isTrue()
             assertThat(initial.coverCacheSizeBytes).isEqualTo(0L)
         }
     }
@@ -336,7 +336,7 @@ class SettingsViewModelTest {
 
     @Test
     fun `observes offline cover caching enabled state`() = runTest {
-        every { observeIsOfflineCoverCachingEnabledUseCase() } returns flowOf(true)
+        every { observeIsOfflineCoverCachingEnabledUseCase() } returns flowOf(false)
 
         val viewModel = createViewModel()
 
@@ -344,7 +344,7 @@ class SettingsViewModelTest {
             awaitItem()
 
             val updated = awaitItem()
-            assertThat(updated.isOfflineCoverCachingEnabled).isTrue()
+            assertThat(updated.isOfflineCoverCachingEnabled).isFalse()
         }
     }
 }

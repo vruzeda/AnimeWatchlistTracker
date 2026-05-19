@@ -29,7 +29,7 @@ class AnimeWatchlistApp : Application(), Configuration.Provider, ImageLoaderFact
     @Inject
     lateinit var userPreferencesLocalDataSource: UserPreferencesLocalDataSource
 
-    private val offlineCoverCachingEnabled = AtomicBoolean(false)
+    private val offlineCoverCachingEnabled = AtomicBoolean(true)
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     override val workManagerConfiguration: Configuration
