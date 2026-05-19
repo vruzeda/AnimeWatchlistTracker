@@ -650,7 +650,9 @@ class SeasonDetailViewModelTest {
             testDispatcher.scheduler.advanceUntilIdle()
 
             val state = expectMostRecentItem()
-            assertThat(state.episodes).isEqualTo(sampleEpisodes)
+            // 2 real cached episodes + 23 placeholders to fill sampleSeason.episodeCount=25
+            assertThat(state.episodes).hasSize(25)
+            assertThat(state.episodes.filter { !it.isPlaceholder }).hasSize(2)
             assertThat(state.snackbarEvent).isEqualTo(SeasonDetailSnackbarEvent.EpisodeLoadFailed)
             assertThat(state.isLoadingEpisodes).isFalse()
             cancelAndIgnoreRemainingEvents()
@@ -658,7 +660,26 @@ class SeasonDetailViewModelTest {
     }
 
     @Test
-    fun `refresh keeps cached episodes when episode reload fails`() = runTest {
+    fun `episode load failure fills placeholder gaps when cache is empty`() = runTest {
+        coEvery { fetchEpisodesUseCase(malId = 16498, page = 1) } returns Result.failure(Exception("rate limited"))
+        coEvery { getCachedEpisodesUseCase(16498) } returns emptyList()
+
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val state = expectMostRecentItem()
+            // cache is empty; gap-fill should still produce 25 placeholders from episodeCount
+            assertThat(state.episodes).hasSize(25)
+            assertThat(state.episodes.all { it.isPlaceholder }).isTrue()
+            assertThat(state.snackbarEvent).isEqualTo(SeasonDetailSnackbarEvent.EpisodeLoadFailed)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `refresh keeps cached episodes and fills gaps when episode reload fails`() = runTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
@@ -672,7 +693,8 @@ class SeasonDetailViewModelTest {
 
             val refreshed = expectMostRecentItem()
             assertThat(refreshed.isRefreshing).isFalse()
-            assertThat(refreshed.episodes).hasSize(2)
+            // 2 real episodes retained + 23 placeholders = 25 (gap-fill applied on failure path)
+            assertThat(refreshed.episodes).hasSize(25)
             assertThat(refreshed.snackbarEvent).isEqualTo(SeasonDetailSnackbarEvent.EpisodeLoadFailed)
             cancelAndIgnoreRemainingEvents()
         }

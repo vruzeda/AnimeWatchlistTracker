@@ -281,8 +281,10 @@ open class SeasonDetailViewModel @Inject constructor(
                 .onFailure {
                     val cached = getCachedEpisodesUseCase(malId)
                     _uiState.update { state ->
+                        val base = cached.ifEmpty { state.episodes }
+                        val filled = fillEpisodeGapsUseCase(base, state.season?.episodeCount)
                         state.copy(
-                            episodes = cached.ifEmpty { state.episodes },
+                            episodes = filled,
                             isLoadingEpisodes = false,
                             snackbarEvent = SeasonDetailSnackbarEvent.EpisodeLoadFailed
                         )
