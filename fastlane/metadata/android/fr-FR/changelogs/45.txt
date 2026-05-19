@@ -4,3 +4,5 @@
 • Bouton de réessai et pull-to-refresh ajoutés sur tous les écrans d'erreur
 • Corrigé : les notifications ne se déclenchent plus pour les épisodes déjà regardés
 • Nom et e-mail optionnels dans les commentaires
+• Corrigé : les épisodes réservés s'affichent désormais même en cas d'échec de chargement
+• Pour les séries en cours avec un nombre d'épisodes inconnu, un épisode réservé est toujours disponible à marquer comme vu

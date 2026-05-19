@@ -80,6 +80,16 @@ class SeasonDetailViewModelTest {
         airingStatus = "Finished Airing"
     )
 
+    private val airingSeasonUnknownCount = Season(
+        id = 2L,
+        animeId = 2L,
+        malId = 55555,
+        title = "Ongoing Anime",
+        episodeCount = null,
+        type = "TV",
+        airingStatus = "Currently Airing"
+    )
+
     private val sampleEpisodes = listOf(
         EpisodeInfo(number = 1, title = "Episode 1", aired = "2013-04-07", isFiller = false, isRecap = false),
         EpisodeInfo(number = 2, title = "Episode 2", aired = "2013-04-14", isFiller = false, isRecap = false)
@@ -860,6 +870,234 @@ class SeasonDetailViewModelTest {
 
             val success = expectMostRecentItem()
             assertThat(success.watchedEpisodes).containsExactly(1, 2, 3)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    // --- Trailing airing placeholder tests ---
+
+    private fun setupAiringSeasonFlow(): MutableStateFlow<Season?> {
+        val flow = MutableStateFlow<Season?>(airingSeasonUnknownCount)
+        every { observeSeasonByIdUseCase(2L) } returns flow
+        every { observeWatchedEpisodesUseCase(2L) } returns flowOf(emptySet())
+        every { observeSeasonsForAnimeUseCase(2L) } returns flowOf(listOf(airingSeasonUnknownCount))
+        return flow
+    }
+
+    @Test
+    fun `trailing placeholder appended on last page for currently airing season with unknown episode count`() = runTest {
+        setupAiringSeasonFlow()
+        coEvery { fetchEpisodesUseCase(malId = 55555, page = 1) } returns Result.success(
+            EpisodePage(episodes = sampleEpisodes, hasNextPage = false, nextPage = 2)
+        )
+
+        val viewModel = createViewModel(seasonId = 2L)
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val state = expectMostRecentItem()
+            assertThat(state.episodes).hasSize(3) // 2 real + 1 trailing placeholder
+            assertThat(state.episodes.filter { !it.isPlaceholder }).hasSize(2)
+            assertThat(state.episodes.last().isPlaceholder).isTrue()
+            assertThat(state.episodes.last().number).isEqualTo(3)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `no trailing placeholder appended when more pages remain`() = runTest {
+        setupAiringSeasonFlow()
+        coEvery { fetchEpisodesUseCase(malId = 55555, page = 1) } returns Result.success(
+            EpisodePage(episodes = sampleEpisodes, hasNextPage = true, nextPage = 2)
+        )
+
+        val viewModel = createViewModel(seasonId = 2L)
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val state = expectMostRecentItem()
+            assertThat(state.episodes).hasSize(2)
+            assertThat(state.episodes.none { it.isPlaceholder }).isTrue()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `no trailing placeholder for finished airing season with unknown episode count`() = runTest {
+        val finishedSeason = airingSeasonUnknownCount.copy(airingStatus = "Finished Airing")
+        val flow = MutableStateFlow<Season?>(finishedSeason)
+        every { observeSeasonByIdUseCase(2L) } returns flow
+        every { observeWatchedEpisodesUseCase(2L) } returns flowOf(emptySet())
+        every { observeSeasonsForAnimeUseCase(2L) } returns flowOf(listOf(finishedSeason))
+        coEvery { fetchEpisodesUseCase(malId = 55555, page = 1) } returns Result.success(
+            EpisodePage(episodes = sampleEpisodes, hasNextPage = false, nextPage = 2)
+        )
+
+        val viewModel = createViewModel(seasonId = 2L)
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val state = expectMostRecentItem()
+            assertThat(state.episodes).hasSize(2)
+            assertThat(state.episodes.none { it.isPlaceholder }).isTrue()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `no trailing placeholder for currently airing season with known episode count`() = runTest {
+        val knownCountSeason = airingSeasonUnknownCount.copy(episodeCount = 24)
+        val flow = MutableStateFlow<Season?>(knownCountSeason)
+        every { observeSeasonByIdUseCase(2L) } returns flow
+        every { observeWatchedEpisodesUseCase(2L) } returns flowOf(emptySet())
+        every { observeSeasonsForAnimeUseCase(2L) } returns flowOf(listOf(knownCountSeason))
+        coEvery { fetchEpisodesUseCase(malId = 55555, page = 1) } returns Result.success(
+            EpisodePage(episodes = sampleEpisodes, hasNextPage = false, nextPage = 2)
+        )
+
+        val viewModel = createViewModel(seasonId = 2L)
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val state = expectMostRecentItem()
+            // gap-fill only: 2 real + 22 placeholders = 24, not trailing-at-3
+            assertThat(state.episodes).hasSize(24)
+            assertThat(state.episodes.first { it.isPlaceholder }.number).isEqualTo(3)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `trailing placeholder starts at episode 1 when no real episodes loaded yet`() = runTest {
+        setupAiringSeasonFlow()
+        coEvery { fetchEpisodesUseCase(malId = 55555, page = 1) } returns Result.success(
+            EpisodePage(episodes = emptyList(), hasNextPage = false, nextPage = 2)
+        )
+
+        val viewModel = createViewModel(seasonId = 2L)
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val state = expectMostRecentItem()
+            assertThat(state.episodes).hasSize(1)
+            assertThat(state.episodes.single().number).isEqualTo(1)
+            assertThat(state.episodes.single().isPlaceholder).isTrue()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `trailing placeholder advances when current placeholder is marked watched`() = runTest {
+        val watchedFlow = MutableStateFlow<Set<Int>>(emptySet())
+        every { observeSeasonByIdUseCase(2L) } returns MutableStateFlow<Season?>(airingSeasonUnknownCount)
+        every { observeWatchedEpisodesUseCase(2L) } returns watchedFlow
+        every { observeSeasonsForAnimeUseCase(2L) } returns flowOf(listOf(airingSeasonUnknownCount))
+        coEvery { fetchEpisodesUseCase(malId = 55555, page = 1) } returns Result.success(
+            EpisodePage(episodes = sampleEpisodes, hasNextPage = false, nextPage = 2)
+        )
+
+        val viewModel = createViewModel(seasonId = 2L)
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            val initial = expectMostRecentItem()
+            // 2 real + placeholder at 3
+            assertThat(initial.episodes.last().number).isEqualTo(3)
+
+            watchedFlow.value = setOf(3)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val advanced = expectMostRecentItem()
+            // 2 real + watched placeholder 3 + new trailing placeholder 4
+            assertThat(advanced.episodes).hasSize(4)
+            assertThat(advanced.episodes[2].number).isEqualTo(3)
+            assertThat(advanced.episodes[2].isPlaceholder).isTrue()
+            assertThat(advanced.episodes[3].number).isEqualTo(4)
+            assertThat(advanced.episodes[3].isPlaceholder).isTrue()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `trailing placeholder does not advance while episodes are loading`() = runTest {
+        val watchedFlow = MutableStateFlow<Set<Int>>(emptySet())
+        every { observeSeasonByIdUseCase(2L) } returns MutableStateFlow<Season?>(airingSeasonUnknownCount)
+        every { observeWatchedEpisodesUseCase(2L) } returns watchedFlow
+        every { observeSeasonsForAnimeUseCase(2L) } returns flowOf(listOf(airingSeasonUnknownCount))
+        coEvery { fetchEpisodesUseCase(malId = 55555, page = 1) } returns Result.success(
+            EpisodePage(episodes = sampleEpisodes, hasNextPage = true, nextPage = 2)
+        )
+
+        val viewModel = createViewModel(seasonId = 2L)
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            val initial = expectMostRecentItem()
+            assertThat(initial.hasMoreEpisodes).isTrue()
+            assertThat(initial.episodes.none { it.isPlaceholder }).isTrue()
+
+            watchedFlow.value = setOf(1, 2)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val updated = expectMostRecentItem()
+            // still no trailing placeholder — hasMoreEpisodes guard active
+            assertThat(updated.episodes.none { it.isPlaceholder }).isTrue()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `trailing placeholder accounts for max watched episode exceeding max real episode`() = runTest {
+        val watchedFlow = MutableStateFlow<Set<Int>>(setOf(1, 2, 3, 4, 5))
+        every { observeSeasonByIdUseCase(2L) } returns MutableStateFlow<Season?>(airingSeasonUnknownCount)
+        every { observeWatchedEpisodesUseCase(2L) } returns watchedFlow
+        every { observeSeasonsForAnimeUseCase(2L) } returns flowOf(listOf(airingSeasonUnknownCount))
+        coEvery { fetchEpisodesUseCase(malId = 55555, page = 1) } returns Result.success(
+            EpisodePage(episodes = sampleEpisodes, hasNextPage = false, nextPage = 2)
+        )
+
+        val viewModel = createViewModel(seasonId = 2L)
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val state = expectMostRecentItem()
+            // real: 1, 2 — watched placeholders: 3, 4, 5 — trailing: 6
+            assertThat(state.episodes.last().number).isEqualTo(6)
+            assertThat(state.episodes.last().isPlaceholder).isTrue()
+            assertThat(state.episodes.filter { it.isPlaceholder }).hasSize(4) // 3, 4, 5, 6
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `refresh re-derives trailing placeholder correctly for airing season`() = runTest {
+        setupAiringSeasonFlow()
+        coEvery { fetchEpisodesUseCase(malId = 55555, page = 1) } returns Result.success(
+            EpisodePage(episodes = sampleEpisodes, hasNextPage = false, nextPage = 2)
+        )
+
+        val viewModel = createViewModel(seasonId = 2L)
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            val initial = expectMostRecentItem()
+            assertThat(initial.episodes.last().number).isEqualTo(3)
+            assertThat(initial.episodes.last().isPlaceholder).isTrue()
+
+            viewModel.refresh()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val refreshed = expectMostRecentItem()
+            assertThat(refreshed.isRefreshing).isFalse()
+            assertThat(refreshed.episodes).hasSize(3)
+            assertThat(refreshed.episodes.last().number).isEqualTo(3)
+            assertThat(refreshed.episodes.last().isPlaceholder).isTrue()
             cancelAndIgnoreRemainingEvents()
         }
     }

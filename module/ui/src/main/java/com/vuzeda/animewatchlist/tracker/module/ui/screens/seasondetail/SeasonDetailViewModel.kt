@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsEvent
 import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsTracker
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
+import com.vuzeda.animewatchlist.tracker.module.domain.EpisodeInfo
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
@@ -128,12 +129,20 @@ open class SeasonDetailViewModel @Inject constructor(
                             broadcastLocalTime = computeBroadcastLocalTime(season)
                         )
                     } else {
+                        val updatedEpisodes = withAiringTrailingPlaceholder(
+                            episodes = currentState.episodes,
+                            watchedEpisodes = watchedEpisodes,
+                            season = season,
+                            isLoadingEpisodes = currentState.isLoadingEpisodes,
+                            hasMoreEpisodes = currentState.hasMoreEpisodes
+                        )
                         currentState.copy(
                             season = season,
                             isInWatchlist = season.isInWatchlist,
                             watchedEpisodes = watchedEpisodes,
                             titleLanguage = titleLanguage,
-                            isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled
+                            isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled,
+                            episodes = updatedEpisodes
                         )
                     }
                 }
@@ -266,10 +275,12 @@ open class SeasonDetailViewModel @Inject constructor(
                     _uiState.update { state ->
                         val base = if (resetOnSuccess) emptyList() else state.episodes
                         val accumulated = base + episodePage.episodes
-                        val resolved = if (!episodePage.hasNextPage)
-                            fillEpisodeGapsUseCase(accumulated, state.season?.episodeCount)
-                        else
+                        val resolved = if (!episodePage.hasNextPage) {
+                            val filled = fillEpisodeGapsUseCase(accumulated, state.season?.episodeCount)
+                            withAiringTrailingPlaceholder(filled, state.watchedEpisodes, state.season, false, false)
+                        } else {
                             accumulated
+                        }
                         state.copy(
                             episodes = resolved,
                             isLoadingEpisodes = false,
@@ -283,8 +294,9 @@ open class SeasonDetailViewModel @Inject constructor(
                     _uiState.update { state ->
                         val base = cached.ifEmpty { state.episodes }
                         val filled = fillEpisodeGapsUseCase(base, state.season?.episodeCount)
+                        val withTrailing = withAiringTrailingPlaceholder(filled, state.watchedEpisodes, state.season, false, false)
                         state.copy(
-                            episodes = filled,
+                            episodes = withTrailing,
                             isLoadingEpisodes = false,
                             snackbarEvent = SeasonDetailSnackbarEvent.EpisodeLoadFailed
                         )
@@ -416,6 +428,33 @@ open class SeasonDetailViewModel @Inject constructor(
         _uiState.update { it.copy(snackbarEvent = null) }
     }
 
+    private fun withAiringTrailingPlaceholder(
+        episodes: List<EpisodeInfo>,
+        watchedEpisodes: Set<Int>,
+        season: Season?,
+        isLoadingEpisodes: Boolean,
+        hasMoreEpisodes: Boolean
+    ): List<EpisodeInfo> {
+        if (season?.airingStatus != "Currently Airing" || season.episodeCount != null) return episodes
+        if (isLoadingEpisodes || hasMoreEpisodes) return episodes
+        val realEpisodes = episodes.filter { !it.isPlaceholder }
+        val maxRealNumber = realEpisodes.maxOfOrNull { it.number } ?: 0
+        val watchedBeyondReal = watchedEpisodes.filter { it > maxRealNumber }
+        val watchedPlaceholders = watchedBeyondReal.map { n ->
+            EpisodeInfo(number = n, title = null, aired = null, isFiller = false, isRecap = false, isPlaceholder = true)
+        }
+        val maxKnown = maxOf(maxRealNumber, watchedBeyondReal.maxOrNull() ?: 0)
+        val trailing = EpisodeInfo(
+            number = maxKnown + 1,
+            title = null,
+            aired = null,
+            isFiller = false,
+            isRecap = false,
+            isPlaceholder = true
+        )
+        return (realEpisodes + watchedPlaceholders + trailing).sortedBy { it.number }
+    }
+
     protected open fun localZoneId(): ZoneId = ZoneId.systemDefault()
 
     private fun computeBroadcastLocalTime(season: Season): LocalBroadcastTime? {
@@ -476,13 +515,21 @@ open class SeasonDetailViewModel @Inject constructor(
                             broadcastLocalTime = computeBroadcastLocalTime(season)
                         )
                     } else {
+                        val updatedEpisodes = withAiringTrailingPlaceholder(
+                            episodes = currentState.episodes,
+                            watchedEpisodes = watchedEpisodes,
+                            season = season,
+                            isLoadingEpisodes = currentState.isLoadingEpisodes,
+                            hasMoreEpisodes = currentState.hasMoreEpisodes
+                        )
                         currentState.copy(
                             season = season,
                             isInWatchlist = season.isInWatchlist,
                             isEpisodeNotificationsEnabled = season.isEpisodeNotificationsEnabled,
                             watchedEpisodes = watchedEpisodes,
                             titleLanguage = titleLanguage,
-                            isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled
+                            isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled,
+                            episodes = updatedEpisodes
                         )
                     }
                 }

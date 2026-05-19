@@ -4,3 +4,5 @@
 • Botão de tentar novamente e pull-to-refresh em todas as telas de erro
 • Corrigido: notificações não são mais enviadas para episódios já assistidos
 • Nome e e-mail opcionais ao enviar feedback
+• Corrigido: episódios reservados agora são exibidos mesmo quando a lista de episódios falha ao carregar
+• Para séries em exibição sem contagem de episódios confirmada, um episódio reservado estará sempre disponível para marcar como assistido
