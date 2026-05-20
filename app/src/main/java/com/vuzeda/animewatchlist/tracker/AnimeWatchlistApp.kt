@@ -44,6 +44,7 @@ class AnimeWatchlistApp : Application(), Configuration.Provider, ImageLoaderFact
                     .directory(filesDir.resolve("image_cache"))
                     .build()
             }
+            .respectCacheHeaders(false)
             .components {
                 add(DiskCachePolicyInterceptor(offlineCoverCachingEnabled))
             }

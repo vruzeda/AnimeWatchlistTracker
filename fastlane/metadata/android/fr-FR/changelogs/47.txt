@@ -1,0 +1,1 @@
+• Corrigé : les couvertures se chargent désormais correctement en mode hors ligne après avoir été vues une fois avec une connexion

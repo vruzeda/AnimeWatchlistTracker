@@ -1,0 +1,1 @@
+• Corrigido: as capas agora carregam corretamente no modo offline após terem sido visualizadas uma vez com conexão

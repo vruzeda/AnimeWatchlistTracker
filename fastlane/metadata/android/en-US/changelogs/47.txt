@@ -1,0 +1,1 @@
+• Fixed: cover images now load correctly in offline mode after being viewed once while connected
