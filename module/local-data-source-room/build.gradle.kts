@@ -6,10 +6,10 @@ plugins {
 
 android {
     namespace = "com.vuzeda.animewatchlist.tracker.module.localdatasource.room"
-    compileSdk = 36
+    compileSdk = libs.versions.androidCompileSdk.get().toInt()
 
     defaultConfig {
-        minSdk = 26
+        minSdk = libs.versions.androidMinSdk.get().toInt()
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
