@@ -520,6 +520,7 @@ class AnimeRepositoryImplTest {
         every { animeLocalDataSource.observeLastAnimeUpdateAttemptAt() } returns flowOf(attemptMs)
         every { animeLocalDataSource.observeLastAnimeUpdateAttemptResult() } returns flowOf("FAILURE")
         every { animeLocalDataSource.observeLastAnimeUpdateAttemptFailureReason() } returns flowOf("timeout")
+        every { animeLocalDataSource.observeLastAnimeUpdateAttemptRetryCount() } returns flowOf(null)
 
         repository.observeAnimeUpdateSchedulerState().test {
             val state = awaitItem()
@@ -536,6 +537,7 @@ class AnimeRepositoryImplTest {
         every { animeLocalDataSource.observeLastAnimeUpdateAttemptAt() } returns flowOf(null)
         every { animeLocalDataSource.observeLastAnimeUpdateAttemptResult() } returns flowOf(null)
         every { animeLocalDataSource.observeLastAnimeUpdateAttemptFailureReason() } returns flowOf(null)
+        every { animeLocalDataSource.observeLastAnimeUpdateAttemptRetryCount() } returns flowOf(null)
 
         repository.observeAnimeUpdateSchedulerState().test {
             val state = awaitItem()
@@ -551,11 +553,12 @@ class AnimeRepositoryImplTest {
         every { animeLocalDataSource.observeLastAnimeUpdateRun() } returns flowOf(null)
         every { animeLocalDataSource.observeLastAnimeUpdateAttemptAt() } returns flowOf(1_000_000L)
         every { animeLocalDataSource.observeLastAnimeUpdateAttemptResult() } returns flowOf("WILL_RETRY")
-        every { animeLocalDataSource.observeLastAnimeUpdateAttemptFailureReason() } returns flowOf(null)
+        every { animeLocalDataSource.observeLastAnimeUpdateAttemptFailureReason() } returns flowOf("Network error")
+        every { animeLocalDataSource.observeLastAnimeUpdateAttemptRetryCount() } returns flowOf(3)
 
         repository.observeAnimeUpdateSchedulerState().test {
             val state = awaitItem()
-            assertThat(state.lastAttemptResult).isEqualTo(AnimeUpdateResult.WillRetry)
+            assertThat(state.lastAttemptResult).isEqualTo(AnimeUpdateResult.WillRetry(reason = "Network error", retryCount = 3))
             awaitComplete()
         }
     }

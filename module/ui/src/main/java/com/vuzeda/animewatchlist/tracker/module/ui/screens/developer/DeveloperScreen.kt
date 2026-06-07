@@ -176,7 +176,11 @@ private fun AnimeUpdateResult?.toDisplayString(): String = when (this) {
         R.string.developer_update_result_failure,
         reason ?: stringResource(R.string.developer_value_none)
     )
-    is AnimeUpdateResult.WillRetry -> stringResource(R.string.developer_update_result_retry)
+    is AnimeUpdateResult.WillRetry -> stringResource(
+        R.string.developer_update_result_retry,
+        reason ?: stringResource(R.string.developer_value_none),
+        retryCount?.toString() ?: stringResource(R.string.developer_value_none)
+    )
     null -> stringResource(R.string.developer_value_none)
 }
 

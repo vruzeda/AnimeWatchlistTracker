@@ -36,7 +36,9 @@ class AnimeUpdateWorker @AssistedInject constructor(
         } catch (e: Exception) {
             when (e) {
                 is DataError.Network, is DataError.RateLimited -> {
-                    recordAnimeUpdateAttemptUseCase(AnimeUpdateResult.WillRetry)
+                    recordAnimeUpdateAttemptUseCase(
+                        AnimeUpdateResult.WillRetry(reason = e.message, retryCount = runAttemptCount)
+                    )
                     Result.retry()
                 }
                 else -> {

@@ -21,7 +21,7 @@ class SeasonDropCurrentEpisodeMigration : AutoMigrationSpec
 
 @Database(
     entities = [AnimeEntity::class, SeasonEntity::class, AnimeUpdateSchedulerStateEntity::class, WatchedEpisodeEntity::class, EpisodeInfoEntity::class],
-    version = 21,
+    version = 22,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 19, to = 20, spec = SeasonDropCurrentEpisodeMigration::class)

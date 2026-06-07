@@ -9,5 +9,6 @@ data class AnimeUpdateSchedulerStateEntity(
     val lastAnimeUpdateRunAt: Long?,
     val lastAnimeUpdateAttemptAt: Long? = null,
     val lastAnimeUpdateAttemptResult: String? = null,
-    val lastAnimeUpdateAttemptFailureReason: String? = null
+    val lastAnimeUpdateAttemptFailureReason: String? = null,
+    val lastAnimeUpdateAttemptRetryCount: Int? = null
 )

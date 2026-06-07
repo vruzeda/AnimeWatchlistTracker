@@ -23,5 +23,6 @@ interface AnimeLocalDataSource {
     fun observeLastAnimeUpdateAttemptAt(): Flow<Long?>
     fun observeLastAnimeUpdateAttemptResult(): Flow<String?>
     fun observeLastAnimeUpdateAttemptFailureReason(): Flow<String?>
+    fun observeLastAnimeUpdateAttemptRetryCount(): Flow<Int?>
     suspend fun recordAnimeUpdateAttempt(epochMillis: Long, result: AnimeUpdateResult)
 }

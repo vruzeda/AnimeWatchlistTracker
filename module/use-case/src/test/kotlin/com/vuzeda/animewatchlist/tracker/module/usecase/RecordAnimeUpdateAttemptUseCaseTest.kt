@@ -30,8 +30,9 @@ class RecordAnimeUpdateAttemptUseCaseTest {
 
     @Test
     fun `delegates WillRetry to repository`() = runTest {
-        useCase(AnimeUpdateResult.WillRetry)
+        val result = AnimeUpdateResult.WillRetry(reason = "Network error", retryCount = 2)
+        useCase(result)
 
-        coVerify(exactly = 1) { repository.recordAnimeUpdateAttempt(AnimeUpdateResult.WillRetry) }
+        coVerify(exactly = 1) { repository.recordAnimeUpdateAttempt(result) }
     }
 }

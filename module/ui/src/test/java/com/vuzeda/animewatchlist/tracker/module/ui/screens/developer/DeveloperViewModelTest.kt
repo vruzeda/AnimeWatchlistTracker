@@ -138,7 +138,7 @@ class DeveloperViewModelTest {
         val state = AnimeUpdateSchedulerState(
             lastSuccessfulRunAt = null,
             lastAttemptAt = Instant.fromEpochMilliseconds(1_000_000L),
-            lastAttemptResult = AnimeUpdateResult.WillRetry
+            lastAttemptResult = AnimeUpdateResult.WillRetry(reason = "Network error", retryCount = 1)
         )
         every { observeAnimeUpdateSchedulerStateUseCase() } returns flowOf(state)
 
@@ -148,7 +148,7 @@ class DeveloperViewModelTest {
             awaitItem()
 
             val updated = awaitItem()
-            assertThat(updated.lastAnimeUpdateAttemptResult).isEqualTo(AnimeUpdateResult.WillRetry)
+            assertThat(updated.lastAnimeUpdateAttemptResult).isEqualTo(AnimeUpdateResult.WillRetry(reason = "Network error", retryCount = 1))
         }
     }
 

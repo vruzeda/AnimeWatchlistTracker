@@ -84,6 +84,9 @@ abstract class AnimeRoomDao : AnimeLocalDataSource {
     @Query("SELECT lastAnimeUpdateAttemptFailureReason FROM scheduler_state WHERE id = 1")
     override abstract fun observeLastAnimeUpdateAttemptFailureReason(): Flow<String?>
 
+    @Query("SELECT lastAnimeUpdateAttemptRetryCount FROM scheduler_state WHERE id = 1")
+    override abstract fun observeLastAnimeUpdateAttemptRetryCount(): Flow<Int?>
+
     @Query("SELECT * FROM scheduler_state WHERE id = 1")
     protected abstract suspend fun getSchedulerStateEntity(): AnimeUpdateSchedulerStateEntity?
 
@@ -95,7 +98,8 @@ abstract class AnimeRoomDao : AnimeLocalDataSource {
                 lastAnimeUpdateRunAt = epochMillis,
                 lastAnimeUpdateAttemptAt = current?.lastAnimeUpdateAttemptAt,
                 lastAnimeUpdateAttemptResult = current?.lastAnimeUpdateAttemptResult,
-                lastAnimeUpdateAttemptFailureReason = current?.lastAnimeUpdateAttemptFailureReason
+                lastAnimeUpdateAttemptFailureReason = current?.lastAnimeUpdateAttemptFailureReason,
+                lastAnimeUpdateAttemptRetryCount = current?.lastAnimeUpdateAttemptRetryCount
             )
         )
     }
@@ -109,7 +113,12 @@ abstract class AnimeRoomDao : AnimeLocalDataSource {
                 lastAnimeUpdateRunAt = newLastRunAt,
                 lastAnimeUpdateAttemptAt = epochMillis,
                 lastAnimeUpdateAttemptResult = result.toDbString(),
-                lastAnimeUpdateAttemptFailureReason = (result as? AnimeUpdateResult.Failure)?.reason
+                lastAnimeUpdateAttemptFailureReason = when (result) {
+                    is AnimeUpdateResult.Failure -> result.reason
+                    is AnimeUpdateResult.WillRetry -> result.reason
+                    else -> null
+                },
+                lastAnimeUpdateAttemptRetryCount = (result as? AnimeUpdateResult.WillRetry)?.retryCount
             )
         )
     }

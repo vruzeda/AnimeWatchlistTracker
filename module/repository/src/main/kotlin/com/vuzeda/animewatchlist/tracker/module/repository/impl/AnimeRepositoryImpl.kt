@@ -199,12 +199,13 @@ class AnimeRepositoryImpl @Inject constructor(
             animeLocalDataSource.observeLastAnimeUpdateRun(),
             animeLocalDataSource.observeLastAnimeUpdateAttemptAt(),
             animeLocalDataSource.observeLastAnimeUpdateAttemptResult(),
-            animeLocalDataSource.observeLastAnimeUpdateAttemptFailureReason()
-        ) { lastRunMs, attemptMs, resultStr, failureReason ->
+            animeLocalDataSource.observeLastAnimeUpdateAttemptFailureReason(),
+            animeLocalDataSource.observeLastAnimeUpdateAttemptRetryCount()
+        ) { lastRunMs, attemptMs, resultStr, reason, retryCount ->
             AnimeUpdateSchedulerState(
                 lastSuccessfulRunAt = lastRunMs?.let { Instant.fromEpochMilliseconds(it) },
                 lastAttemptAt = attemptMs?.let { Instant.fromEpochMilliseconds(it) },
-                lastAttemptResult = resultStr?.toAnimeUpdateResult(failureReason)
+                lastAttemptResult = resultStr?.toAnimeUpdateResult(reason, retryCount)
             )
         }
 
@@ -213,9 +214,9 @@ class AnimeRepositoryImpl @Inject constructor(
     }
 }
 
-private fun String.toAnimeUpdateResult(failureReason: String?): AnimeUpdateResult? = when (this) {
+private fun String.toAnimeUpdateResult(reason: String?, retryCount: Int?): AnimeUpdateResult? = when (this) {
     "SUCCESS" -> AnimeUpdateResult.Success
-    "FAILURE" -> AnimeUpdateResult.Failure(failureReason)
-    "WILL_RETRY" -> AnimeUpdateResult.WillRetry
+    "FAILURE" -> AnimeUpdateResult.Failure(reason)
+    "WILL_RETRY" -> AnimeUpdateResult.WillRetry(reason = reason, retryCount = retryCount)
     else -> null
 }

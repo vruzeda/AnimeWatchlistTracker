@@ -198,7 +198,7 @@
     <string name="developer_last_update_result">Último resultado</string>
     <string name="developer_update_result_success">Sucesso</string>
     <string name="developer_update_result_failure">Falha: %1$s</string>
-    <string name="developer_update_result_retry">Nova tentativa agendada</string>
+    <string name="developer_update_result_retry">Nova tentativa agendada: %1$s (tentativa nº %2$s)</string>
     <string name="developer_last_season_check">Última verificação de temporada: %1$s</string>
     <string name="developer_last_episode_check">Última verificação de episódio: %1$s</string>
     <string name="developer_last_checked_aired_episodes">Episódios exibidos verificados: %1$s</string>

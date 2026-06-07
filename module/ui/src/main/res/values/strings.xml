@@ -192,7 +192,7 @@
     <string name="developer_last_update_result">Last result</string>
     <string name="developer_update_result_success">Success</string>
     <string name="developer_update_result_failure">Failure: %1$s</string>
-    <string name="developer_update_result_retry">Retry scheduled</string>
+    <string name="developer_update_result_retry">Retry scheduled: %1$s (attempt #%2$s)</string>
     <string name="developer_last_season_check">Last season check: %1$s</string>
     <string name="developer_last_episode_check">Last episode check: %1$s</string>
     <string name="developer_last_checked_aired_episodes">Aired episode count: %1$s</string>
