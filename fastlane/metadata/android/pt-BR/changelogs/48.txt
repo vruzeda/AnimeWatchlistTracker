@@ -1,0 +1,1 @@
+• Corrigido: títulos de animes com caracteres especiais (apóstrofos, aspas) agora aparecem corretamente em vez de exibir texto corrompido como "039#" ou "34#"

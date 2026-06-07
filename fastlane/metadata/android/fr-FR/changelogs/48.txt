@@ -1,0 +1,1 @@
+• Corrigé : les titres d'anime contenant des caractères spéciaux (apostrophes, guillemets) s'affichent maintenant correctement au lieu d'un texte illisible comme « 039# » ou « 34# »

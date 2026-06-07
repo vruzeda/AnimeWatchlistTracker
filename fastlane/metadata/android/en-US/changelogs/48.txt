@@ -1,0 +1,1 @@
+• Fixed: anime titles with special characters (apostrophes, quotes) now display correctly instead of showing garbled text like "039#" or "34#"

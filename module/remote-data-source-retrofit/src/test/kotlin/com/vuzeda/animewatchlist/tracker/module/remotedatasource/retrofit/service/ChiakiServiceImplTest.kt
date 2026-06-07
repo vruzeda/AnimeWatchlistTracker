@@ -65,15 +65,63 @@ class ChiakiServiceImplTest {
     }
 
     @Test
-    fun `decodes HTML entities in title`() {
+    fun `decodes named HTML entities in title`() {
         val html = buildSampleHtml(
-            entry(malId = 400, typeCode = 1, eps = 12, title = "Tom &amp; Jerry&#39;s Adventure", score = "7.00", ratingCount = "50K", image = null)
+            entry(malId = 400, typeCode = 1, eps = 12, title = "Tom &amp; Jerry&apos;s Adventure", score = "7.00", ratingCount = "50K", image = null)
         )
 
         val result = ChiakiServiceImpl.parseWatchOrderHtml(html)
 
         assertThat(result).hasSize(1)
         assertThat(result[0].title).isEqualTo("Tom & Jerry's Adventure")
+    }
+
+    @Test
+    fun `decodes decimal numeric HTML entities in title`() {
+        val html = buildSampleHtml(
+            entry(malId = 401, typeCode = 1, eps = 12, title = "Gintama&#039;", score = null, ratingCount = null, image = null)
+        )
+
+        val result = ChiakiServiceImpl.parseWatchOrderHtml(html)
+
+        assertThat(result).hasSize(1)
+        assertThat(result[0].title).isEqualTo("Gintama'")
+    }
+
+    @Test
+    fun `decodes decimal numeric entity for double quote in title`() {
+        val html = buildSampleHtml(
+            entry(malId = 402, typeCode = 1, eps = 1, title = "Something &#34;Quoted&#34;", score = null, ratingCount = null, image = null)
+        )
+
+        val result = ChiakiServiceImpl.parseWatchOrderHtml(html)
+
+        assertThat(result).hasSize(1)
+        assertThat(result[0].title).isEqualTo("""Something "Quoted"""")
+    }
+
+    @Test
+    fun `decodes hex numeric HTML entities in title`() {
+        val html = buildSampleHtml(
+            entry(malId = 403, typeCode = 1, eps = 12, title = "Anime &#x26; Test", score = null, ratingCount = null, image = null)
+        )
+
+        val result = ChiakiServiceImpl.parseWatchOrderHtml(html)
+
+        assertThat(result).hasSize(1)
+        assertThat(result[0].title).isEqualTo("Anime & Test")
+    }
+
+    @Test
+    fun `decodes decimal numeric HTML entities in English title`() {
+        val html = buildSampleHtml(
+            entry(malId = 404, typeCode = 1, eps = 12, title = "Gintama&#039;", score = null, ratingCount = null, image = null, englishTitle = "Gintama&#039;: Enchousen")
+        )
+
+        val result = ChiakiServiceImpl.parseWatchOrderHtml(html)
+
+        assertThat(result).hasSize(1)
+        assertThat(result[0].titleEnglish).isEqualTo("Gintama': Enchousen")
     }
 
     @Test
