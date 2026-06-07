@@ -4,6 +4,8 @@ import com.vuzeda.animewatchlist.tracker.module.domain.Anime
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdateResult
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdateSchedulerState
 import com.vuzeda.animewatchlist.tracker.module.domain.EpisodeInfo
 import com.vuzeda.animewatchlist.tracker.module.domain.EpisodePage
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
@@ -189,6 +191,31 @@ class AnimeRepositoryImpl @Inject constructor(
         }
 
     override suspend fun recordAnimeUpdateRun() {
-        animeLocalDataSource.setLastAnimeUpdateRun(clock.now().toEpochMilliseconds())
+        recordAnimeUpdateAttempt(AnimeUpdateResult.Success)
     }
+
+    override fun observeAnimeUpdateSchedulerState(): Flow<AnimeUpdateSchedulerState> =
+        combine(
+            animeLocalDataSource.observeLastAnimeUpdateRun(),
+            animeLocalDataSource.observeLastAnimeUpdateAttemptAt(),
+            animeLocalDataSource.observeLastAnimeUpdateAttemptResult(),
+            animeLocalDataSource.observeLastAnimeUpdateAttemptFailureReason()
+        ) { lastRunMs, attemptMs, resultStr, failureReason ->
+            AnimeUpdateSchedulerState(
+                lastSuccessfulRunAt = lastRunMs?.let { Instant.fromEpochMilliseconds(it) },
+                lastAttemptAt = attemptMs?.let { Instant.fromEpochMilliseconds(it) },
+                lastAttemptResult = resultStr?.toAnimeUpdateResult(failureReason)
+            )
+        }
+
+    override suspend fun recordAnimeUpdateAttempt(result: AnimeUpdateResult) {
+        animeLocalDataSource.recordAnimeUpdateAttempt(clock.now().toEpochMilliseconds(), result)
+    }
+}
+
+private fun String.toAnimeUpdateResult(failureReason: String?): AnimeUpdateResult? = when (this) {
+    "SUCCESS" -> AnimeUpdateResult.Success
+    "FAILURE" -> AnimeUpdateResult.Failure(failureReason)
+    "WILL_RETRY" -> AnimeUpdateResult.WillRetry
+    else -> null
 }

@@ -6,5 +6,8 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "scheduler_state")
 data class AnimeUpdateSchedulerStateEntity(
     @PrimaryKey val id: Int = 1,
-    val lastAnimeUpdateRunAt: Long?
+    val lastAnimeUpdateRunAt: Long?,
+    val lastAnimeUpdateAttemptAt: Long? = null,
+    val lastAnimeUpdateAttemptResult: String? = null,
+    val lastAnimeUpdateAttemptFailureReason: String? = null
 )

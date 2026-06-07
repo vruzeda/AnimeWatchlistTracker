@@ -1,6 +1,7 @@
 package com.vuzeda.animewatchlist.tracker.module.localdatasource
 
 import com.vuzeda.animewatchlist.tracker.module.domain.Anime
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdateResult
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
@@ -19,4 +20,8 @@ interface AnimeLocalDataSource {
     suspend fun updateLastSeasonCheckPerformedDate(animeId: Long, date: LocalDate)
     fun observeLastAnimeUpdateRun(): Flow<Long?>
     suspend fun setLastAnimeUpdateRun(epochMillis: Long)
+    fun observeLastAnimeUpdateAttemptAt(): Flow<Long?>
+    fun observeLastAnimeUpdateAttemptResult(): Flow<String?>
+    fun observeLastAnimeUpdateAttemptFailureReason(): Flow<String?>
+    suspend fun recordAnimeUpdateAttempt(epochMillis: Long, result: AnimeUpdateResult)
 }

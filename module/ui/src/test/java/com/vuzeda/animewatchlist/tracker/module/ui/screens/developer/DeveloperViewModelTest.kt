@@ -2,8 +2,10 @@ package com.vuzeda.animewatchlist.tracker.module.ui.screens.developer
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdateResult
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdateSchedulerState
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveAnimeUpdateSchedulerStateUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveIsNotificationDebugInfoEnabledUseCase
-import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveLastAnimeUpdateRunUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetIsDeveloperOptionsEnabledUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetIsNotificationDebugInfoEnabledUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.TriggerAnimeUpdateUseCase
@@ -27,16 +29,22 @@ import kotlin.time.Instant
 class DeveloperViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
-    private val observeLastAnimeUpdateRunUseCase: ObserveLastAnimeUpdateRunUseCase = mockk()
+    private val observeAnimeUpdateSchedulerStateUseCase: ObserveAnimeUpdateSchedulerStateUseCase = mockk()
     private val triggerAnimeUpdateUseCase: TriggerAnimeUpdateUseCase = mockk(relaxUnitFun = true)
     private val setIsDeveloperOptionsEnabledUseCase: SetIsDeveloperOptionsEnabledUseCase = mockk(relaxUnitFun = true)
     private val observeIsNotificationDebugInfoEnabledUseCase: ObserveIsNotificationDebugInfoEnabledUseCase = mockk()
     private val setIsNotificationDebugInfoEnabledUseCase: SetIsNotificationDebugInfoEnabledUseCase = mockk(relaxUnitFun = true)
 
+    private val emptySchedulerState = AnimeUpdateSchedulerState(
+        lastSuccessfulRunAt = null,
+        lastAttemptAt = null,
+        lastAttemptResult = null
+    )
+
     @BeforeEach
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        every { observeLastAnimeUpdateRunUseCase() } returns flowOf(null)
+        every { observeAnimeUpdateSchedulerStateUseCase() } returns flowOf(emptySchedulerState)
         every { observeIsNotificationDebugInfoEnabledUseCase() } returns flowOf(false)
     }
 
@@ -46,7 +54,7 @@ class DeveloperViewModelTest {
     }
 
     private fun createViewModel() = DeveloperViewModel(
-        observeLastAnimeUpdateRunUseCase,
+        observeAnimeUpdateSchedulerStateUseCase,
         triggerAnimeUpdateUseCase,
         setIsDeveloperOptionsEnabledUseCase,
         observeIsNotificationDebugInfoEnabledUseCase,
@@ -64,9 +72,35 @@ class DeveloperViewModelTest {
     }
 
     @Test
-    fun `updates lastAnimeUpdateRun when use case emits`() = runTest {
-        val instant = Instant.fromEpochMilliseconds(1_700_000_000_000L)
-        every { observeLastAnimeUpdateRunUseCase() } returns flowOf(instant)
+    fun `initial state has null lastAnimeUpdateAttemptAt`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            val initial = awaitItem()
+            assertThat(initial.lastAnimeUpdateAttemptAt).isNull()
+        }
+    }
+
+    @Test
+    fun `initial state has null lastAnimeUpdateAttemptResult`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            val initial = awaitItem()
+            assertThat(initial.lastAnimeUpdateAttemptResult).isNull()
+        }
+    }
+
+    @Test
+    fun `updates scheduler state fields when use case emits`() = runTest {
+        val successRunInstant = Instant.fromEpochMilliseconds(1_700_000_000_000L)
+        val attemptInstant = Instant.fromEpochMilliseconds(1_700_000_001_000L)
+        val state = AnimeUpdateSchedulerState(
+            lastSuccessfulRunAt = successRunInstant,
+            lastAttemptAt = attemptInstant,
+            lastAttemptResult = AnimeUpdateResult.Success
+        )
+        every { observeAnimeUpdateSchedulerStateUseCase() } returns flowOf(state)
 
         val viewModel = createViewModel()
 
@@ -74,7 +108,47 @@ class DeveloperViewModelTest {
             awaitItem()
 
             val updated = awaitItem()
-            assertThat(updated.lastAnimeUpdateRun).isEqualTo(instant)
+            assertThat(updated.lastAnimeUpdateRun).isEqualTo(successRunInstant)
+            assertThat(updated.lastAnimeUpdateAttemptAt).isEqualTo(attemptInstant)
+            assertThat(updated.lastAnimeUpdateAttemptResult).isEqualTo(AnimeUpdateResult.Success)
+        }
+    }
+
+    @Test
+    fun `maps failure result to ui state`() = runTest {
+        val state = AnimeUpdateSchedulerState(
+            lastSuccessfulRunAt = null,
+            lastAttemptAt = Instant.fromEpochMilliseconds(1_000_000L),
+            lastAttemptResult = AnimeUpdateResult.Failure("timeout")
+        )
+        every { observeAnimeUpdateSchedulerStateUseCase() } returns flowOf(state)
+
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            val updated = awaitItem()
+            assertThat(updated.lastAnimeUpdateAttemptResult).isEqualTo(AnimeUpdateResult.Failure("timeout"))
+        }
+    }
+
+    @Test
+    fun `maps retry result to ui state`() = runTest {
+        val state = AnimeUpdateSchedulerState(
+            lastSuccessfulRunAt = null,
+            lastAttemptAt = Instant.fromEpochMilliseconds(1_000_000L),
+            lastAttemptResult = AnimeUpdateResult.WillRetry
+        )
+        every { observeAnimeUpdateSchedulerStateUseCase() } returns flowOf(state)
+
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            val updated = awaitItem()
+            assertThat(updated.lastAnimeUpdateAttemptResult).isEqualTo(AnimeUpdateResult.WillRetry)
         }
     }
 

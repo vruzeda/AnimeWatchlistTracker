@@ -2,8 +2,8 @@ package com.vuzeda.animewatchlist.tracker.module.ui.screens.developer
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveAnimeUpdateSchedulerStateUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveIsNotificationDebugInfoEnabledUseCase
-import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveLastAnimeUpdateRunUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetIsDeveloperOptionsEnabledUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetIsNotificationDebugInfoEnabledUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.TriggerAnimeUpdateUseCase
@@ -18,7 +18,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DeveloperViewModel @Inject constructor(
-    private val observeLastAnimeUpdateRunUseCase: ObserveLastAnimeUpdateRunUseCase,
+    private val observeAnimeUpdateSchedulerStateUseCase: ObserveAnimeUpdateSchedulerStateUseCase,
     private val triggerAnimeUpdateUseCase: TriggerAnimeUpdateUseCase,
     private val setIsDeveloperOptionsEnabledUseCase: SetIsDeveloperOptionsEnabledUseCase,
     private val observeIsNotificationDebugInfoEnabledUseCase: ObserveIsNotificationDebugInfoEnabledUseCase,
@@ -31,14 +31,16 @@ class DeveloperViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             combine(
-                observeLastAnimeUpdateRunUseCase(),
+                observeAnimeUpdateSchedulerStateUseCase(),
                 observeIsNotificationDebugInfoEnabledUseCase()
-            ) { lastAnimeUpdateRun, isNotificationDebugInfoEnabled ->
-                lastAnimeUpdateRun to isNotificationDebugInfoEnabled
-            }.collect { (lastAnimeUpdateRun, isNotificationDebugInfoEnabled) ->
+            ) { schedulerState, isNotificationDebugInfoEnabled ->
+                schedulerState to isNotificationDebugInfoEnabled
+            }.collect { (schedulerState, isNotificationDebugInfoEnabled) ->
                 _uiState.update {
                     it.copy(
-                        lastAnimeUpdateRun = lastAnimeUpdateRun,
+                        lastAnimeUpdateRun = schedulerState.lastSuccessfulRunAt,
+                        lastAnimeUpdateAttemptAt = schedulerState.lastAttemptAt,
+                        lastAnimeUpdateAttemptResult = schedulerState.lastAttemptResult,
                         isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled
                     )
                 }

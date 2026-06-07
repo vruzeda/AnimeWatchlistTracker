@@ -194,6 +194,11 @@
     <string name="developer_trigger_update">Activar comprobación de actualizaciones ahora</string>
     <string name="developer_disable_options">Desactivar opciones de desarrollador</string>
     <string name="developer_notification_debug_info">Depurar notificaciones</string>
+    <string name="developer_last_attempt_run">Último intento de actualización</string>
+    <string name="developer_last_update_result">Último resultado</string>
+    <string name="developer_update_result_success">Éxito</string>
+    <string name="developer_update_result_failure">Fallo: %1$s</string>
+    <string name="developer_update_result_retry">Reintento programado</string>
     <string name="developer_last_season_check">Última comprobación de temporada: %1$s</string>
     <string name="developer_last_episode_check">Última comprobación de episodio: %1$s</string>
     <string name="developer_last_checked_aired_episodes">Episodios emitidos verificados: %1$s</string>

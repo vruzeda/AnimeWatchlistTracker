@@ -3,6 +3,14 @@ package com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val MIGRATION_20_21 = object : Migration(20, 21) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE scheduler_state ADD COLUMN lastAnimeUpdateAttemptAt INTEGER")
+        db.execSQL("ALTER TABLE scheduler_state ADD COLUMN lastAnimeUpdateAttemptResult TEXT")
+        db.execSQL("ALTER TABLE scheduler_state ADD COLUMN lastAnimeUpdateAttemptFailureReason TEXT")
+    }
+}
+
 val MIGRATION_18_19 = object : Migration(18, 19) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL(

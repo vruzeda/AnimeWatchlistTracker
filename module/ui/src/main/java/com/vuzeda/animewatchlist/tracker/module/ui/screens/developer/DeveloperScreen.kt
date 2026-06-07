@@ -29,6 +29,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SmallSpacing
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdateResult
 import com.vuzeda.animewatchlist.tracker.module.ui.R
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -128,6 +129,31 @@ fun DeveloperScreen(
                 modifier = Modifier.padding(horizontal = ScreenPadding, vertical = SmallSpacing)
             )
 
+            Text(
+                text = stringResource(R.string.developer_last_attempt_run),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(horizontal = ScreenPadding, vertical = ElementSpacing)
+            )
+
+            Text(
+                text = uiState.lastAnimeUpdateAttemptAt?.formatWith(formatter)
+                    ?: stringResource(R.string.developer_value_never),
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(horizontal = ScreenPadding, vertical = SmallSpacing)
+            )
+
+            Text(
+                text = stringResource(R.string.developer_last_update_result),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(horizontal = ScreenPadding, vertical = ElementSpacing)
+            )
+
+            Text(
+                text = uiState.lastAnimeUpdateAttemptResult.toDisplayString(),
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(horizontal = ScreenPadding, vertical = SmallSpacing)
+            )
+
             TextButton(
                 onClick = onTriggerAnimeUpdate,
                 modifier = Modifier
@@ -141,6 +167,17 @@ fun DeveloperScreen(
             }
         }
     }
+}
+
+@Composable
+private fun AnimeUpdateResult?.toDisplayString(): String = when (this) {
+    is AnimeUpdateResult.Success -> stringResource(R.string.developer_update_result_success)
+    is AnimeUpdateResult.Failure -> stringResource(
+        R.string.developer_update_result_failure,
+        reason ?: stringResource(R.string.developer_value_none)
+    )
+    is AnimeUpdateResult.WillRetry -> stringResource(R.string.developer_update_result_retry)
+    null -> stringResource(R.string.developer_value_none)
 }
 
 private fun Instant.formatWith(formatter: DateTimeFormatter): String =

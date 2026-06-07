@@ -5,6 +5,7 @@ import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.domain.Anime
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdateResult
 import com.vuzeda.animewatchlist.tracker.module.domain.EpisodeInfo
 import com.vuzeda.animewatchlist.tracker.module.domain.EpisodePage
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
@@ -487,11 +488,75 @@ class AnimeRepositoryImplTest {
     }
 
     @Test
-    fun `recordAnimeUpdateRun writes current clock time to local data source`() = runTest {
-        coEvery { animeLocalDataSource.setLastAnimeUpdateRun(any()) } returns Unit
+    fun `recordAnimeUpdateRun records success attempt via local data source`() = runTest {
+        coEvery { animeLocalDataSource.recordAnimeUpdateAttempt(any(), any()) } returns Unit
 
         repository.recordAnimeUpdateRun()
 
-        coVerify(exactly = 1) { animeLocalDataSource.setLastAnimeUpdateRun(fixedInstant.toEpochMilliseconds()) }
+        coVerify(exactly = 1) {
+            animeLocalDataSource.recordAnimeUpdateAttempt(fixedInstant.toEpochMilliseconds(), AnimeUpdateResult.Success)
+        }
+    }
+
+    @Test
+    fun `recordAnimeUpdateAttempt delegates to local data source with current clock time`() = runTest {
+        coEvery { animeLocalDataSource.recordAnimeUpdateAttempt(any(), any()) } returns Unit
+
+        repository.recordAnimeUpdateAttempt(AnimeUpdateResult.Failure("timeout"))
+
+        coVerify(exactly = 1) {
+            animeLocalDataSource.recordAnimeUpdateAttempt(
+                fixedInstant.toEpochMilliseconds(),
+                AnimeUpdateResult.Failure("timeout")
+            )
+        }
+    }
+
+    @Test
+    fun `observeAnimeUpdateSchedulerState maps all fields from local data source`() = runTest {
+        val lastRunMs = 1_700_000_000_000L
+        val attemptMs = 1_700_000_001_000L
+        every { animeLocalDataSource.observeLastAnimeUpdateRun() } returns flowOf(lastRunMs)
+        every { animeLocalDataSource.observeLastAnimeUpdateAttemptAt() } returns flowOf(attemptMs)
+        every { animeLocalDataSource.observeLastAnimeUpdateAttemptResult() } returns flowOf("FAILURE")
+        every { animeLocalDataSource.observeLastAnimeUpdateAttemptFailureReason() } returns flowOf("timeout")
+
+        repository.observeAnimeUpdateSchedulerState().test {
+            val state = awaitItem()
+            assertThat(state.lastSuccessfulRunAt).isEqualTo(Instant.fromEpochMilliseconds(lastRunMs))
+            assertThat(state.lastAttemptAt).isEqualTo(Instant.fromEpochMilliseconds(attemptMs))
+            assertThat(state.lastAttemptResult).isEqualTo(AnimeUpdateResult.Failure("timeout"))
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `observeAnimeUpdateSchedulerState maps null fields when never run`() = runTest {
+        every { animeLocalDataSource.observeLastAnimeUpdateRun() } returns flowOf(null)
+        every { animeLocalDataSource.observeLastAnimeUpdateAttemptAt() } returns flowOf(null)
+        every { animeLocalDataSource.observeLastAnimeUpdateAttemptResult() } returns flowOf(null)
+        every { animeLocalDataSource.observeLastAnimeUpdateAttemptFailureReason() } returns flowOf(null)
+
+        repository.observeAnimeUpdateSchedulerState().test {
+            val state = awaitItem()
+            assertThat(state.lastSuccessfulRunAt).isNull()
+            assertThat(state.lastAttemptAt).isNull()
+            assertThat(state.lastAttemptResult).isNull()
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `observeAnimeUpdateSchedulerState maps WillRetry result`() = runTest {
+        every { animeLocalDataSource.observeLastAnimeUpdateRun() } returns flowOf(null)
+        every { animeLocalDataSource.observeLastAnimeUpdateAttemptAt() } returns flowOf(1_000_000L)
+        every { animeLocalDataSource.observeLastAnimeUpdateAttemptResult() } returns flowOf("WILL_RETRY")
+        every { animeLocalDataSource.observeLastAnimeUpdateAttemptFailureReason() } returns flowOf(null)
+
+        repository.observeAnimeUpdateSchedulerState().test {
+            val state = awaitItem()
+            assertThat(state.lastAttemptResult).isEqualTo(AnimeUpdateResult.WillRetry)
+            awaitComplete()
+        }
     }
 }

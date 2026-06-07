@@ -13,6 +13,8 @@ import com.vuzeda.animewatchlist.tracker.module.domain.SearchResultPage
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonData
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonalAnimePage
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdateResult
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdateSchedulerState
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
@@ -81,4 +83,8 @@ interface AnimeRepository {
     fun observeLastAnimeUpdateRun(): Flow<Instant?>
 
     suspend fun recordAnimeUpdateRun()
+
+    fun observeAnimeUpdateSchedulerState(): Flow<AnimeUpdateSchedulerState>
+
+    suspend fun recordAnimeUpdateAttempt(result: AnimeUpdateResult)
 }
