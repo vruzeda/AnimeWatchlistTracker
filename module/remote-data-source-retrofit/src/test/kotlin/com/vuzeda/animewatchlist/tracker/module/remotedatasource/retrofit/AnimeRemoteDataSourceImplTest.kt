@@ -33,14 +33,18 @@ class AnimeRemoteDataSourceImplTest {
     private val chiakiService: ChiakiService = mockk()
     private val repository = AnimeRemoteDataSourceImpl(jikanApiService, chiakiService)
 
-    private fun httpException(code: Int, message: String = "HTTP $code"): HttpException {
-        val rawResponse = okhttp3.Response.Builder()
+    private fun httpException(
+        code: Int,
+        message: String = "HTTP $code",
+        headers: Map<String, String> = emptyMap()
+    ): HttpException {
+        val builder = okhttp3.Response.Builder()
             .code(code)
             .message(message)
             .protocol(Protocol.HTTP_1_1)
             .request(Request.Builder().url("https://api.jikan.moe/").build())
-            .build()
-        return HttpException(Response.error<Any>("".toResponseBody(null), rawResponse))
+        headers.forEach { (name, value) -> builder.addHeader(name, value) }
+        return HttpException(Response.error<Any>("".toResponseBody(null), builder.build()))
     }
 
     @Test
@@ -133,6 +137,36 @@ class AnimeRemoteDataSourceImplTest {
 
         assertThat(result.isFailure).isTrue()
         assertThat(result.exceptionOrNull()).isInstanceOf(DataError.RateLimited::class.java)
+    }
+
+    @Test
+    fun `searchAnime populates retryAfterMs from Retry-After header on HTTP 429`() = runTest {
+        coEvery { jikanApiService.searchAnime(any()) } throws httpException(429, headers = mapOf("Retry-After" to "30"))
+
+        val result = repository.searchAnime("naruto")
+
+        val error = result.exceptionOrNull() as DataError.RateLimited
+        assertThat(error.retryAfterMs).isEqualTo(30_000L)
+    }
+
+    @Test
+    fun `searchAnime sets retryAfterMs to null when Retry-After header is absent on HTTP 429`() = runTest {
+        coEvery { jikanApiService.searchAnime(any()) } throws httpException(429)
+
+        val result = repository.searchAnime("naruto")
+
+        val error = result.exceptionOrNull() as DataError.RateLimited
+        assertThat(error.retryAfterMs).isNull()
+    }
+
+    @Test
+    fun `searchAnime sets retryAfterMs to null when Retry-After header is non-numeric on HTTP 429`() = runTest {
+        coEvery { jikanApiService.searchAnime(any()) } throws httpException(429, headers = mapOf("Retry-After" to "Wed, 21 Oct 2015 07:28:00 GMT"))
+
+        val result = repository.searchAnime("naruto")
+
+        val error = result.exceptionOrNull() as DataError.RateLimited
+        assertThat(error.retryAfterMs).isNull()
     }
 
     @Test

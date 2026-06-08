@@ -59,4 +59,19 @@ class AnimeUpdateWorkerScheduler @Inject constructor(
                 .build()
         )
     }
+
+    override fun scheduleRetryAfterRateLimit(delayMs: Long) {
+        workManager.enqueueUniqueWork(
+            AnimeUpdateWorker.WORK_NAME_RATE_LIMIT_RETRY,
+            ExistingWorkPolicy.REPLACE,
+            OneTimeWorkRequestBuilder<AnimeUpdateWorker>()
+                .setConstraints(
+                    Constraints.Builder()
+                        .setRequiredNetworkType(NetworkType.CONNECTED)
+                        .build()
+                )
+                .setInitialDelay(delayMs, TimeUnit.MILLISECONDS)
+                .build()
+        )
+    }
 }

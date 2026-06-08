@@ -134,6 +134,9 @@ private inline fun <T> safeApiCall(block: () -> T): Result<T> =
 
 private fun mapHttpException(e: HttpException): DataError = when (e.code()) {
     404 -> DataError.NotFound(errorMessage = e.message())
-    429 -> DataError.RateLimited()
+    429 -> DataError.RateLimited(retryAfterMs = e.retryAfterMs())
     else -> DataError.Network(throwable = e)
 }
+
+private fun HttpException.retryAfterMs(): Long? =
+    response()?.headers()?.get("Retry-After")?.toLongOrNull()?.let { it * 1_000L }

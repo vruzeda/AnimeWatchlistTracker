@@ -4,4 +4,5 @@ interface AnimeUpdateScheduler {
     fun schedulePeriodicUpdate()
     fun scheduleImmediateUpdate()
     fun scheduleAiringSeasonBackfill()
+    fun scheduleRetryAfterRateLimit(delayMs: Long)
 }

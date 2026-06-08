@@ -7,6 +7,7 @@ import androidx.work.WorkerParameters
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdateResult
 import com.vuzeda.animewatchlist.tracker.module.domain.DataError
 import com.vuzeda.animewatchlist.tracker.module.notification.AnimeUpdateNotifier
+import com.vuzeda.animewatchlist.tracker.module.scheduler.AnimeUpdateScheduler
 import com.vuzeda.animewatchlist.tracker.module.usecase.CheckAnimeUpdatesUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.RecordAnimeUpdateAttemptUseCase
@@ -19,6 +20,7 @@ class AnimeUpdateWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
     private val animeUpdateNotifier: AnimeUpdateNotifier,
+    private val animeUpdateScheduler: AnimeUpdateScheduler,
     private val checkAnimeUpdatesUseCase: CheckAnimeUpdatesUseCase,
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase,
     private val recordAnimeUpdateAttemptUseCase: RecordAnimeUpdateAttemptUseCase
@@ -35,7 +37,19 @@ class AnimeUpdateWorker @AssistedInject constructor(
             Result.success()
         } catch (e: Exception) {
             when (e) {
-                is DataError.Network, is DataError.RateLimited -> {
+                is DataError.RateLimited -> {
+                    recordAnimeUpdateAttemptUseCase(
+                        AnimeUpdateResult.WillRetry(reason = e.message, retryCount = runAttemptCount)
+                    )
+                    val retryAfterMs = e.retryAfterMs
+                    if (retryAfterMs != null) {
+                        animeUpdateScheduler.scheduleRetryAfterRateLimit(retryAfterMs)
+                        Result.success()
+                    } else {
+                        Result.retry()
+                    }
+                }
+                is DataError.Network -> {
                     recordAnimeUpdateAttemptUseCase(
                         AnimeUpdateResult.WillRetry(reason = e.message, retryCount = runAttemptCount)
                     )
@@ -52,5 +66,6 @@ class AnimeUpdateWorker @AssistedInject constructor(
     companion object {
         const val WORK_NAME = "anime_update_check"
         const val WORK_NAME_IMMEDIATE = "anime_update_check_immediate"
+        const val WORK_NAME_RATE_LIMIT_RETRY = "anime_update_check_rate_limit_retry"
     }
 }
