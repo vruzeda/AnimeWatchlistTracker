@@ -626,6 +626,60 @@ class CheckAnimeUpdatesUseCaseTest {
     }
 
     @Test
+    fun `skips episode check for finished airing season after initial discovery`() = runTest {
+        val finishedSeason = sampleSeason.copy(airingStatus = "Finished Airing", latestKnownEpisodeAirDate = yesterday)
+        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
+        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(finishedSeason)
+        coEvery { animeRepository.fetchWatchOrder(100) } returns Result.success(emptyList())
+
+        useCase()
+
+        coVerify(exactly = 0) { animeRepository.fetchEpisodesAiredBetween(any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `still performs episode check on first run for finished airing season`() = runTest {
+        val finishedFirstRunSeason = sampleSeason.copy(airingStatus = "Finished Airing", latestKnownEpisodeAirDate = null)
+        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
+        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(finishedFirstRunSeason)
+        coEvery {
+            animeRepository.fetchEpisodesAiredBetween(100, LocalDate.MIN, fixedDate, 12)
+        } returns Result.success(emptyList())
+        coEvery { animeRepository.fetchWatchOrder(100) } returns Result.success(emptyList())
+
+        useCase()
+
+        coVerify(exactly = 1) { animeRepository.fetchEpisodesAiredBetween(any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `skips episode check when all episodes confirmed by count`() = runTest {
+        val fullyCheckedSeason = sampleSeason.copy(episodeCount = 12, lastCheckedAiredEpisodeCount = 12)
+        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
+        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(fullyCheckedSeason)
+        coEvery { animeRepository.fetchWatchOrder(100) } returns Result.success(emptyList())
+
+        useCase()
+
+        coVerify(exactly = 0) { animeRepository.fetchEpisodesAiredBetween(any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `does not skip episode check when checked episode count is below total`() = runTest {
+        val partiallyCheckedSeason = sampleSeason.copy(episodeCount = 12, lastCheckedAiredEpisodeCount = 10)
+        coEvery { animeRepository.getNotificationEnabledAnime() } returns listOf(sampleAnime)
+        coEvery { seasonRepository.getSeasonsForAnime(1L) } returns listOf(partiallyCheckedSeason)
+        coEvery {
+            animeRepository.fetchEpisodesAiredBetween(100, yesterday, fixedDate, 10)
+        } returns Result.success(emptyList())
+        coEvery { animeRepository.fetchWatchOrder(100) } returns Result.success(emptyList())
+
+        useCase()
+
+        coVerify(exactly = 1) { animeRepository.fetchEpisodesAiredBetween(any(), any(), any(), any()) }
+    }
+
+    @Test
     fun `skips per-season notification when anime cannot be found`() = runTest {
         val perSeasonSeason = Season(
             id = 20L, animeId = 99L, malId = 200, title = "Unknown",

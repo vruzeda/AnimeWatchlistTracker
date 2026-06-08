@@ -70,6 +70,12 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
     ): AnimeUpdate.NewEpisodes? {
         if (season.lastEpisodeCheckPerformedDate == today) return null
 
+        if (season.airingStatus == "Finished Airing" && season.latestKnownEpisodeAirDate != null) return null
+
+        val episodeCount = season.episodeCount
+        val checkedCount = season.lastCheckedAiredEpisodeCount ?: 0
+        if (episodeCount != null && episodeCount > 0 && checkedCount >= episodeCount) return null
+
         val isFirstRun = season.latestKnownEpisodeAirDate == null
         val after = season.latestKnownEpisodeAirDate ?: LocalDate.MIN
         val episodesResult = animeRepository.fetchEpisodesAiredBetween(
