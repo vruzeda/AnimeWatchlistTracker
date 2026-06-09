@@ -1,0 +1,1 @@
+• Correction : les OVA et saisons à épisode unique n'affichent plus « En cours de diffusion » à la place de « Diffusion terminée »

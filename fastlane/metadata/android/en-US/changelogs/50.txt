@@ -1,0 +1,1 @@
+• Fixed OVA and single-episode seasons incorrectly showing as "Currently Airing" instead of "Finished Airing"

@@ -1,0 +1,1 @@
+• Corrigido OVAs e temporadas de episódio único exibindo incorretamente "Em exibição" em vez de "Finalizado"

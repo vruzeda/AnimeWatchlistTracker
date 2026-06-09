@@ -262,11 +262,11 @@ class ChiakiServiceImplTest {
     }
 
     @Test
-    fun `parseChiakiDateRange parses single date`() {
+    fun `parseChiakiDateRange parses single date with endDate equal to startDate`() {
         val (startDate, endDate) = ChiakiServiceImpl.parseChiakiDateRange("Jul 23, 2005")
 
         assertThat(startDate).isEqualTo(LocalDate.of(2005, 7, 23))
-        assertThat(endDate).isNull()
+        assertThat(endDate).isEqualTo(LocalDate.of(2005, 7, 23))
     }
 
     @Test
@@ -307,6 +307,19 @@ class ChiakiServiceImplTest {
 
         assertThat(startDate).isNull()
         assertThat(endDate).isNull()
+    }
+
+    @Test
+    fun `single-date OVA entry gets endDate equal to startDate so it is not shown as ongoing`() {
+        val html = buildSampleHtml(
+            entryWithMeta(malId = 14457, typeCode = 2, eps = 1, title = "Hyouka: Motsubeki Mono wa", meta = "Aug 18, 2012 | 1 ep")
+        )
+
+        val result = ChiakiServiceImpl.parseWatchOrderHtml(html)
+
+        assertThat(result).hasSize(1)
+        assertThat(result[0].startDate).isEqualTo(LocalDate.of(2012, 8, 18))
+        assertThat(result[0].endDate).isEqualTo(LocalDate.of(2012, 8, 18))
     }
 
     @Test

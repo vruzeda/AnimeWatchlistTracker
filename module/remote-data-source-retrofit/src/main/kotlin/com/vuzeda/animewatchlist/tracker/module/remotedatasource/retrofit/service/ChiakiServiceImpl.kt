@@ -130,11 +130,13 @@ class ChiakiServiceImpl(
         }
 
         fun parseChiakiDateRange(dateRange: String): Pair<LocalDate?, LocalDate?> {
+            val hasRange  = " – " in dateRange
             val startPart = dateRange.substringBefore(" – ").trim()
             val endPart   = dateRange.substringAfter(" – ", missingDelimiterValue = "").trim()
             val startDate = parseStartDate(startPart, endPart)
-            val endDate   = endPart.takeIf { it.isNotBlank() && it != "?" }
-                ?.let { runCatching { LocalDate.parse(it, FULL_DATE_FORMATTER) }.getOrNull() }
+            val endDate   = if (!hasRange) startDate
+                            else endPart.takeIf { it.isNotBlank() && it != "?" }
+                                ?.let { runCatching { LocalDate.parse(it, FULL_DATE_FORMATTER) }.getOrNull() }
             return startDate to endDate
         }
 
