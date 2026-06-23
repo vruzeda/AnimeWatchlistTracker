@@ -137,7 +137,7 @@ open class SeasonDetailViewModel @Inject constructor(
                             broadcastLocalTime = computeBroadcastLocalTime(season)
                         )
                     } else {
-                        val prevEpisodeCount = currentState.season!!.episodeCount
+                        val prevEpisodeCount = currentState.season.episodeCount
                         val newEpisodeCount = season.episodeCount
                         if (prevEpisodeCount == null && newEpisodeCount != null) {
                             orphanSeasonId = season.id
@@ -540,7 +540,7 @@ open class SeasonDetailViewModel @Inject constructor(
                             broadcastLocalTime = computeBroadcastLocalTime(season)
                         )
                     } else {
-                        val prevEpisodeCount = currentState.season!!.episodeCount
+                        val prevEpisodeCount = currentState.season.episodeCount
                         val newEpisodeCount = season.episodeCount
                         if (prevEpisodeCount == null && newEpisodeCount != null) {
                             orphanSeasonId = season.id
