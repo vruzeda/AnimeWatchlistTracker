@@ -11,8 +11,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.FilledIconButton
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -48,21 +46,12 @@ fun NestedFilterMenuButton(
     val isActive = filterGroups.any { it.selectedIndices != setOf(0) }
 
     Box(modifier = modifier) {
-        if (isActive) {
-            FilledIconButton(onClick = { isExpanded = true }) {
-                Icon(
-                    imageVector = Icons.Default.FilterList,
-                    contentDescription = stringResource(R.string.cd_filter)
-                )
-            }
-        } else {
-            IconButton(onClick = { isExpanded = true }) {
-                Icon(
-                    imageVector = Icons.Default.FilterList,
-                    contentDescription = stringResource(R.string.cd_filter)
-                )
-            }
-        }
+        ActiveStateIconButton(
+            isActive = isActive,
+            onClick = { isExpanded = true },
+            icon = Icons.Default.FilterList,
+            contentDescription = stringResource(R.string.cd_filter)
+        )
 
         DropdownMenu(
             expanded = isExpanded,
