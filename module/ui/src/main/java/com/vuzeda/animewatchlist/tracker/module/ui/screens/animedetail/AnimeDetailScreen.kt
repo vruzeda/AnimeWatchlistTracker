@@ -427,8 +427,8 @@ private fun AnimeDetailContent(
     val anime = checkNotNull(state.anime)
     val displayedSeasons = if (state.typeFilter.isEmpty()) state.seasons
                            else state.seasons.filter { it.type in state.typeFilter }
-    val availableTypes = remember(state.seasons) {
-        state.seasons.map { it.type }.distinct().sorted()
+    val availableTypes = remember(state.seasons, state.typeFilter) {
+        (state.seasons.map { it.type } + state.typeFilter).distinct().sorted()
     }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),

@@ -1,1 +1,3 @@
 • Larger notification icon for better visibility in the status bar
+• Active season type filters are now visible even when they hide all seasons for the current anime
+• Episodes without a title now show a numbered label instead of "TBA"

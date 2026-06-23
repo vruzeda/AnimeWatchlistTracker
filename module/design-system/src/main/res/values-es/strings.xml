@@ -24,7 +24,7 @@
 
     <!-- EpisodeListItem -->
     <string name="episode_number_format">EP %1$d</string>
-    <string name="episode_title_unknown">Por confirmar</string>
+    <string name="episode_number_fallback">Episodio %1$d</string>
     <string name="episode_badge_filler">Relleno</string>
     <string name="episode_badge_recap">Resumen</string>
 

@@ -1,1 +1,3 @@
 • Icône de notification agrandie pour une meilleure visibilité dans la barre d'état
+• Les filtres de type de saison actifs sont désormais visibles même s'ils masquent toutes les saisons de l'anime actuel
+• Les épisodes sans titre affichent maintenant un libellé numéroté au lieu de "À confirmer"

@@ -76,7 +76,7 @@ fun EpisodeListItem(
                     .alpha(contentAlpha)
             ) {
                 Text(
-                    text = title ?: stringResource(R.string.episode_title_unknown),
+                    text = title ?: stringResource(R.string.episode_number_fallback, episodeNumber),
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis

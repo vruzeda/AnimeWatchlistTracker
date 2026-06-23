@@ -24,7 +24,7 @@
 
     <!-- EpisodeListItem -->
     <string name="episode_number_format">EP %1$d</string>
-    <string name="episode_title_unknown">TBA</string>
+    <string name="episode_number_fallback">Episode %1$d</string>
     <string name="episode_badge_filler">Filler</string>
     <string name="episode_badge_recap">Recap</string>
 

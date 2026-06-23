@@ -1,1 +1,3 @@
 • Ícone de notificação maior para melhor visibilidade na barra de status
+• Filtros de tipo de temporada ativos agora são visíveis mesmo quando ocultam todas as temporadas do anime atual
+• Episódios sem título agora exibem um rótulo numerado em vez de "A confirmar"
