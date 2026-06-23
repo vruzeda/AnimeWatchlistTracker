@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import com.vuzeda.animewatchlist.tracker.module.designsystem.R
@@ -78,6 +79,7 @@ fun EpisodeListItem(
                 Text(
                     text = title ?: stringResource(R.string.episode_number_fallback, episodeNumber),
                     style = MaterialTheme.typography.bodyMedium,
+                    fontStyle = if (title == null) FontStyle.Italic else null,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )

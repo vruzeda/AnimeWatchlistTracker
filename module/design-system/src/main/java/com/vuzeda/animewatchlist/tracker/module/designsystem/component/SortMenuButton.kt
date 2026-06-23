@@ -10,8 +10,8 @@ import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,12 +38,20 @@ fun SortMenuButton(
     val isActive = selectedIndex != 0 || !isAscending
 
     Box(modifier = modifier) {
-        IconButton(onClick = { isExpanded = true }) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.Sort,
-                contentDescription = stringResource(R.string.cd_sort),
-                tint = if (isActive) MaterialTheme.colorScheme.primary else LocalContentColor.current
-            )
+        if (isActive) {
+            FilledIconButton(onClick = { isExpanded = true }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.Sort,
+                    contentDescription = stringResource(R.string.cd_sort)
+                )
+            }
+        } else {
+            IconButton(onClick = { isExpanded = true }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.Sort,
+                    contentDescription = stringResource(R.string.cd_sort)
+                )
+            }
         }
 
         DropdownMenu(
