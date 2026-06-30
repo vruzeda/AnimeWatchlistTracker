@@ -133,13 +133,24 @@ class SeasonRepositoryImpl @Inject constructor(
         watchedEpisodeLocalDataSource.getWatchedEpisodeNumbers(seasonId)
 
     override suspend fun upsertSeasonsFromWatchOrder(animeId: Long, seasons: List<SeasonData>) {
-        val existingMalIds = seasonLocalDataSource.getByAnimeId(animeId).map { it.malId }.toSet()
+        val existingSeasons = seasonLocalDataSource.getByAnimeId(animeId)
+        val existingByMalId = existingSeasons.associateBy { it.malId }
         val now = clock.now().toEpochMilliseconds()
         val newSeasons = mutableListOf<Season>()
 
         for ((index, season) in seasons.withIndex()) {
-            if (season.malId in existingMalIds) {
-                seasonLocalDataSource.updateSeasonMetadata(season)
+            val existing = existingByMalId[season.malId]
+            if (existing != null) {
+                seasonLocalDataSource.updateSeasonMetadata(
+                    season.copy(
+                        titleEnglish = season.titleEnglish ?: existing.titleEnglish,
+                        titleJapanese = season.titleJapanese ?: existing.titleJapanese,
+                        imageUrl = season.imageUrl ?: existing.imageUrl,
+                        episodeCount = season.episodeCount ?: existing.episodeCount,
+                        score = season.score ?: existing.score,
+                        airingStatus = season.airingStatus ?: existing.airingStatus,
+                    )
+                )
             } else {
                 newSeasons += season.toSeason(animeId = animeId, orderIndex = index, addedAt = now)
             }

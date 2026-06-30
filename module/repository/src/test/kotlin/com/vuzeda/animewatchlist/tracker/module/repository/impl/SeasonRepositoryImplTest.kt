@@ -339,14 +339,78 @@ class SeasonRepositoryImplTest {
 
     @Test
     fun `upsertSeasonsFromWatchOrder updates metadata for seasons already in the database`() = runTest {
-        val season = SeasonData(malId = 16498, title = "New Title", type = "TV")
+        val season = SeasonData(malId = 16498, title = "New Title", type = "TV", episodeCount = 26)
         coEvery { seasonLocalDataSource.getByAnimeId(1L) } returns listOf(sampleSeason)
         coEvery { seasonLocalDataSource.updateSeasonMetadata(any()) } returns Unit
 
         repository.upsertSeasonsFromWatchOrder(animeId = 1L, seasons = listOf(season))
 
-        coVerify { seasonLocalDataSource.updateSeasonMetadata(season) }
+        val captured = slot<SeasonData>()
+        coVerify { seasonLocalDataSource.updateSeasonMetadata(capture(captured)) }
+        assertThat(captured.captured.malId).isEqualTo(16498)
+        assertThat(captured.captured.title).isEqualTo("New Title")
+        assertThat(captured.captured.episodeCount).isEqualTo(26)
         coVerify(exactly = 0) { seasonLocalDataSource.insertAll(any()) }
+    }
+
+    @Test
+    fun `upsertSeasonsFromWatchOrder preserves existing episodeCount when incoming data has null`() = runTest {
+        val incomingWithoutEpisodeCount = SeasonData(malId = 16498, title = "New Title", type = "TV")
+        coEvery { seasonLocalDataSource.getByAnimeId(1L) } returns listOf(sampleSeason)
+        coEvery { seasonLocalDataSource.updateSeasonMetadata(any()) } returns Unit
+
+        repository.upsertSeasonsFromWatchOrder(animeId = 1L, seasons = listOf(incomingWithoutEpisodeCount))
+
+        val slot = slot<SeasonData>()
+        coVerify { seasonLocalDataSource.updateSeasonMetadata(capture(slot)) }
+        assertThat(slot.captured.episodeCount).isEqualTo(25)
+    }
+
+    @Test
+    fun `upsertSeasonsFromWatchOrder preserves existing nullable metadata fields when incoming data has nulls`() = runTest {
+        val existingSeason = sampleSeason.copy(
+            titleEnglish = "Attack on Titan",
+            titleJapanese = "進撃の巨人",
+            imageUrl = "https://example.com/aot.jpg",
+            score = 8.5,
+            airingStatus = "Finished Airing"
+        )
+        val incomingWithNulls = SeasonData(malId = 16498, title = "Shingeki no Kyojin", type = "TV")
+        coEvery { seasonLocalDataSource.getByAnimeId(1L) } returns listOf(existingSeason)
+        coEvery { seasonLocalDataSource.updateSeasonMetadata(any()) } returns Unit
+
+        repository.upsertSeasonsFromWatchOrder(animeId = 1L, seasons = listOf(incomingWithNulls))
+
+        val slot = slot<SeasonData>()
+        coVerify { seasonLocalDataSource.updateSeasonMetadata(capture(slot)) }
+        assertThat(slot.captured.titleEnglish).isEqualTo("Attack on Titan")
+        assertThat(slot.captured.titleJapanese).isEqualTo("進撃の巨人")
+        assertThat(slot.captured.imageUrl).isEqualTo("https://example.com/aot.jpg")
+        assertThat(slot.captured.score).isEqualTo(8.5)
+        assertThat(slot.captured.airingStatus).isEqualTo("Finished Airing")
+    }
+
+    @Test
+    fun `upsertSeasonsFromWatchOrder uses incoming non-null values over existing ones`() = runTest {
+        val existingSeason = sampleSeason.copy(episodeCount = 25, score = 8.5, airingStatus = "Currently Airing")
+        val incomingWithValues = SeasonData(
+            malId = 16498,
+            title = "New Title",
+            type = "TV",
+            episodeCount = 26,
+            score = 9.0,
+            airingStatus = "Finished Airing"
+        )
+        coEvery { seasonLocalDataSource.getByAnimeId(1L) } returns listOf(existingSeason)
+        coEvery { seasonLocalDataSource.updateSeasonMetadata(any()) } returns Unit
+
+        repository.upsertSeasonsFromWatchOrder(animeId = 1L, seasons = listOf(incomingWithValues))
+
+        val slot = slot<SeasonData>()
+        coVerify { seasonLocalDataSource.updateSeasonMetadata(capture(slot)) }
+        assertThat(slot.captured.episodeCount).isEqualTo(26)
+        assertThat(slot.captured.score).isEqualTo(9.0)
+        assertThat(slot.captured.airingStatus).isEqualTo("Finished Airing")
     }
 
     @Test

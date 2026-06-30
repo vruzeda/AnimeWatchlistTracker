@@ -1,0 +1,1 @@
+• Se corrigió un problema donde la barra de progreso de episodios podía desaparecer al navegar entre las pantallas de detalles de la serie y de la temporada.
