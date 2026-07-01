@@ -1,6 +1,7 @@
 package com.vuzeda.animewatchlist.tracker.module.notification.android
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -39,6 +40,7 @@ class NotificationHelper @Inject constructor(
         notificationManager.createNotificationChannel(channel)
     }
 
+    @SuppressLint("MissingPermission")
     override fun showUpdateNotification(update: AnimeUpdate, titleLanguage: TitleLanguage) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             return
