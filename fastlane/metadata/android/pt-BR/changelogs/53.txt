@@ -1,3 +1,3 @@
 • Corrigido um problema em que a barra de progresso de episódios podia desaparecer ao navegar entre as telas de detalhes da série e da temporada.
 • Corrigido um problema em que as páginas de anime e temporada às vezes falhavam ao carregar devido a problemas temporários de conexão com o MyAnimeList.
-• Corrigido o botão Repetir e o gesto de arrastar para atualizar que não funcionavam quando uma página de temporada ou anime falhava ao carregar.
+• Corrigido que Repetir e arrastar em uma página com falha mostrassem o indicador de arrastar em vez da tela de carregamento completa.

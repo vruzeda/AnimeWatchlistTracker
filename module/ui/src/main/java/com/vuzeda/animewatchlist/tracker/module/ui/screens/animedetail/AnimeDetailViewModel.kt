@@ -203,21 +203,25 @@ class AnimeDetailViewModel @Inject constructor(
         }
     }
 
-    fun refresh() {
+    fun refresh(showFullScreenLoading: Boolean = false) {
         if (animeId > 0) {
-            _uiState.update { it.copy(isRefreshing = true) }
+            _uiState.update {
+                if (showFullScreenLoading) it.copy(isLoading = true) else it.copy(isRefreshing = true)
+            }
             viewModelScope.launch {
                 val refreshFailed = runCatching { refreshAnimeSeasonsUseCase(animeId) }.isFailure
                 val seasons = observeSeasonsForAnimeUseCase(animeId).first()
                 seasons.forEach { season -> runCatching { refreshSeasonDataUseCase(season) } }
                 _uiState.update {
-                    if (refreshFailed) it.copy(isRefreshing = false, snackbarEvent = AnimeDetailSnackbarEvent.RefreshFailed)
-                    else it.copy(isRefreshing = false)
+                    if (refreshFailed) it.copy(isLoading = false, isRefreshing = false, snackbarEvent = AnimeDetailSnackbarEvent.RefreshFailed)
+                    else it.copy(isLoading = false, isRefreshing = false)
                 }
             }
         } else if (malId > 0) {
             val hasExistingAnime = _uiState.value.anime != null
-            _uiState.update { it.copy(isRefreshing = true) }
+            _uiState.update {
+                if (showFullScreenLoading) it.copy(isLoading = true) else it.copy(isRefreshing = true)
+            }
             resolveFromApi(isRefresh = hasExistingAnime)
         }
     }

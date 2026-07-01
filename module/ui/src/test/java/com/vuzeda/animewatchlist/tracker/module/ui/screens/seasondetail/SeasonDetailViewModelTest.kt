@@ -369,6 +369,50 @@ class SeasonDetailViewModelTest {
     }
 
     @Test
+    fun `refresh with showFullScreenLoading shows the full-screen loader instead of the swipe spinner for malId retry`() = runTest {
+        coEvery { fetchSeasonDetailUseCase(50265) } returns Result.failure(Exception("Not found"))
+
+        val viewModel = createViewModel(seasonId = 0L, malId = 50265)
+
+        viewModel.uiState.test {
+            awaitItem()
+            testDispatcher.scheduler.advanceUntilIdle()
+            val notFound = expectMostRecentItem()
+            assertThat(notFound.isNotFound).isTrue()
+
+            val apiDetails = AnimeFullDetails(
+                malId = 50265,
+                title = "Spy x Family",
+                imageUrl = "https://example.com/spy.jpg",
+                type = "TV",
+                episodes = 12,
+                score = 8.53,
+                airingStatus = "Finished Airing",
+                sequels = emptyList(),
+                prequels = emptyList()
+            )
+            coEvery { fetchSeasonDetailUseCase(50265) } returns Result.success(apiDetails)
+            coEvery { fetchEpisodesUseCase(malId = 50265, page = 1) } returns Result.success(
+                EpisodePage(episodes = sampleEpisodes, hasNextPage = false, nextPage = 2)
+            )
+
+            viewModel.refresh(showFullScreenLoading = true)
+
+            val retrying = awaitItem()
+            assertThat(retrying.isLoading).isTrue()
+            assertThat(retrying.isRefreshing).isFalse()
+
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val recovered = expectMostRecentItem()
+            assertThat(recovered.isLoading).isFalse()
+            assertThat(recovered.isNotFound).isFalse()
+            assertThat(recovered.season?.malId).isEqualTo(50265)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `shows not found when both seasonId and malId are zero`() = runTest {
         val viewModel = createViewModel(seasonId = 0L, malId = 0)
 
@@ -671,6 +715,29 @@ class SeasonDetailViewModelTest {
             val refreshed = expectMostRecentItem()
             assertThat(refreshed.isRefreshing).isFalse()
             coVerify(atLeast = 2) { refreshSeasonDataUseCase(sampleSeason) }
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `refresh with showFullScreenLoading sets isLoading instead of isRefreshing for local season`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.refresh(showFullScreenLoading = true)
+
+            val retrying = awaitItem()
+            assertThat(retrying.isLoading).isTrue()
+            assertThat(retrying.isRefreshing).isFalse()
+
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val refreshed = expectMostRecentItem()
+            assertThat(refreshed.isLoading).isFalse()
+            assertThat(refreshed.isRefreshing).isFalse()
             cancelAndIgnoreRemainingEvents()
         }
     }

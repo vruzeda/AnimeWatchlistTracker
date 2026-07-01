@@ -1,3 +1,3 @@
 • Correction d'un problème où la barre de progression des épisodes pouvait disparaître lors de la navigation entre les écrans de détails de la série et de la saison.
 • Correction d'un problème où les pages d'anime et de saison ne se chargeaient parfois pas en raison de problèmes de connexion temporaires avec MyAnimeList.
-• Correction du bouton Réessayer et de l'actualisation par balayage après l'échec du chargement d'une page de saison ou d'anime.
+• Correction du bouton Réessayer et du balayage sur une page en échec, qui affichaient l'indicateur de balayage au lieu de l'écran de chargement complet.

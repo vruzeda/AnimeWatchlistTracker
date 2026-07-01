@@ -330,6 +330,41 @@ class AnimeDetailViewModelTest {
     }
 
     @Test
+    fun `refresh with showFullScreenLoading shows the full-screen loader instead of the swipe spinner for malId retry`() = runTest {
+        coEvery { findAnimeBySeasonMalIdUseCase(50) } returns null
+        coEvery { resolveAnimeUseCase(50) } returns Result.failure(Exception("Not found"))
+
+        val viewModel = createViewModel(animeId = 0L, malId = 50)
+
+        viewModel.uiState.test {
+            awaitItem()
+            val notFound = awaitItem()
+            assertThat(notFound.isNotFound).isTrue()
+
+            coEvery { resolveAnimeUseCase(50) } returns Result.success(
+                ResolvedSeries(
+                    title = "Spy x Family",
+                    seasons = listOf(SeasonData(malId = 50, title = "Season 1", type = "TV"))
+                )
+            )
+
+            viewModel.refresh(showFullScreenLoading = true)
+
+            val retrying = awaitItem()
+            assertThat(retrying.isLoading).isTrue()
+            assertThat(retrying.isRefreshing).isFalse()
+
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val recovered = expectMostRecentItem()
+            assertThat(recovered.isLoading).isFalse()
+            assertThat(recovered.isNotFound).isFalse()
+            assertThat(recovered.anime?.title).isEqualTo("Spy x Family")
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `updateUserRating persists via use case`() = runTest {
         coEvery { updateAnimeUseCase(any()) } coAnswers {
             animeFlow.value = firstArg()
@@ -612,6 +647,29 @@ class AnimeDetailViewModelTest {
             coVerify { refreshAnimeSeasonsUseCase(1L) }
             coVerify { refreshSeasonDataUseCase(sampleSeasons[0]) }
             coVerify { refreshSeasonDataUseCase(sampleSeasons[1]) }
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `refresh with showFullScreenLoading sets isLoading instead of isRefreshing for local anime`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.refresh(showFullScreenLoading = true)
+
+            val retrying = awaitItem()
+            assertThat(retrying.isLoading).isTrue()
+            assertThat(retrying.isRefreshing).isFalse()
+
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val refreshed = expectMostRecentItem()
+            assertThat(refreshed.isLoading).isFalse()
+            assertThat(refreshed.isRefreshing).isFalse()
             cancelAndIgnoreRemainingEvents()
         }
     }
