@@ -358,6 +358,7 @@ Use only well-established, Google-recommended, or widely-adopted industry-standa
 - **Firebase** (Analytics, Firestore, Auth, Crashlytics) — Prod-flavor analytics, feedback, and crash reporting
 - **WorkManager** — Background task scheduling
 - **Timber** — Logging (debug builds only)
+- **error_prone_annotations** — `compileOnly` in `:app`; required at compile time because Hilt/Dagger 2.60's generated `Dagger*Components` reference `@CanIgnoreReturnValue`
 
 Do NOT introduce any dependency that is not listed above without explicit approval. Do not use experimental or alpha-stage libraries in production code.
 
