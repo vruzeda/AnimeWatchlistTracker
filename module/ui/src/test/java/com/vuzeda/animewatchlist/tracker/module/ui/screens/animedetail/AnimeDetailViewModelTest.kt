@@ -278,6 +278,58 @@ class AnimeDetailViewModelTest {
     }
 
     @Test
+    fun `refresh retries the API resolve and recovers from not-found when malId succeeds on retry`() = runTest {
+        coEvery { findAnimeBySeasonMalIdUseCase(50) } returns null
+        coEvery { resolveAnimeUseCase(50) } returns Result.failure(Exception("Not found"))
+
+        val viewModel = createViewModel(animeId = 0L, malId = 50)
+
+        viewModel.uiState.test {
+            awaitItem()
+            val notFound = awaitItem()
+            assertThat(notFound.isNotFound).isTrue()
+
+            coEvery { resolveAnimeUseCase(50) } returns Result.success(
+                ResolvedSeries(
+                    title = "Spy x Family",
+                    seasons = listOf(SeasonData(malId = 50, title = "Season 1", type = "TV"))
+                )
+            )
+
+            viewModel.refresh()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val recovered = expectMostRecentItem()
+            assertThat(recovered.isNotFound).isFalse()
+            assertThat(recovered.isRefreshing).isFalse()
+            assertThat(recovered.anime?.title).isEqualTo("Spy x Family")
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `refresh sets isNotFound again when the retried API resolve still fails`() = runTest {
+        coEvery { findAnimeBySeasonMalIdUseCase(999) } returns null
+        coEvery { resolveAnimeUseCase(999) } returns Result.failure(Exception("Not found"))
+
+        val viewModel = createViewModel(animeId = 0L, malId = 999)
+
+        viewModel.uiState.test {
+            awaitItem()
+            val notFound = awaitItem()
+            assertThat(notFound.isNotFound).isTrue()
+
+            viewModel.refresh()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val stillNotFound = expectMostRecentItem()
+            assertThat(stillNotFound.isNotFound).isTrue()
+            assertThat(stillNotFound.isRefreshing).isFalse()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `updateUserRating persists via use case`() = runTest {
         coEvery { updateAnimeUseCase(any()) } coAnswers {
             animeFlow.value = firstArg()

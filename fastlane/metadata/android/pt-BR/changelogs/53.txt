@@ -1,0 +1,1 @@
+• Corrigido o botão Repetir e o gesto de arrastar para atualizar que não funcionavam quando uma página de temporada ou anime falhava ao carregar

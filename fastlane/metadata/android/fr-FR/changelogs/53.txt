@@ -1,0 +1,1 @@
+• Correction du bouton Réessayer et du geste de balayage pour actualiser qui ne fonctionnaient pas lorsque le chargement d'une page de saison ou d'anime échouait

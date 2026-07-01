@@ -238,6 +238,7 @@ open class SeasonDetailViewModel @Inject constructor(
                         _uiState.update { it.copy(
                             isLoading = false,
                             isNotFound = false,
+                            isRefreshing = false,
                             season = season,
                             isInWatchlist = false,
                             isLoadingEpisodes = true,
@@ -261,16 +262,15 @@ open class SeasonDetailViewModel @Inject constructor(
                     if (isRefresh) {
                         _uiState.update { it.copy(isRefreshing = false) }
                     } else {
-                        _uiState.update { it.copy(isLoading = false, isNotFound = true) }
+                        _uiState.update { it.copy(isLoading = false, isNotFound = true, isRefreshing = false) }
                     }
                 }
         }
     }
 
     fun refresh() {
-        if (_uiState.value.season == null) return
-        _uiState.update { it.copy(isRefreshing = true) }
         if (seasonId > 0) {
+            _uiState.update { it.copy(isRefreshing = true) }
             viewModelScope.launch {
                 val season = observeSeasonByIdUseCase(seasonId).first()
                 if (season != null) runCatching { refreshSeasonDataUseCase(season) }
@@ -283,7 +283,9 @@ open class SeasonDetailViewModel @Inject constructor(
                 if (season != null) loadEpisodes(season.malId, page = 1, resetOnSuccess = true)
             }
         } else if (malId > 0) {
-            loadFromApi(isRefresh = true)
+            val hasExistingSeason = _uiState.value.season != null
+            _uiState.update { it.copy(isRefreshing = true) }
+            loadFromApi(isRefresh = hasExistingSeason)
         }
     }
 

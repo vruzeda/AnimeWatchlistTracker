@@ -1,0 +1,1 @@
+• Se corrigió el botón Reintentar y el gesto de deslizar para actualizar que no funcionaban cuando fallaba la carga de una página de temporada o anime
