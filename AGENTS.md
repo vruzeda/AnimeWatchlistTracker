@@ -425,24 +425,24 @@ Every component must have unit tests. This is non-negotiable.
 - **Branch naming**: `feature/short-description`, `fix/short-description`, `refactor/short-description`.
 - Keep commits small, focused, and atomic. One logical change per commit.
 
-### Milestone-Based Commits
+### Isolated Worktrees (mandatory before editing code)
 
-You MUST commit at each meaningful milestone during development — do NOT wait until the end or wait to be asked. At each meaningful step, the project must be built and all unit tests must pass before committing. Follow this workflow:
+Before making any code changes for a new topic (feature, bug fix, refactor), create a dedicated git worktree with the `EnterWorktree` tool instead of editing files directly in the primary checkout. The user or other agents may be working in the primary checkout at the same time — editing there directly risks clobbering their uncommitted work (e.g. via `git stash`, merges, or overlapping file edits).
 
-1. Complete a logical unit of work (e.g., a new module, a feature, a layer of the architecture).
-2. Build the project and run all unit tests:
-   ```bash
-   ./gradlew :module:domain:test :module:remote-data-source-retrofit:test :module:repository:test :module:use-case:test :module:ui:test
-   ```
-3. Run coverage verification:
-   ```bash
-   ./gradlew jacocoTestCoverageVerification
-   ```
-4. If anything fails, fix it before proceeding.
-5. Once the build and tests succeed, commit with a clear, descriptive message.
-6. Continue to the next unit of work and repeat.
+- One worktree per topic — do not reuse a worktree across unrelated tasks, and do not share it with concurrent unrelated work.
+- Run the full Milestone Checklist (tests, coverage, commits) inside the worktree, on its own branch.
+- Skip this for read-only investigation, research, or planning that makes no file edits.
+- When the topic is complete and verified, merge the worktree branch back into `main` and use `ExitWorktree` (`remove` once merged cleanly, `keep` if work is left unfinished).
 
-This ensures that every commit in the history represents a working, verified state of the project. Never commit code that does not compile or has failing tests.
+### Milestone Checklist (mandatory after every working change)
+
+After completing each logical unit of work, always run these steps **in order** before moving on:
+
+1. **Run all unit tests** — `./gradlew test`
+2. **Verify branch coverage** — `./gradlew jacocoTestCoverageVerification` (must pass ≥80%)
+3. **Commit** — conventional commit (`feat:`, `fix:`, `refactor:`, `test:`, `chore:`) describing *why*, not *what*
+
+Do not skip or defer any of these steps. Do not batch multiple milestones before committing. This ensures that every commit in the history represents a working, verified state of the project. Never commit code that does not compile or has failing tests.
 
 ### Changelog Maintenance
 
