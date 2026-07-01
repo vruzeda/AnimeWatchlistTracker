@@ -1,1 +1,2 @@
 • Fixed an issue where the episode progress bar could disappear after navigating between the series and season detail screens.
+• Fixed anime and season pages occasionally failing to load due to temporary connection issues with MyAnimeList.

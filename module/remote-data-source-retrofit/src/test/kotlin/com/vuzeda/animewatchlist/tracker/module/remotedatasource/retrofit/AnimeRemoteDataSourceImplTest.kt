@@ -9,14 +9,17 @@ import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.An
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.AnimeFullDataDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.AnimeFullResponseDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.AnimeSearchResponseDto
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.ChiakiWatchOrderEntryDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.EpisodeDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.EpisodesPaginationDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.SearchPaginationDto
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.ChiakiRequestException
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.ChiakiService
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.JikanApiService
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import okhttp3.Protocol
 import okhttp3.Request
@@ -27,6 +30,7 @@ import retrofit2.Response
 import java.io.IOException
 import java.time.LocalDate
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class AnimeRemoteDataSourceImplTest {
 
     private val jikanApiService: JikanApiService = mockk()
@@ -117,6 +121,7 @@ class AnimeRemoteDataSourceImplTest {
 
         assertThat(result.isFailure).isTrue()
         assertThat(result.exceptionOrNull()).isInstanceOf(DataError.Network::class.java)
+        coVerify(exactly = 1) { jikanApiService.searchAnime(any()) }
     }
 
     @Test
@@ -127,6 +132,7 @@ class AnimeRemoteDataSourceImplTest {
 
         assertThat(result.isFailure).isTrue()
         assertThat(result.exceptionOrNull()).isInstanceOf(DataError.NotFound::class.java)
+        coVerify(exactly = 1) { jikanApiService.searchAnime(any()) }
     }
 
     @Test
@@ -137,6 +143,7 @@ class AnimeRemoteDataSourceImplTest {
 
         assertThat(result.isFailure).isTrue()
         assertThat(result.exceptionOrNull()).isInstanceOf(DataError.RateLimited::class.java)
+        coVerify(exactly = 3) { jikanApiService.searchAnime(any()) }
     }
 
     @Test
@@ -147,6 +154,7 @@ class AnimeRemoteDataSourceImplTest {
 
         val error = result.exceptionOrNull() as DataError.RateLimited
         assertThat(error.retryAfterMs).isEqualTo(30_000L)
+        coVerify(exactly = 3) { jikanApiService.searchAnime(any()) }
     }
 
     @Test
@@ -157,6 +165,7 @@ class AnimeRemoteDataSourceImplTest {
 
         val error = result.exceptionOrNull() as DataError.RateLimited
         assertThat(error.retryAfterMs).isNull()
+        coVerify(exactly = 3) { jikanApiService.searchAnime(any()) }
     }
 
     @Test
@@ -167,6 +176,7 @@ class AnimeRemoteDataSourceImplTest {
 
         val error = result.exceptionOrNull() as DataError.RateLimited
         assertThat(error.retryAfterMs).isNull()
+        coVerify(exactly = 3) { jikanApiService.searchAnime(any()) }
     }
 
     @Test
@@ -177,6 +187,54 @@ class AnimeRemoteDataSourceImplTest {
 
         assertThat(result.isFailure).isTrue()
         assertThat(result.exceptionOrNull()).isInstanceOf(DataError.Network::class.java)
+        coVerify(exactly = 1) { jikanApiService.searchAnime(any()) }
+    }
+
+    @Test
+    fun `searchAnime retries on HTTP 503 and succeeds on second attempt`() = runTest {
+        val response = AnimeSearchResponseDto(data = listOf(AnimeDataDto(malId = 1, title = "Naruto")))
+        coEvery { jikanApiService.searchAnime(any()) } throws httpException(503) andThen response
+
+        val result = repository.searchAnime("naruto")
+
+        assertThat(result.isSuccess).isTrue()
+        coVerify(exactly = 2) { jikanApiService.searchAnime(any()) }
+    }
+
+    @Test
+    fun `searchAnime exhausts retries and fails with DataError Network on persistent HTTP 504`() = runTest {
+        coEvery { jikanApiService.searchAnime(any()) } throws httpException(504)
+
+        val result = repository.searchAnime("naruto")
+
+        assertThat(result.isFailure).isTrue()
+        assertThat(result.exceptionOrNull()).isInstanceOf(DataError.Network::class.java)
+        coVerify(exactly = 3) { jikanApiService.searchAnime(any()) }
+    }
+
+    @Test
+    fun `searchAnime retries on HTTP 429 honoring Retry-After header and succeeds on second attempt`() = runTest {
+        val response = AnimeSearchResponseDto(data = listOf(AnimeDataDto(malId = 1, title = "Naruto")))
+        coEvery { jikanApiService.searchAnime(any()) } throws
+            httpException(429, headers = mapOf("Retry-After" to "2")) andThen response
+
+        val result = repository.searchAnime("naruto")
+
+        assertThat(result.isSuccess).isTrue()
+        coVerify(exactly = 2) { jikanApiService.searchAnime(any()) }
+        assertThat(testScheduler.currentTime).isEqualTo(2_000L)
+    }
+
+    @Test
+    fun `searchAnime exhausts retries waiting the full uncapped Retry-After on persistent HTTP 429`() = runTest {
+        coEvery { jikanApiService.searchAnime(any()) } throws httpException(429, headers = mapOf("Retry-After" to "120"))
+
+        val result = repository.searchAnime("naruto")
+
+        val error = result.exceptionOrNull() as DataError.RateLimited
+        assertThat(error.retryAfterMs).isEqualTo(120_000L)
+        coVerify(exactly = 3) { jikanApiService.searchAnime(any()) }
+        assertThat(testScheduler.currentTime).isEqualTo(240_000L)
     }
 
     @Test
@@ -359,5 +417,61 @@ class AnimeRemoteDataSourceImplTest {
 
         assertThat(result.malId).isEqualTo(21)
         assertThat(result.title).isEqualTo("One Punch Man")
+    }
+
+    @Test
+    fun `fetchAnimeFullById retries on transient HTTP 504 and returns success on second attempt`() = runTest {
+        val response = AnimeFullResponseDto(
+            data = AnimeFullDataDto(malId = 56735, title = "Oh Boy, Was I Wrong About Her", relations = null)
+        )
+        coEvery { jikanApiService.getAnimeFullById(56735) } throws httpException(504) andThen response
+
+        val result = repository.fetchAnimeFullById(56735)
+
+        assertThat(result.isSuccess).isTrue()
+        assertThat(result.getOrThrow().title).isEqualTo("Oh Boy, Was I Wrong About Her")
+        coVerify(exactly = 2) { jikanApiService.getAnimeFullById(56735) }
+    }
+
+    @Test
+    fun `fetchWatchOrder retries on transient Chiaki 503 and succeeds on second attempt`() = runTest {
+        val entry = ChiakiWatchOrderEntryDto(
+            malId = 1,
+            title = "Naruto",
+            typeCode = 1,
+            episodeCount = 220,
+            score = 8.0,
+            imageUrl = null
+        )
+        coEvery { chiakiService.fetchWatchOrder(1) } throws
+            ChiakiRequestException(malId = 1, statusCode = 503) andThen listOf(entry)
+
+        val result = repository.fetchWatchOrder(1)
+
+        assertThat(result.isSuccess).isTrue()
+        assertThat(result.getOrThrow()).hasSize(1)
+        coVerify(exactly = 2) { chiakiService.fetchWatchOrder(1) }
+    }
+
+    @Test
+    fun `fetchWatchOrder exhausts retries and fails with DataError Unknown on persistent Chiaki 503`() = runTest {
+        coEvery { chiakiService.fetchWatchOrder(1) } throws ChiakiRequestException(malId = 1, statusCode = 503)
+
+        val result = repository.fetchWatchOrder(1)
+
+        assertThat(result.isFailure).isTrue()
+        assertThat(result.exceptionOrNull()).isInstanceOf(DataError.Unknown::class.java)
+        coVerify(exactly = 3) { chiakiService.fetchWatchOrder(1) }
+    }
+
+    @Test
+    fun `fetchWatchOrder does not retry Chiaki failures with non-retryable status codes`() = runTest {
+        coEvery { chiakiService.fetchWatchOrder(1) } throws ChiakiRequestException(malId = 1, statusCode = 404)
+
+        val result = repository.fetchWatchOrder(1)
+
+        assertThat(result.isFailure).isTrue()
+        assertThat(result.exceptionOrNull()).isInstanceOf(DataError.Unknown::class.java)
+        coVerify(exactly = 1) { chiakiService.fetchWatchOrder(1) }
     }
 }

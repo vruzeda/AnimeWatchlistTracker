@@ -19,8 +19,10 @@ import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mapper
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mapper.toSearchResultPage
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mapper.toSeasonDataList
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mapper.toSeasonalAnimePage
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.ChiakiRequestException
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.ChiakiService
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.JikanApiService
+import kotlinx.coroutines.delay
 import retrofit2.HttpException
 import java.io.IOException
 import java.time.LocalDate
@@ -121,16 +123,34 @@ private fun parseAiredDate(aired: String?): LocalDate? {
     }
 }
 
-private inline fun <T> safeApiCall(block: () -> T): Result<T> =
-    try {
-        Result.success(block())
-    } catch (e: IOException) {
-        Result.failure(DataError.Network(throwable = e))
-    } catch (e: HttpException) {
-        Result.failure(mapHttpException(e) as Throwable)
-    } catch (e: Exception) {
-        Result.failure(DataError.Unknown(throwable = e))
+private const val BASE_RETRY_DELAY_MS = 500L
+private const val MAX_RETRY_ATTEMPTS = 2
+private val RETRYABLE_HTTP_CODES = setOf(429, 502, 503, 504)
+
+private suspend fun <T> safeApiCall(block: suspend () -> T): Result<T> {
+    var attempt = 0
+    while (true) {
+        try {
+            return Result.success(block())
+        } catch (e: IOException) {
+            return Result.failure(DataError.Network(throwable = e))
+        } catch (e: HttpException) {
+            if (e.code() !in RETRYABLE_HTTP_CODES || attempt >= MAX_RETRY_ATTEMPTS) {
+                return Result.failure(mapHttpException(e) as Throwable)
+            }
+            delay(e.retryAfterMs() ?: (BASE_RETRY_DELAY_MS * (attempt + 1)))
+            attempt++
+        } catch (e: ChiakiRequestException) {
+            if (e.statusCode !in RETRYABLE_HTTP_CODES || attempt >= MAX_RETRY_ATTEMPTS) {
+                return Result.failure(DataError.Unknown(throwable = e))
+            }
+            delay(BASE_RETRY_DELAY_MS * (attempt + 1))
+            attempt++
+        } catch (e: Exception) {
+            return Result.failure(DataError.Unknown(throwable = e))
+        }
     }
+}
 
 private fun mapHttpException(e: HttpException): DataError = when (e.code()) {
     404 -> DataError.NotFound(errorMessage = e.message())

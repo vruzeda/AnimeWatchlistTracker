@@ -1,1 +1,2 @@
 • Corrigido um problema em que a barra de progresso de episódios podia desaparecer ao navegar entre as telas de detalhes da série e da temporada.
+• Corrigido um problema em que as páginas de anime e temporada às vezes falhavam ao carregar devido a problemas temporários de conexão com o MyAnimeList.
