@@ -33,6 +33,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -231,7 +232,7 @@ fun SeasonsScreen(
                                     imageSharedElementKey = "season_cover_${result.malId}",
                                     score = result.score,
                                     episodeText = result.episodeCount?.let {
-                                        stringResource(R.string.seasons_episode_count, it)
+                                        pluralStringResource(R.plurals.seasons_episode_count, it, it)
                                     },
                                     genresText = result.genres.takeIf { it.isNotEmpty() }?.joinToString(", "),
                                     trailingContent = {

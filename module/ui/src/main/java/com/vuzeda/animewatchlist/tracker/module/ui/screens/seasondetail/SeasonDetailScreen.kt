@@ -56,6 +56,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -349,6 +350,7 @@ fun SeasonDetailScreen(
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
+@Suppress("ModifierParameter", "UseKtx")
 private fun SeasonDetailContent(
     state: SeasonDetailUiState,
     imageModifier: Modifier = Modifier,
@@ -417,7 +419,11 @@ private fun SeasonDetailContent(
                 ) {
                     Text(
                         if (streamingExpanded) stringResource(R.string.season_detail_streaming_show_less)
-                        else stringResource(R.string.season_detail_streaming_show_more, season.streamingLinks.size - collapsedLimit)
+                        else pluralStringResource(
+                            R.plurals.season_detail_streaming_show_more,
+                            season.streamingLinks.size - collapsedLimit,
+                            season.streamingLinks.size - collapsedLimit
+                        )
                     )
                 }
             }
@@ -528,6 +534,7 @@ private fun SeasonDetailContent(
 }
 
 @Composable
+@Suppress("ModifierParameter")
 private fun SeasonHeaderSection(
     season: Season,
     titleLanguage: TitleLanguage,
@@ -586,7 +593,7 @@ private fun SeasonHeaderSection(
             val totalEpisodes = season.episodeCount
             if (totalEpisodes != null) {
                 Text(
-                    text = stringResource(R.string.season_detail_episode_count, totalEpisodes),
+                    text = pluralStringResource(R.plurals.season_detail_episode_count, totalEpisodes, totalEpisodes),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

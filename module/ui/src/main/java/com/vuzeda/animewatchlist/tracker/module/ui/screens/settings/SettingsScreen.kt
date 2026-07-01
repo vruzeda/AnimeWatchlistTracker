@@ -35,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -135,6 +136,12 @@ fun SettingsScreen(
     val dataDeletedMessage = stringResource(R.string.settings_data_deleted)
     val context = LocalContext.current
     val developerOptionsEnabledMessage = stringResource(R.string.settings_developer_options_enabled)
+    val developerOptionsCountdownRemaining = (5 - uiState.developerTapCount).coerceAtLeast(1)
+    val developerOptionsCountdownMessage = pluralStringResource(
+        R.plurals.settings_developer_options_countdown,
+        developerOptionsCountdownRemaining,
+        developerOptionsCountdownRemaining
+    )
     var activeToast by remember { mutableStateOf<Toast?>(null) }
 
     LaunchedEffect(uiState.isDataDeleted) {
@@ -148,15 +155,7 @@ fun SettingsScreen(
         val count = uiState.developerTapCount
         when {
             count >= 5 -> Toast.makeText(context, developerOptionsEnabledMessage, Toast.LENGTH_SHORT)
-            count >= 3 -> {
-                val remaining = 5 - count
-                val message = context.resources.getQuantityString(
-                    R.plurals.settings_developer_options_countdown,
-                    remaining,
-                    remaining
-                )
-                Toast.makeText(context, message, Toast.LENGTH_SHORT)
-            }
+            count >= 3 -> Toast.makeText(context, developerOptionsCountdownMessage, Toast.LENGTH_SHORT)
             else -> null
         }?.also { toast ->
             activeToast?.cancel()

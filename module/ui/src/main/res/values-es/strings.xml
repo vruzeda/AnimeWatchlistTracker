@@ -69,7 +69,11 @@
     <string name="search_initial_subtitle">Encuentra anime de MyAnimeList y agrégalo a tu lista</string>
     <string name="search_no_filter_match_title">Ningún anime coincide con este filtro</string>
     <string name="search_no_filter_match_subtitle">Prueba con otro filtro</string>
-    <string name="search_episode_count">%1$d episodios</string>
+    <plurals name="search_episode_count">
+        <item quantity="one">%1$d episodio</item>
+        <item quantity="many">%1$d episodios</item>
+        <item quantity="other">%1$d episodios</item>
+    </plurals>
     <string name="search_added_to_watchlist">%1$s agregado a la lista</string>
     <string name="cd_already_in_watchlist">Ya está en la lista</string>
     <string name="cd_add_to_watchlist">Agregar a la lista</string>
@@ -126,7 +130,11 @@
     <string name="season_detail_mal_score">Puntuación MAL: ★ %1$s</string>
     <string name="season_detail_section_progress">Progreso</string>
     <string name="season_detail_section_episodes">Episodios</string>
-    <string name="season_detail_episode_count">%1$d episodios</string>
+    <plurals name="season_detail_episode_count">
+        <item quantity="one">%1$d episodio</item>
+        <item quantity="many">%1$d episodios</item>
+        <item quantity="other">%1$d episodios</item>
+    </plurals>
     <string name="season_detail_load_more_episodes">Cargar más episodios</string>
     <string name="season_detail_airing_status">Estado: %1$s</string>
     <string name="season_detail_add_to_watchlist">Agregar a la lista</string>
@@ -142,7 +150,11 @@
     <string name="season_detail_local_broadcast_format">%1$s a las %2$s (%3$s)</string>
     <string name="season_detail_mark_all_episodes_watched">Marcar todos como vistos</string>
     <string name="season_detail_section_streaming">Disponible en</string>
-    <string name="season_detail_streaming_show_more">Mostrar %1$d más</string>
+    <plurals name="season_detail_streaming_show_more">
+        <item quantity="one">Mostrar %1$d más</item>
+        <item quantity="many">Mostrar %1$d más</item>
+        <item quantity="other">Mostrar %1$d más</item>
+    </plurals>
     <string name="season_detail_streaming_show_less">Mostrar menos</string>
 
     <!-- SeasonsScreen -->
@@ -156,7 +168,11 @@
     <string name="seasons_error_title">Algo salió mal</string>
     <string name="seasons_empty_title">No se encontró ningún anime</string>
     <string name="seasons_empty_subtitle">No se encontró ningún anime para esta temporada</string>
-    <string name="seasons_episode_count">%1$d episodios</string>
+    <plurals name="seasons_episode_count">
+        <item quantity="one">%1$d episodio</item>
+        <item quantity="many">%1$d episodios</item>
+        <item quantity="other">%1$d episodios</item>
+    </plurals>
     <string name="seasons_added_to_watchlist">%1$s agregado a la lista</string>
     <string name="seasons_add_sheet_title">Agregar a la lista</string>
     <string name="seasons_load_more">Cargar más</string>
@@ -186,6 +202,7 @@
     <string name="settings_developer_options_enabled">Opciones de desarrollador activadas</string>
     <plurals name="settings_developer_options_countdown">
         <item quantity="one">%1$d toque para activar las opciones de desarrollador</item>
+        <item quantity="many">%1$d toques para activar las opciones de desarrollador</item>
         <item quantity="other">%1$d toques para activar las opciones de desarrollador</item>
     </plurals>
     <string name="developer_title">Desarrollador</string>

@@ -51,6 +51,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -419,6 +420,7 @@ fun AnimeDetailScreen(
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
+@Suppress("ModifierParameter")
 private fun AnimeDetailContent(
     state: AnimeDetailUiState,
     imageModifier: Modifier = Modifier,
@@ -556,6 +558,7 @@ private fun AnimeDetailContent(
 }
 
 @Composable
+@Suppress("ModifierParameter")
 private fun AnimeHeaderSection(
     anime: Anime,
     titleLanguage: TitleLanguage,
@@ -664,7 +667,7 @@ private fun SeasonCardItem(
     } else if (season.isInWatchlist && season.watchedEpisodeCount > 0) {
         stringResource(R.string.anime_detail_season_episodes_no_total, season.watchedEpisodeCount)
     } else {
-        totalEpisodes?.let { stringResource(R.string.season_detail_episode_count, it) }
+        totalEpisodes?.let { pluralStringResource(R.plurals.season_detail_episode_count, it, it) }
     }
 
     val progress = if (season.isInWatchlist && totalEpisodes != null && totalEpisodes > 0) {

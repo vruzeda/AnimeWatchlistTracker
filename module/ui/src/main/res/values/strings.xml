@@ -69,7 +69,10 @@
     <string name="search_initial_subtitle">Find anime from MyAnimeList and add them to your watchlist</string>
     <string name="search_no_filter_match_title">No anime match this filter</string>
     <string name="search_no_filter_match_subtitle">Try a different filter</string>
-    <string name="search_episode_count">%1$d episodes</string>
+    <plurals name="search_episode_count">
+        <item quantity="one">%1$d episode</item>
+        <item quantity="other">%1$d episodes</item>
+    </plurals>
     <string name="search_added_to_watchlist">%1$s added to watchlist</string>
     <string name="cd_already_in_watchlist">Already in watchlist</string>
     <string name="cd_add_to_watchlist">Add to watchlist</string>
@@ -126,7 +129,10 @@
     <string name="season_detail_mal_score">MAL Score: ★ %1$s</string>
     <string name="season_detail_section_progress">Progress</string>
     <string name="season_detail_section_episodes">Episodes</string>
-    <string name="season_detail_episode_count">%1$d episodes</string>
+    <plurals name="season_detail_episode_count">
+        <item quantity="one">%1$d episode</item>
+        <item quantity="other">%1$d episodes</item>
+    </plurals>
     <string name="season_detail_load_more_episodes">Load more episodes</string>
     <string name="season_detail_mark_all_episodes_watched">Mark all as seen</string>
     <string name="season_detail_airing_status">Status: %1$s</string>
@@ -135,7 +141,10 @@
     <string name="season_detail_airing_season">Season: %1$s</string>
     <string name="season_detail_local_broadcast_format">%1$s at %2$s (%3$s)</string>
     <string name="season_detail_section_streaming">Available on</string>
-    <string name="season_detail_streaming_show_more">Show %1$d more</string>
+    <plurals name="season_detail_streaming_show_more">
+        <item quantity="one">Show %1$d more</item>
+        <item quantity="other">Show %1$d more</item>
+    </plurals>
     <string name="season_detail_streaming_show_less">Show less</string>
     <string name="season_detail_add_to_watchlist">Add to Watchlist</string>
     <string name="season_detail_add_sheet_title">Add to watchlist</string>
@@ -156,7 +165,10 @@
     <string name="seasons_error_title">Something went wrong</string>
     <string name="seasons_empty_title">No anime found</string>
     <string name="seasons_empty_subtitle">No anime found for this season</string>
-    <string name="seasons_episode_count">%1$d episodes</string>
+    <plurals name="seasons_episode_count">
+        <item quantity="one">%1$d episode</item>
+        <item quantity="other">%1$d episodes</item>
+    </plurals>
     <string name="seasons_added_to_watchlist">%1$s added to watchlist</string>
     <string name="seasons_add_sheet_title">Add to watchlist</string>
     <string name="seasons_load_more">Load more</string>
