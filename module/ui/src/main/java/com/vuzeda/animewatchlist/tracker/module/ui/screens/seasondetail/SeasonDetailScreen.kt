@@ -118,7 +118,8 @@ fun SeasonDetailScreenRoute(
         onViewFullSeriesClick = viewModel::navigateToAnimeDetail,
         onSnackbarDismissed = viewModel::clearSnackbar,
         onNotificationPermissionDenied = viewModel::notifyPermissionDenied,
-        onRefresh = viewModel::refresh
+        onRefresh = viewModel::refresh,
+        onRetryClick = { viewModel.refresh(showFullScreenLoading = true) }
     )
 }
 
@@ -143,7 +144,8 @@ fun SeasonDetailScreen(
     onViewFullSeriesClick: () -> Unit,
     onSnackbarDismissed: () -> Unit,
     onNotificationPermissionDenied: () -> Unit,
-    onRefresh: () -> Unit = {}
+    onRefresh: () -> Unit = {},
+    onRetryClick: () -> Unit = {}
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -205,13 +207,13 @@ fun SeasonDetailScreen(
                 uiState.isNotFound -> {
                     PullToRefreshBox(
                         isRefreshing = uiState.isRefreshing,
-                        onRefresh = onRefresh,
+                        onRefresh = onRetryClick,
                         modifier = Modifier.fillMaxSize()
                     ) {
                         EmptyStateMessage(
                             modifier = Modifier.fillMaxSize(),
                             title = stringResource(R.string.season_detail_not_found),
-                            onRetry = onRefresh
+                            onRetry = onRetryClick
                         )
                     }
                 }

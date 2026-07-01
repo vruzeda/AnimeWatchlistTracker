@@ -113,6 +113,7 @@ fun AnimeDetailScreenRoute(
         onSnackbarDismissed = viewModel::clearSnackbar,
         onNotificationPermissionDenied = viewModel::notifyPermissionDenied,
         onRefresh = viewModel::refresh,
+        onRetryClick = { viewModel.refresh(showFullScreenLoading = true) },
         onTypeFilterToggled = viewModel::toggleTypeFilter,
         onResetTypeFilter = viewModel::resetTypeFilter,
         onAnimeStatusChipClick = viewModel::showAnimeStatusSheet,
@@ -146,6 +147,7 @@ fun AnimeDetailScreen(
     onSnackbarDismissed: () -> Unit,
     onNotificationPermissionDenied: () -> Unit,
     onRefresh: () -> Unit = {},
+    onRetryClick: () -> Unit = {},
     onTypeFilterToggled: (String) -> Unit = {},
     onResetTypeFilter: () -> Unit = {},
     onAnimeStatusChipClick: () -> Unit = {},
@@ -213,13 +215,13 @@ fun AnimeDetailScreen(
                 uiState.isNotFound -> {
                     PullToRefreshBox(
                         isRefreshing = uiState.isRefreshing,
-                        onRefresh = onRefresh,
+                        onRefresh = onRetryClick,
                         modifier = Modifier.fillMaxSize()
                     ) {
                         EmptyStateMessage(
                             modifier = Modifier.fillMaxSize(),
                             title = stringResource(R.string.anime_detail_not_found),
-                            onRetry = onRefresh
+                            onRetry = onRetryClick
                         )
                     }
                 }

@@ -268,13 +268,16 @@ open class SeasonDetailViewModel @Inject constructor(
         }
     }
 
-    fun refresh() {
+    fun refresh(showFullScreenLoading: Boolean = false) {
         if (seasonId > 0) {
-            _uiState.update { it.copy(isRefreshing = true) }
+            _uiState.update {
+                if (showFullScreenLoading) it.copy(isLoading = true) else it.copy(isRefreshing = true)
+            }
             viewModelScope.launch {
                 val season = observeSeasonByIdUseCase(seasonId).first()
                 if (season != null) runCatching { refreshSeasonDataUseCase(season) }
                 _uiState.update { it.copy(
+                    isLoading = false,
                     isRefreshing = false,
                     isLoadingEpisodes = season != null,
                     hasMoreEpisodes = false,
@@ -284,7 +287,9 @@ open class SeasonDetailViewModel @Inject constructor(
             }
         } else if (malId > 0) {
             val hasExistingSeason = _uiState.value.season != null
-            _uiState.update { it.copy(isRefreshing = true) }
+            _uiState.update {
+                if (showFullScreenLoading) it.copy(isLoading = true) else it.copy(isRefreshing = true)
+            }
             loadFromApi(isRefresh = hasExistingSeason)
         }
     }
