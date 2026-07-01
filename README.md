@@ -21,7 +21,7 @@ Anime Watchlist Tracker is a personal anime management app built for fans who wa
   - 📋 Plan to Watch
   - ⏸️ On Hold
   - ❌ Dropped
-- **Episode Progress** — Track which episode you're on for each season
+- **Episode Progress** — Mark individual episodes as watched per season; progress is tracked automatically from your selections
 - **Rating System** — Rate anime on a 1–10 star scale
 - **Anime Search** — Look up anime info using the Jikan API (unofficial MyAnimeList API) and add to your watchlist
 - **Search Result Browsing** — Tap any search result to view full details, or use the "+" button to add directly to your watchlist
@@ -29,7 +29,7 @@ Anime Watchlist Tracker is a personal anime management app built for fans who wa
 - **Sorting** — Sort your watchlist, search results, and seasonal lists by title, score, or recently added, with reversible ascending/descending direction
 - **Filtering** — Multi-dimensional filtering on the Home screen (by status and notification toggle) and search results (All, In Watchlist, Not in Watchlist)
 - **Home View Mode** — Toggle the Home screen between Anime view (one card per series) and Season view (one card per individual season), configurable in Settings
-- **Notifications** — Enable per-anime notifications to get daily checks for new episodes and new seasons
+- **Notifications** — Enable per-anime notifications for new episodes and/or new seasons, plus a per-season toggle to include or exclude individual seasons from daily episode checks
 - **Title Language** — Choose to display anime titles in Romaji (default), English, or Japanese
 - **Localization** — UI fully translated in English, Brazilian Portuguese, Latin American Spanish, and French
 - **Settings** — Configure title language preference, Home view mode, and delete all data
@@ -42,21 +42,21 @@ _Coming soon_
 
 ## Tech Stack
 
-- **Language** — Kotlin 2.3.21
-- **UI Framework** — Jetpack Compose (BOM 2026.04.01) + Material 3
+- **Language** — Kotlin 2.4.0
+- **UI Framework** — Jetpack Compose (BOM 2026.06.00) + Material 3
 - **Architecture** — Clean Architecture (multi-module) + MVVM
-- **Build System** — Gradle 9.5.0, AGP 9.2.0
+- **Build System** — Gradle 9.6.1, AGP 9.2.1
 - **Local Database** — Room 2.8.4
 - **Preferences** — DataStore 1.2.1
-- **Dependency Injection** — Hilt 2.59.2
-- **Networking** — Retrofit 3.0.0 + OkHttp 5.3.2
+- **Dependency Injection** — Hilt 2.60
+- **Networking** — Retrofit 3.0.0 + OkHttp 5.4.0
 - **JSON Parsing** — Moshi 1.15.2
 - **Serialization** — Kotlinx Serialization 1.11.0
 - **Image Loading** — Coil 2.7.0
 - **Navigation** — Jetpack Navigation Compose 2.9.8
 - **Background Work** — WorkManager 2.11.2
 - **Analytics & Crash Reporting** — Firebase Analytics, Firebase Crashlytics
-- **Async** — Kotlin Coroutines 1.10.2 + Flow
+- **Async** — Kotlin Coroutines 1.11.0 + Flow
 - **Logging** — Timber 5.0.1
 - **API** — Jikan v4 (MyAnimeList unofficial API), chiaki.site (watch order scraping)
 - **Testing** — JUnit 5, MockK, Turbine, Truth
@@ -99,7 +99,7 @@ The project follows **Clean Architecture** with strict layer separation enforced
 - **Search** — Search anime via Jikan API, filter by watchlist status, sort results, and browse or add to your watchlist
 - **Settings** — Title language preference (Romaji/English/Japanese) and delete all data
 - **Anime Detail** — View anime series details with grouped season list, edit status/rating, toggle notifications, progressive prequel/sequel resolution
-- **Season Detail** — View individual season details with paginated episode list and episode progress tracking
+- **Season Detail** — View individual season details with a paginated episode list, per-episode watched toggles, and a per-season notification toggle
 
 ## API
 
@@ -124,7 +124,7 @@ This app uses two external data sources:
 
 ### Prerequisites
 
-- [Android Studio](https://developer.android.com/studio) Meerkat (2025.1.1) or newer (AGP 9.2.0 required)
+- [Android Studio](https://developer.android.com/studio) Meerkat (2025.1.1) or newer (AGP 9.2.1 required)
 - JDK 17+
 - Android SDK with API 37
 
@@ -174,6 +174,7 @@ This app uses two external data sources:
 - [x] Seasonal anime browsing (by year and season)
 - [x] Settings screen with title language preference and delete all data
 - [x] Title language preference (Romaji, English, Japanese)
+- [x] Per-episode watched tracking with per-season notification toggle
 - [ ] Data export/import
 - [ ] Theme customization
 - [ ] Widget for currently watching
