@@ -24,8 +24,8 @@ android {
         applicationId = "com.vuzeda.animewatchlist.tracker"
         minSdk = libs.versions.androidMinSdk.get().toInt()
         targetSdk = libs.versions.androidTargetSdk.get().toInt()
-        versionCode = 52
-        versionName = "7.10"
+        versionCode = 53
+        versionName = "7.11"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
