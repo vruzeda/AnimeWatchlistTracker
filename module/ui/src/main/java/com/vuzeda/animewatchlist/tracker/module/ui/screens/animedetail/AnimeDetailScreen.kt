@@ -211,11 +211,17 @@ fun AnimeDetailScreen(
                     }
                 }
                 uiState.isNotFound -> {
-                    EmptyStateMessage(
-                        modifier = Modifier.fillMaxSize(),
-                        title = stringResource(R.string.anime_detail_not_found),
-                        onRetry = onRefresh
-                    )
+                    PullToRefreshBox(
+                        isRefreshing = uiState.isRefreshing,
+                        onRefresh = onRefresh,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        EmptyStateMessage(
+                            modifier = Modifier.fillMaxSize(),
+                            title = stringResource(R.string.anime_detail_not_found),
+                            onRetry = onRefresh
+                        )
+                    }
                 }
                 else -> {
                     val anime = checkNotNull(uiState.anime)

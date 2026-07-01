@@ -168,6 +168,7 @@ class AnimeDetailViewModel @Inject constructor(
                         _uiState.update { it.copy(
                             isLoading = false,
                             isNotFound = false,
+                            isRefreshing = false,
                             anime = anime,
                             seasons = seasons,
                             isInWatchlist = false,
@@ -196,16 +197,15 @@ class AnimeDetailViewModel @Inject constructor(
                     if (isRefresh) {
                         _uiState.update { it.copy(isRefreshing = false, snackbarEvent = AnimeDetailSnackbarEvent.RefreshFailed) }
                     } else {
-                        _uiState.update { it.copy(isLoading = false, isNotFound = true) }
+                        _uiState.update { it.copy(isLoading = false, isNotFound = true, isRefreshing = false) }
                     }
                 }
         }
     }
 
     fun refresh() {
-        if (_uiState.value.anime == null) return
-        _uiState.update { it.copy(isRefreshing = true) }
         if (animeId > 0) {
+            _uiState.update { it.copy(isRefreshing = true) }
             viewModelScope.launch {
                 val refreshFailed = runCatching { refreshAnimeSeasonsUseCase(animeId) }.isFailure
                 val seasons = observeSeasonsForAnimeUseCase(animeId).first()
@@ -216,7 +216,9 @@ class AnimeDetailViewModel @Inject constructor(
                 }
             }
         } else if (malId > 0) {
-            resolveFromApi(isRefresh = true)
+            val hasExistingAnime = _uiState.value.anime != null
+            _uiState.update { it.copy(isRefreshing = true) }
+            resolveFromApi(isRefresh = hasExistingAnime)
         }
     }
 

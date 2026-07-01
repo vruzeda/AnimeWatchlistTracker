@@ -309,6 +309,66 @@ class SeasonDetailViewModelTest {
     }
 
     @Test
+    fun `refresh retries the API fetch and recovers from not-found when malId succeeds on retry`() = runTest {
+        coEvery { fetchSeasonDetailUseCase(50265) } returns Result.failure(Exception("Not found"))
+
+        val viewModel = createViewModel(seasonId = 0L, malId = 50265)
+
+        viewModel.uiState.test {
+            awaitItem()
+            testDispatcher.scheduler.advanceUntilIdle()
+            val notFound = expectMostRecentItem()
+            assertThat(notFound.isNotFound).isTrue()
+
+            val apiDetails = AnimeFullDetails(
+                malId = 50265,
+                title = "Spy x Family",
+                imageUrl = "https://example.com/spy.jpg",
+                type = "TV",
+                episodes = 12,
+                score = 8.53,
+                airingStatus = "Finished Airing",
+                sequels = emptyList(),
+                prequels = emptyList()
+            )
+            coEvery { fetchSeasonDetailUseCase(50265) } returns Result.success(apiDetails)
+            coEvery { fetchEpisodesUseCase(malId = 50265, page = 1) } returns Result.success(
+                EpisodePage(episodes = sampleEpisodes, hasNextPage = false, nextPage = 2)
+            )
+
+            viewModel.refresh()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val recovered = expectMostRecentItem()
+            assertThat(recovered.isNotFound).isFalse()
+            assertThat(recovered.isRefreshing).isFalse()
+            assertThat(recovered.season?.malId).isEqualTo(50265)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `refresh sets isNotFound again when the retried API fetch still fails`() = runTest {
+        coEvery { fetchSeasonDetailUseCase(999) } returns Result.failure(Exception("Not found"))
+
+        val viewModel = createViewModel(seasonId = 0L, malId = 999)
+
+        viewModel.uiState.test {
+            awaitItem()
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.refresh()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val stillNotFound = expectMostRecentItem()
+            assertThat(stillNotFound.isNotFound).isTrue()
+            assertThat(stillNotFound.isRefreshing).isFalse()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `shows not found when both seasonId and malId are zero`() = runTest {
         val viewModel = createViewModel(seasonId = 0L, malId = 0)
 

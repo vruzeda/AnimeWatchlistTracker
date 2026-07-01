@@ -203,11 +203,17 @@ fun SeasonDetailScreen(
                     }
                 }
                 uiState.isNotFound -> {
-                    EmptyStateMessage(
-                        modifier = Modifier.fillMaxSize(),
-                        title = stringResource(R.string.season_detail_not_found),
-                        onRetry = onRefresh
-                    )
+                    PullToRefreshBox(
+                        isRefreshing = uiState.isRefreshing,
+                        onRefresh = onRefresh,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        EmptyStateMessage(
+                            modifier = Modifier.fillMaxSize(),
+                            title = stringResource(R.string.season_detail_not_found),
+                            onRetry = onRefresh
+                        )
+                    }
                 }
                 else -> {
                     val season = checkNotNull(uiState.season)
