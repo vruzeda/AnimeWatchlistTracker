@@ -28,6 +28,5 @@ class FirestoreFeedbackRemoteDataSource @Inject constructor(
             "contactEmail"   to feedback.contactEmail
         )
         firestore.collection("feedback").add(document).await()
-        Unit
     }
 }
