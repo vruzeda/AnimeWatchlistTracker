@@ -4,6 +4,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.installations.FirebaseInstallations
 import com.vuzeda.animewatchlist.tracker.module.domain.Feedback
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.FeedbackRemoteDataSource
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
@@ -11,7 +12,7 @@ class FirestoreFeedbackRemoteDataSource @Inject constructor(
     private val firestore: FirebaseFirestore
 ) : FeedbackRemoteDataSource {
 
-    override suspend fun submit(feedback: Feedback): Result<Unit> = runCatching {
+    override suspend fun submit(feedback: Feedback): Result<Unit> = try {
         val installationId = FirebaseInstallations.getInstance().id.await()
         val document = mapOf(
             "category"       to feedback.category.name,
@@ -28,5 +29,10 @@ class FirestoreFeedbackRemoteDataSource @Inject constructor(
             "contactEmail"   to feedback.contactEmail
         )
         firestore.collection("feedback").add(document).await()
+        Result.success(Unit)
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        Result.failure(e)
     }
 }

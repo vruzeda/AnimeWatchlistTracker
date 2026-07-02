@@ -19,6 +19,7 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.RemoveAnimeByMalIdUseCas
 import com.vuzeda.animewatchlist.tracker.module.usecase.SearchAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetSearchFilterStateUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -44,6 +45,8 @@ class SearchViewModel @Inject constructor(
     val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
 
     private var pendingDetails: AnimeFullDetails? = null
+    private var searchJob: Job? = null
+    private var currentQueryGeneration = 0
 
     init {
         viewModelScope.launch {
@@ -86,8 +89,12 @@ class SearchViewModel @Inject constructor(
     }
 
     private fun performSearch(query: String) {
+        searchJob?.cancel()
         val filterState = _uiState.value.filterState
-        viewModelScope.launch {
+        currentQueryGeneration++
+        val generation = currentQueryGeneration
+
+        searchJob = viewModelScope.launch {
             _uiState.update {
                 it.copy(
                     isLoading = true,
@@ -99,30 +106,34 @@ class SearchViewModel @Inject constructor(
             }
             searchAnimeUseCase(query, filterState, page = 1)
                 .onSuccess { page ->
-                    _uiState.update {
-                        it.copy(
-                            results = page.results,
-                            hasNextPage = page.hasNextPage,
-                            currentPage = page.currentPage,
-                            isLoading = false,
-                            hasSearched = true
+                    if (generation == currentQueryGeneration) {
+                        _uiState.update {
+                            it.copy(
+                                results = page.results,
+                                hasNextPage = page.hasNextPage,
+                                currentPage = page.currentPage,
+                                isLoading = false,
+                                hasSearched = true
+                            )
+                        }
+                        analyticsTracker.track(
+                            AnalyticsEvent.ExecuteSearch(query.length, page.results.size, true)
                         )
                     }
-                    analyticsTracker.track(
-                        AnalyticsEvent.ExecuteSearch(query.length, page.results.size, true)
-                    )
                 }
                 .onFailure { error ->
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            errorMessage = error.message,
-                            hasSearched = true
+                    if (generation == currentQueryGeneration) {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                errorMessage = error.message,
+                                hasSearched = true
+                            )
+                        }
+                        analyticsTracker.track(
+                            AnalyticsEvent.ExecuteSearch(query.length, 0, false)
                         )
                     }
-                    analyticsTracker.track(
-                        AnalyticsEvent.ExecuteSearch(query.length, 0, false)
-                    )
                 }
         }
     }
@@ -133,23 +144,32 @@ class SearchViewModel @Inject constructor(
         val query = state.query.trim()
         if (query.isBlank()) return
         val nextPage = state.currentPage + 1
+        val generation = currentQueryGeneration
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoadingMore = true) }
             analyticsTracker.track(AnalyticsEvent.LoadMoreResults("search", nextPage))
             searchAnimeUseCase(query, state.filterState, page = nextPage)
                 .onSuccess { page ->
-                    _uiState.update {
-                        it.copy(
-                            results = (it.results + page.results).distinctBy { item -> item.malId },
-                            hasNextPage = page.hasNextPage,
-                            currentPage = page.currentPage,
-                            isLoadingMore = false
-                        )
+                    if (generation == currentQueryGeneration) {
+                        _uiState.update {
+                            it.copy(
+                                results = (it.results + page.results).distinctBy { item -> item.malId },
+                                hasNextPage = page.hasNextPage,
+                                currentPage = page.currentPage,
+                                isLoadingMore = false
+                            )
+                        }
+                    } else {
+                        _uiState.update { it.copy(isLoadingMore = false) }
                     }
                 }
                 .onFailure {
-                    _uiState.update { it.copy(isLoadingMore = false, snackbarEvent = SearchSnackbarEvent.LoadMoreFailed) }
+                    if (generation == currentQueryGeneration) {
+                        _uiState.update { it.copy(isLoadingMore = false, snackbarEvent = SearchSnackbarEvent.LoadMoreFailed) }
+                    } else {
+                        _uiState.update { it.copy(isLoadingMore = false) }
+                    }
                 }
         }
     }
@@ -159,22 +179,31 @@ class SearchViewModel @Inject constructor(
         val query = _uiState.value.query.trim()
         if (query.isBlank()) return
         val filterState = _uiState.value.filterState
+        val generation = currentQueryGeneration
 
         viewModelScope.launch {
             _uiState.update { it.copy(isRefreshing = true, errorMessage = null) }
             searchAnimeUseCase(query, filterState, page = 1)
                 .onSuccess { page ->
-                    _uiState.update {
-                        it.copy(
-                            results = page.results,
-                            hasNextPage = page.hasNextPage,
-                            currentPage = page.currentPage,
-                            isRefreshing = false
-                        )
+                    if (generation == currentQueryGeneration) {
+                        _uiState.update {
+                            it.copy(
+                                results = page.results,
+                                hasNextPage = page.hasNextPage,
+                                currentPage = page.currentPage,
+                                isRefreshing = false
+                            )
+                        }
+                    } else {
+                        _uiState.update { it.copy(isRefreshing = false) }
                     }
                 }
                 .onFailure {
-                    _uiState.update { it.copy(isRefreshing = false, snackbarEvent = SearchSnackbarEvent.RefreshFailed) }
+                    if (generation == currentQueryGeneration) {
+                        _uiState.update { it.copy(isRefreshing = false, snackbarEvent = SearchSnackbarEvent.RefreshFailed) }
+                    } else {
+                        _uiState.update { it.copy(isRefreshing = false) }
+                    }
                 }
         }
     }

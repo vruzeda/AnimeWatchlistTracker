@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.UserPreferencesLocalDataSource
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
@@ -17,10 +18,13 @@ class UserPreferencesDataStore(
     private val context: Context
 ) : UserPreferencesLocalDataSource {
 
+    private fun <T> safeDataStoreFlow(key: androidx.datastore.preferences.core.Preferences.Key<T>, default: T): Flow<T> =
+        context.dataStore.data
+            .map { preferences -> preferences[key] ?: default }
+            .catch { emit(default) }
+
     override fun observeTitleLanguage(): Flow<String> =
-        context.dataStore.data.map { preferences ->
-            preferences[TITLE_LANGUAGE_KEY] ?: DEFAULT_TITLE_LANGUAGE
-        }
+        safeDataStoreFlow(TITLE_LANGUAGE_KEY, DEFAULT_TITLE_LANGUAGE)
 
     override suspend fun setTitleLanguage(language: String) {
         context.dataStore.edit { preferences ->
@@ -29,9 +33,7 @@ class UserPreferencesDataStore(
     }
 
     override fun observeHomeViewMode(): Flow<String> =
-        context.dataStore.data.map { preferences ->
-            preferences[HOME_VIEW_MODE_KEY] ?: DEFAULT_HOME_VIEW_MODE
-        }
+        safeDataStoreFlow(HOME_VIEW_MODE_KEY, DEFAULT_HOME_VIEW_MODE)
 
     override suspend fun setHomeViewMode(mode: String) {
         context.dataStore.edit { preferences ->
@@ -40,9 +42,7 @@ class UserPreferencesDataStore(
     }
 
     override fun observeHomeSortState(): Flow<String> =
-        context.dataStore.data.map { preferences ->
-            preferences[HOME_SORT_STATE_KEY] ?: DEFAULT_HOME_SORT_STATE
-        }
+        safeDataStoreFlow(HOME_SORT_STATE_KEY, DEFAULT_HOME_SORT_STATE)
 
     override suspend fun setHomeSortState(state: String) {
         context.dataStore.edit { preferences ->
@@ -51,9 +51,7 @@ class UserPreferencesDataStore(
     }
 
     override fun observeHomeStatusFilter(): Flow<String> =
-        context.dataStore.data.map { preferences ->
-            preferences[HOME_STATUS_FILTER_KEY] ?: ""
-        }
+        safeDataStoreFlow(HOME_STATUS_FILTER_KEY, "")
 
     override suspend fun setHomeStatusFilter(filter: String) {
         context.dataStore.edit { preferences ->
@@ -62,9 +60,7 @@ class UserPreferencesDataStore(
     }
 
     override fun observeHomeNotificationFilter(): Flow<String> =
-        context.dataStore.data.map { preferences ->
-            preferences[HOME_NOTIFICATION_FILTER_KEY] ?: ""
-        }
+        safeDataStoreFlow(HOME_NOTIFICATION_FILTER_KEY, "")
 
     override suspend fun setHomeNotificationFilter(filter: String) {
         context.dataStore.edit { preferences ->
@@ -73,9 +69,7 @@ class UserPreferencesDataStore(
     }
 
     override fun observeSeasonFilter(): Flow<String> =
-        context.dataStore.data.map { preferences ->
-            preferences[SEASONS_FILTER_KEY] ?: DEFAULT_SEASONS_FILTER
-        }
+        safeDataStoreFlow(SEASONS_FILTER_KEY, DEFAULT_SEASONS_FILTER)
 
     override suspend fun setSeasonFilter(filter: String) {
         context.dataStore.edit { preferences ->
@@ -84,9 +78,7 @@ class UserPreferencesDataStore(
     }
 
     override fun observeSearchFilterState(): Flow<String> =
-        context.dataStore.data.map { preferences ->
-            preferences[SEARCH_FILTER_STATE_KEY] ?: DEFAULT_SEARCH_FILTER_STATE
-        }
+        safeDataStoreFlow(SEARCH_FILTER_STATE_KEY, DEFAULT_SEARCH_FILTER_STATE)
 
     override suspend fun setSearchFilterState(state: String) {
         context.dataStore.edit { preferences ->
@@ -95,9 +87,7 @@ class UserPreferencesDataStore(
     }
 
     override fun observeAnimeDetailTypeFilter(): Flow<String> =
-        context.dataStore.data.map { preferences ->
-            preferences[ANIME_DETAIL_TYPE_FILTER_KEY] ?: ""
-        }
+        safeDataStoreFlow(ANIME_DETAIL_TYPE_FILTER_KEY, "")
 
     override suspend fun setAnimeDetailTypeFilter(filter: String) {
         context.dataStore.edit { preferences ->
@@ -106,9 +96,7 @@ class UserPreferencesDataStore(
     }
 
     override fun observeIsDeveloperOptionsEnabled(): Flow<Boolean> =
-        context.dataStore.data.map { preferences ->
-            preferences[DEVELOPER_OPTIONS_ENABLED_KEY] ?: false
-        }
+        safeDataStoreFlow(DEVELOPER_OPTIONS_ENABLED_KEY, false)
 
     override suspend fun setIsDeveloperOptionsEnabled(enabled: Boolean) {
         context.dataStore.edit { preferences ->
@@ -117,9 +105,7 @@ class UserPreferencesDataStore(
     }
 
     override fun observeIsNotificationDebugInfoEnabled(): Flow<Boolean> =
-        context.dataStore.data.map { preferences ->
-            preferences[NOTIFICATION_DEBUG_INFO_ENABLED_KEY] ?: false
-        }
+        safeDataStoreFlow(NOTIFICATION_DEBUG_INFO_ENABLED_KEY, false)
 
     override suspend fun setIsNotificationDebugInfoEnabled(enabled: Boolean) {
         context.dataStore.edit { preferences ->
@@ -128,9 +114,7 @@ class UserPreferencesDataStore(
     }
 
     override fun observeIsOfflineCoverCachingEnabled(): Flow<Boolean> =
-        context.dataStore.data.map { preferences ->
-            preferences[OFFLINE_COVER_CACHING_KEY] ?: true
-        }
+        safeDataStoreFlow(OFFLINE_COVER_CACHING_KEY, true)
 
     override suspend fun setIsOfflineCoverCachingEnabled(enabled: Boolean) {
         context.dataStore.edit { preferences ->

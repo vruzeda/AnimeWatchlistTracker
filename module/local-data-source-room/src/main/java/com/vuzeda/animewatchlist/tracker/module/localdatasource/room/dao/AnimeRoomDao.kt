@@ -125,6 +125,11 @@ abstract class AnimeRoomDao : AnimeLocalDataSource {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     protected abstract suspend fun upsertAnimeUpdateSchedulerState(entity: AnimeUpdateSchedulerStateEntity)
+
+    @Query("DELETE FROM scheduler_state")
+    abstract suspend fun deleteAllSchedulerState()
+
+    override suspend fun clearSchedulerState() = deleteAllSchedulerState()
 }
 
 private fun AnimeUpdateResult.toDbString() = when (this) {

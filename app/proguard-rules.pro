@@ -2,13 +2,7 @@
 -keepattributes SourceFile,LineNumberTable
 -renamesourcefileattribute SourceFile
 
-# --- Moshi (reflection-based with KotlinJsonAdapterFactory) ---
--keep class com.vuzeda.animewatchlist.tracker.data.api.dto.** { *; }
--keepclassmembers class com.vuzeda.animewatchlist.tracker.data.api.dto.** { *; }
-
-# Keep Moshi's built-in adapters and annotations
--keep class com.squareup.moshi.** { *; }
--keep interface com.squareup.moshi.** { *; }
+# --- Moshi (codegen-based with @JsonClass) ---
 -keepclassmembers @com.squareup.moshi.JsonClass class * { *; }
 -keep @com.squareup.moshi.JsonQualifier @interface *
 -keepclassmembers class kotlin.Metadata { *; }

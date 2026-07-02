@@ -116,6 +116,8 @@ class AnimeRepositoryImpl @Inject constructor(
     override suspend fun deleteAllData() {
         transactionRunner.runInTransaction {
             animeLocalDataSource.deleteAll()
+            episodeLocalDataSource.deleteEpisodesNotInWatchlist()
+            animeLocalDataSource.clearSchedulerState()
         }
     }
 

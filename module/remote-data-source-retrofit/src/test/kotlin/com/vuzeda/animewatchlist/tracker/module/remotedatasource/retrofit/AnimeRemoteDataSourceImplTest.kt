@@ -19,6 +19,7 @@ import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.servic
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import okhttp3.Protocol
@@ -297,23 +298,28 @@ class AnimeRemoteDataSourceImplTest {
     }
 
     @Test
-    fun `fetchEpisodesAiredBetween stops pagination when null aired date encountered`() = runTest {
+    fun `fetchEpisodesAiredBetween skips episodes with null aired dates and continues pagination`() = runTest {
         val after = LocalDate.of(2026, 3, 1)
         val upTo = LocalDate.of(2026, 3, 15)
-        val page = AnimeEpisodesResponseDto(
+        val page1 = AnimeEpisodesResponseDto(
             pagination = EpisodesPaginationDto(lastVisiblePage = 2, hasNextPage = true),
             data = listOf(
                 EpisodeDto(malId = 10, aired = "2026-03-10"),
                 EpisodeDto(malId = 11, aired = null)
             )
         )
-        coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 1) } returns page
+        val page2 = AnimeEpisodesResponseDto(
+            pagination = EpisodesPaginationDto(lastVisiblePage = 2, hasNextPage = false),
+            data = listOf(EpisodeDto(malId = 12, aired = "2026-03-12"))
+        )
+        coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 1) } returns page1
+        coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 2) } returns page2
 
         val result = repository.fetchEpisodesAiredBetween(100, after, upTo, null).getOrThrow()
 
-        assertThat(result).hasSize(1)
-        assertThat(result[0].number).isEqualTo(10)
-        coVerify(exactly = 0) { jikanApiService.getAnimeEpisodes(malId = 100, page = 2) }
+        assertThat(result).hasSize(2)
+        assertThat(result.map { it.number }).containsExactly(10, 12).inOrder()
+        coVerify(exactly = 1) { jikanApiService.getAnimeEpisodes(malId = 100, page = 2) }
     }
 
     @Test
@@ -338,7 +344,24 @@ class AnimeRemoteDataSourceImplTest {
     }
 
     @Test
-    fun `fetchEpisodesAiredBetween starts from correct page based on startingFromEpisode`() = runTest {
+    fun `fetchEpisodesAiredBetween starts from correct page when startingFromEpisode is exact multiple`() = runTest {
+        val after = LocalDate.of(2026, 3, 1)
+        val upTo = LocalDate.of(2026, 3, 15)
+        val page1 = AnimeEpisodesResponseDto(
+            pagination = EpisodesPaginationDto(lastVisiblePage = 2, hasNextPage = false),
+            data = listOf(EpisodeDto(malId = 100, aired = "2026-03-10"))
+        )
+        coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 1) } returns page1
+
+        val result = repository.fetchEpisodesAiredBetween(100, after, upTo, startingFromEpisode = 100).getOrThrow()
+
+        assertThat(result).hasSize(1)
+        assertThat(result[0].number).isEqualTo(100)
+        coVerify(exactly = 1) { jikanApiService.getAnimeEpisodes(malId = 100, page = 1) }
+    }
+
+    @Test
+    fun `fetchEpisodesAiredBetween starts from next page when startingFromEpisode exceeds page boundary`() = runTest {
         val after = LocalDate.of(2026, 3, 1)
         val upTo = LocalDate.of(2026, 3, 15)
         val page2 = AnimeEpisodesResponseDto(
@@ -347,10 +370,12 @@ class AnimeRemoteDataSourceImplTest {
         )
         coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 2) } returns page2
 
-        val result = repository.fetchEpisodesAiredBetween(100, after, upTo, startingFromEpisode = 100).getOrThrow()
+        val result = repository.fetchEpisodesAiredBetween(100, after, upTo, startingFromEpisode = 101).getOrThrow()
 
         assertThat(result).hasSize(1)
+        assertThat(result[0].number).isEqualTo(101)
         coVerify(exactly = 0) { jikanApiService.getAnimeEpisodes(malId = 100, page = 1) }
+        coVerify(exactly = 1) { jikanApiService.getAnimeEpisodes(malId = 100, page = 2) }
     }
 
     @Test
@@ -473,5 +498,18 @@ class AnimeRemoteDataSourceImplTest {
         assertThat(result.isFailure).isTrue()
         assertThat(result.exceptionOrNull()).isInstanceOf(DataError.Unknown::class.java)
         coVerify(exactly = 1) { chiakiService.fetchWatchOrder(1) }
+    }
+
+    @Test
+    fun `searchAnime rethrows CancellationException without retrying`() = runTest {
+        coEvery { jikanApiService.searchAnime(any()) } throws CancellationException("Cancelled")
+
+        val result = runCatching {
+            repository.searchAnime("naruto")
+        }
+
+        assertThat(result.isFailure).isTrue()
+        assertThat(result.exceptionOrNull()).isInstanceOf(CancellationException::class.java)
+        coVerify(exactly = 1) { jikanApiService.searchAnime(any()) }
     }
 }

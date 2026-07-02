@@ -19,7 +19,11 @@ class BackfillAiringSeasonWorker @AssistedInject constructor(
         backfillMissingAiringSeasonUseCase()
         Result.success()
     } catch (e: Exception) {
-        Result.retry()
+        if (runAttemptCount < 3) {
+            Result.retry()
+        } else {
+            Result.failure()
+        }
     }
 
     companion object {

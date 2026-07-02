@@ -45,15 +45,23 @@ class AnimeUpdateWorker @AssistedInject constructor(
                     if (retryAfterMs != null) {
                         animeUpdateScheduler.scheduleRetryAfterRateLimit(retryAfterMs)
                         Result.success()
-                    } else {
+                    } else if (runAttemptCount < 3) {
                         Result.retry()
+                    } else {
+                        recordAnimeUpdateAttemptUseCase(AnimeUpdateResult.Failure(e.message))
+                        Result.failure()
                     }
                 }
                 is DataError.Network -> {
                     recordAnimeUpdateAttemptUseCase(
                         AnimeUpdateResult.WillRetry(reason = e.message, retryCount = runAttemptCount)
                     )
-                    Result.retry()
+                    if (runAttemptCount < 3) {
+                        Result.retry()
+                    } else {
+                        recordAnimeUpdateAttemptUseCase(AnimeUpdateResult.Failure(e.message))
+                        Result.failure()
+                    }
                 }
                 else -> {
                     recordAnimeUpdateAttemptUseCase(AnimeUpdateResult.Failure(e.message))

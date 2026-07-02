@@ -25,4 +25,5 @@ interface AnimeLocalDataSource {
     fun observeLastAnimeUpdateAttemptFailureReason(): Flow<String?>
     fun observeLastAnimeUpdateAttemptRetryCount(): Flow<Int?>
     suspend fun recordAnimeUpdateAttempt(epochMillis: Long, result: AnimeUpdateResult)
+    suspend fun clearSchedulerState()
 }

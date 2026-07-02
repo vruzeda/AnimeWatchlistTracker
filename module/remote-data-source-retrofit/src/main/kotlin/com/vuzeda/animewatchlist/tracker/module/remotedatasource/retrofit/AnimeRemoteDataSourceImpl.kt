@@ -22,6 +22,7 @@ import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mapper
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.ChiakiRequestException
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.ChiakiService
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.JikanApiService
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import retrofit2.HttpException
 import java.io.IOException
@@ -66,7 +67,7 @@ class AnimeRemoteDataSourceImpl @Inject constructor(
         upTo: LocalDate,
         startingFromEpisode: Int?
     ): Result<List<EpisodeInfo>> = safeApiCall {
-        val startPage = maxOf(1, (startingFromEpisode ?: 0) / 100 + 1)
+        val startPage = maxOf(1, ((startingFromEpisode ?: 0) - 1) / 100 + 1)
         val accumulated = mutableListOf<EpisodeInfo>()
         var page = startPage
         var stopPagination = false
@@ -74,14 +75,18 @@ class AnimeRemoteDataSourceImpl @Inject constructor(
         while (!stopPagination) {
             val response = jikanApiService.getAnimeEpisodes(malId = malId, page = page)
 
+            var pageExceedsUpTo = false
             for (episode in response.data) {
                 val airedDate = parseAiredDate(episode.aired)
-                if (airedDate == null || airedDate.isAfter(upTo)) {
-                    stopPagination = true
-                    break
-                }
-                if (airedDate.isAfter(after)) {
-                    accumulated += episode.toEpisodeInfo()
+                if (airedDate != null) {
+                    if (airedDate.isAfter(upTo)) {
+                        pageExceedsUpTo = true
+                        stopPagination = true
+                        break
+                    }
+                    if (airedDate.isAfter(after)) {
+                        accumulated += episode.toEpisodeInfo()
+                    }
                 }
             }
 
@@ -132,6 +137,8 @@ private suspend fun <T> safeApiCall(block: suspend () -> T): Result<T> {
     while (true) {
         try {
             return Result.success(block())
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: IOException) {
             return Result.failure(DataError.Network(throwable = e))
         } catch (e: HttpException) {
@@ -142,7 +149,7 @@ private suspend fun <T> safeApiCall(block: suspend () -> T): Result<T> {
             attempt++
         } catch (e: ChiakiRequestException) {
             if (e.statusCode !in RETRYABLE_HTTP_CODES || attempt >= MAX_RETRY_ATTEMPTS) {
-                return Result.failure(DataError.Unknown(throwable = e))
+                return Result.failure(mapChiakiException(e) as Throwable)
             }
             delay(BASE_RETRY_DELAY_MS * (attempt + 1))
             attempt++
@@ -155,6 +162,12 @@ private suspend fun <T> safeApiCall(block: suspend () -> T): Result<T> {
 private fun mapHttpException(e: HttpException): DataError = when (e.code()) {
     404 -> DataError.NotFound(errorMessage = e.message())
     429 -> DataError.RateLimited(retryAfterMs = e.retryAfterMs())
+    else -> DataError.Network(throwable = e)
+}
+
+private fun mapChiakiException(e: ChiakiRequestException): DataError = when (e.statusCode) {
+    404 -> DataError.NotFound(errorMessage = e.message)
+    429 -> DataError.RateLimited(retryAfterMs = null)
     else -> DataError.Network(throwable = e)
 }
 

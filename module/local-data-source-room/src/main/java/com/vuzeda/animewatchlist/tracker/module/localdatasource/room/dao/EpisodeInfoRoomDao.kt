@@ -1,6 +1,7 @@
 package com.vuzeda.animewatchlist.tracker.module.localdatasource.room.dao
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Query
 import androidx.room.Upsert
 import com.vuzeda.animewatchlist.tracker.module.domain.EpisodeInfo
@@ -23,4 +24,9 @@ abstract class EpisodeInfoRoomDao : EpisodeLocalDataSource {
 
     override suspend fun upsertEpisodes(malId: Int, episodes: List<EpisodeInfo>) =
         upsertAllEntities(episodes.map { it.toEntity(malId) })
+
+    @Query("DELETE FROM episode_info WHERE malId NOT IN (SELECT malId FROM season)")
+    abstract suspend fun deleteOrphanedEpisodes()
+
+    override suspend fun deleteEpisodesNotInWatchlist() = deleteOrphanedEpisodes()
 }
