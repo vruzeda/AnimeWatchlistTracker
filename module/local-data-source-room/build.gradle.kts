@@ -48,6 +48,7 @@ dependencies {
     ksp(libs.room.compiler)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.moshi)
 
     testImplementation(libs.junit5.api)
     testRuntimeOnly(libs.junit5.engine)

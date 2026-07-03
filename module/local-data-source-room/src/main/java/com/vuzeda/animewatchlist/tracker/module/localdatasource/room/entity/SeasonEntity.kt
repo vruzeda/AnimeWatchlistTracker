@@ -4,10 +4,33 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.squareup.moshi.Moshi
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.StreamingInfo
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import java.time.LocalDate
+
+private val moshi = Moshi.Builder().build()
+
+private fun streamingInfoToJson(links: List<StreamingInfo>): String {
+    val jsonArray = moshi.adapter(List::class.java).toJson(links.map { mapOf("name" to it.name, "url" to it.url) })
+    return jsonArray ?: "[]"
+}
+
+private fun jsonToStreamingInfo(json: String): List<StreamingInfo> {
+    if (json.isBlank()) return emptyList()
+    return try {
+        @Suppress("UNCHECKED_CAST")
+        val list = moshi.adapter(List::class.java).fromJson(json) as? List<Map<String, String>> ?: emptyList()
+        list.mapNotNull { entry ->
+            val name = entry["name"] ?: return@mapNotNull null
+            val url = entry["url"] ?: return@mapNotNull null
+            StreamingInfo(name = name, url = url)
+        }
+    } catch (e: Exception) {
+        emptyList()
+    }
+}
 
 @Entity(
     tableName = "season",
@@ -19,7 +42,10 @@ import java.time.LocalDate
             onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [Index(value = ["animeId"])]
+    indices = [
+        Index(value = ["animeId"]),
+        Index(value = ["malId"], unique = true)
+    ]
 )
 data class SeasonEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -68,10 +94,7 @@ fun SeasonEntity.toDomainModel(): Season = Season(
     broadcastDay = broadcastDay,
     broadcastTime = broadcastTime,
     broadcastTimezone = broadcastTimezone,
-    streamingLinks = if (streamingLinks.isBlank()) emptyList() else streamingLinks.split("\n").mapNotNull { entry ->
-        val parts = entry.split("\t")
-        if (parts.size >= 2) StreamingInfo(name = parts[0], url = parts[1]) else null
-    },
+    streamingLinks = jsonToStreamingInfo(streamingLinks),
     lastCheckedAiredEpisodeCount = lastCheckedAiredEpisodeCount,
     latestKnownEpisodeAirDate = latestKnownEpisodeAirDate,
     lastEpisodeCheckPerformedDate = lastEpisodeCheckPerformedDate,
@@ -100,7 +123,7 @@ fun Season.toEntity(): SeasonEntity = SeasonEntity(
     broadcastDay = broadcastDay,
     broadcastTime = broadcastTime,
     broadcastTimezone = broadcastTimezone,
-    streamingLinks = streamingLinks.joinToString("\n") { "${it.name}\t${it.url}" },
+    streamingLinks = streamingInfoToJson(streamingLinks),
     lastCheckedAiredEpisodeCount = lastCheckedAiredEpisodeCount,
     latestKnownEpisodeAirDate = latestKnownEpisodeAirDate,
     lastEpisodeCheckPerformedDate = lastEpisodeCheckPerformedDate,
