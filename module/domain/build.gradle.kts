@@ -1,28 +1,7 @@
 plugins {
-    alias(libs.plugins.kotlin.jvm)
-    `java-library`
-}
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-}
-
-kotlin {
-    compilerOptions {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
-    }
+    id("kotlin-library")
 }
 
 dependencies {
     implementation(libs.kotlinx.coroutines.core)
-
-    testImplementation(libs.junit5.api)
-    testRuntimeOnly(libs.junit5.engine)
-    testRuntimeOnly(libs.junit.platform.launcher)
-    testImplementation(libs.truth)
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
 }

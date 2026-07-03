@@ -8,6 +8,10 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
+dependencies {
+    compileOnly(libs.kotlin.gradle.plugin)
+}
+
 gradlePlugin {
     plugins {
         register("kotlin-library") {
