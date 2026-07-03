@@ -7,6 +7,7 @@ import androidx.work.WorkerParameters
 import com.vuzeda.animewatchlist.tracker.module.usecase.BackfillMissingAiringSeasonUseCase
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.CancellationException
 
 @HiltWorker
 class BackfillAiringSeasonWorker @AssistedInject constructor(
@@ -18,6 +19,8 @@ class BackfillAiringSeasonWorker @AssistedInject constructor(
     override suspend fun doWork(): Result = try {
         backfillMissingAiringSeasonUseCase()
         Result.success()
+    } catch (e: CancellationException) {
+        throw e
     } catch (e: Exception) {
         if (runAttemptCount < 3) {
             Result.retry()

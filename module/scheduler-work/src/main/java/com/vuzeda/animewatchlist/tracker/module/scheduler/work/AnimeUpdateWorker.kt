@@ -13,6 +13,7 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseC
 import com.vuzeda.animewatchlist.tracker.module.usecase.RecordAnimeUpdateAttemptUseCase
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 
 @HiltWorker
@@ -35,6 +36,8 @@ class AnimeUpdateWorker @AssistedInject constructor(
             }
             recordAnimeUpdateAttemptUseCase(AnimeUpdateResult.Success)
             Result.success()
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             when (e) {
                 is DataError.RateLimited -> {

@@ -48,7 +48,6 @@ dependencies {
 
     implementation(libs.javax.inject)
 
-    testImplementation(libs.androidx.work.testing)
     testImplementation(libs.junit5.api)
     testRuntimeOnly(libs.junit5.engine)
     testRuntimeOnly(libs.junit.platform.launcher)

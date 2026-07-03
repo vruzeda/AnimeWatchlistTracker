@@ -1,54 +1,65 @@
 package com.vuzeda.animewatchlist.tracker.module.scheduler.work
 
 import android.content.Context
-import androidx.test.core.app.ApplicationProvider
 import androidx.work.ListenableWorker
-import androidx.work.testing.TestListenableWorkerBuilder
+import androidx.work.WorkerParameters
+import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.usecase.BackfillMissingAiringSeasonUseCase
 import io.mockk.coEvery
 import io.mockk.coJustRun
+import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
-import com.google.common.truth.Truth.assertThat
 
 class BackfillAiringSeasonWorkerTest {
 
-    private val context = ApplicationProvider.getApplicationContext<Context>()
-    private val backfillUseCase: BackfillMissingAiringSeasonUseCase = mockk()
+    private val backfillMissingAiringSeasonUseCase: BackfillMissingAiringSeasonUseCase = mockk()
 
-    private fun createWorker(): BackfillAiringSeasonWorker {
-        return TestListenableWorkerBuilder<BackfillAiringSeasonWorker>(context)
-            .setBackgroundScheduler(androidx.work.CoroutineWorker::class.java)
-            .build()
+    private fun createWorker(runAttemptCount: Int = 0): BackfillAiringSeasonWorker {
+        val workerParams = mockk<WorkerParameters>(relaxed = true)
+        every { workerParams.runAttemptCount } returns runAttemptCount
+        return BackfillAiringSeasonWorker(
+            appContext = mockk<Context>(relaxed = true),
+            workerParams = workerParams,
+            backfillMissingAiringSeasonUseCase = backfillMissingAiringSeasonUseCase
+        )
     }
 
     @Test
     fun `doWork returns success when backfill completes`() = runTest {
-        coJustRun { backfillUseCase() }
+        coJustRun { backfillMissingAiringSeasonUseCase() }
 
-        // Test demonstrates structure; actual Result assertion requires Hilt injection
-        // When doWork executes: should call backfillUseCase() and return Result.success()
+        val result = createWorker().doWork()
+
+        assertThat(result).isInstanceOf(ListenableWorker.Result.Success::class.java)
     }
 
     @Test
-    fun `doWork retries on exception when under attempt cap`() = runTest {
-        coEvery { backfillUseCase() } throws RuntimeException("Backfill failed")
+    fun `doWork retries on error when under attempt cap`() = runTest {
+        coEvery { backfillMissingAiringSeasonUseCase() } throws IllegalStateException("backfill failed")
 
-        // When runAttemptCount < 3: should return Result.retry()
+        val result = createWorker(runAttemptCount = 2).doWork()
+
+        assertThat(result).isInstanceOf(ListenableWorker.Result.Retry::class.java)
     }
 
     @Test
-    fun `doWork fails after exceeding retry cap`() = runTest {
-        coEvery { backfillUseCase() } throws RuntimeException("Persistent backfill failure")
+    fun `doWork fails on error when attempt cap is reached`() = runTest {
+        coEvery { backfillMissingAiringSeasonUseCase() } throws IllegalStateException("backfill failed")
 
-        // When runAttemptCount >= 3: should return Result.failure()
+        val result = createWorker(runAttemptCount = 3).doWork()
+
+        assertThat(result).isInstanceOf(ListenableWorker.Result.Failure::class.java)
     }
 
     @Test
-    fun `doWork handles all exception types with same retry logic`() = runTest {
-        coEvery { backfillUseCase() } throws Exception("Generic error")
+    fun `doWork rethrows CancellationException instead of retrying`() = runTest {
+        coEvery { backfillMissingAiringSeasonUseCase() } throws CancellationException("cancelled")
 
-        // Exception type doesn't matter; only runAttemptCount determines retry behavior
+        val thrown = runCatching { createWorker().doWork() }.exceptionOrNull()
+
+        assertThat(thrown).isInstanceOf(CancellationException::class.java)
     }
 }

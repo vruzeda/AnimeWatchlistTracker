@@ -1,9 +1,11 @@
 package com.vuzeda.animewatchlist.tracker.module.scheduler.work
 
 import android.content.Context
-import androidx.test.core.app.ApplicationProvider
 import androidx.work.ListenableWorker
-import androidx.work.testing.TestListenableWorkerBuilder
+import androidx.work.WorkerParameters
+import com.google.common.truth.Truth.assertThat
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdate
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdateResult
 import com.vuzeda.animewatchlist.tracker.module.domain.DataError
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.notification.AnimeUpdateNotifier
@@ -12,94 +14,125 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.CheckAnimeUpdatesUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.RecordAnimeUpdateAttemptUseCase
 import io.mockk.coEvery
-import io.mockk.coJustRun
+import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
+import java.io.IOException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
-import com.google.common.truth.Truth.assertThat
 
 class AnimeUpdateWorkerTest {
 
-    private val context = ApplicationProvider.getApplicationContext<Context>()
-    private val notifier: AnimeUpdateNotifier = mockk()
-    private val scheduler: AnimeUpdateScheduler = mockk()
-    private val checkUpdates: CheckAnimeUpdatesUseCase = mockk()
-    private val getLanguage: ObserveTitleLanguageUseCase = mockk()
-    private val recordAttempt: RecordAnimeUpdateAttemptUseCase = mockk()
+    private val animeUpdateNotifier: AnimeUpdateNotifier = mockk(relaxed = true)
+    private val animeUpdateScheduler: AnimeUpdateScheduler = mockk(relaxed = true)
+    private val checkAnimeUpdatesUseCase: CheckAnimeUpdatesUseCase = mockk()
+    private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
+    private val recordAnimeUpdateAttemptUseCase: RecordAnimeUpdateAttemptUseCase = mockk(relaxed = true)
 
     private fun createWorker(runAttemptCount: Int = 0): AnimeUpdateWorker {
-        return TestListenableWorkerBuilder<AnimeUpdateWorker>(context)
-            .setBackgroundScheduler(androidx.work.CoroutineWorker::class.java)
-            .build().apply {
-                // Note: TestListenableWorkerBuilder doesn't directly support runAttemptCount,
-                // so this test focuses on the core logic
-            }
+        val workerParams = mockk<WorkerParameters>(relaxed = true)
+        every { workerParams.runAttemptCount } returns runAttemptCount
+        return AnimeUpdateWorker(
+            appContext = mockk<Context>(relaxed = true),
+            workerParams = workerParams,
+            animeUpdateNotifier = animeUpdateNotifier,
+            animeUpdateScheduler = animeUpdateScheduler,
+            checkAnimeUpdatesUseCase = checkAnimeUpdatesUseCase,
+            observeTitleLanguageUseCase = observeTitleLanguageUseCase,
+            recordAnimeUpdateAttemptUseCase = recordAnimeUpdateAttemptUseCase
+        )
     }
 
     @Test
-    fun `doWork returns success when updates are fetched and notifications sent`() = runTest {
-        coJustRun { notifier.showUpdateNotification(any(), any()) }
-        coEvery { checkUpdates() } returns emptyList()
-        coEvery { getLanguage() } returns flowOf(TitleLanguage.ENGLISH)
-        coJustRun { recordAttempt(any()) }
+    fun `doWork notifies each update and records success`() = runTest {
+        val update = mockk<AnimeUpdate>()
+        every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.ENGLISH)
+        coEvery { checkAnimeUpdatesUseCase() } returns listOf(update)
 
-        // Test would verify Result.success() but requires Hilt injection
-        // This demonstrates the test structure
+        val result = createWorker().doWork()
+
+        assertThat(result).isInstanceOf(ListenableWorker.Result.Success::class.java)
+        verify { animeUpdateNotifier.showUpdateNotification(update, TitleLanguage.ENGLISH) }
+        coVerify { recordAnimeUpdateAttemptUseCase(AnimeUpdateResult.Success) }
     }
 
     @Test
-    fun `doWork records success result after showing notifications`() = runTest {
-        coEvery { checkUpdates() } returns emptyList()
-        coEvery { getLanguage() } returns flowOf(TitleLanguage.ENGLISH)
-        coJustRun { recordAttempt(any()) }
+    fun `doWork schedules rate limit retry and succeeds when retryAfterMs is provided`() = runTest {
+        every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.ENGLISH)
+        coEvery { checkAnimeUpdatesUseCase() } throws DataError.RateLimited(retryAfterMs = 3_600_000)
 
-        // Verify recordAttempt is called with Success result
+        val result = createWorker().doWork()
+
+        assertThat(result).isInstanceOf(ListenableWorker.Result.Success::class.java)
+        verify { animeUpdateScheduler.scheduleRetryAfterRateLimit(3_600_000) }
+        coVerify { recordAnimeUpdateAttemptUseCase(ofType<AnimeUpdateResult.WillRetry>()) }
     }
 
     @Test
-    fun `doWork handles network error and retries when under attempt cap`() = runTest {
-        coEvery { getLanguage() } returns flowOf(TitleLanguage.ENGLISH)
-        coEvery { checkUpdates() } throws DataError.Network("Connection failed")
-        coJustRun { recordAttempt(any()) }
+    fun `doWork retries on rate limit without retryAfterMs when under attempt cap`() = runTest {
+        every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.ENGLISH)
+        coEvery { checkAnimeUpdatesUseCase() } throws DataError.RateLimited(retryAfterMs = null)
 
-        // Should retry when runAttemptCount < 3
+        val result = createWorker(runAttemptCount = 2).doWork()
+
+        assertThat(result).isInstanceOf(ListenableWorker.Result.Retry::class.java)
     }
 
     @Test
-    fun `doWork handles rate limit error with retry scheduling`() = runTest {
-        coEvery { getLanguage() } returns flowOf(TitleLanguage.ENGLISH)
-        coEvery { checkUpdates() } throws DataError.RateLimited("Too many requests", retryAfterMs = 3600000)
-        coJustRun { scheduler.scheduleRetryAfterRateLimit(any()) }
-        coJustRun { recordAttempt(any()) }
+    fun `doWork fails on rate limit without retryAfterMs when attempt cap is reached`() = runTest {
+        every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.ENGLISH)
+        coEvery { checkAnimeUpdatesUseCase() } throws DataError.RateLimited(retryAfterMs = null)
 
-        // Should schedule retry after rate limit and return success
+        val result = createWorker(runAttemptCount = 3).doWork()
+
+        assertThat(result).isInstanceOf(ListenableWorker.Result.Failure::class.java)
+        coVerify { recordAnimeUpdateAttemptUseCase(ofType<AnimeUpdateResult.Failure>()) }
     }
 
     @Test
-    fun `doWork fails after exceeding retry attempt cap`() = runTest {
-        coEvery { getLanguage() } returns flowOf(TitleLanguage.ENGLISH)
-        coEvery { checkUpdates() } throws DataError.Network("Persistent network failure")
-        coJustRun { recordAttempt(any()) }
+    fun `doWork retries on network error when under attempt cap`() = runTest {
+        every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.ENGLISH)
+        coEvery { checkAnimeUpdatesUseCase() } throws DataError.Network(throwable = IOException("offline"))
 
-        // Should return failure when runAttemptCount >= 3
+        val result = createWorker(runAttemptCount = 0).doWork()
+
+        assertThat(result).isInstanceOf(ListenableWorker.Result.Retry::class.java)
+        coVerify { recordAnimeUpdateAttemptUseCase(ofType<AnimeUpdateResult.WillRetry>()) }
     }
 
     @Test
-    fun `doWork handles rate limit error without retryAfterMs`() = runTest {
-        coEvery { getLanguage() } returns flowOf(TitleLanguage.ENGLISH)
-        coEvery { checkUpdates() } throws DataError.RateLimited("Too many requests", retryAfterMs = null)
-        coJustRun { recordAttempt(any()) }
+    fun `doWork fails on network error when attempt cap is reached`() = runTest {
+        every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.ENGLISH)
+        coEvery { checkAnimeUpdatesUseCase() } throws DataError.Network(throwable = IOException("offline"))
 
-        // Should retry when runAttemptCount < 3
+        val result = createWorker(runAttemptCount = 3).doWork()
+
+        assertThat(result).isInstanceOf(ListenableWorker.Result.Failure::class.java)
+        coVerify { recordAnimeUpdateAttemptUseCase(ofType<AnimeUpdateResult.Failure>()) }
     }
 
     @Test
-    fun `doWork handles unknown exceptions`() = runTest {
-        coEvery { getLanguage() } returns flowOf(TitleLanguage.ENGLISH)
-        coEvery { checkUpdates() } throws RuntimeException("Unknown error")
-        coJustRun { recordAttempt(any()) }
+    fun `doWork fails without retrying on unexpected errors`() = runTest {
+        every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.ENGLISH)
+        coEvery { checkAnimeUpdatesUseCase() } throws IllegalStateException("boom")
 
-        // Should record failure immediately (not retryable)
+        val result = createWorker().doWork()
+
+        assertThat(result).isInstanceOf(ListenableWorker.Result.Failure::class.java)
+        coVerify { recordAnimeUpdateAttemptUseCase(ofType<AnimeUpdateResult.Failure>()) }
+    }
+
+    @Test
+    fun `doWork rethrows CancellationException without recording an attempt`() = runTest {
+        every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.ENGLISH)
+        coEvery { checkAnimeUpdatesUseCase() } throws CancellationException("cancelled")
+
+        val thrown = runCatching { createWorker().doWork() }.exceptionOrNull()
+
+        assertThat(thrown).isInstanceOf(CancellationException::class.java)
+        coVerify(exactly = 0) { recordAnimeUpdateAttemptUseCase(any()) }
     }
 }
