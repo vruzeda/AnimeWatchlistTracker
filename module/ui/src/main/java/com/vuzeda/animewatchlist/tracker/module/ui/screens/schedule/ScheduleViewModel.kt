@@ -94,8 +94,18 @@ class ScheduleViewModel @Inject constructor(
     }
 }
 
-private fun String.toAnimeSeason(): AnimeSeason? =
-    AnimeSeason.entries.firstOrNull { it.apiValue.equals(this, ignoreCase = true) }
+private fun String.toAnimeSeason(): AnimeSeason? {
+    val target = this.lowercase()
+    return AnimeSeason.entries.firstOrNull { season ->
+        val apiValue = when (season) {
+            AnimeSeason.WINTER -> "winter"
+            AnimeSeason.SPRING -> "spring"
+            AnimeSeason.SUMMER -> "summer"
+            AnimeSeason.FALL -> "fall"
+        }
+        apiValue.equals(target, ignoreCase = true)
+    }
+}
 
 private fun String.toDayOfWeek(): DayOfWeek = when (this.lowercase().trimEnd('s')) {
     "monday" -> DayOfWeek.MONDAY

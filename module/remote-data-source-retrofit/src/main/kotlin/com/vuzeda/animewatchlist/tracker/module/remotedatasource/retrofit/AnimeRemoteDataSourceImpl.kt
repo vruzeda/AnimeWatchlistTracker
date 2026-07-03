@@ -13,6 +13,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.SeasonData
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonalAnimePage
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.AnimeRemoteDataSource
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mapper.toAnimeFullDetails
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mapper.toApiValue
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mapper.toEpisodeInfo
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mapper.toEpisodePage
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mapper.toSearchResult
@@ -41,10 +42,10 @@ class AnimeRemoteDataSourceImpl @Inject constructor(
         jikanApiService.searchAnime(
             query = query,
             page = page,
-            type = filterState.type.apiValue,
-            status = filterState.status.apiValue,
-            orderBy = filterState.orderBy.apiValue,
-            sort = if (filterState.orderBy.apiValue != null) {
+            type = filterState.type.toApiValue(),
+            status = filterState.status.toApiValue(),
+            orderBy = filterState.orderBy.toApiValue(),
+            sort = if (filterState.orderBy.toApiValue() != null) {
                 if (filterState.isAscending) "asc" else "desc"
             } else {
                 null
@@ -107,9 +108,9 @@ class AnimeRemoteDataSourceImpl @Inject constructor(
     ): Result<SeasonalAnimePage> = safeApiCall {
         jikanApiService.getSeasonAnime(
             year = year,
-            season = season.apiValue,
+            season = season.toApiValue(),
             page = page,
-            filter = filter.apiValue
+            filter = filter.toApiValue()
         ).toSeasonalAnimePage(currentPage = page)
     }
 }
