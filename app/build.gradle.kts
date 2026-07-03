@@ -139,6 +139,7 @@ dependencies {
     compileOnly(libs.error.prone.annotations)
 
     implementation(libs.room.runtime)
+    implementation(libs.androidx.datastore.preferences)
 
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.moshi)
