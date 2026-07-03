@@ -56,5 +56,3 @@ dependencies {
     testImplementation(libs.truth)
     testImplementation(libs.kotlinx.coroutines.test)
 }
-
-apply plugin: "jacoco-android"
