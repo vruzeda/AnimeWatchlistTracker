@@ -9,6 +9,7 @@ composeBom = "2026.06.00"
 coreKtx = "1.19.0"
 coroutines = "1.11.0"
 dataStore = "1.2.1"
+detekt = "1.23.7"
 errorProneAnnotations = "2.50.0"
 firebase-bom = "34.15.0"
 firebase-crashlytics-plugin = "3.0.7"
@@ -118,6 +119,7 @@ play-services-auth = { group = "com.google.android.gms", name = "play-services-a
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebase-crashlytics-plugin" }
 google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
