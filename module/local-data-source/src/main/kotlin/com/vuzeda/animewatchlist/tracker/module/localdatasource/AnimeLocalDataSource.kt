@@ -19,7 +19,6 @@ interface AnimeLocalDataSource {
     suspend fun updateLatestKnownSeasonStartDate(animeId: Long, date: LocalDate)
     suspend fun updateLastSeasonCheckPerformedDate(animeId: Long, date: LocalDate)
     fun observeLastAnimeUpdateRun(): Flow<Long?>
-    suspend fun setLastAnimeUpdateRun(epochMillis: Long)
     fun observeLastAnimeUpdateAttemptAt(): Flow<Long?>
     fun observeLastAnimeUpdateAttemptResult(): Flow<String?>
     fun observeLastAnimeUpdateAttemptFailureReason(): Flow<String?>

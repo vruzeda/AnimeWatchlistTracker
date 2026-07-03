@@ -91,20 +91,6 @@ abstract class AnimeRoomDao : AnimeLocalDataSource {
     protected abstract suspend fun getSchedulerStateEntity(): AnimeUpdateSchedulerStateEntity?
 
     @Transaction
-    override suspend fun setLastAnimeUpdateRun(epochMillis: Long) {
-        val current = getSchedulerStateEntity()
-        upsertAnimeUpdateSchedulerState(
-            AnimeUpdateSchedulerStateEntity(
-                lastAnimeUpdateRunAt = epochMillis,
-                lastAnimeUpdateAttemptAt = current?.lastAnimeUpdateAttemptAt,
-                lastAnimeUpdateAttemptResult = current?.lastAnimeUpdateAttemptResult,
-                lastAnimeUpdateAttemptFailureReason = current?.lastAnimeUpdateAttemptFailureReason,
-                lastAnimeUpdateAttemptRetryCount = current?.lastAnimeUpdateAttemptRetryCount
-            )
-        )
-    }
-
-    @Transaction
     override suspend fun recordAnimeUpdateAttempt(epochMillis: Long, result: AnimeUpdateResult) {
         val current = getSchedulerStateEntity()
         val newLastRunAt = if (result is AnimeUpdateResult.Success) epochMillis else current?.lastAnimeUpdateRunAt
