@@ -21,7 +21,7 @@ import java.time.LocalDate
     ],
     indices = [
         Index(value = ["animeId"]),
-        Index(value = ["animeId", "malId"], unique = true)
+        Index(value = ["malId"], unique = true)
     ]
 )
 data class SeasonEntity(

@@ -3,6 +3,22 @@ package com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val MIGRATION_23_24 = object : Migration(23, 24) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """
+            DELETE FROM season WHERE id NOT IN (
+                SELECT MIN(id) FROM season
+                GROUP BY malId
+            )
+            """.trimIndent()
+        )
+
+        db.execSQL("DROP INDEX IF EXISTS `index_season_animeId_malId`")
+        db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_season_malId` ON season (malId)")
+    }
+}
+
 val MIGRATION_22_23 = object : Migration(22, 23) {
     override fun migrate(db: SupportSQLiteDatabase) {
         // Remove duplicates: keep only the first occurrence of each (animeId, malId) pair
