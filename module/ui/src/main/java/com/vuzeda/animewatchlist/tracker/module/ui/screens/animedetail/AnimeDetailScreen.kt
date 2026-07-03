@@ -705,3 +705,13 @@ private fun SeasonCardItem(
         }
     )
 }
+
+@Preview(showBackground = true)
+@Composable
+private fun AnimeDetailScreenPreview() {
+    AnimeDetailScreen(
+        animeId = 1L,
+        onBack = {},
+        onSeasonClick = {}
+    )
+}

@@ -175,3 +175,13 @@ private fun dayOfWeekLabel(dayOfWeek: DayOfWeek): String = when (dayOfWeek) {
     DayOfWeek.SATURDAY -> stringResource(R.string.schedule_day_saturday)
     DayOfWeek.SUNDAY -> stringResource(R.string.schedule_day_sunday)
 }
+
+@Preview(showBackground = true)
+@Composable
+private fun ScheduleScreenPreview() {
+    ScheduleScreen(
+        uiState = ScheduleUiState(),
+        onAnimeClick = {},
+        onSeasonClick = {}
+    )
+}

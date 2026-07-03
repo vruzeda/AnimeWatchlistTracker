@@ -284,22 +284,15 @@ fun WatchStatus.toColor(): Color = when (this) {
     WatchStatus.DROPPED -> StatusDropped
 }
 
-@androidx.compose.ui.tooling.preview.Preview
+@Preview(showBackground = true)
 @Composable
 private fun HomeScreenPreview() {
-    val sampleState = HomeUiState(
-        animeList = emptyList(),
-        isLoading = false,
-        error = null,
-        selectedStatusFilter = null,
-        selectedNotificationFilter = null,
-        selectedSort = HomeSortState(sortBy = HomeSortType.TITLE, isAscending = true),
-        viewMode = HomeViewMode.ANIME,
-        isStatusSheetVisible = false,
-        pendingStatusSeason = null
-    )
     HomeScreen(
-        uiState = sampleState,
+        uiState = HomeUiState(
+            isLoading = false,
+            animeList = emptyList(),
+            seasonItems = emptyList()
+        ),
         onStatusFilterSelected = {},
         onNotificationFilterSelected = {},
         onResetFilters = {},

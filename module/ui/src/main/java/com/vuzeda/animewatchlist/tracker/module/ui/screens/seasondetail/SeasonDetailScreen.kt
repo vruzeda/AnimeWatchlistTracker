@@ -678,3 +678,13 @@ private fun resolveSnackbarMessage(event: SeasonDetailSnackbarEvent): String = w
     is SeasonDetailSnackbarEvent.EpisodeLoadFailed ->
         stringResource(R.string.season_detail_episode_load_failed)
 }
+
+@Preview(showBackground = true)
+@Composable
+private fun SeasonDetailScreenPreview() {
+    SeasonDetailScreen(
+        seasonId = 1L,
+        onBack = {},
+        onNavigateToSchedule = {}
+    )
+}
