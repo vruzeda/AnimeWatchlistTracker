@@ -274,10 +274,12 @@ class AnimeRepositoryImplTest {
     @Test
     fun `deleteAllData delegates to data source deleteAll`() = runTest {
         coEvery { animeLocalDataSource.deleteAll() } returns Unit
+        coEvery { animeLocalDataSource.clearSchedulerState() } returns Unit
 
         repository.deleteAllData()
 
         coVerify(exactly = 1) { animeLocalDataSource.deleteAll() }
+        coVerify(exactly = 1) { animeLocalDataSource.clearSchedulerState() }
     }
 
     @Test
