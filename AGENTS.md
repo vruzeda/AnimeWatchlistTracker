@@ -24,10 +24,10 @@ All modules except `:app` live under `module/`. Package root: `com.vuzeda.animew
 | `use-case` | Pure Kotlin | All use cases — one business operation each, exposed via a single `operator fun invoke(...)`. Use cases must not call other use cases; compose them at the ViewModel level. |
 | `analytics` | Pure Kotlin | `AnalyticsTracker` interface, `AnalyticsEvent` sealed type, `NoOpAnalyticsTracker`. |
 | `analytics-firebase` | Android | `FirebaseAnalyticsTracker`. **`prod` flavor only** — `mock` flavor uses `NoOpAnalyticsTracker` via `MockAnalyticsModule`. |
-| `notification` | Pure Kotlin | `AnimeUpdateNotifier` interface. |
-| `notification-android` | Android | `NotificationHelper` (implements `AnimeUpdateNotifier`), `NotificationLaunchActivity`. |
-| `scheduler` | Pure Kotlin | `AnimeUpdateScheduler` interface. |
-| `scheduler-work` | Android | `AnimeUpdateWorker`, `AnimeUpdateWorkerScheduler`, `BackfillAiringSeasonWorker` — WorkManager-backed. |
+| `notification` | Pure Kotlin | Interface-only: `AnimeUpdateNotifier` interface. No jacoco. |
+| `notification-android` | Android | `NotificationHelper` (implements `AnimeUpdateNotifier`), `NotificationLaunchActivity`. Strings in `res/values*/strings.xml` (en/pt/es/fr locales). |
+| `scheduler` | Pure Kotlin | Interface-only: `AnimeUpdateScheduler` interface. No jacoco. |
+| `scheduler-work` | Android | `AnimeUpdateWorker`, `AnimeUpdateWorkerScheduler`, `BackfillAiringSeasonWorker` — WorkManager-backed. Tests mandatory. |
 | `design-system` | Android | Material 3 theme, design tokens, all reusable Compose components. Purely presentational — never touches ViewModels or business logic, never depends on `domain` or any other module. Every component gets a `@Preview` with realistic sample data. |
 | `ui` | Android | Compose screens + ViewModels + navigation (MVVM). Screens are built exclusively from `design-system` components — never one-off styled components. Never depends on any `local-data-source*` or `remote-data-source*` module. |
 | `:app` | Android app | Hilt entry point (`Application`, `MainActivity`), all cross-module DI wiring. The only module that sees every other module. No business logic, no UI, no data access. |
@@ -38,6 +38,8 @@ All modules except `:app` live under `module/`. Package root: `com.vuzeda.animew
 - `design-system` never imports `domain` or any other module.
 - Only `:app` wires cross-module Hilt bindings.
 - `analytics-firebase` and `remote-data-source-firebase` are `prodImplementation` only.
+
+**Domain pragmatism note:** Presentation-preference types (`HomeViewMode`, `HomeSortState`, `SearchFilterState`) live in `domain` because they are persisted via `UserPreferencesRepository`. This is a documented trade-off to avoid a worse cross-layer dependency knot. Wire-format values (e.g., `apiValue` on domain enums) must NOT live in domain — map them in the retrofit module instead.
 
 ### Product Flavors
 
@@ -53,7 +55,8 @@ All modules except `:app` live under `module/`. Package root: `com.vuzeda.animew
 - Cross-module bindings (repository impl → interface, etc.) are defined in `:app`'s DI modules only — this keeps the library modules decoupled from each other.
 - `@Binds` for interface-to-impl mappings; `@Provides` only when construction logic is needed.
 - `@Singleton` for repositories, database, network clients; `@ViewModelScoped` for ViewModel-specific deps.
-- Constructor injection with `@Inject` everywhere — avoid field injection and `lateinit`.
+- **Constructor injection** with `@Inject` in all library modules — avoid field injection and `lateinit`.
+- **Exception for entry points**: `Application`, `Activity`, `Worker`, and fragment base classes may use field injection + `lateinit var` only as entry points where constructor injection is not available. This is accepted and unavoidable for Android framework entry points.
 
 ## Commands
 
@@ -102,14 +105,17 @@ Do not write comments. Achieve readability through precise naming, small single-
 - Screen Composables take state + lambda callbacks and don't touch the ViewModel directly — use a wrapper Composable to connect them.
 - Build exclusively from `design-system` components; add new components there first if one is missing.
 - `remember`/`derivedStateOf` where appropriate; never heavy computation in composition.
-- `@Preview` every significant Composable with realistic sample data.
+- `@Preview` scope: design-system components **must** have previews with realistic sample data; screen-level previews are optional (screenshot testing harness is future work).
 - `Modifier` as the first optional parameter, always passed down.
+- **Design-system components are side-effect-free**: no permission checks, activity casts, navigation intents, or API calls. All such behavior belongs in the `ui` layer.
 
 ### Error Handling
 
 - `Result`-based pattern through the data and domain layers; exceptions map to domain error types (e.g. `sealed interface DataError`).
 - Error-to-message translation happens in the ViewModel, not in Composables.
 - The app must never crash from expected error scenarios (network, database, validation).
+- **CancellationException rule**: Generic exception handlers (`catch (e: Exception)`) and `runCatching` must rethrow `CancellationException` before handling other errors — preserve structured concurrency and avoid masking cancellation as a data error.
+- **Airing status**: Use the `AiringStatus` enum (NOT_YET_AIRED, CURRENTLY_AIRING, FINISHED_AIRING) as the canonical type — never use magic strings like `"Currently Airing"`; map from wire format in repository/mapper layers.
 
 ## Localization
 
@@ -122,13 +128,19 @@ Supported locales: English (default), Brazilian Portuguese (`values-pt`), Latin 
 
 ## Testing
 
-Every component must have unit tests — non-negotiable.
+Every component must have unit tests — non-negotiable. High-risk areas demand coverage before production use.
 
+**Mandatory test categories:**
 - **Use cases**: fake/mock repositories; verify delegation, error handling, edge cases.
 - **Repositories**: fake DAOs/API services; verify entity/DTO ↔ domain mapping and local/remote coordination.
 - **ViewModels**: fake use cases; verify UI state transitions per action, loading/error states, via Turbine on the `StateFlow`.
+- **DAOs**: in-memory Room database; verify CRUD and query correctness. Instrumented tests using `MigrationTestHelper` for risky migrations (schema changes, renames).
+- **Migrations**: schema safety tests; verify data preservation across schema versions, foreign-key correctness, index integrity.
+- **Workers** (`AnimeUpdateWorker`, `BackfillAiringSeasonWorker`): verify retry logic, error handling, attempt caps.
 - **Mappers**: representative data per mapper, including null/empty edge cases.
-- **DAOs**: in-memory Room database; verify CRUD and query correctness.
+- **DataStore/Preferences**: corrupt-data recovery paths (`.catch` emit defaults).
+
+**Discourage trivial tests:** Don't test data-class `copy()` or `equals()` unless the class exercises real logic (e.g., `EpisodePage`, `ResolvedSeries`). Focus on domain/service layer logic, not boilerplate.
 
 Preferred libraries: JUnit 5, MockK, Turbine, Truth/Kotest Assertions, Kotlin Coroutines Test, Robolectric (only if unavoidable).
 
@@ -181,10 +193,26 @@ Every `feat:`/`fix:` commit that changes what a user experiences must also updat
 3. Generate the schema export by running `./gradlew :module:local-data-source-room:test` (KSP writes it during compilation) to `module/local-data-source-room/schemas/com.vuzeda.animewatchlist.tracker.module.localdatasource.room.AnimeDatabase/{version}.json`.
 4. Commit the schema JSON alongside the migration code in the same commit — it's the authoritative record of that schema version.
 
+## Static Analysis
+
+Quality gates are enforced in CI via Detekt and AGP lint. All warnings are treated as errors (`warningsAsErrors = true`).
+
+```bash
+./gradlew detekt          # Run Detekt across all modules; fails on >0 issues
+./gradlew lint            # AGP lint on Android modules; fails on warnings
+```
+
+Configuration:
+- Detekt config: `detekt.yml` at root; sensible thresholds for complexity/naming/style
+- Lint config: `lint { warningsAsErrors = true; abortOnError = true }` in Android modules
+- Both gated in CI before tests run
+
+If a legitimate violation exists, add a targeted `@Suppress` annotation with justification; don't lower thresholds project-wide.
+
 ## Before Submitting Code
 
 1. All existing tests pass; new code has corresponding unit tests.
-2. Branch coverage ≥80% via `./gradlew jacocoTestCoverageVerification`. Coverage enforcement is opt-in per module by applying the `jacoco` plugin — the root build injects the 80% rule automatically. Modules with generated/untestable code (Moshi adapters, Room DAOs, coroutine state machines) configure `classDirectories` exclusions rather than lowering the ratio. Android library modules must register `jacocoTestCoverageVerification` manually (AGP doesn't create it). Interface-only modules (`local-data-source`, `remote-data-source`) intentionally skip the plugin.
+2. Branch coverage ≥80% via `./gradlew jacocoTestCoverageVerification`. Coverage enforcement is opt-in per module by applying the `jacoco` plugin — the root build injects the 80% rule automatically. Modules with generated/untestable code (Moshi adapters, Room DAOs, coroutine state machines) configure `classDirectories` exclusions rather than lowering the ratio. Android library modules must register `jacocoTestCoverageVerification` manually (AGP doesn't create it). Interface-only modules (`local-data-source`, `remote-data-source`, `notification`, `scheduler`) intentionally skip jacoco.
 3. No compiler warnings.
 4. Naming/style conventions followed; no unnecessary comments.
 5. Architecture layer boundaries respected — no cross-layer imports.
