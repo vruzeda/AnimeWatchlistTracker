@@ -44,6 +44,8 @@ import kotlinx.coroutines.test.setMain
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.DayOfWeek
+import java.time.LocalTime
 import java.time.ZoneId
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -671,7 +673,13 @@ class SeasonDetailViewModelTest {
         viewModel.uiState.test {
             testDispatcher.scheduler.advanceUntilIdle()
             val state = expectMostRecentItem()
-            assertThat(state.broadcastLocalTime).isEqualTo(LocalBroadcastTime(day = "Saturday", time = "09:00", zone = "UTC"))
+            assertThat(state.broadcastLocalTime).isEqualTo(
+                LocalBroadcastTime(
+                    dayOfWeek = DayOfWeek.SATURDAY,
+                    time = LocalTime.of(9, 0),
+                    zoneId = ZoneId.of("UTC")
+                )
+            )
             cancelAndIgnoreRemainingEvents()
         }
     }
