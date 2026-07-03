@@ -157,7 +157,7 @@ private fun mapHttpException(e: HttpException): DataError = when (e.code()) {
 }
 
 private fun mapChiakiException(e: ChiakiRequestException): DataError = when (e.statusCode) {
-    404 -> DataError.NotFound(errorMessage = e.message)
+    404 -> DataError.NotFound(errorMessage = e.message ?: "Not found")
     429 -> DataError.RateLimited(retryAfterMs = null)
     else -> DataError.Network(throwable = e)
 }
