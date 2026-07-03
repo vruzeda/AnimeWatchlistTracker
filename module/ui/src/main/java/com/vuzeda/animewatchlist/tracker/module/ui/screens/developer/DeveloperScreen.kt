@@ -186,3 +186,11 @@ private fun AnimeUpdateResult?.toDisplayString(): String = when (this) {
 
 private fun Instant.formatWith(formatter: DateTimeFormatter): String =
     formatter.format(java.time.Instant.ofEpochMilli(toEpochMilliseconds()))
+
+@Preview(showBackground = true)
+@Composable
+private fun DeveloperScreenPreview() {
+    DeveloperScreen(
+        onBack = {}
+    )
+}

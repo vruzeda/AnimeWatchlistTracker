@@ -365,3 +365,14 @@ private fun resolveSnackbarEventMessage(event: SearchSnackbarEvent): String = wh
     is SearchSnackbarEvent.LoadMoreFailed -> stringResource(R.string.error_load_more_failed)
     is SearchSnackbarEvent.DetailFetchFailed -> stringResource(R.string.error_detail_fetch_failed)
 }
+
+@Preview(showBackground = true)
+@Composable
+private fun SearchScreenPreview() {
+    SearchScreen(
+        uiState = SearchUiState(isLoading = false),
+        onSearch = {},
+        onAnimeClick = {},
+        onLoadMore = {}
+    )
+}

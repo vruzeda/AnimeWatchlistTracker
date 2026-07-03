@@ -283,3 +283,26 @@ fun WatchStatus.toColor(): Color = when (this) {
     WatchStatus.ON_HOLD -> StatusOnHold
     WatchStatus.DROPPED -> StatusDropped
 }
+
+@Preview(showBackground = true)
+@Composable
+private fun HomeScreenPreview() {
+    HomeScreen(
+        uiState = HomeUiState(
+            isLoading = false,
+            animeList = emptyList(),
+            seasonItems = emptyList()
+        ),
+        onStatusFilterSelected = {},
+        onNotificationFilterSelected = {},
+        onResetFilters = {},
+        onSortSelected = {},
+        onAnimeClick = {},
+        onSeasonClick = {},
+        onScheduleClick = {},
+        onSeasonStatusChipClicked = {},
+        onAnimeStatusChipClicked = {},
+        onStatusSelected = {},
+        onDismissStatusSheet = {}
+    )
+}

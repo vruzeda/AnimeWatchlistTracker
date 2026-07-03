@@ -376,3 +376,14 @@ fun SettingsScreen(
         )
     }
 }
+
+@Preview(showBackground = true)
+@Composable
+private fun SettingsScreenPreview() {
+    SettingsScreen(
+        uiState = SettingsUiState(),
+        onTitleLanguageSelected = {},
+        onViewModeSelected = {},
+        onDeveloperOptionsToggled = {}
+    )
+}
