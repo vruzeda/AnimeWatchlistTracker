@@ -37,10 +37,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.SettingsSwitchRow
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.TypeToConfirmDialog
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.MinTouchTarget
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
@@ -49,6 +51,7 @@ import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SmallSpacing
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.ui.R
+import com.vuzeda.animewatchlist.tracker.module.ui.screens.ScreenPreviewSamples
 
 private enum class TitleLanguageOption(
     val language: TitleLanguage,
@@ -373,6 +376,25 @@ fun SettingsScreen(
             onSubmit = onFeedbackSubmit,
             onEventConsumed = onFeedbackEventConsumed,
             onDismiss = onFeedbackDismiss
+        )
+    }
+}
+@Preview(showBackground = true)
+@Composable
+private fun SettingsScreenPreview() {
+    AnimeWatchlistTrackerTheme(dynamicColor = false) {
+        SettingsScreen(
+            uiState = ScreenPreviewSamples.settingsUiState,
+            onTitleLanguageSelected = {},
+            onHomeViewModeSelected = {},
+            onOfflineCoverCachingToggled = {},
+            onClearCoverCache = {},
+            onDeleteAllClick = {},
+            onConfirmDelete = {},
+            onDismissDelete = {},
+            onDataDeletedShown = {},
+            versionName = "1.6.0",
+            versionCode = 53
         )
     }
 }

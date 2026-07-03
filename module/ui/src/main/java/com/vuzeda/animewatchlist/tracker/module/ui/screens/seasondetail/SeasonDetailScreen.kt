@@ -2,8 +2,6 @@ package com.vuzeda.animewatchlist.tracker.module.ui.screens.seasondetail
 
 import android.content.Intent
 import android.net.Uri
-import java.time.format.DateTimeFormatter
-import java.time.format.TextStyle
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -61,6 +59,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
@@ -74,6 +73,7 @@ import com.vuzeda.animewatchlist.tracker.module.designsystem.component.Notificat
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusChipButton
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusOption
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusSelectionSheet
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.PosterHeight
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.PosterWidth
@@ -84,8 +84,11 @@ import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
 import com.vuzeda.animewatchlist.tracker.module.ui.R
+import com.vuzeda.animewatchlist.tracker.module.ui.screens.ScreenPreviewSamples
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.home.toColor
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.home.toDisplayLabelRes
+import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
 
 @Composable
 fun SeasonDetailScreenRoute(
@@ -678,4 +681,30 @@ private fun resolveSnackbarMessage(event: SeasonDetailSnackbarEvent): String = w
         stringResource(R.string.notification_permission_denied)
     is SeasonDetailSnackbarEvent.EpisodeLoadFailed ->
         stringResource(R.string.season_detail_episode_load_failed)
+}
+@Preview(showBackground = true)
+@Composable
+private fun SeasonDetailScreenPreview() {
+    AnimeWatchlistTrackerTheme(dynamicColor = false) {
+        SeasonDetailScreen(
+            uiState = ScreenPreviewSamples.seasonDetailUiState,
+            onNavigateBack = {},
+            onStatusChipClick = {},
+            onStatusSelected = {},
+            onDismissStatusSheet = {},
+            onEpisodeWatched = { _, _ -> },
+            onMarkAllEpisodesWatched = {},
+            onLoadMoreEpisodes = {},
+            onDeleteClick = {},
+            onConfirmDelete = {},
+            onDismissDeleteConfirmation = {},
+            onAddToWatchlistClick = {},
+            onAddStatusSelected = {},
+            onDismissAddSheet = {},
+            onToggleEpisodeNotifications = {},
+            onViewFullSeriesClick = {},
+            onSnackbarDismissed = {},
+            onNotificationPermissionDenied = {}
+        )
+    }
 }

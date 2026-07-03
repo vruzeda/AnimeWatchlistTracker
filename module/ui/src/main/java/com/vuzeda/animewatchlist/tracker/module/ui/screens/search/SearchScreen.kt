@@ -38,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.AnimeCard
@@ -49,6 +50,7 @@ import com.vuzeda.animewatchlist.tracker.module.designsystem.component.NestedFil
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.SortMenuButton
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusOption
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusSelectionSheet
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.LargeLoadingIndicatorSize
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.LoadingIndicatorSize
@@ -61,6 +63,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
 import com.vuzeda.animewatchlist.tracker.module.ui.R
+import com.vuzeda.animewatchlist.tracker.module.ui.screens.ScreenPreviewSamples
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.home.toColor
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.home.toDisplayLabelRes
 
@@ -364,4 +367,26 @@ private fun resolveSnackbarEventMessage(event: SearchSnackbarEvent): String = wh
     is SearchSnackbarEvent.RefreshFailed -> stringResource(R.string.error_refresh_failed)
     is SearchSnackbarEvent.LoadMoreFailed -> stringResource(R.string.error_load_more_failed)
     is SearchSnackbarEvent.DetailFetchFailed -> stringResource(R.string.error_detail_fetch_failed)
+}
+@Preview(showBackground = true)
+@Composable
+private fun SearchScreenPreview() {
+    AnimeWatchlistTrackerTheme(dynamicColor = false) {
+        SearchScreen(
+            uiState = ScreenPreviewSamples.searchUiState,
+            onQueryChanged = {},
+            onSearch = {},
+            onResultClick = {},
+            onAddClick = {},
+            onRemoveClick = {},
+            onAddStatusSelected = {},
+            onDismissAddSheet = {},
+            onConfirmRemove = {},
+            onDismissRemoveConfirmation = {},
+            onSortSelected = {},
+            onTypeSelected = {},
+            onStatusSelected = {},
+            onSnackbarDismissed = {}
+        )
+    }
 }

@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.AnimeCard
@@ -32,6 +33,7 @@ import com.vuzeda.animewatchlist.tracker.module.designsystem.component.SortMenuB
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusChipButton
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusOption
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusSelectionSheet
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusCompleted
@@ -45,6 +47,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
 import com.vuzeda.animewatchlist.tracker.module.ui.R
+import com.vuzeda.animewatchlist.tracker.module.ui.screens.ScreenPreviewSamples
 
 private const val GROUP_STATUS = 0
 private const val GROUP_NOTIFICATION = 1
@@ -282,4 +285,24 @@ fun WatchStatus.toColor(): Color = when (this) {
     WatchStatus.PLAN_TO_WATCH -> StatusPlanToWatch
     WatchStatus.ON_HOLD -> StatusOnHold
     WatchStatus.DROPPED -> StatusDropped
+}
+@Preview(showBackground = true)
+@Composable
+private fun HomeScreenPreview() {
+    AnimeWatchlistTrackerTheme(dynamicColor = false) {
+        HomeScreen(
+            uiState = ScreenPreviewSamples.homeUiState,
+            onStatusFilterSelected = {},
+            onNotificationFilterSelected = {},
+            onResetFilters = {},
+            onSortSelected = {},
+            onAnimeClick = {},
+            onSeasonClick = {},
+            onScheduleClick = {},
+            onSeasonStatusChipClicked = {},
+            onAnimeStatusChipClicked = {},
+            onStatusSelected = {},
+            onDismissStatusSheet = {}
+        )
+    }
 }
