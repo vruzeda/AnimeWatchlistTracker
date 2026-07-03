@@ -1,11 +1,16 @@
 package com.vuzeda.animewatchlist.tracker.module.usecase
 
-import com.vuzeda.animewatchlist.tracker.module.repository.AnimeRepository
+import com.vuzeda.animewatchlist.tracker.module.notification.AnimeUpdateNotifier
+import com.vuzeda.animewatchlist.tracker.module.scheduler.AnimeUpdateScheduler
 import javax.inject.Inject
 
-/** Creates the notification channel and schedules the periodic anime update worker. */
+/** Orchestrates notification channel creation and periodic anime update scheduling. */
 class ConfigureAnimeUpdateNotificationUseCase @Inject constructor(
-    private val animeRepository: AnimeRepository
+    private val animeUpdateNotifier: AnimeUpdateNotifier,
+    private val animeUpdateScheduler: AnimeUpdateScheduler
 ) {
-    operator fun invoke() = animeRepository.configureAnimeUpdateNotification()
+    operator fun invoke() {
+        animeUpdateNotifier.createNotificationChannel()
+        animeUpdateScheduler.schedulePeriodicUpdate()
+    }
 }

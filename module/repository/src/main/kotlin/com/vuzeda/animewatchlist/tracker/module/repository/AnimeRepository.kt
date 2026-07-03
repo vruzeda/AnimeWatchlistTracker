@@ -74,8 +74,6 @@ interface AnimeRepository {
 
     suspend fun updateLastSeasonCheckPerformedDate(animeId: Long, date: LocalDate)
 
-    fun configureAnimeUpdateNotification()
-
     fun schedulePeriodicAnimeUpdate()
 
     fun scheduleImmediateAnimeUpdate()
