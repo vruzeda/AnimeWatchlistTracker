@@ -53,6 +53,7 @@ import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -70,6 +71,7 @@ import com.vuzeda.animewatchlist.tracker.module.designsystem.component.RatingBar
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusChipButton
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusOption
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusSelectionSheet
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.PosterHeight
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.PosterWidth
@@ -81,6 +83,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
 import com.vuzeda.animewatchlist.tracker.module.ui.R
+import com.vuzeda.animewatchlist.tracker.module.ui.screens.ScreenPreviewSamples
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.home.toColor
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.home.toDisplayLabelRes
 
@@ -704,4 +707,32 @@ private fun SeasonCardItem(
             }
         }
     )
+}
+@Preview(showBackground = true)
+@Composable
+private fun AnimeDetailScreenPreview() {
+    AnimeWatchlistTrackerTheme(dynamicColor = false) {
+        AnimeDetailScreen(
+            uiState = ScreenPreviewSamples.animeDetailUiState,
+            onNavigateBack = {},
+            onSeasonClick = { _, _ -> },
+            onRatingChanged = {},
+            onDeleteClick = {},
+            onConfirmDelete = {},
+            onDismissDeleteConfirmation = {},
+            onNotificationIconClick = {},
+            onSelectNotificationType = {},
+            onDismissNotificationTypeSheet = {},
+            onAddToWatchlistClick = {},
+            onAddStatusSelected = {},
+            onDismissAddSheet = {},
+            onConfirmAddScope = {},
+            onDismissAddScopeSheet = {},
+            onSeasonAddClick = {},
+            onAddSeasonStatusSelected = {},
+            onDismissAddSeasonSheet = {},
+            onSnackbarDismissed = {},
+            onNotificationPermissionDenied = {}
+        )
+    }
 }

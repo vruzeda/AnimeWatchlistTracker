@@ -24,13 +24,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SmallSpacing
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdateResult
 import com.vuzeda.animewatchlist.tracker.module.ui.R
+import com.vuzeda.animewatchlist.tracker.module.ui.screens.ScreenPreviewSamples
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -186,3 +189,16 @@ private fun AnimeUpdateResult?.toDisplayString(): String = when (this) {
 
 private fun Instant.formatWith(formatter: DateTimeFormatter): String =
     formatter.format(java.time.Instant.ofEpochMilli(toEpochMilliseconds()))
+@Preview(showBackground = true)
+@Composable
+private fun DeveloperScreenPreview() {
+    AnimeWatchlistTrackerTheme(dynamicColor = false) {
+        DeveloperScreen(
+            uiState = ScreenPreviewSamples.developerUiState,
+            onNavigateBack = {},
+            onTriggerAnimeUpdate = {},
+            onDisableDeveloperOptions = {},
+            onToggleNotificationDebugInfo = {}
+        )
+    }
+}

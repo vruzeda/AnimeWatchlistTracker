@@ -25,12 +25,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.AnimeCard
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.EmptyStateMessage
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.SeasonPickerRow
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SmallSpacing
@@ -38,6 +40,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
 import com.vuzeda.animewatchlist.tracker.module.ui.R
+import com.vuzeda.animewatchlist.tracker.module.ui.screens.ScreenPreviewSamples
 import java.time.DayOfWeek
 
 @Composable
@@ -174,4 +177,17 @@ private fun dayOfWeekLabel(dayOfWeek: DayOfWeek): String = when (dayOfWeek) {
     DayOfWeek.FRIDAY -> stringResource(R.string.schedule_day_friday)
     DayOfWeek.SATURDAY -> stringResource(R.string.schedule_day_saturday)
     DayOfWeek.SUNDAY -> stringResource(R.string.schedule_day_sunday)
+}
+@Preview(showBackground = true)
+@Composable
+private fun ScheduleScreenPreview() {
+    AnimeWatchlistTrackerTheme(dynamicColor = false) {
+        ScheduleScreen(
+            uiState = ScreenPreviewSamples.scheduleUiState,
+            onNavigateBack = {},
+            onPreviousSeason = {},
+            onNextSeason = {},
+            onSeasonClick = {}
+        )
+    }
 }

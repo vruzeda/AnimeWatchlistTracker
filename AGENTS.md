@@ -114,7 +114,7 @@ Do not write comments. Achieve readability through precise naming, small single-
 - Screen Composables take state + lambda callbacks and don't touch the ViewModel directly — use a wrapper Composable to connect them.
 - Build exclusively from `design-system` components; add new components there first if one is missing.
 - `remember`/`derivedStateOf` where appropriate; never heavy computation in composition.
-- `@Preview` scope: design-system components **must** have previews with realistic sample data; screen-level previews are optional (screenshot testing harness is future work).
+- `@Preview` scope: design-system components **and** every screen **must** have previews with realistic sample data. Screen previews target the stateless `*Screen(uiState, …)` overload wrapped in `AnimeWatchlistTrackerTheme(dynamicColor = false)`, with sample state from `ScreenPreviewSamples` — never the `*ScreenRoute` wrapper, which resolves `hiltViewModel()` and cannot render in a preview.
 - `Modifier` as the first optional parameter, always passed down.
 - **Design-system components are side-effect-free**: no permission checks, activity casts, navigation intents, or API calls. All such behavior belongs in the `ui` layer.
 
