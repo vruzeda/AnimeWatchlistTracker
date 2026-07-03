@@ -2,14 +2,12 @@ package com.vuzeda.animewatchlist.tracker.module.usecase
 
 import com.vuzeda.animewatchlist.tracker.module.repository.AnimeRepository
 import com.vuzeda.animewatchlist.tracker.module.repository.SeasonRepository
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 /**
  * Fetches and persists airingSeasonName/airingSeasonYear for watchlist seasons that are missing
- * them. Also fills in any other null metadata fields available from the API response. Introduces
- * a delay between API calls to respect Jikan's rate limit.
+ * them. Also fills in any other null metadata fields available from the API response.
  */
 class BackfillMissingAiringSeasonUseCase @Inject constructor(
     private val animeRepository: AnimeRepository,
@@ -39,11 +37,6 @@ class BackfillMissingAiringSeasonUseCase @Inject constructor(
                     airingSeasonYear = details.airingSeasonYear ?: season.airingSeasonYear
                 )
             )
-            delay(JIKAN_REQUEST_DELAY_MS)
         }
-    }
-
-    companion object {
-        private const val JIKAN_REQUEST_DELAY_MS = 500L
     }
 }
