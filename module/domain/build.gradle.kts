@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
     `java-library`
-    jacoco
 }
 
 java {
@@ -27,4 +26,3 @@ dependencies {
 tasks.withType<Test> {
     useJUnitPlatform()
 }
-
