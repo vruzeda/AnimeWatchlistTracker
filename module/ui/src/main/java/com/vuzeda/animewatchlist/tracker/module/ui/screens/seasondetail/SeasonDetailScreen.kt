@@ -2,6 +2,9 @@ package com.vuzeda.animewatchlist.tracker.module.ui.screens.seasondetail
 
 import android.content.Intent
 import android.net.Uri
+import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
+import java.util.Locale
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -175,7 +178,7 @@ fun SeasonDetailScreen(
                 },
                 actions = {
                     if (uiState.season != null && uiState.isInWatchlist) {
-                        NotificationButton(
+                        NotificationButtonWithPermissions(
                             enabled = uiState.isEpisodeNotificationsEnabled,
                             onClick = onToggleEpisodeNotifications,
                             onPermissionDenied = onNotificationPermissionDenied
@@ -618,10 +621,13 @@ private fun SeasonHeaderSection(
             }
 
             if (broadcastLocalTime != null) {
+                val dayDisplay = broadcastLocalTime.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())
+                val timeDisplay = broadcastLocalTime.time.format(DateTimeFormatter.ofPattern("HH:mm"))
+                val zoneDisplay = broadcastLocalTime.zoneId.getDisplayName(TextStyle.SHORT_STANDALONE, Locale.getDefault())
                 Text(
                     text = stringResource(
                         R.string.season_detail_broadcast_local_time,
-                        stringResource(R.string.season_detail_local_broadcast_format, broadcastLocalTime.day, broadcastLocalTime.time, broadcastLocalTime.zone)
+                        stringResource(R.string.season_detail_local_broadcast_format, dayDisplay, timeDisplay, zoneDisplay)
                     ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant

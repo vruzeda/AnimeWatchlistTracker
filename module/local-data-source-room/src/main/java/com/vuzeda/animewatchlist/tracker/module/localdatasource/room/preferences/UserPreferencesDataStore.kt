@@ -6,10 +6,10 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.UserPreferencesLocalDataSource
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
@@ -18,13 +18,10 @@ class UserPreferencesDataStore(
     private val context: Context
 ) : UserPreferencesLocalDataSource {
 
-    private fun <T> safeDataStoreFlow(key: androidx.datastore.preferences.core.Preferences.Key<T>, default: T): Flow<T> =
-        context.dataStore.data
-            .map { preferences -> preferences[key] ?: default }
-            .catch { emit(default) }
-
     override fun observeTitleLanguage(): Flow<String> =
-        safeDataStoreFlow(TITLE_LANGUAGE_KEY, DEFAULT_TITLE_LANGUAGE)
+        context.dataStore.data.map { preferences ->
+            preferences[TITLE_LANGUAGE_KEY] ?: DEFAULT_TITLE_LANGUAGE
+        }
 
     override suspend fun setTitleLanguage(language: String) {
         context.dataStore.edit { preferences ->
@@ -33,7 +30,9 @@ class UserPreferencesDataStore(
     }
 
     override fun observeHomeViewMode(): Flow<String> =
-        safeDataStoreFlow(HOME_VIEW_MODE_KEY, DEFAULT_HOME_VIEW_MODE)
+        context.dataStore.data.map { preferences ->
+            preferences[HOME_VIEW_MODE_KEY] ?: DEFAULT_HOME_VIEW_MODE
+        }
 
     override suspend fun setHomeViewMode(mode: String) {
         context.dataStore.edit { preferences ->
@@ -42,25 +41,35 @@ class UserPreferencesDataStore(
     }
 
     override fun observeHomeSortState(): Flow<String> =
-        safeDataStoreFlow(HOME_SORT_STATE_KEY, DEFAULT_HOME_SORT_STATE)
+        context.dataStore.data.map { preferences ->
+            val option = preferences[HOME_SORT_OPTION_KEY] ?: "ALPHABETICAL"
+            val ascending = preferences[HOME_SORT_ASCENDING_KEY] ?: true
+            "$option:$ascending"
+        }
 
     override suspend fun setHomeSortState(state: String) {
         context.dataStore.edit { preferences ->
-            preferences[HOME_SORT_STATE_KEY] = state
+            val parts = state.split(":")
+            preferences[HOME_SORT_OPTION_KEY] = parts.getOrNull(0) ?: "ALPHABETICAL"
+            preferences[HOME_SORT_ASCENDING_KEY] = parts.getOrNull(1)?.toBooleanStrictOrNull() ?: true
         }
     }
 
     override fun observeHomeStatusFilter(): Flow<String> =
-        safeDataStoreFlow(HOME_STATUS_FILTER_KEY, "")
+        context.dataStore.data.map { preferences ->
+            (preferences[HOME_STATUS_FILTER_SET_KEY] ?: emptySet()).joinToString(",")
+        }
 
     override suspend fun setHomeStatusFilter(filter: String) {
         context.dataStore.edit { preferences ->
-            preferences[HOME_STATUS_FILTER_KEY] = filter
+            preferences[HOME_STATUS_FILTER_SET_KEY] = if (filter.isEmpty()) emptySet() else filter.split(",").toSet()
         }
     }
 
     override fun observeHomeNotificationFilter(): Flow<String> =
-        safeDataStoreFlow(HOME_NOTIFICATION_FILTER_KEY, "")
+        context.dataStore.data.map { preferences ->
+            preferences[HOME_NOTIFICATION_FILTER_KEY] ?: ""
+        }
 
     override suspend fun setHomeNotificationFilter(filter: String) {
         context.dataStore.edit { preferences ->
@@ -69,7 +78,9 @@ class UserPreferencesDataStore(
     }
 
     override fun observeSeasonFilter(): Flow<String> =
-        safeDataStoreFlow(SEASONS_FILTER_KEY, DEFAULT_SEASONS_FILTER)
+        context.dataStore.data.map { preferences ->
+            preferences[SEASONS_FILTER_KEY] ?: DEFAULT_SEASONS_FILTER
+        }
 
     override suspend fun setSeasonFilter(filter: String) {
         context.dataStore.edit { preferences ->
@@ -78,25 +89,39 @@ class UserPreferencesDataStore(
     }
 
     override fun observeSearchFilterState(): Flow<String> =
-        safeDataStoreFlow(SEARCH_FILTER_STATE_KEY, DEFAULT_SEARCH_FILTER_STATE)
+        context.dataStore.data.map { preferences ->
+            val type = preferences[SEARCH_FILTER_TYPE_KEY] ?: "ALL"
+            val status = preferences[SEARCH_FILTER_STATUS_KEY] ?: "ALL"
+            val orderBy = preferences[SEARCH_FILTER_ORDER_BY_KEY] ?: "DEFAULT"
+            val ascending = preferences[SEARCH_FILTER_ASCENDING_KEY] ?: true
+            "$type:$status:$orderBy:$ascending"
+        }
 
     override suspend fun setSearchFilterState(state: String) {
         context.dataStore.edit { preferences ->
-            preferences[SEARCH_FILTER_STATE_KEY] = state
+            val parts = state.split(":")
+            preferences[SEARCH_FILTER_TYPE_KEY] = parts.getOrNull(0) ?: "ALL"
+            preferences[SEARCH_FILTER_STATUS_KEY] = parts.getOrNull(1) ?: "ALL"
+            preferences[SEARCH_FILTER_ORDER_BY_KEY] = parts.getOrNull(2) ?: "DEFAULT"
+            preferences[SEARCH_FILTER_ASCENDING_KEY] = parts.getOrNull(3)?.toBooleanStrictOrNull() ?: true
         }
     }
 
     override fun observeAnimeDetailTypeFilter(): Flow<String> =
-        safeDataStoreFlow(ANIME_DETAIL_TYPE_FILTER_KEY, "")
+        context.dataStore.data.map { preferences ->
+            (preferences[ANIME_DETAIL_TYPE_FILTER_SET_KEY] ?: emptySet()).joinToString(",")
+        }
 
     override suspend fun setAnimeDetailTypeFilter(filter: String) {
         context.dataStore.edit { preferences ->
-            preferences[ANIME_DETAIL_TYPE_FILTER_KEY] = filter
+            preferences[ANIME_DETAIL_TYPE_FILTER_SET_KEY] = if (filter.isEmpty()) emptySet() else filter.split(",").toSet()
         }
     }
 
     override fun observeIsDeveloperOptionsEnabled(): Flow<Boolean> =
-        safeDataStoreFlow(DEVELOPER_OPTIONS_ENABLED_KEY, false)
+        context.dataStore.data.map { preferences ->
+            preferences[DEVELOPER_OPTIONS_ENABLED_KEY] ?: false
+        }
 
     override suspend fun setIsDeveloperOptionsEnabled(enabled: Boolean) {
         context.dataStore.edit { preferences ->
@@ -105,7 +130,9 @@ class UserPreferencesDataStore(
     }
 
     override fun observeIsNotificationDebugInfoEnabled(): Flow<Boolean> =
-        safeDataStoreFlow(NOTIFICATION_DEBUG_INFO_ENABLED_KEY, false)
+        context.dataStore.data.map { preferences ->
+            preferences[NOTIFICATION_DEBUG_INFO_ENABLED_KEY] ?: false
+        }
 
     override suspend fun setIsNotificationDebugInfoEnabled(enabled: Boolean) {
         context.dataStore.edit { preferences ->
@@ -114,7 +141,9 @@ class UserPreferencesDataStore(
     }
 
     override fun observeIsOfflineCoverCachingEnabled(): Flow<Boolean> =
-        safeDataStoreFlow(OFFLINE_COVER_CACHING_KEY, true)
+        context.dataStore.data.map { preferences ->
+            preferences[OFFLINE_COVER_CACHING_KEY] ?: true
+        }
 
     override suspend fun setIsOfflineCoverCachingEnabled(enabled: Boolean) {
         context.dataStore.edit { preferences ->
@@ -127,15 +156,17 @@ class UserPreferencesDataStore(
         const val DEFAULT_TITLE_LANGUAGE = "DEFAULT"
         private val HOME_VIEW_MODE_KEY = stringPreferencesKey("home_view_mode")
         const val DEFAULT_HOME_VIEW_MODE = "ANIME"
-        private val HOME_SORT_STATE_KEY = stringPreferencesKey("home_sort_state")
-        const val DEFAULT_HOME_SORT_STATE = "ALPHABETICAL:true"
+        private val HOME_SORT_OPTION_KEY = stringPreferencesKey("home_sort_option")
+        private val HOME_SORT_ASCENDING_KEY = booleanPreferencesKey("home_sort_ascending")
         private val SEASONS_FILTER_KEY = stringPreferencesKey("seasons_filter")
         const val DEFAULT_SEASONS_FILTER = "TV"
-        private val SEARCH_FILTER_STATE_KEY = stringPreferencesKey("search_filter_state")
-        const val DEFAULT_SEARCH_FILTER_STATE = "ALL:ALL:DEFAULT:true"
-        private val HOME_STATUS_FILTER_KEY = stringPreferencesKey("home_status_filter")
+        private val SEARCH_FILTER_TYPE_KEY = stringPreferencesKey("search_filter_type")
+        private val SEARCH_FILTER_STATUS_KEY = stringPreferencesKey("search_filter_status")
+        private val SEARCH_FILTER_ORDER_BY_KEY = stringPreferencesKey("search_filter_order_by")
+        private val SEARCH_FILTER_ASCENDING_KEY = booleanPreferencesKey("search_filter_ascending")
+        private val HOME_STATUS_FILTER_SET_KEY = stringSetPreferencesKey("home_status_filter_set")
         private val HOME_NOTIFICATION_FILTER_KEY = stringPreferencesKey("home_notification_filter")
-        private val ANIME_DETAIL_TYPE_FILTER_KEY = stringPreferencesKey("anime_detail_type_filter")
+        private val ANIME_DETAIL_TYPE_FILTER_SET_KEY = stringSetPreferencesKey("anime_detail_type_filter_set")
         private val DEVELOPER_OPTIONS_ENABLED_KEY = booleanPreferencesKey("developer_options_enabled")
         private val NOTIFICATION_DEBUG_INFO_ENABLED_KEY = booleanPreferencesKey("notification_debug_info_enabled")
         private val OFFLINE_COVER_CACHING_KEY = booleanPreferencesKey("offline_cover_caching_enabled")

@@ -3,6 +3,66 @@ package com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val MIGRATION_24_25 = object : Migration(24, 25) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `season_new` (
+                `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                `animeId` INTEGER NOT NULL,
+                `malId` INTEGER NOT NULL UNIQUE,
+                `title` TEXT NOT NULL,
+                `titleEnglish` TEXT,
+                `titleJapanese` TEXT,
+                `imageUrl` TEXT,
+                `type` TEXT NOT NULL DEFAULT 'TV',
+                `episodeCount` INTEGER,
+                `status` TEXT NOT NULL DEFAULT 'PLAN_TO_WATCH',
+                `score` REAL,
+                `orderIndex` INTEGER NOT NULL DEFAULT 0,
+                `airingStatus` TEXT,
+                `broadcastInfo` TEXT,
+                `broadcastDay` TEXT,
+                `broadcastTime` TEXT,
+                `broadcastTimezone` TEXT,
+                `streamingLinks` TEXT NOT NULL DEFAULT '[]',
+                `lastCheckedAiredEpisodeCount` INTEGER,
+                `latestKnownEpisodeAirDate` TEXT,
+                `lastEpisodeCheckPerformedDate` TEXT,
+                `isEpisodeNotificationsEnabled` INTEGER NOT NULL DEFAULT 0,
+                `isInWatchlist` INTEGER NOT NULL DEFAULT 1,
+                `airingSeasonName` TEXT,
+                `airingSeasonYear` INTEGER,
+                `addedAt` INTEGER NOT NULL DEFAULT 0,
+                FOREIGN KEY(`animeId`) REFERENCES `anime`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
+            )
+            """.trimIndent()
+        )
+
+        db.execSQL(
+            """
+            INSERT INTO season_new
+                (id, animeId, malId, title, titleEnglish, titleJapanese, imageUrl, type, episodeCount,
+                 status, score, orderIndex, airingStatus, broadcastInfo, broadcastDay,
+                 broadcastTime, broadcastTimezone, streamingLinks, lastCheckedAiredEpisodeCount,
+                 latestKnownEpisodeAirDate, lastEpisodeCheckPerformedDate,
+                 isEpisodeNotificationsEnabled, isInWatchlist, airingSeasonName, airingSeasonYear, addedAt)
+            SELECT id, animeId, malId, title, titleEnglish, titleJapanese, imageUrl, type, episodeCount,
+                   status, score, orderIndex, airingStatus, broadcastInfo, broadcastDay,
+                   broadcastTime, broadcastTimezone, streamingLinks, lastCheckedAiredEpisodeCount,
+                   latestKnownEpisodeAirDate, lastEpisodeCheckPerformedDate,
+                   isEpisodeNotificationsEnabled, isInWatchlist, airingSeasonName, airingSeasonYear, addedAt
+            FROM season
+            """.trimIndent()
+        )
+
+        db.execSQL("DROP TABLE season")
+        db.execSQL("ALTER TABLE season_new RENAME TO season")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_season_animeId` ON `season` (`animeId`)")
+        db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_season_malId` ON `season` (`malId`)")
+    }
+}
+
 val MIGRATION_23_24 = object : Migration(23, 24) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL(
@@ -21,7 +81,6 @@ val MIGRATION_23_24 = object : Migration(23, 24) {
 
 val MIGRATION_22_23 = object : Migration(22, 23) {
     override fun migrate(db: SupportSQLiteDatabase) {
-        // Remove duplicates: keep only the first occurrence of each (animeId, malId) pair
         db.execSQL(
             """
             DELETE FROM season WHERE id NOT IN (
@@ -31,7 +90,6 @@ val MIGRATION_22_23 = object : Migration(22, 23) {
             """.trimIndent()
         )
 
-        // Create unique index on (animeId, malId) to prevent future duplicates
         db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_season_animeId_malId` ON season (animeId, malId)")
     }
 }

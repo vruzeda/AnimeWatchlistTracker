@@ -503,9 +503,9 @@ open class SeasonDetailViewModel @Inject constructor(
                 .withNano(0)
             val local = reference.withZoneSameInstant(localZone)
             LocalBroadcastTime(
-                day = local.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault()),
-                time = local.format(DateTimeFormatter.ofPattern("HH:mm")),
-                zone = localZone.getDisplayName(TextStyle.SHORT_STANDALONE, Locale.getDefault())
+                dayOfWeek = local.dayOfWeek,
+                time = local.toLocalTime(),
+                zoneId = localZone
             )
         } catch (_: Exception) {
             null

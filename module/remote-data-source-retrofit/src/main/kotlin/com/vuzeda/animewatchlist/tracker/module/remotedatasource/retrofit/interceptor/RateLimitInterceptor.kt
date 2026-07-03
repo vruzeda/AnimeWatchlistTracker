@@ -14,14 +14,18 @@ class RateLimitInterceptor(
         val request = chain.request()
         val host = request.url.host
 
+        var waitMs = 0L
         if (host == JIKAN_HOST) {
             synchronized(lock) {
                 val now = System.currentTimeMillis()
                 val elapsed = now - lastRequestTimeMs
                 if (elapsed < minIntervalMs) {
-                    Thread.sleep(minIntervalMs - elapsed)
+                    waitMs = minIntervalMs - elapsed
                 }
                 lastRequestTimeMs = System.currentTimeMillis()
+            }
+            if (waitMs > 0L) {
+                Thread.sleep(waitMs)
             }
         }
 

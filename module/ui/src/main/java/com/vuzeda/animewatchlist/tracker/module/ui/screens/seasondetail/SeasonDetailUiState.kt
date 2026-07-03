@@ -3,11 +3,14 @@ package com.vuzeda.animewatchlist.tracker.module.ui.screens.seasondetail
 import com.vuzeda.animewatchlist.tracker.module.domain.EpisodeInfo
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
+import java.time.DayOfWeek
+import java.time.LocalTime
+import java.time.ZoneId
 
 data class LocalBroadcastTime(
-    val day: String,
-    val time: String,
-    val zone: String
+    val dayOfWeek: DayOfWeek,
+    val time: LocalTime,
+    val zoneId: ZoneId
 )
 
 data class SeasonDetailUiState(

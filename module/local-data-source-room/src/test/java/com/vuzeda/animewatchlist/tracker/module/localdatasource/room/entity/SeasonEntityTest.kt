@@ -30,7 +30,7 @@ class SeasonEntityTest {
             broadcastDay = "Saturdays",
             broadcastTime = "18:00",
             broadcastTimezone = "Asia/Tokyo",
-            streamingLinks = "Crunchyroll\thttps://crunchyroll.com/fma\nNetflix\thttps://netflix.com/title/121",
+            streamingLinks = """[{"name":"Crunchyroll","url":"https://crunchyroll.com/fma"},{"name":"Netflix","url":"https://netflix.com/title/121"}]""",
             lastCheckedAiredEpisodeCount = 25,
             latestKnownEpisodeAirDate = checkDate,
             isEpisodeNotificationsEnabled = true,
@@ -169,7 +169,7 @@ class SeasonEntityTest {
         assertThat(result.broadcastDay).isEqualTo("Saturdays")
         assertThat(result.broadcastTime).isEqualTo("18:00")
         assertThat(result.broadcastTimezone).isEqualTo("Asia/Tokyo")
-        assertThat(result.streamingLinks).isEqualTo("Crunchyroll\thttps://crunchyroll.com/fma\nNetflix\thttps://netflix.com/title/121")
+        assertThat(result.streamingLinks).isEqualTo("""[{"name":"Crunchyroll","url":"https://crunchyroll.com/fma"},{"name":"Netflix","url":"https://netflix.com/title/121"}]""")
         assertThat(result.lastCheckedAiredEpisodeCount).isEqualTo(10)
         assertThat(result.latestKnownEpisodeAirDate).isEqualTo(checkDate)
         assertThat(result.isEpisodeNotificationsEnabled).isTrue()
@@ -185,9 +185,38 @@ class SeasonEntityTest {
     }
 
     @Test
-    fun `toEntity serializes empty streamingLinks to blank string`() {
+    fun `toEntity serializes empty streamingLinks to empty JSON array`() {
         val season = Season(animeId = 1L, malId = 100, title = "Test", streamingLinks = emptyList())
 
-        assertThat(season.toEntity().streamingLinks).isEqualTo("")
+        assertThat(season.toEntity().streamingLinks).isEqualTo("[]")
+    }
+
+    @Test
+    fun `toDomainModel handles streaming links with special characters in names and URLs`() {
+        val entity = SeasonEntity(
+            animeId = 1L,
+            malId = 100,
+            title = "Test",
+            streamingLinks = """[{"name":"Crunchyroll (US)","url":"https://crunchyroll.com/title/123?locale=en-US"}]"""
+        )
+
+        val result = entity.toDomainModel()
+
+        assertThat(result.streamingLinks).hasSize(1)
+        assertThat(result.streamingLinks[0]).isEqualTo(StreamingInfo("Crunchyroll (US)", "https://crunchyroll.com/title/123?locale=en-US"))
+    }
+
+    @Test
+    fun `toDomainModel handles malformed JSON gracefully`() {
+        val entity = SeasonEntity(
+            animeId = 1L,
+            malId = 100,
+            title = "Test",
+            streamingLinks = "invalid json"
+        )
+
+        val result = entity.toDomainModel()
+
+        assertThat(result.streamingLinks).isEmpty()
     }
 }
