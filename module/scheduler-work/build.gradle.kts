@@ -16,6 +16,21 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
+    testOptions {
+        unitTests {
+            isReturnDefaultValues = true
+            all { test ->
+                test.useJUnitPlatform()
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            enableUnitTestCoverage = true
+        }
+    }
 }
 
 dependencies {
@@ -32,4 +47,14 @@ dependencies {
     ksp(libs.hilt.android.compiler)
 
     implementation(libs.javax.inject)
+
+    testImplementation(libs.androidx.work.testing)
+    testImplementation(libs.junit5.api)
+    testRuntimeOnly(libs.junit5.engine)
+    testRuntimeOnly(libs.junit.platform.launcher)
+    testImplementation(libs.mockk)
+    testImplementation(libs.truth)
+    testImplementation(libs.kotlinx.coroutines.test)
 }
+
+apply plugin: "jacoco-android"
