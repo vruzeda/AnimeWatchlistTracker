@@ -1,5 +1,6 @@
-• Fixed missed new-episode notifications when some episodes had no air date.
+• Fixed missed new-episode notifications when episodes had no air date.
 • Fixed fast typing in search mixing results from a previous search.
 • Fixed duplicate seasons appearing after adding a related anime.
-• Notification messages are now translated into Portuguese, Spanish, and French.
-• App data is now included in Android backups, so your watchlist survives device changes.
+• Fixed a crash when app settings became corrupted.
+• Notification messages are now translated.
+• App data is now included in Android backups.

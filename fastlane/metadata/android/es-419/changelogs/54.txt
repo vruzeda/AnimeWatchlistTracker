@@ -1,5 +1,6 @@
-• Se corrigieron notificaciones de nuevos episodios perdidas cuando algunos episodios no tenían fecha de emisión.
-• Se corrigió que escribir rápido en la búsqueda mezclara resultados de una búsqueda anterior.
+• Se corrigieron notificaciones de nuevos episodios perdidas cuando faltaba la fecha de emisión.
+• Se corrigió que la búsqueda mezclara resultados al escribir rápido.
 • Se corrigieron temporadas duplicadas al agregar un anime relacionado.
-• Los mensajes de notificación ahora están traducidos al portugués, español y francés.
-• Los datos de la app ahora se incluyen en las copias de seguridad de Android, conservando tu lista al cambiar de dispositivo.
+• Se corrigió un cierre cuando los ajustes de la app se dañaban.
+• Los mensajes de notificación ahora están traducidos.
+• Los datos de la app ahora se incluyen en las copias de seguridad de Android.
