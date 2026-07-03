@@ -328,13 +328,3 @@ private fun seasonDisplayLabel(season: AnimeSeason): String = when (season) {
     AnimeSeason.SUMMER -> stringResource(R.string.seasons_label_summer)
     AnimeSeason.FALL -> stringResource(R.string.seasons_label_fall)
 }
-
-@Preview(showBackground = true)
-@Composable
-private fun SeasonsScreenPreview() {
-    SeasonsScreen(
-        animeId = 1L,
-        onBack = {},
-        onSeasonClick = {}
-    )
-}
