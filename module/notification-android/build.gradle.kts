@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
+    id("jacoco-android")
 }
 
 android {
@@ -16,6 +17,21 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
+    buildTypes {
+        debug {
+            enableUnitTestCoverage = true
+        }
+    }
+
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            all { test ->
+                test.useJUnitPlatform()
+            }
+        }
+    }
 }
 
 dependencies {
@@ -26,4 +42,10 @@ dependencies {
     ksp(libs.hilt.android.compiler)
 
     implementation(libs.androidx.core.ktx)
+
+    testImplementation(libs.junit4)
+    testRuntimeOnly(libs.junit.vintage.engine)
+    testRuntimeOnly(libs.junit.platform.launcher)
+    testImplementation(libs.truth)
+    testImplementation(libs.robolectric)
 }
