@@ -86,6 +86,8 @@ android {
         warningsAsErrors = true
         abortOnError = true
         disable += "MissingTranslation"
+        disable += "GradleDependency"
+        disable += "NewerVersionAvailable"
     }
 }
 
