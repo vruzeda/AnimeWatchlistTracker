@@ -6,6 +6,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.AiringStatus
 import com.vuzeda.animewatchlist.tracker.module.domain.DataError
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.parseAiredDateFromString
 import com.vuzeda.animewatchlist.tracker.module.repository.AnimeRepository
 import com.vuzeda.animewatchlist.tracker.module.repository.SeasonRepository
 import java.time.LocalDate
@@ -99,7 +100,7 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
             )
         }
 
-        val lastAiredDate = episodes.mapNotNull { parseLocalDate(it.aired) }.maxOrNull()
+        val lastAiredDate = episodes.mapNotNull { parseAiredDateFromString(it.aired) }.maxOrNull()
         when {
             lastAiredDate != null -> seasonRepository.updateLatestKnownEpisodeAirDate(season.id, lastAiredDate)
             isFirstRun -> seasonRepository.updateLatestKnownEpisodeAirDate(season.id, LocalDate.MIN)
@@ -179,11 +180,3 @@ private fun Clock.todayUtc(): LocalDate =
         .atZone(ZoneOffset.UTC)
         .toLocalDate()
 
-private fun parseLocalDate(aired: String?): LocalDate? {
-    if (aired == null) return null
-    return try {
-        LocalDate.parse(aired.take(10))
-    } catch (_: Exception) {
-        null
-    }
-}

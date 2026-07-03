@@ -77,7 +77,7 @@ class AnimeRemoteDataSourceImpl @Inject constructor(
 
             var pageExceedsUpTo = false
             for (episode in response.data) {
-                val airedDate = parseAiredDate(episode.aired)
+                val airedDate = parseAiredDateFromString(episode.aired)
                 if (airedDate != null) {
                     if (airedDate.isAfter(upTo)) {
                         pageExceedsUpTo = true
@@ -116,15 +116,6 @@ class AnimeRemoteDataSourceImpl @Inject constructor(
             page = page,
             filter = filter.apiValue
         ).toSeasonalAnimePage(currentPage = page)
-    }
-}
-
-private fun parseAiredDate(aired: String?): LocalDate? {
-    if (aired == null) return null
-    return try {
-        LocalDate.parse(aired.take(10))
-    } catch (_: Exception) {
-        null
     }
 }
 
