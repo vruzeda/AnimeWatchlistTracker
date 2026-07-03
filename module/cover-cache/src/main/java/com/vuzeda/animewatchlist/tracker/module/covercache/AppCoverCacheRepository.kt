@@ -1,4 +1,4 @@
-package com.vuzeda.animewatchlist.tracker
+package com.vuzeda.animewatchlist.tracker.module.covercache
 
 import android.content.Context
 import coil.Coil

@@ -116,6 +116,7 @@ dependencies {
     implementation(project(":module:analytics"))
     "prodImplementation"(project(":module:analytics-firebase"))
     "prodImplementation"(project(":module:remote-data-source-firebase"))
+    implementation(project(":module:cover-cache"))
 
     "prodImplementation"(platform(libs.firebase.bom))
     "prodImplementation"(libs.firebase.analytics)

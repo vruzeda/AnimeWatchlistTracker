@@ -8,6 +8,7 @@ import coil.disk.DiskCache
 import coil.ImageLoaderFactory
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.UserPreferencesLocalDataSource
 import com.vuzeda.animewatchlist.tracker.module.usecase.ConfigureAnimeUpdateNotificationUseCase
+import com.vuzeda.animewatchlist.tracker.module.covercache.DiskCachePolicyInterceptor
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
