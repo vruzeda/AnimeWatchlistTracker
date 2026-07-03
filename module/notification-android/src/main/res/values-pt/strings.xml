@@ -4,4 +4,7 @@
         <item quantity="many">%d novos episódios no ar!</item>
         <item quantity="other">%d novos episódios no ar!</item>
     </plurals>
+    <string name="notification_channel_name">Atualizações de Anime</string>
+    <string name="notification_channel_description">Notificações para novos episódios e temporadas</string>
+    <string name="new_season_announced">Nova temporada anunciada: %s</string>
 </resources>

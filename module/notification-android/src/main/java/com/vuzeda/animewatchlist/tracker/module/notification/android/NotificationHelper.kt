@@ -28,12 +28,14 @@ class NotificationHelper @Inject constructor(
 ) : AnimeUpdateNotifier {
 
     override fun createNotificationChannel() {
+        val channelName = context.getString(R.string.notification_channel_name)
+        val channelDescription = context.getString(R.string.notification_channel_description)
         val channel = NotificationChannel(
             CHANNEL_ID,
-            CHANNEL_NAME,
+            channelName,
             NotificationManager.IMPORTANCE_DEFAULT
         ).apply {
-            description = CHANNEL_DESCRIPTION
+            description = channelDescription
         }
 
         val notificationManager = NotificationManagerCompat.from(context)
@@ -66,7 +68,10 @@ class NotificationHelper @Inject constructor(
                 "ep_${anime.id}".hashCode()
             )
             is AnimeUpdate.NewSeason -> Pair(
-                "New season announced: ${resolveDisplayTitle(update.sequelTitle, update.sequelTitleEnglish, update.sequelTitleJapanese, titleLanguage)}",
+                context.getString(
+                    R.string.new_season_announced,
+                    resolveDisplayTitle(update.sequelTitle, update.sequelTitleEnglish, update.sequelTitleJapanese, titleLanguage)
+                ),
                 "season_${anime.id}_${update.sequelMalId}".hashCode()
             )
         }
@@ -109,7 +114,5 @@ class NotificationHelper @Inject constructor(
     companion object {
         const val EXTRA_SEASON_MAL_ID = "extra_season_mal_id"
         const val CHANNEL_ID = "anime_updates"
-        const val CHANNEL_NAME = "Anime Updates"
-        const val CHANNEL_DESCRIPTION = "Notifications for new episodes and seasons"
     }
 }
