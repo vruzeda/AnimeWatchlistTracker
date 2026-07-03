@@ -27,6 +27,7 @@ android {
     testOptions {
         unitTests {
             isReturnDefaultValues = true
+            isIncludeAndroidResources = true
             all { test ->
                 test.useJUnitPlatform()
             }
@@ -51,10 +52,14 @@ dependencies {
     implementation(libs.moshi)
 
     testImplementation(libs.junit5.api)
+    testImplementation(libs.junit4)
     testRuntimeOnly(libs.junit5.engine)
+    testRuntimeOnly(libs.junit.vintage.engine)
     testRuntimeOnly(libs.junit.platform.launcher)
     testImplementation(libs.truth)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.turbine)
+    testImplementation(libs.robolectric)
 }
 
 jacocoAndroid {
