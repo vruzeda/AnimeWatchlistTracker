@@ -53,10 +53,9 @@ class AnimeRepositoryImplTest {
         animeLocalDataSource,
         episodeLocalDataSource,
         animeRemoteDataSource,
-        animeUpdateNotifier,
-        animeUpdateScheduler,
         seasonRepository,
         transactionRunner,
+        animeUpdateScheduler,
         clock
     )
 
