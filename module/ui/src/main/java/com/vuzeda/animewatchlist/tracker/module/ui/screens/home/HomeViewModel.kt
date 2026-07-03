@@ -23,6 +23,7 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.SetHomeNotificationFilte
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetHomeSortStateUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetHomeStatusFilterUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonStatusUseCase
+import com.vuzeda.animewatchlist.tracker.module.ui.util.latestWatchedSeason
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -157,8 +158,8 @@ class HomeViewModel @Inject constructor(
 
     fun showStatusSheetForAnime(animeId: Long) {
         val season = cachedSeasons
-            .filter { it.isInWatchlist && it.animeId == animeId }
-            .maxByOrNull { it.orderIndex } ?: return
+            .filter { it.animeId == animeId }
+            .latestWatchedSeason() ?: return
         _uiState.update { it.copy(isStatusSheetVisible = true, pendingStatusSeason = season) }
     }
 

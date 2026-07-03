@@ -47,12 +47,7 @@ class AnimeRepositoryImpl @Inject constructor(
     ) { animeList, seasons ->
         val seasonsByAnimeId = seasons.groupBy { it.animeId }
         animeList.map { anime ->
-            anime.copy(
-                status = seasonsByAnimeId[anime.id]
-                    ?.filter { it.isInWatchlist }
-                    ?.maxByOrNull { it.orderIndex }?.status
-                    ?: WatchStatus.PLAN_TO_WATCH
-            )
+            anime.copy(status = seasonsByAnimeId.computeEffectiveStatus(anime.id))
         }
     }
 
@@ -62,10 +57,7 @@ class AnimeRepositoryImpl @Inject constructor(
     ) { animeList, seasons ->
         val seasonsByAnimeId = seasons.groupBy { it.animeId }
         animeList.mapNotNull { anime ->
-            val effectiveStatus = seasonsByAnimeId[anime.id]
-                ?.filter { it.isInWatchlist }
-                ?.maxByOrNull { it.orderIndex }?.status
-                ?: WatchStatus.PLAN_TO_WATCH
+            val effectiveStatus = seasonsByAnimeId.computeEffectiveStatus(anime.id)
             if (effectiveStatus == status) anime.copy(status = effectiveStatus) else null
         }
     }
@@ -74,19 +66,13 @@ class AnimeRepositoryImpl @Inject constructor(
         animeLocalDataSource.observeById(id),
         seasonRepository.observeSeasonsForAnime(id)
     ) { anime, seasons ->
-        anime?.copy(
-            status = seasons.filter { it.isInWatchlist }
-                .maxByOrNull { it.orderIndex }?.status ?: WatchStatus.PLAN_TO_WATCH
-        )
+        anime?.copy(status = seasons.computeEffectiveStatus())
     }
 
     override suspend fun getAnimeById(id: Long): Anime? {
         val anime = animeLocalDataSource.getById(id) ?: return null
         val seasons = seasonRepository.getSeasonsForAnime(anime.id)
-        return anime.copy(
-            status = seasons.filter { it.isInWatchlist }
-                .maxByOrNull { it.orderIndex }?.status ?: WatchStatus.PLAN_TO_WATCH
-        )
+        return anime.copy(status = seasons.computeEffectiveStatus())
     }
 
     override suspend fun addAnime(anime: Anime, seasons: List<Season>): Long =
@@ -208,6 +194,14 @@ class AnimeRepositoryImpl @Inject constructor(
         animeLocalDataSource.recordAnimeUpdateAttempt(clock.now().toEpochMilliseconds(), result)
     }
 }
+
+private fun List<Season>.computeEffectiveStatus(): WatchStatus =
+    filter { it.isInWatchlist }
+        .maxByOrNull { it.orderIndex }?.status
+        ?: WatchStatus.PLAN_TO_WATCH
+
+private fun Map<Long, List<Season>>.computeEffectiveStatus(animeId: Long): WatchStatus =
+    this[animeId]?.computeEffectiveStatus() ?: WatchStatus.PLAN_TO_WATCH
 
 private fun String.toAnimeUpdateResult(reason: String?, retryCount: Int?): AnimeUpdateResult? = when (this) {
     "SUCCESS" -> AnimeUpdateResult.Success

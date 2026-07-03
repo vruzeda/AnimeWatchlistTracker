@@ -1,10 +1,10 @@
 package com.vuzeda.animewatchlist.tracker.module.domain
 
-enum class AnimeSeason(val apiValue: String) {
-    WINTER("winter"),
-    SPRING("spring"),
-    SUMMER("summer"),
-    FALL("fall");
+enum class AnimeSeason {
+    WINTER,
+    SPRING,
+    SUMMER,
+    FALL;
 
     fun next(): Pair<AnimeSeason, Int> = when (this) {
         WINTER -> SPRING to 0
