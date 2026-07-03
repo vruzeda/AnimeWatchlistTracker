@@ -4,7 +4,6 @@ import android.content.Intent
 import android.net.Uri
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
-import java.util.Locale
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -58,6 +57,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -621,9 +621,10 @@ private fun SeasonHeaderSection(
             }
 
             if (broadcastLocalTime != null) {
-                val dayDisplay = broadcastLocalTime.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())
+                val locale = LocalConfiguration.current.locales[0]
+                val dayDisplay = broadcastLocalTime.dayOfWeek.getDisplayName(TextStyle.FULL, locale)
                 val timeDisplay = broadcastLocalTime.time.format(DateTimeFormatter.ofPattern("HH:mm"))
-                val zoneDisplay = broadcastLocalTime.zoneId.getDisplayName(TextStyle.SHORT_STANDALONE, Locale.getDefault())
+                val zoneDisplay = broadcastLocalTime.zoneId.getDisplayName(TextStyle.SHORT_STANDALONE, locale)
                 Text(
                     text = stringResource(
                         R.string.season_detail_broadcast_local_time,

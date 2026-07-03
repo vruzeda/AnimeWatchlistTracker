@@ -1,0 +1,5 @@
+• Correction des notifications de nouveaux épisodes manquées lorsque certains épisodes n'avaient pas de date de diffusion.
+• Correction de la recherche qui pouvait mélanger les résultats d'une recherche précédente en tapant vite.
+• Correction des saisons en double après l'ajout d'un anime lié.
+• Les messages de notification sont désormais traduits en portugais, espagnol et français.
+• Les données de l'appli sont désormais incluses dans les sauvegardes Android.

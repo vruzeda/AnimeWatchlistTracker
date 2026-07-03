@@ -15,6 +15,10 @@ val androidClassDir = layout.buildDirectory.dir(
     "intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes"
 )
 
+val unitTestExecutionData = layout.buildDirectory.file(
+    "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec"
+)
+
 tasks.register<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
     dependsOn("testDebugUnitTest")
     classDirectories.setFrom(
@@ -24,7 +28,7 @@ tasks.register<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
             }
         }
     )
-    executionData.setFrom(fileTree(layout.buildDirectory) { include("**/*.exec", "**/*.ec") })
+    executionData.setFrom(unitTestExecutionData)
 }
 
 tasks.register<JacocoReport>("jacocoTestReport") {
@@ -37,5 +41,5 @@ tasks.register<JacocoReport>("jacocoTestReport") {
         }
     )
     sourceDirectories.setFrom(files("src/main/java", "src/main/kotlin"))
-    executionData.setFrom(fileTree(layout.buildDirectory) { include("**/*.exec", "**/*.ec") })
+    executionData.setFrom(unitTestExecutionData)
 }

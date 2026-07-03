@@ -479,24 +479,24 @@ class AnimeRemoteDataSourceImplTest {
     }
 
     @Test
-    fun `fetchWatchOrder exhausts retries and fails with DataError Unknown on persistent Chiaki 503`() = runTest {
+    fun `fetchWatchOrder exhausts retries and fails with DataError Network on persistent Chiaki 503`() = runTest {
         coEvery { chiakiService.fetchWatchOrder(1) } throws ChiakiRequestException(malId = 1, statusCode = 503)
 
         val result = repository.fetchWatchOrder(1)
 
         assertThat(result.isFailure).isTrue()
-        assertThat(result.exceptionOrNull()).isInstanceOf(DataError.Unknown::class.java)
+        assertThat(result.exceptionOrNull()).isInstanceOf(DataError.Network::class.java)
         coVerify(exactly = 3) { chiakiService.fetchWatchOrder(1) }
     }
 
     @Test
-    fun `fetchWatchOrder does not retry Chiaki failures with non-retryable status codes`() = runTest {
+    fun `fetchWatchOrder maps Chiaki 404 to DataError NotFound without retrying`() = runTest {
         coEvery { chiakiService.fetchWatchOrder(1) } throws ChiakiRequestException(malId = 1, statusCode = 404)
 
         val result = repository.fetchWatchOrder(1)
 
         assertThat(result.isFailure).isTrue()
-        assertThat(result.exceptionOrNull()).isInstanceOf(DataError.Unknown::class.java)
+        assertThat(result.exceptionOrNull()).isInstanceOf(DataError.NotFound::class.java)
         coVerify(exactly = 1) { chiakiService.fetchWatchOrder(1) }
     }
 
