@@ -33,6 +33,9 @@ Anime Watchlist Tracker is a personal anime management app built for fans who wa
 - **Title Language** — Choose to display anime titles in Romaji (default), English, or Japanese
 - **Localization** — UI fully translated in English, Brazilian Portuguese, Latin American Spanish, and French
 - **Settings** — Configure title language preference, Home view mode, and delete all data
+- **Developer Options** — Advanced debugging tools for development and testing (debug builds only)
+- **Schedule Management** — Upcoming schedule view with auto-refresh and airing status tracking
+- **Offline Cover Caching** — Automatically cache anime cover images for offline viewing; disable in Settings if preferred
 - **Offline First** — All data stored locally on your device using Room, with user preferences in DataStore
 - **Material You** — Modern, dynamic theming that adapts to your wallpaper (Android 12+)
 
@@ -61,7 +64,7 @@ _Coming soon_
 - **API** — Jikan v4 (MyAnimeList unofficial API), chiaki.site (watch order scraping)
 - **Testing** — JUnit 5, MockK, Turbine, Truth
 - **Min SDK** — API 26 (Android 8.0)
-- **Target SDK** — API 37 (Android 15)
+- **Target SDK** — API 37 (Android 14)
 
 ## Architecture
 
