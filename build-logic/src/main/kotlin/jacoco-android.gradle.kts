@@ -1,3 +1,4 @@
+import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
 import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification
 import org.gradle.testing.jacoco.tasks.JacocoReport
 
@@ -18,6 +19,15 @@ val androidClassDir = layout.buildDirectory.dir(
 val unitTestExecutionData = layout.buildDirectory.file(
     "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec"
 )
+
+tasks.withType<Test>().configureEach {
+    extensions.configure(JacocoTaskExtension::class) {
+        // Robolectric's sandbox classloader strips source locations; without this,
+        // classes exercised only through Robolectric tests report zero coverage.
+        isIncludeNoLocationClasses = true
+        excludes = listOf("jdk.internal.*")
+    }
+}
 
 tasks.register<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
     dependsOn("testDebugUnitTest")
