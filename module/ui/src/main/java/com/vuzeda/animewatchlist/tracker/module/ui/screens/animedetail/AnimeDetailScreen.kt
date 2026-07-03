@@ -183,7 +183,7 @@ fun AnimeDetailScreen(
                 },
                 actions = {
                     if (uiState.anime != null && uiState.isInWatchlist) {
-                        NotificationButton(
+                        NotificationButtonWithPermissions(
                             enabled = uiState.isNotificationsEnabled,
                             onClick = onNotificationIconClick,
                             onPermissionDenied = onNotificationPermissionDenied

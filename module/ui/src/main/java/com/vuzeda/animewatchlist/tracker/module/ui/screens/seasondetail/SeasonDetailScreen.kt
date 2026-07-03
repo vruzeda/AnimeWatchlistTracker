@@ -178,7 +178,7 @@ fun SeasonDetailScreen(
                 },
                 actions = {
                     if (uiState.season != null && uiState.isInWatchlist) {
-                        NotificationButton(
+                        NotificationButtonWithPermissions(
                             enabled = uiState.isEpisodeNotificationsEnabled,
                             onClick = onToggleEpisodeNotifications,
                             onPermissionDenied = onNotificationPermissionDenied
