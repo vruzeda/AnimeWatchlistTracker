@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsEvent
 import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsTracker
+import com.vuzeda.animewatchlist.tracker.module.domain.AiringStatus
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.module.domain.EpisodeInfo
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
@@ -461,7 +462,7 @@ open class SeasonDetailViewModel @Inject constructor(
         isLoadingEpisodes: Boolean,
         hasMoreEpisodes: Boolean
     ): List<EpisodeInfo> {
-        if (season?.airingStatus != "Currently Airing" || season.episodeCount != null) return episodes
+        if (season?.airingStatus != AiringStatus.CURRENTLY_AIRING.displayName || season.episodeCount != null) return episodes
         if (isLoadingEpisodes || hasMoreEpisodes) return episodes
         val realEpisodes = episodes.filter { !it.isPlaceholder }
         val maxRealNumber = realEpisodes.maxOfOrNull { it.number } ?: 0

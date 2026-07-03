@@ -2,6 +2,7 @@ package com.vuzeda.animewatchlist.tracker.module.usecase
 
 import com.vuzeda.animewatchlist.tracker.module.domain.Anime
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdate
+import com.vuzeda.animewatchlist.tracker.module.domain.AiringStatus
 import com.vuzeda.animewatchlist.tracker.module.domain.DataError
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
@@ -70,7 +71,7 @@ class CheckAnimeUpdatesUseCase @Inject constructor(
     ): AnimeUpdate.NewEpisodes? {
         if (season.lastEpisodeCheckPerformedDate == today) return null
 
-        if (season.airingStatus == "Finished Airing" && season.latestKnownEpisodeAirDate != null) return null
+        if (season.airingStatus == AiringStatus.FINISHED_AIRING.displayName && season.latestKnownEpisodeAirDate != null) return null
 
         val episodeCount = season.episodeCount
         val checkedCount = season.lastCheckedAiredEpisodeCount ?: 0

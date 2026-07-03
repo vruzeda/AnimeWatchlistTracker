@@ -1,8 +1,10 @@
 package com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mapper
 
+import com.vuzeda.animewatchlist.tracker.module.domain.AiringStatus
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonData
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.ChiakiWatchOrderEntryDto
 import java.time.LocalDate
+import kotlin.time.Clock
 
 private val TYPE_CODE_TO_STRING = mapOf(
     1 to "TV",
@@ -16,10 +18,10 @@ private val TYPE_CODE_TO_STRING = mapOf(
     9 to "TV Special",
 )
 
-fun List<ChiakiWatchOrderEntryDto>.toSeasonDataList(): List<SeasonData> =
-    map { it.toSeasonData() }
+fun List<ChiakiWatchOrderEntryDto>.toSeasonDataList(today: LocalDate = LocalDate.now()): List<SeasonData> =
+    map { it.toSeasonData(today) }
 
-fun ChiakiWatchOrderEntryDto.toSeasonData(): SeasonData = SeasonData(
+fun ChiakiWatchOrderEntryDto.toSeasonData(today: LocalDate = LocalDate.now()): SeasonData = SeasonData(
     malId = malId,
     title = title,
     titleEnglish = titleEnglish,
@@ -29,15 +31,14 @@ fun ChiakiWatchOrderEntryDto.toSeasonData(): SeasonData = SeasonData(
     score = score,
     isMainSeries = isMainSeries,
     startDate = startDate,
-    airingStatus = inferAiringStatus(startDate, endDate),
+    airingStatus = inferAiringStatus(startDate, endDate, today),
 )
 
-private fun inferAiringStatus(startDate: LocalDate?, endDate: LocalDate?): String? {
-    val today = LocalDate.now()
+private fun inferAiringStatus(startDate: LocalDate?, endDate: LocalDate?, today: LocalDate): String? {
     return when {
         startDate == null                          -> null
-        startDate.isAfter(today)                   -> "Not yet aired"
-        endDate != null && !endDate.isAfter(today) -> "Finished Airing"
-        else                                       -> "Currently Airing"
+        startDate.isAfter(today)                   -> AiringStatus.NOT_YET_AIRED.displayName
+        endDate != null && !endDate.isAfter(today) -> AiringStatus.FINISHED_AIRING.displayName
+        else                                       -> AiringStatus.CURRENTLY_AIRING.displayName
     }
 }
