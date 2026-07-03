@@ -29,6 +29,14 @@ tasks.register<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
         }
     )
     executionData.setFrom(unitTestExecutionData)
+    val expectedClassDir = androidClassDir.get().asFile.absolutePath
+    doFirst {
+        check(!(this as JacocoCoverageVerification).classDirectories.asFileTree.isEmpty) {
+            "jacocoTestCoverageVerification resolved zero class files under " +
+                "$expectedClassDir — the AGP intermediates layout has changed and " +
+                "coverage would silently pass with nothing measured"
+        }
+    }
 }
 
 tasks.register<JacocoReport>("jacocoTestReport") {
