@@ -28,6 +28,7 @@ All modules except `:app` live under `module/`. Package root: `com.vuzeda.animew
 | `notification-android` | Android | `NotificationHelper` (implements `AnimeUpdateNotifier`), `NotificationLaunchActivity`. Strings in `res/values*/strings.xml` (en/pt/es/fr locales). |
 | `scheduler` | Pure Kotlin | Interface-only: `AnimeUpdateScheduler` interface. No jacoco. |
 | `scheduler-work` | Android | `AnimeUpdateWorker`, `AnimeUpdateWorkerScheduler`, `BackfillAiringSeasonWorker` — WorkManager-backed. Tests mandatory. |
+| `cover-cache` | Android | `AppCoverCacheRepository` (implements `CoverCacheRepository` from `repository`) and `DiskCachePolicyInterceptor` — Coil-backed offline cover image caching. |
 | `design-system` | Android | Material 3 theme, design tokens, all reusable Compose components. Purely presentational — never touches ViewModels or business logic, never depends on `domain` or any other module. Every component gets a `@Preview` with realistic sample data. |
 | `ui` | Android | Compose screens + ViewModels + navigation (MVVM). Screens are built exclusively from `design-system` components — never one-off styled components. Never depends on any `local-data-source*` or `remote-data-source*` module. |
 | `:app` | Android app | Hilt entry point (`Application`, `MainActivity`), all cross-module DI wiring. The only module that sees every other module. No business logic, no UI, no data access. |
@@ -70,7 +71,15 @@ If `JAVA_HOME` is not set and `/usr/libexec/java_home` can't locate a JDK, use A
 ./gradlew :module:<name>:test --tests "com.fully.qualified.ClassName"
 ```
 
-All test modules use JUnit 5 (`useJUnitPlatform()`).
+All test modules use JUnit 5 (`useJUnitPlatform()`). Exception: Robolectric has no JUnit 5 support, so Robolectric-based tests (e.g. the Room DAO tests) are JUnit 4 classes executed through the vintage engine on the same platform.
+
+### Build Conventions
+
+Shared Gradle configuration lives exclusively in `build-logic/` convention plugins — never copy shared blocks into a module build file:
+- `kotlin-library` — pure Kotlin modules: applies `kotlin.jvm` + `java-library`, JVM 17, JUnit platform, and the junit5/truth test dependencies (versions resolved from the version catalog, which `build-logic` imports).
+- `jacoco-android` — Android modules: registers `jacocoTestCoverageVerification`/`jacocoTestReport` against AGP's intermediates, with a `jacocoAndroid { excludes }` extension; it fails loudly if it resolves zero class files.
+
+Module build files contain only the plugins block, module-specific dependencies, and per-module jacoco exclusions. Jacoco is opt-in per module (`jacoco` plugin for pure Kotlin, `id("jacoco-android")` for Android) — the root build injects the 80% branch rule automatically.
 
 ## Coding Standards
 
@@ -190,7 +199,7 @@ Every `feat:`/`fix:` commit that changes what a user experiences must also updat
 
 1. Write the migration in `Migrations.kt` (e.g. `MIGRATION_18_19`). Min SDK 26 lacks `ALTER TABLE … RENAME COLUMN` support (needs SQLite 3.25 / API 29+) — renames require full table recreation: create the new table, copy rows, drop the old table, rename the new one. Recreate foreign-key targets before the tables referencing them.
 2. Register it in `AnimeDatabase.kt` — bump `version`, add to `.addMigrations(...)` in the Hilt module.
-3. Generate the schema export by running `./gradlew :module:local-data-source-room:test` (KSP writes it during compilation) to `module/local-data-source-room/schemas/com.vuzeda.animewatchlist.tracker.module.localdatasource.room.AnimeDatabase/{version}.json`.
+3. Generate the schema export by running `./gradlew :module:local-data-source-room:test` (KSP writes it during compilation) to `module/local-data-source-room/schemas/com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database.AnimeDatabase/{version}.json`.
 4. Commit the schema JSON alongside the migration code in the same commit — it's the authoritative record of that schema version.
 
 ## Static Analysis
@@ -212,7 +221,7 @@ If a legitimate violation exists, add a targeted `@Suppress` annotation with jus
 ## Before Submitting Code
 
 1. All existing tests pass; new code has corresponding unit tests.
-2. Branch coverage ≥80% via `./gradlew jacocoTestCoverageVerification`. Coverage enforcement is opt-in per module by applying the `jacoco` plugin — the root build injects the 80% rule automatically. Modules with generated/untestable code (Moshi adapters, Room DAOs, coroutine state machines) configure `classDirectories` exclusions rather than lowering the ratio. Android library modules must register `jacocoTestCoverageVerification` manually (AGP doesn't create it). Interface-only modules (`local-data-source`, `remote-data-source`, `notification`, `scheduler`) intentionally skip jacoco.
+2. Branch coverage ≥80% via `./gradlew jacocoTestCoverageVerification`. Coverage enforcement is opt-in per module by applying the `jacoco` plugin — the root build injects the 80% rule automatically. Modules with generated/untestable code (Moshi adapters, Room DAOs, coroutine state machines) configure `classDirectories` exclusions rather than lowering the ratio. Android library modules must register `jacocoTestCoverageVerification` manually (AGP doesn't create it). Interface-only modules (`local-data-source`, `remote-data-source`, `notification`, `scheduler`) and `domain` (plain data classes — coverage there only measures boilerplate) intentionally skip jacoco.
 3. No compiler warnings.
 4. Naming/style conventions followed; no unnecessary comments.
 5. Architecture layer boundaries respected — no cross-layer imports.
