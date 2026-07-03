@@ -19,7 +19,10 @@ import java.time.LocalDate
             onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [Index(value = ["animeId"])]
+    indices = [
+        Index(value = ["animeId"]),
+        Index(value = ["animeId", "malId"], unique = true)
+    ]
 )
 data class SeasonEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
