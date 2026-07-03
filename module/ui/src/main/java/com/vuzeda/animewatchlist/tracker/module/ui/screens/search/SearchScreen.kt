@@ -365,3 +365,36 @@ private fun resolveSnackbarEventMessage(event: SearchSnackbarEvent): String = wh
     is SearchSnackbarEvent.LoadMoreFailed -> stringResource(R.string.error_load_more_failed)
     is SearchSnackbarEvent.DetailFetchFailed -> stringResource(R.string.error_detail_fetch_failed)
 }
+
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+private fun SearchScreenPreview() {
+    val sampleState = SearchUiState(
+        query = "Attack on Titan",
+        results = emptyList(),
+        isLoading = false,
+        isLoadingMore = false,
+        error = null,
+        canLoadMore = true,
+        hasNoResults = false,
+        filter = SearchFilterState.ALL,
+        isAddDialogOpen = false,
+        dialogAddItem = null
+    )
+    SearchScreen(
+        uiState = sampleState,
+        onQueryChange = {},
+        onSearch = {},
+        onLoadMore = {},
+        onRefresh = {},
+        onItemClick = {},
+        onAddClick = {},
+        onDismissAddDialog = {},
+        onConfirmAdd = {},
+        onRemoveClick = {},
+        onDismissRemoveConfirmation = {},
+        onConfirmRemove = {},
+        onSnackbarDismissed = {},
+        onFilterChange = {}
+    )
+}

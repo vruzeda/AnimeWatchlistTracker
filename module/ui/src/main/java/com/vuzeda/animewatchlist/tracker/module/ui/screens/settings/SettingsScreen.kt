@@ -376,3 +376,36 @@ fun SettingsScreen(
         )
     }
 }
+
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+private fun SettingsScreenPreview() {
+    val sampleState = SettingsUiState(
+        titleLanguage = TitleLanguage.ROMAJI,
+        homeViewMode = HomeViewMode.ANIME,
+        isDeveloperOptionsEnabled = false,
+        isNotificationDebugInfoEnabled = false,
+        isOfflineCoverCachingEnabled = true,
+        isFeedbackSheetVisible = false
+    )
+    SettingsScreen(
+        uiState = sampleState,
+        feedbackUiState = FeedbackUiState(),
+        onTitleLanguageSelected = {},
+        onHomeViewModeSelected = {},
+        onToggleDeveloperOptions = {},
+        onToggleNotificationDebugInfo = {},
+        onToggleOfflineCoverCaching = {},
+        onResetDataClick = {},
+        onConfirmReset = {},
+        onCancelReset = {},
+        onFeedbackClick = {},
+        onFeedbackCategorySelected = {},
+        onFeedbackMessageChanged = {},
+        onFeedbackContactNameChanged = {},
+        onFeedbackContactEmailChanged = {},
+        onFeedbackSubmit = {},
+        onFeedbackEventConsumed = {},
+        onFeedbackDismiss = {}
+    )
+}
