@@ -37,6 +37,7 @@ class AnimeRepositoryImpl @Inject constructor(
     private val animeRemoteDataSource: AnimeRemoteDataSource,
     private val seasonRepository: SeasonRepository,
     private val transactionRunner: TransactionRunner,
+    private val animeUpdateScheduler: AnimeUpdateScheduler,
     private val clock: Clock = Clock.System
 ) : AnimeRepository {
 

@@ -22,8 +22,7 @@ import org.junit.jupiter.api.extension.ExtensionContext
 class RoomDatabaseTestExtension : BeforeEachCallback {
     private lateinit var database: AnimeDatabase
 
-    override fun beforeEach(context: ExtensionContext?) {
-        // This would need Android context in real usage; for now provide the infrastructure
+    override fun beforeEach(context: ExtensionContext) {
     }
 
     fun getDatabase(): AnimeDatabase = database
