@@ -26,6 +26,7 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.SetAnimeDetailTypeFilter
 import com.vuzeda.animewatchlist.tracker.module.usecase.ToggleAnimeNotificationsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonStatusUseCase
+import com.vuzeda.animewatchlist.tracker.module.ui.util.latestWatchedSeason
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -315,8 +316,7 @@ class AnimeDetailViewModel @Inject constructor(
     }
 
     fun showAnimeStatusSheet() {
-        val season = _uiState.value.seasons
-            .filter { it.isInWatchlist }.maxByOrNull { it.orderIndex } ?: return
+        val season = _uiState.value.seasons.latestWatchedSeason() ?: return
         _uiState.update { it.copy(isUpdateStatusSheetVisible = true, pendingUpdateSeason = season) }
     }
 
