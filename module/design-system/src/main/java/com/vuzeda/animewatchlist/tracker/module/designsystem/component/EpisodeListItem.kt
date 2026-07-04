@@ -98,7 +98,7 @@ fun EpisodeListItem(
                 if (airedDate != null) {
                     Spacer(modifier = Modifier.height(SubtleSpacing))
                     Text(
-                        text = airedDate.take(10),
+                        text = airedDate,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -146,18 +146,18 @@ private fun EpisodeListItemPreview() {
                 EpisodeListItem(
                     episodeNumber = 1,
                     title = "To You, in 2000 Years: The Fall of Shiganshina, Part 1",
-                    airedDate = "2013-04-07T00:00:00+00:00"
+                    airedDate = "Apr 7, 2013"
                 )
                 EpisodeListItem(
                     episodeNumber = 2,
                     title = "That Day: The Fall of Shiganshina, Part 2",
-                    airedDate = "2013-04-14T00:00:00+00:00",
+                    airedDate = "Apr 14, 2013",
                     isFiller = true
                 )
                 EpisodeListItem(
                     episodeNumber = 3,
                     title = "A Dim Light Amid Despair: Humanity's Comeback, Part 1",
-                    airedDate = "2013-04-21T00:00:00+00:00",
+                    airedDate = "Apr 21, 2013",
                     isRecap = true,
                     showDivider = false
                 )

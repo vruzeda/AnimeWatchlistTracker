@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- AnimeCard -->
-    <string name="score_format">★ %1$s</string>
+    <string name="score_format">★ %1$.1f</string>
     <string name="cd_open_anime_details">Abrir detalles</string>
 
     <!-- SearchBar -->

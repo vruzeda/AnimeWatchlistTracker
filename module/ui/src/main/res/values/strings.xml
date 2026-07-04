@@ -128,7 +128,7 @@
     <!-- SeasonDetailScreen -->
     <string name="season_detail_title">Season Detail</string>
     <string name="season_detail_not_found">Season not found</string>
-    <string name="season_detail_mal_score">MAL Score: ★ %1$s</string>
+    <string name="season_detail_mal_score">MAL Score: ★ %1$.1f</string>
     <string name="season_detail_section_progress">Progress</string>
     <string name="season_detail_section_episodes">Episodes</string>
     <plurals name="season_detail_episode_count">

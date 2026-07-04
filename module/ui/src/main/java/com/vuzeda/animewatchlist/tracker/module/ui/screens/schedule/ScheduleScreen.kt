@@ -114,7 +114,7 @@ fun ScheduleScreen(
                 .padding(scaffoldPadding)
         ) {
             val seasonLabel = seasonDisplayLabel(uiState.selectedSeason)
-            val pickerLabel = "$seasonLabel ${uiState.selectedYear}"
+            val pickerLabel = stringResource(R.string.seasons_picker_label, seasonLabel, uiState.selectedYear)
 
             SeasonPickerRow(
                 modifier = Modifier.padding(horizontal = ScreenPadding),
