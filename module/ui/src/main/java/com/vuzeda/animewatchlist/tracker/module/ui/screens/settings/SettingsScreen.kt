@@ -169,18 +169,19 @@ fun SettingsScreen(
 
     androidx.compose.material3.Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        contentWindowInsets = WindowInsets(0)
+        contentWindowInsets = WindowInsets(0),
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.settings_title)) },
+                windowInsets = WindowInsets(0, 0, 0, 0)
+            )
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            TopAppBar(
-                title = { Text(stringResource(R.string.settings_title)) },
-                windowInsets = WindowInsets(0, 0, 0, 0)
-            )
-
             Text(
                 text = stringResource(R.string.settings_title_language),
                 style = MaterialTheme.typography.titleMedium,

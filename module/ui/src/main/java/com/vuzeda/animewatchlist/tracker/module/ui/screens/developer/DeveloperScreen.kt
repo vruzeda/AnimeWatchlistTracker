@@ -70,12 +70,9 @@ fun DeveloperScreen(
         DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).withZone(ZoneId.systemDefault())
     }
 
-    Scaffold(contentWindowInsets = WindowInsets(0)) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
+    Scaffold(
+        contentWindowInsets = WindowInsets(0),
+        topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.developer_title)) },
                 navigationIcon = {
@@ -88,7 +85,13 @@ fun DeveloperScreen(
                 },
                 windowInsets = WindowInsets(0, 0, 0, 0)
             )
-
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
             TextButton(
                 onClick = onDisableDeveloperOptions,
                 modifier = Modifier
