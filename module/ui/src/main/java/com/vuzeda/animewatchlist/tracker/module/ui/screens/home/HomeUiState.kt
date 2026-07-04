@@ -35,7 +35,13 @@ data class HomeUiState(
     val isSortAscending: Boolean = HomeSortOption.ALPHABETICAL.defaultAscending,
     val titleLanguage: TitleLanguage = TitleLanguage.DEFAULT,
     val isLoading: Boolean = true,
+    val hasLoadFailed: Boolean = false,
     val isStatusSheetVisible: Boolean = false,
-    val pendingStatusSeason: Season? = null
+    val pendingStatusSeason: Season? = null,
+    val snackbarEvent: HomeSnackbarEvent? = null
 )
+
+sealed interface HomeSnackbarEvent {
+    data object UpdateCheckStarted : HomeSnackbarEvent
+}
 

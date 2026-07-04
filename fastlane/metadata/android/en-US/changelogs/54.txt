@@ -3,3 +3,4 @@
 • Improved screen reader support.
 • Fixed a crash when opening streaming links without a browser.
 • Smoother episode lists for long series.
+• Pull down on Home or Schedule to check for updates; load errors now offer a retry.

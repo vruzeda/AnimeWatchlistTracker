@@ -3,3 +3,4 @@
 • Melhor suporte a leitores de tela.
 • Corrigido travamento ao abrir links de streaming sem navegador.
 • Listas de episódios mais fluidas em séries longas.
+• Puxe para baixo no Início ou na Programação para buscar novidades; erros agora permitem tentar novamente.

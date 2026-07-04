@@ -18,10 +18,16 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -55,7 +61,10 @@ fun ScheduleScreenRoute(
         onNavigateBack = onNavigateBack,
         onPreviousSeason = viewModel::onPreviousSeason,
         onNextSeason = viewModel::onNextSeason,
-        onSeasonClick = onSeasonClick
+        onSeasonClick = onSeasonClick,
+        onRefresh = viewModel::refresh,
+        onRetryClick = viewModel::retry,
+        onSnackbarDismissed = viewModel::clearSnackbar
     )
 }
 
@@ -66,69 +75,111 @@ fun ScheduleScreen(
     onNavigateBack: () -> Unit,
     onPreviousSeason: () -> Unit,
     onNextSeason: () -> Unit,
-    onSeasonClick: (Long) -> Unit
+    onSeasonClick: (Long) -> Unit,
+    onRefresh: () -> Unit = {},
+    onRetryClick: () -> Unit = {},
+    onSnackbarDismissed: () -> Unit = {}
 ) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        TopAppBar(
-            title = { Text(stringResource(R.string.schedule_title)) },
-            windowInsets = WindowInsets(0, 0, 0, 0),
-            navigationIcon = {
-                IconButton(onClick = onNavigateBack) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.cd_back)
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    if (uiState.snackbarEvent != null) {
+        val message = stringResource(R.string.home_checking_for_updates)
+        LaunchedEffect(uiState.snackbarEvent) {
+            snackbarHostState.showSnackbar(message)
+            onSnackbarDismissed()
+        }
+    }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.schedule_title)) },
+                windowInsets = WindowInsets(0, 0, 0, 0),
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.cd_back)
+                        )
+                    }
+                }
+            )
+        }
+    ) { scaffoldPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(scaffoldPadding)
+        ) {
+            val seasonLabel = seasonDisplayLabel(uiState.selectedSeason)
+            val pickerLabel = "$seasonLabel ${uiState.selectedYear}"
+
+            SeasonPickerRow(
+                modifier = Modifier.padding(horizontal = ScreenPadding),
+                label = pickerLabel,
+                onPreviousClick = onPreviousSeason,
+                onNextClick = onNextSeason
+            )
+
+            HorizontalDivider()
+
+            when {
+                uiState.isLoading -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                }
+                uiState.hasLoadFailed -> {
+                    EmptyStateMessage(
+                        modifier = Modifier.fillMaxSize(),
+                        title = stringResource(R.string.schedule_load_failed),
+                        onRetry = onRetryClick
                     )
                 }
-            }
-        )
-
-        val seasonLabel = seasonDisplayLabel(uiState.selectedSeason)
-        val pickerLabel = "$seasonLabel ${uiState.selectedYear}"
-
-        SeasonPickerRow(
-            modifier = Modifier.padding(horizontal = ScreenPadding),
-            label = pickerLabel,
-            onPreviousClick = onPreviousSeason,
-            onNextClick = onNextSeason
-        )
-
-        HorizontalDivider()
-
-        when {
-            uiState.isLoading -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+                uiState.schedule.isEmpty() -> {
+                    PullToRefreshBox(
+                        isRefreshing = false,
+                        onRefresh = onRefresh,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        EmptyStateMessage(
+                            modifier = Modifier.fillMaxSize(),
+                            title = stringResource(R.string.schedule_season_no_data),
+                            subtitle = stringResource(R.string.schedule_empty_subtitle)
+                        )
+                    }
                 }
-            }
-            uiState.schedule.isEmpty() -> {
-                EmptyStateMessage(
-                    modifier = Modifier.fillMaxSize(),
-                    title = stringResource(R.string.schedule_season_no_data),
-                    subtitle = stringResource(R.string.schedule_empty_subtitle)
-                )
-            }
-            else -> {
-                LazyColumn(
-                    contentPadding = PaddingValues(bottom = ElementSpacing),
-                    verticalArrangement = Arrangement.spacedBy(0.dp)
-                ) {
-                    uiState.schedule.forEach { (dayOfWeek, seasons) ->
-                        item(key = dayOfWeek.name) {
-                            Text(
-                                text = dayOfWeekLabel(dayOfWeek),
-                                style = MaterialTheme.typography.titleSmall,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(start = ScreenPadding, end = ScreenPadding, top = SmallSpacing, bottom = SmallSpacing)
-                            )
-                        }
-                        items(items = seasons, key = { it.id }) { season ->
-                            ScheduleSeasonCard(
-                                season = season,
-                                titleLanguage = uiState.titleLanguage,
-                                onSeasonClick = onSeasonClick,
-                                modifier = Modifier.padding(horizontal = ScreenPadding, vertical = SmallSpacing)
-                            )
+                else -> {
+                    PullToRefreshBox(
+                        isRefreshing = false,
+                        onRefresh = onRefresh,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        LazyColumn(
+                            contentPadding = PaddingValues(bottom = ElementSpacing),
+                            verticalArrangement = Arrangement.spacedBy(0.dp)
+                        ) {
+                            uiState.schedule.forEach { (dayOfWeek, seasons) ->
+                                item(key = dayOfWeek.name) {
+                                    Text(
+                                        text = dayOfWeekLabel(dayOfWeek),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(start = ScreenPadding, end = ScreenPadding, top = SmallSpacing, bottom = SmallSpacing)
+                                    )
+                                }
+                                items(items = seasons, key = { it.id }) { season ->
+                                    ScheduleSeasonCard(
+                                        season = season,
+                                        titleLanguage = uiState.titleLanguage,
+                                        onSeasonClick = onSeasonClick,
+                                        modifier = Modifier.padding(horizontal = ScreenPadding, vertical = SmallSpacing)
+                                    )
+                                }
+                            }
                         }
                     }
                 }

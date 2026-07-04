@@ -55,6 +55,8 @@
     <string name="filter_reset">Reset Filters</string>
     <string name="home_title">My Watchlist</string>
     <string name="home_empty_title">No anime here yet</string>
+    <string name="home_load_failed">Something went wrong loading your watchlist.</string>
+    <string name="home_checking_for_updates">Checking for new episodes and seasons…</string>
     <string name="home_empty_subtitle">Search for anime to add to your watchlist</string>
     <string name="home_episode_with_total">%1$d / %2$d ep</string>
     <string name="home_episode_without_total">%1$d ep</string>
@@ -223,6 +225,7 @@
     <string name="cd_open_schedule">Open schedule</string>
     <string name="schedule_empty_title">No schedule yet</string>
     <string name="schedule_empty_subtitle">Add airing anime to your watchlist and their broadcast day will appear here</string>
+    <string name="schedule_load_failed">Something went wrong loading the schedule.</string>
     <string name="schedule_day_monday">Monday</string>
     <string name="schedule_day_tuesday">Tuesday</string>
     <string name="schedule_day_wednesday">Wednesday</string>

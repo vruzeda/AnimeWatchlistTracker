@@ -3,3 +3,4 @@
 • Mejor soporte para lectores de pantalla.
 • Se corrigió un cierre al abrir enlaces de streaming sin navegador.
 • Listas de episodios más fluidas en series largas.
+• Desliza hacia abajo para buscar novedades; los errores permiten reintentar.
