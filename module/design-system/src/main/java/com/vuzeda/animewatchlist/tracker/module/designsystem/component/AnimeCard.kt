@@ -113,7 +113,7 @@ fun AnimeCard(
                 if (score != null) {
                     Spacer(modifier = Modifier.height(SmallSpacing))
                     Text(
-                        text = stringResource(R.string.score_format, score.toString()),
+                        text = stringResource(R.string.score_format, score),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

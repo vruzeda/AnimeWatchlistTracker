@@ -4,3 +4,4 @@
 • Smoother episode lists for long series.
 • Pull down to check for new episodes.
 • Better color contrast; status colors now adapt to dark mode.
+• Dates, times, and scores now follow your device language.

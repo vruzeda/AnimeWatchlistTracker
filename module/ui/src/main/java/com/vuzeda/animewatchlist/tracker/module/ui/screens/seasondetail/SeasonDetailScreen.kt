@@ -90,7 +90,10 @@ import com.vuzeda.animewatchlist.tracker.module.ui.R
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.ScreenPreviewSamples
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.home.toColor
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.home.toDisplayLabelRes
+import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
+import java.time.format.FormatStyle
 import java.time.format.TextStyle
 
 @Composable
@@ -376,6 +379,10 @@ private fun SeasonDetailContent(
     onStreamingLinkFailed: () -> Unit
 ) {
     val season = checkNotNull(state.season)
+    val airedDateLocale = LocalConfiguration.current.locales[0]
+    val airedDateFormatter = remember(airedDateLocale) {
+        DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(airedDateLocale)
+    }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = ScreenPadding, vertical = ElementSpacing)
@@ -428,7 +435,7 @@ private fun SeasonDetailContent(
                 EpisodeListItem(
                     episodeNumber = episode.number,
                     title = episode.title,
-                    airedDate = episode.aired,
+                    airedDate = episode.aired?.toLocalizedAiredDate(airedDateFormatter),
                     isFiller = episode.isFiller,
                     isRecap = episode.isRecap,
                     isPlaceholder = episode.isPlaceholder,
@@ -650,9 +657,10 @@ private fun SeasonHeaderSection(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            if (season.score != null) {
+            val malScore = season.score
+            if (malScore != null) {
                 Text(
-                    text = stringResource(R.string.season_detail_mal_score, season.score.toString()),
+                    text = stringResource(R.string.season_detail_mal_score, malScore),
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -687,7 +695,9 @@ private fun SeasonHeaderSection(
             if (broadcastLocalTime != null) {
                 val locale = LocalConfiguration.current.locales[0]
                 val dayDisplay = broadcastLocalTime.dayOfWeek.getDisplayName(TextStyle.FULL, locale)
-                val timeDisplay = broadcastLocalTime.time.format(DateTimeFormatter.ofPattern("HH:mm"))
+                val timeDisplay = broadcastLocalTime.time.format(
+                    DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale)
+                )
                 val zoneDisplay = broadcastLocalTime.zoneId.getDisplayName(TextStyle.SHORT_STANDALONE, locale)
                 Text(
                     text = stringResource(
@@ -771,3 +781,10 @@ private fun SeasonDetailScreenPreview() {
         )
     }
 }
+
+private fun String.toLocalizedAiredDate(formatter: DateTimeFormatter): String =
+    try {
+        OffsetDateTime.parse(this).toLocalDate().format(formatter)
+    } catch (_: DateTimeParseException) {
+        take(10)
+    }

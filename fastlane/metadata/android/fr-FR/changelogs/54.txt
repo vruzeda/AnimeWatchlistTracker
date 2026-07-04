@@ -4,3 +4,4 @@
 • Listes d'épisodes plus fluides.
 • Tirez vers le bas pour vérifier les nouveautés.
 • Meilleur contraste ; les couleurs de statut s'adaptent au thème sombre.
+• Dates, heures et notes suivent désormais la langue de l'appareil.
