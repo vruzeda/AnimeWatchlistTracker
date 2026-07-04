@@ -1,4 +1,4 @@
-• Correções: notificações perdidas, busca misturada, temporadas duplicadas, travamentos com ajustes corrompidos ou links de streaming, e toques em notificação que não abriam a temporada.
+• Correções: notificações perdidas, busca misturada, temporadas duplicadas, travamentos e toques em notificação que não abriam a temporada.
 • Mensagens de notificação traduzidas; dados incluídos nos backups do Android.
 • Melhor suporte a leitores de tela.
 • Listas de episódios mais fluidas.

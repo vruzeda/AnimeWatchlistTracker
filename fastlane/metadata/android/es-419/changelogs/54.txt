@@ -1,7 +1,7 @@
-• Correcciones: notificaciones perdidas, búsqueda mezclada, temporadas duplicadas, cierres por ajustes dañados o enlaces de streaming, y toques en notificaciones que no abrían la temporada.
+• Correcciones: notificaciones perdidas, búsqueda mezclada, temporadas duplicadas, cierres y toques en notificaciones que no abrían la temporada.
 • Mensajes de notificación traducidos; datos incluidos en las copias de seguridad de Android.
 • Mejor soporte para lectores de pantalla.
 • Listas de episodios más fluidas.
 • Desliza hacia abajo para buscar novedades.
-• Mejor contraste de colores; los colores de estado se adaptan al tema oscuro.
+• Mejor contraste; colores de estado adaptados al tema oscuro.
 • Fechas, horas y puntuaciones ahora siguen el idioma del dispositivo.
