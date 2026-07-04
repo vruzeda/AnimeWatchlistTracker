@@ -32,7 +32,7 @@ fun StatusChipButton(
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        StatusChip(label = label, color = color)
+        PillLabel(label = label, color = color)
     }
 }
 

@@ -14,6 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
@@ -28,7 +29,8 @@ fun TypeToConfirmDialog(
     confirmText: String,
     dismissText: String,
     onConfirm: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    confirmColor: Color = MaterialTheme.colorScheme.error
 ) {
     var inputText by remember { mutableStateOf("") }
     val confirmed = inputText == confirmationPhrase
@@ -56,7 +58,7 @@ fun TypeToConfirmDialog(
             ) {
                 Text(
                     text = confirmText,
-                    color = if (confirmed) MaterialTheme.colorScheme.error
+                    color = if (confirmed) confirmColor
                     else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                 )
             }
