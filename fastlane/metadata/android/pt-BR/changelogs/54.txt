@@ -1,7 +1,4 @@
-• Correções: notificações perdidas, busca misturada, temporadas duplicadas, travamentos e toques em notificação que não abriam a temporada.
-• Mensagens de notificação traduzidas; dados incluídos nos backups do Android.
-• Melhor suporte a leitores de tela.
-• Listas de episódios mais fluidas.
-• Puxe para baixo para buscar novidades.
-• Melhor contraste de cores; cores de status agora se adaptam ao tema escuro.
-• Datas, horários e notas agora seguem o idioma do aparelho.
+• Correções: notificações perdidas/misturadas, temporadas duplicadas, travamentos e toques que não abriam a temporada.
+• Notificações traduzidas, listas mais fluidas, melhor suporte a leitores de tela, backups incluem dados do app.
+• Puxe para baixo para buscar novidades; melhor contraste e tema escuro; datas/notas seguem o idioma do aparelho.
+• Notificações agora usam canais separados para episódios e temporadas.

@@ -3,7 +3,9 @@
         <item quantity="one">%d new episode aired!</item>
         <item quantity="other">%d new episodes aired!</item>
     </plurals>
-    <string name="notification_channel_name">Anime Updates</string>
-    <string name="notification_channel_description">Notifications for new episodes and seasons</string>
+    <string name="notification_channel_episodes_name">New episodes</string>
+    <string name="notification_channel_episodes_description">Notifications when new episodes of your anime air</string>
+    <string name="notification_channel_seasons_name">New seasons</string>
+    <string name="notification_channel_seasons_description">Notifications when new seasons of your anime are announced</string>
     <string name="new_season_announced">New season announced: %s</string>
 </resources>

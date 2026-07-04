@@ -10,7 +10,7 @@ class ConfigureAnimeUpdateNotificationUseCase @Inject constructor(
     private val animeUpdateScheduler: AnimeUpdateScheduler
 ) {
     operator fun invoke() {
-        animeUpdateNotifier.createNotificationChannel()
+        animeUpdateNotifier.createNotificationChannels()
         animeUpdateScheduler.schedulePeriodicUpdate()
     }
 }

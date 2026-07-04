@@ -3,6 +3,7 @@ package com.vuzeda.animewatchlist.tracker.module.notification.android
 import android.Manifest
 import android.app.Activity
 import android.app.Application
+import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.ComponentName
 import android.content.Context
@@ -54,7 +55,7 @@ class NotificationHelperTest {
         shadowOf(context).grantPermissions(Manifest.permission.POST_NOTIFICATIONS)
         shadowOf(context.packageManager)
             .addActivityIfNotPresent(ComponentName(context, TestLaunchActivity::class.java))
-        notificationHelper.createNotificationChannel()
+        notificationHelper.createNotificationChannels()
     }
 
     private fun postedNotifications() = shadowOf(notificationManager).allNotifications
@@ -63,14 +64,64 @@ class NotificationHelperTest {
         postedNotifications().first { it.extras.getString(NotificationCompat.EXTRA_TEXT) != null }
 
     @Test
-    fun `createNotificationChannel registers the updates channel with localized texts`() {
-        val channel = notificationManager.getNotificationChannel(NotificationHelper.CHANNEL_ID)
+    fun `createNotificationChannels registers the episodes channel with localized texts`() {
+        val channel = notificationManager.getNotificationChannel(NotificationHelper.EPISODES_CHANNEL_ID)
 
         assertThat(channel).isNotNull()
         assertThat(channel.name.toString())
-            .isEqualTo(context.getString(R.string.notification_channel_name))
+            .isEqualTo(context.getString(R.string.notification_channel_episodes_name))
         assertThat(channel.description)
-            .isEqualTo(context.getString(R.string.notification_channel_description))
+            .isEqualTo(context.getString(R.string.notification_channel_episodes_description))
+    }
+
+    @Test
+    fun `createNotificationChannels registers the seasons channel with localized texts`() {
+        val channel = notificationManager.getNotificationChannel(NotificationHelper.SEASONS_CHANNEL_ID)
+
+        assertThat(channel).isNotNull()
+        assertThat(channel.name.toString())
+            .isEqualTo(context.getString(R.string.notification_channel_seasons_name))
+        assertThat(channel.description)
+            .isEqualTo(context.getString(R.string.notification_channel_seasons_description))
+    }
+
+    @Test
+    fun `createNotificationChannels deletes the legacy combined channel`() {
+        notificationManager.createNotificationChannel(
+            NotificationChannel(
+                NotificationHelper.LEGACY_CHANNEL_ID,
+                "Anime Updates",
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
+        )
+
+        notificationHelper.createNotificationChannels()
+
+        assertThat(notificationManager.getNotificationChannel(NotificationHelper.LEGACY_CHANNEL_ID)).isNull()
+    }
+
+    @Test
+    fun `new episodes notification is posted on the episodes channel`() {
+        notificationHelper.showUpdateNotification(newEpisodes, TitleLanguage.DEFAULT)
+
+        assertThat(contentNotification().channelId).isEqualTo(NotificationHelper.EPISODES_CHANNEL_ID)
+    }
+
+    @Test
+    fun `new season notification is posted on the seasons channel`() {
+        notificationHelper.showUpdateNotification(newSeason, TitleLanguage.DEFAULT)
+
+        assertThat(contentNotification().channelId).isEqualTo(NotificationHelper.SEASONS_CHANNEL_ID)
+    }
+
+    @Test
+    fun `content notification expands the full text via big text style`() {
+        notificationHelper.showUpdateNotification(newEpisodes, TitleLanguage.DEFAULT)
+
+        val notification = contentNotification()
+
+        assertThat(notification.extras.getCharSequence(NotificationCompat.EXTRA_BIG_TEXT).toString())
+            .isEqualTo(context.resources.getQuantityString(R.plurals.new_episodes_aired, 2, 2))
     }
 
     @Test
