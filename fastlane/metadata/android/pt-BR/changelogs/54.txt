@@ -1,7 +1,4 @@
-• Corrigidas notificações de novos episódios perdidas quando faltava a data de exibição.
-• Corrigido que a busca misturasse resultados ao digitar rápido.
-• Corrigidas temporadas duplicadas ao adicionar um anime relacionado.
-• Corrigido um travamento quando os ajustes do app ficavam corrompidos.
-• As mensagens de notificação agora são traduzidas.
-• Os dados do app agora são incluídos nos backups do Android.
-• Suporte a leitores de tela aprimorado em todo o app.
+• Corrigidos: notificações de episódios perdidas, resultados de busca misturados, temporadas duplicadas e travamento com ajustes corrompidos.
+• Mensagens de notificação traduzidas; dados do app incluídos nos backups do Android.
+• Melhor suporte a leitores de tela.
+• Corrigido travamento ao abrir links de streaming sem navegador.

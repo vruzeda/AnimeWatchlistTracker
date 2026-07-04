@@ -41,4 +41,5 @@ sealed interface SeasonDetailSnackbarEvent {
     data class EpisodeNotificationsToggled(val enabled: Boolean) : SeasonDetailSnackbarEvent
     data object NotificationPermissionDenied : SeasonDetailSnackbarEvent
     data object EpisodeLoadFailed : SeasonDetailSnackbarEvent
+    data object StreamingLinkFailed : SeasonDetailSnackbarEvent
 }

@@ -153,6 +153,7 @@
     <string name="season_detail_episode_notifications_enabled">Episode notifications enabled</string>
     <string name="season_detail_episode_notifications_disabled">Episode notifications disabled</string>
     <string name="season_detail_episode_load_failed">Couldn\'t load episodes. Showing cached data.</string>
+    <string name="season_detail_streaming_link_failed">No app available to open this link.</string>
 
     <!-- SeasonsScreen -->
     <string name="seasons_title">Seasons</string>

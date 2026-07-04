@@ -144,6 +144,7 @@
     <string name="season_detail_episode_notifications_enabled">Notificaciones de episodios activadas</string>
     <string name="season_detail_episode_notifications_disabled">Notificaciones de episodios desactivadas</string>
     <string name="season_detail_episode_load_failed">No se pudieron cargar los episodios. Mostrando datos en caché.</string>
+    <string name="season_detail_streaming_link_failed">No hay ninguna aplicación disponible para abrir este enlace.</string>
     <string name="season_detail_broadcast_info">Emisión: %1$s</string>
     <string name="season_detail_broadcast_local_time">Hora local: %1$s</string>
     <string name="season_detail_airing_season">Temporada: %1$s</string>

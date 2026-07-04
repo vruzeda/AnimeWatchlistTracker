@@ -1,7 +1,4 @@
-• Fixed missed new-episode notifications when episodes had no air date.
-• Fixed fast typing in search mixing results from a previous search.
-• Fixed duplicate seasons appearing after adding a related anime.
-• Fixed a crash when app settings became corrupted.
-• Notification messages are now translated.
-• App data is now included in Android backups.
-• Improved screen reader support across the app.
+• Fixed missed episode notifications, mixed search results, duplicate seasons, and a crash with corrupted settings.
+• Notification messages are now translated; app data is included in Android backups.
+• Improved screen reader support.
+• Fixed a crash when opening streaming links without a browser.

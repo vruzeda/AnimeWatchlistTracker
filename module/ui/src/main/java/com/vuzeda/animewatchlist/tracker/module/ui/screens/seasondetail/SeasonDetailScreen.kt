@@ -1,5 +1,6 @@
 package com.vuzeda.animewatchlist.tracker.module.ui.screens.seasondetail
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.BackHandler
@@ -123,6 +124,7 @@ fun SeasonDetailScreenRoute(
         onDismissAddSheet = viewModel::dismissAddSheet,
         onToggleEpisodeNotifications = viewModel::toggleEpisodeNotifications,
         onViewFullSeriesClick = viewModel::navigateToAnimeDetail,
+        onStreamingLinkFailed = viewModel::notifyStreamingLinkFailed,
         onSnackbarDismissed = viewModel::clearSnackbar,
         onNotificationPermissionDenied = viewModel::notifyPermissionDenied,
         onRefresh = viewModel::refresh,
@@ -151,6 +153,7 @@ fun SeasonDetailScreen(
     onViewFullSeriesClick: () -> Unit,
     onSnackbarDismissed: () -> Unit,
     onNotificationPermissionDenied: () -> Unit,
+    onStreamingLinkFailed: () -> Unit = {},
     onRefresh: () -> Unit = {},
     onRetryClick: () -> Unit = {}
 ) {
@@ -293,7 +296,8 @@ fun SeasonDetailScreen(
                                         onMarkAllEpisodesWatched = onMarkAllEpisodesWatched,
                                         onLoadMoreEpisodes = onLoadMoreEpisodes,
                                         onAddToWatchlistClick = onAddToWatchlistClick,
-                                        onViewFullSeriesClick = onViewFullSeriesClick
+                                        onViewFullSeriesClick = onViewFullSeriesClick,
+                                        onStreamingLinkFailed = onStreamingLinkFailed
                                     )
                                 }
                             }
@@ -366,7 +370,8 @@ private fun SeasonDetailContent(
     onMarkAllEpisodesWatched: () -> Unit,
     onLoadMoreEpisodes: () -> Unit,
     onAddToWatchlistClick: () -> Unit,
-    onViewFullSeriesClick: () -> Unit
+    onViewFullSeriesClick: () -> Unit,
+    onStreamingLinkFailed: () -> Unit
 ) {
     val season = checkNotNull(state.season)
     Column(
@@ -411,7 +416,11 @@ private fun SeasonDetailContent(
             visibleLinks.forEach { link ->
                 OutlinedButton(
                     onClick = {
-                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(link.url)))
+                        try {
+                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(link.url)))
+                        } catch (_: ActivityNotFoundException) {
+                            onStreamingLinkFailed()
+                        }
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -681,6 +690,8 @@ private fun resolveSnackbarMessage(event: SeasonDetailSnackbarEvent): String = w
         stringResource(R.string.notification_permission_denied)
     is SeasonDetailSnackbarEvent.EpisodeLoadFailed ->
         stringResource(R.string.season_detail_episode_load_failed)
+    is SeasonDetailSnackbarEvent.StreamingLinkFailed ->
+        stringResource(R.string.season_detail_streaming_link_failed)
 }
 @Preview(showBackground = true)
 @Composable
