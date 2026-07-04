@@ -1,7 +1,5 @@
-• Correction des notifications de nouveaux épisodes manquées quand la date de diffusion était absente.
-• Correction de la recherche qui mélangeait les résultats en tapant vite.
-• Correction des saisons en double après l'ajout d'un anime lié.
-• Correction d'un plantage quand les réglages de l'appli étaient corrompus.
-• Les messages de notification sont désormais traduits.
-• Les données de l'appli sont désormais incluses dans les sauvegardes Android.
-• Lecteurs d'écran mieux pris en charge.
+• Corrections : notifications manquées, recherche mélangée, saisons en double, plantages liés aux réglages corrompus ou aux liens de streaming, et notifications qui n'ouvraient pas la saison.
+• Messages de notification traduits ; données incluses dans les sauvegardes Android.
+• Meilleure prise en charge des lecteurs d'écran.
+• Listes d'épisodes plus fluides.
+• Tirez vers le bas pour vérifier les nouveautés.

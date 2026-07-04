@@ -11,5 +11,11 @@ data class ScheduleUiState(
     val schedule: Map<DayOfWeek, List<Season>> = emptyMap(),
     val availableSeasons: List<Pair<Int, AnimeSeason>> = emptyList(),
     val titleLanguage: TitleLanguage = TitleLanguage.DEFAULT,
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val hasLoadFailed: Boolean = false,
+    val snackbarEvent: ScheduleSnackbarEvent? = null
 )
+
+sealed interface ScheduleSnackbarEvent {
+    data object UpdateCheckStarted : ScheduleSnackbarEvent
+}

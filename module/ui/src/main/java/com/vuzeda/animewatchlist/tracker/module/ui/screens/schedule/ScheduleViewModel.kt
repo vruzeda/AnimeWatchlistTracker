@@ -5,10 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveScheduleUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.TriggerAnimeUpdateUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -19,7 +21,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ScheduleViewModel @Inject constructor(
     private val observeScheduleUseCase: ObserveScheduleUseCase,
-    private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase
+    private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase,
+    private val triggerAnimeUpdateUseCase: TriggerAnimeUpdateUseCase
 ) : ViewModel() {
 
     private val _selectedSeason = MutableStateFlow(currentAnimeSeason())
@@ -27,6 +30,10 @@ class ScheduleViewModel @Inject constructor(
     val uiState: StateFlow<ScheduleUiState> = _uiState.asStateFlow()
 
     init {
+        observeSchedule()
+    }
+
+    private fun observeSchedule() {
         viewModelScope.launch {
             combine(
                 observeScheduleUseCase(),
@@ -60,10 +67,28 @@ class ScheduleViewModel @Inject constructor(
                     titleLanguage = titleLanguage,
                     isLoading = false
                 )
+            }.catch {
+                _uiState.update { it.copy(isLoading = false, hasLoadFailed = true) }
             }.collect { state ->
-                _uiState.value = state
+                _uiState.update { current ->
+                    state.copy(snackbarEvent = current.snackbarEvent)
+                }
             }
         }
+    }
+
+    fun retry() {
+        _uiState.update { it.copy(isLoading = true, hasLoadFailed = false) }
+        observeSchedule()
+    }
+
+    fun refresh() {
+        triggerAnimeUpdateUseCase()
+        _uiState.update { it.copy(snackbarEvent = ScheduleSnackbarEvent.UpdateCheckStarted) }
+    }
+
+    fun clearSnackbar() {
+        _uiState.update { it.copy(snackbarEvent = null) }
     }
 
     fun onPreviousSeason() {

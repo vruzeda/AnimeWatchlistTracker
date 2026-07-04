@@ -2,10 +2,10 @@ package com.vuzeda.animewatchlist.tracker.module.ui.screens.home
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -14,10 +14,16 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -75,7 +81,10 @@ fun HomeScreenRoute(
         onSeasonStatusChipClicked = viewModel::showStatusSheetForSeason,
         onAnimeStatusChipClicked = viewModel::showStatusSheetForAnime,
         onStatusSelected = viewModel::updateStatus,
-        onDismissStatusSheet = viewModel::dismissStatusSheet
+        onDismissStatusSheet = viewModel::dismissStatusSheet,
+        onRefresh = viewModel::refresh,
+        onRetryClick = viewModel::retry,
+        onSnackbarDismissed = viewModel::clearSnackbar
     )
 }
 
@@ -93,7 +102,10 @@ fun HomeScreen(
     onSeasonStatusChipClicked: (Season) -> Unit,
     onAnimeStatusChipClicked: (Long) -> Unit,
     onStatusSelected: (WatchStatus) -> Unit,
-    onDismissStatusSheet: () -> Unit
+    onDismissStatusSheet: () -> Unit,
+    onRefresh: () -> Unit = {},
+    onRetryClick: () -> Unit = {},
+    onSnackbarDismissed: () -> Unit = {}
 ) {
     val sortOptions = HomeSortOption.entries.map { stringResource(it.displayLabelRes) }
 
@@ -126,135 +138,63 @@ fun HomeScreen(
         selectedIndices = setOf(notificationValues.indexOf(uiState.filterState.notificationFilter))
     )
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        TopAppBar(
-            title = { Text(stringResource(R.string.home_title)) },
-            windowInsets = WindowInsets(0, 0, 0, 0),
-            actions = {
-                IconButton(onClick = onScheduleClick) {
-                    Icon(
-                        imageVector = Icons.Outlined.CalendarMonth,
-                        contentDescription = stringResource(R.string.cd_open_schedule)
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    if (uiState.snackbarEvent != null) {
+        val message = stringResource(R.string.home_checking_for_updates)
+        LaunchedEffect(uiState.snackbarEvent) {
+            snackbarHostState.showSnackbar(message)
+            onSnackbarDismissed()
+        }
+    }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.home_title)) },
+                windowInsets = WindowInsets(0, 0, 0, 0),
+                actions = {
+                    IconButton(onClick = onScheduleClick) {
+                        Icon(
+                            imageVector = Icons.Outlined.CalendarMonth,
+                            contentDescription = stringResource(R.string.cd_open_schedule)
+                        )
+                    }
+                    NestedFilterMenuButton(
+                        filterGroups = listOf(statusFilterGroup, notificationFilterGroup),
+                        onOptionSelected = { groupIndex, optionIndex ->
+                            when (groupIndex) {
+                                GROUP_STATUS -> onStatusFilterSelected(statusValues[optionIndex])
+                                GROUP_NOTIFICATION -> onNotificationFilterSelected(notificationValues[optionIndex])
+                            }
+                        },
+                        resetLabel = stringResource(R.string.filter_reset),
+                        onReset = onResetFilters
+                    )
+                    SortMenuButton(
+                        options = sortOptions,
+                        selectedIndex = uiState.sortOption.ordinal,
+                        isAscending = uiState.isSortAscending,
+                        onOptionSelected = { index -> onSortSelected(HomeSortOption.entries[index]) }
                     )
                 }
-                NestedFilterMenuButton(
-                    filterGroups = listOf(statusFilterGroup, notificationFilterGroup),
-                    onOptionSelected = { groupIndex, optionIndex ->
-                        when (groupIndex) {
-                            GROUP_STATUS -> onStatusFilterSelected(statusValues[optionIndex])
-                            GROUP_NOTIFICATION -> onNotificationFilterSelected(notificationValues[optionIndex])
-                        }
-                    },
-                    resetLabel = stringResource(R.string.filter_reset),
-                    onReset = onResetFilters
-                )
-                SortMenuButton(
-                    options = sortOptions,
-                    selectedIndex = uiState.sortOption.ordinal,
-                    isAscending = uiState.isSortAscending,
-                    onOptionSelected = { index -> onSortSelected(HomeSortOption.entries[index]) }
-                )
-            }
+            )
+        }
+    ) { scaffoldPadding ->
+        HomeScreenContent(
+            uiState = uiState,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(scaffoldPadding),
+            onAnimeClick = onAnimeClick,
+            onSeasonClick = onSeasonClick,
+            onSeasonStatusChipClicked = onSeasonStatusChipClicked,
+            onAnimeStatusChipClicked = onAnimeStatusChipClicked,
+            onRefresh = onRefresh,
+            onRetryClick = onRetryClick
         )
-
-        val isListEmpty = if (uiState.homeViewMode == HomeViewMode.ANIME) {
-            uiState.animeList.isEmpty()
-        } else {
-            uiState.seasonItems.isEmpty()
-        }
-
-        when {
-            uiState.isLoading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-            }
-            isListEmpty -> {
-                EmptyStateMessage(
-                    modifier = Modifier.fillMaxSize(),
-                    title = stringResource(R.string.home_empty_title),
-                    subtitle = stringResource(R.string.home_empty_subtitle)
-                )
-            }
-            uiState.homeViewMode == HomeViewMode.ANIME -> {
-                LazyColumn(
-                    contentPadding = PaddingValues(horizontal = ScreenPadding, vertical = ElementSpacing),
-                    verticalArrangement = Arrangement.spacedBy(ElementSpacing)
-                ) {
-                    items(
-                        items = uiState.animeList,
-                        key = { it.id }
-                    ) { anime ->
-                        val displayTitle = resolveDisplayTitle(
-                            title = anime.title,
-                            titleEnglish = anime.titleEnglish,
-                            titleJapanese = anime.titleJapanese,
-                            language = uiState.titleLanguage
-                        )
-                        AnimeCard(
-                            title = displayTitle,
-                            imageUrl = anime.imageUrl,
-                            onClick = { onAnimeClick(anime.id) },
-                            imageSharedElementKey = "anime_cover_${anime.id}",
-                            genresText = anime.genres.takeIf { it.isNotEmpty() }?.joinToString(", "),
-                            trailingContent = {
-                                StatusChipButton(
-                                    label = stringResource(anime.status.toDisplayLabelRes()),
-                                    color = anime.status.toColor(),
-                                    onClick = { onAnimeStatusChipClicked(anime.id) }
-                                )
-                            }
-                        )
-                    }
-                }
-            }
-            else -> {
-                LazyColumn(
-                    contentPadding = PaddingValues(horizontal = ScreenPadding, vertical = ElementSpacing),
-                    verticalArrangement = Arrangement.spacedBy(ElementSpacing)
-                ) {
-                    items(
-                        items = uiState.seasonItems,
-                        key = { it.season.id }
-                    ) { item ->
-                        val displayTitle = resolveDisplayTitle(
-                            title = item.season.title,
-                            titleEnglish = item.season.titleEnglish,
-                            titleJapanese = item.season.titleJapanese,
-                            language = uiState.titleLanguage
-                        )
-                        val episodeText = item.season.episodeCount?.let { total ->
-                            stringResource(
-                                R.string.home_episode_with_total,
-                                item.season.watchedEpisodeCount,
-                                total
-                            )
-                        } ?: stringResource(
-                            R.string.home_episode_without_total,
-                            item.season.watchedEpisodeCount
-                        )
-                        AnimeCard(
-                            title = displayTitle,
-                            imageUrl = item.season.imageUrl ?: item.animeImageUrl,
-                            onClick = { onSeasonClick(item.season.id) },
-                            imageSharedElementKey = "season_cover_${item.season.malId}",
-                            episodeText = episodeText,
-                            score = item.season.score,
-                            trailingContent = {
-                                StatusChipButton(
-                                    label = stringResource(item.season.status.toDisplayLabelRes()),
-                                    color = item.season.status.toColor(),
-                                    onClick = { onSeasonStatusChipClicked(item.season) }
-                                )
-                            }
-                        )
-                    }
-                }
-            }
-        }
     }
 
     if (uiState.isStatusSheetVisible) {
@@ -268,6 +208,144 @@ fun HomeScreen(
             onOptionSelected = { index -> onStatusSelected(WatchStatus.entries[index]) },
             onDismiss = onDismissStatusSheet
         )
+    }
+}
+
+@Composable
+private fun HomeScreenContent(
+    uiState: HomeUiState,
+    modifier: Modifier = Modifier,
+    onAnimeClick: (Long) -> Unit,
+    onSeasonClick: (Long) -> Unit,
+    onSeasonStatusChipClicked: (Season) -> Unit,
+    onAnimeStatusChipClicked: (Long) -> Unit,
+    onRefresh: () -> Unit,
+    onRetryClick: () -> Unit
+) {
+    val isListEmpty = if (uiState.homeViewMode == HomeViewMode.ANIME) {
+        uiState.animeList.isEmpty()
+    } else {
+        uiState.seasonItems.isEmpty()
+    }
+
+    Box(modifier = modifier) {
+        when {
+            uiState.isLoading -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+            uiState.hasLoadFailed -> {
+                EmptyStateMessage(
+                    modifier = Modifier.fillMaxSize(),
+                    title = stringResource(R.string.home_load_failed),
+                    onRetry = onRetryClick
+                )
+            }
+            isListEmpty -> {
+                PullToRefreshBox(
+                    isRefreshing = false,
+                    onRefresh = onRefresh,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    EmptyStateMessage(
+                        modifier = Modifier.fillMaxSize(),
+                        title = stringResource(R.string.home_empty_title),
+                        subtitle = stringResource(R.string.home_empty_subtitle)
+                    )
+                }
+            }
+            uiState.homeViewMode == HomeViewMode.ANIME -> {
+                PullToRefreshBox(
+                    isRefreshing = false,
+                    onRefresh = onRefresh,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    LazyColumn(
+                        contentPadding = PaddingValues(horizontal = ScreenPadding, vertical = ElementSpacing),
+                        verticalArrangement = Arrangement.spacedBy(ElementSpacing)
+                    ) {
+                        items(
+                            items = uiState.animeList,
+                            key = { it.id }
+                        ) { anime ->
+                            val displayTitle = resolveDisplayTitle(
+                                title = anime.title,
+                                titleEnglish = anime.titleEnglish,
+                                titleJapanese = anime.titleJapanese,
+                                language = uiState.titleLanguage
+                            )
+                            AnimeCard(
+                                title = displayTitle,
+                                imageUrl = anime.imageUrl,
+                                onClick = { onAnimeClick(anime.id) },
+                                imageSharedElementKey = "anime_cover_${anime.id}",
+                                genresText = anime.genres.takeIf { it.isNotEmpty() }?.joinToString(", "),
+                                trailingContent = {
+                                    StatusChipButton(
+                                        label = stringResource(anime.status.toDisplayLabelRes()),
+                                        color = anime.status.toColor(),
+                                        onClick = { onAnimeStatusChipClicked(anime.id) }
+                                    )
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+            else -> {
+                PullToRefreshBox(
+                    isRefreshing = false,
+                    onRefresh = onRefresh,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    LazyColumn(
+                        contentPadding = PaddingValues(horizontal = ScreenPadding, vertical = ElementSpacing),
+                        verticalArrangement = Arrangement.spacedBy(ElementSpacing)
+                    ) {
+                        items(
+                            items = uiState.seasonItems,
+                            key = { it.season.id }
+                        ) { item ->
+                            val displayTitle = resolveDisplayTitle(
+                                title = item.season.title,
+                                titleEnglish = item.season.titleEnglish,
+                                titleJapanese = item.season.titleJapanese,
+                                language = uiState.titleLanguage
+                            )
+                            val episodeText = item.season.episodeCount?.let { total ->
+                                stringResource(
+                                    R.string.home_episode_with_total,
+                                    item.season.watchedEpisodeCount,
+                                    total
+                                )
+                            } ?: stringResource(
+                                R.string.home_episode_without_total,
+                                item.season.watchedEpisodeCount
+                            )
+                            AnimeCard(
+                                title = displayTitle,
+                                imageUrl = item.season.imageUrl ?: item.animeImageUrl,
+                                onClick = { onSeasonClick(item.season.id) },
+                                imageSharedElementKey = "season_cover_${item.season.malId}",
+                                episodeText = episodeText,
+                                score = item.season.score,
+                                trailingContent = {
+                                    StatusChipButton(
+                                        label = stringResource(item.season.status.toDisplayLabelRes()),
+                                        color = item.season.status.toColor(),
+                                        onClick = { onSeasonStatusChipClicked(item.season) }
+                                    )
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

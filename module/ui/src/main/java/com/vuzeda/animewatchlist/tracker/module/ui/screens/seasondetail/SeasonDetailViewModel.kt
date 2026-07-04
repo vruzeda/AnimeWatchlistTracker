@@ -446,6 +446,10 @@ open class SeasonDetailViewModel @Inject constructor(
         _uiState.update { it.copy(pendingNavigationMalId = null) }
     }
 
+    fun notifyStreamingLinkFailed() {
+        _uiState.update { it.copy(snackbarEvent = SeasonDetailSnackbarEvent.StreamingLinkFailed) }
+    }
+
     fun notifyPermissionDenied() {
         analyticsTracker.track(AnalyticsEvent.NotificationPermissionDenied)
         _uiState.update { it.copy(snackbarEvent = SeasonDetailSnackbarEvent.NotificationPermissionDenied) }

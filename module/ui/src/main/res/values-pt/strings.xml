@@ -55,6 +55,8 @@
     <string name="filter_reset">Redefinir filtros</string>
     <string name="home_title">Minha lista</string>
     <string name="home_empty_title">Nenhum anime aqui ainda</string>
+    <string name="home_load_failed">Algo deu errado ao carregar sua lista.</string>
+    <string name="home_checking_for_updates">Verificando novos episódios e temporadas…</string>
     <string name="home_empty_subtitle">Pesquise anime para adicionar à sua lista</string>
     <string name="home_episode_with_total">%1$d / %2$d ep</string>
     <string name="home_episode_without_total">%1$d ep</string>
@@ -144,6 +146,7 @@
     <string name="season_detail_episode_notifications_enabled">Notificações de episódios ativas</string>
     <string name="season_detail_episode_notifications_disabled">Notificações de episódios desativadas</string>
     <string name="season_detail_episode_load_failed">Não foi possível carregar os episódios. Exibindo dados em cache.</string>
+    <string name="season_detail_streaming_link_failed">Nenhum aplicativo disponível para abrir este link.</string>
     <string name="season_detail_broadcast_info">Transmissão: %1$s</string>
     <string name="season_detail_broadcast_local_time">Horário local: %1$s</string>
     <string name="season_detail_airing_season">Temporada: %1$s</string>
@@ -227,6 +230,7 @@
     <string name="cd_open_schedule">Abrir programação</string>
     <string name="schedule_empty_title">Sem programação ainda</string>
     <string name="schedule_empty_subtitle">Adicione anime em exibição à sua lista e o dia de transmissão aparecerá aqui</string>
+    <string name="schedule_load_failed">Algo deu errado ao carregar a programação.</string>
     <string name="schedule_day_monday">Segunda-feira</string>
     <string name="schedule_day_tuesday">Terça-feira</string>
     <string name="schedule_day_wednesday">Quarta-feira</string>

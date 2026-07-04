@@ -21,14 +21,17 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseC
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetHomeNotificationFilterUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetHomeSortStateUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetHomeStatusFilterUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.TriggerAnimeUpdateUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonStatusUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -53,6 +56,7 @@ class HomeViewModelTest {
     private val observeHomeNotificationFilterUseCase: ObserveHomeNotificationFilterUseCase = mockk()
     private val setHomeNotificationFilterUseCase: SetHomeNotificationFilterUseCase = mockk()
     private val updateSeasonStatusUseCase: UpdateSeasonStatusUseCase = mockk(relaxed = true)
+    private val triggerAnimeUpdateUseCase: TriggerAnimeUpdateUseCase = mockk(relaxed = true)
     private val analyticsTracker: AnalyticsTracker = mockk(relaxed = true)
 
     private val sortStateFlow = MutableStateFlow(HomeSortState())
@@ -91,22 +95,72 @@ class HomeViewModelTest {
         Dispatchers.resetMain()
     }
 
+    private fun buildViewModel() = HomeViewModel(
+        observeAnimeListUseCase,
+        observeTitleLanguageUseCase,
+        observeHomeViewModeUseCase,
+        observeAllSeasonsUseCase,
+        observeHomeSortStateUseCase,
+        setHomeSortStateUseCase,
+        observeHomeStatusFilterUseCase,
+        setHomeStatusFilterUseCase,
+        observeHomeNotificationFilterUseCase,
+        setHomeNotificationFilterUseCase,
+        updateSeasonStatusUseCase,
+        triggerAnimeUpdateUseCase,
+        analyticsTracker
+    )
+
     private fun createViewModel(): HomeViewModel {
         every { observeAnimeListUseCase() } returns flowOf(sampleAnimeList)
-        return HomeViewModel(
-            observeAnimeListUseCase,
-            observeTitleLanguageUseCase,
-            observeHomeViewModeUseCase,
-            observeAllSeasonsUseCase,
-            observeHomeSortStateUseCase,
-            setHomeSortStateUseCase,
-            observeHomeStatusFilterUseCase,
-            setHomeStatusFilterUseCase,
-            observeHomeNotificationFilterUseCase,
-            setHomeNotificationFilterUseCase,
-            updateSeasonStatusUseCase,
-            analyticsTracker
-        )
+        return buildViewModel()
+    }
+
+    @Test
+    fun `watchlist flow failure surfaces the load failed state`() = runTest {
+        every { observeAnimeListUseCase() } returns flow { throw IllegalStateException("db error") }
+        val viewModel = buildViewModel()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertThat(viewModel.uiState.value.hasLoadFailed).isTrue()
+        assertThat(viewModel.uiState.value.isLoading).isFalse()
+    }
+
+    @Test
+    fun `retry after failure resubscribes and recovers`() = runTest {
+        every { observeAnimeListUseCase() } returns flow { throw IllegalStateException("db error") }
+        val viewModel = buildViewModel()
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertThat(viewModel.uiState.value.hasLoadFailed).isTrue()
+
+        every { observeAnimeListUseCase() } returns flowOf(sampleAnimeList)
+        viewModel.retry()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertThat(viewModel.uiState.value.hasLoadFailed).isFalse()
+        assertThat(viewModel.uiState.value.animeList).hasSize(3)
+    }
+
+    @Test
+    fun `refresh triggers an immediate update check and emits snackbar event`() = runTest {
+        val viewModel = createViewModel()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        viewModel.refresh()
+
+        verify(exactly = 1) { triggerAnimeUpdateUseCase() }
+        assertThat(viewModel.uiState.value.snackbarEvent).isEqualTo(HomeSnackbarEvent.UpdateCheckStarted)
+    }
+
+    @Test
+    fun `clearSnackbar removes the pending snackbar event`() = runTest {
+        val viewModel = createViewModel()
+        testDispatcher.scheduler.advanceUntilIdle()
+        viewModel.refresh()
+
+        viewModel.clearSnackbar()
+
+        assertThat(viewModel.uiState.value.snackbarEvent).isNull()
     }
 
     @Test
@@ -376,6 +430,7 @@ class HomeViewModelTest {
             observeHomeNotificationFilterUseCase,
             setHomeNotificationFilterUseCase,
             updateSeasonStatusUseCase,
+            triggerAnimeUpdateUseCase,
             analyticsTracker
         )
 
@@ -416,6 +471,7 @@ class HomeViewModelTest {
             observeHomeNotificationFilterUseCase,
             setHomeNotificationFilterUseCase,
             updateSeasonStatusUseCase,
+            triggerAnimeUpdateUseCase,
             analyticsTracker
         )
 
@@ -451,6 +507,7 @@ class HomeViewModelTest {
             observeHomeNotificationFilterUseCase,
             setHomeNotificationFilterUseCase,
             updateSeasonStatusUseCase,
+            triggerAnimeUpdateUseCase,
             analyticsTracker
         )
 
@@ -487,6 +544,7 @@ class HomeViewModelTest {
             observeHomeNotificationFilterUseCase,
             setHomeNotificationFilterUseCase,
             updateSeasonStatusUseCase,
+            triggerAnimeUpdateUseCase,
             analyticsTracker
         )
 
@@ -518,6 +576,7 @@ class HomeViewModelTest {
             observeHomeNotificationFilterUseCase,
             setHomeNotificationFilterUseCase,
             updateSeasonStatusUseCase,
+            triggerAnimeUpdateUseCase,
             analyticsTracker
         )
 
@@ -578,6 +637,7 @@ class HomeViewModelTest {
             observeHomeNotificationFilterUseCase,
             setHomeNotificationFilterUseCase,
             updateSeasonStatusUseCase,
+            triggerAnimeUpdateUseCase,
             analyticsTracker
         )
 
@@ -612,6 +672,7 @@ class HomeViewModelTest {
             observeHomeNotificationFilterUseCase,
             setHomeNotificationFilterUseCase,
             updateSeasonStatusUseCase,
+            triggerAnimeUpdateUseCase,
             analyticsTracker
         )
 
@@ -646,6 +707,7 @@ class HomeViewModelTest {
             observeHomeNotificationFilterUseCase,
             setHomeNotificationFilterUseCase,
             updateSeasonStatusUseCase,
+            triggerAnimeUpdateUseCase,
             analyticsTracker
         )
 
@@ -698,6 +760,7 @@ class HomeViewModelTest {
             observeHomeNotificationFilterUseCase,
             setHomeNotificationFilterUseCase,
             updateSeasonStatusUseCase,
+            triggerAnimeUpdateUseCase,
             analyticsTracker
         )
 

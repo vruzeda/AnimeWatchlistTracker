@@ -6,10 +6,13 @@ import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveScheduleUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.TriggerAnimeUpdateUseCase
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -27,6 +30,7 @@ class ScheduleViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private val observeScheduleUseCase = mockk<ObserveScheduleUseCase>()
     private val observeTitleLanguageUseCase = mockk<ObserveTitleLanguageUseCase>()
+    private val triggerAnimeUpdateUseCase = mockk<TriggerAnimeUpdateUseCase>(relaxed = true)
 
     @BeforeEach
     fun setup() {
@@ -39,7 +43,57 @@ class ScheduleViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun createViewModel() = ScheduleViewModel(observeScheduleUseCase, observeTitleLanguageUseCase)
+    private fun createViewModel() =
+        ScheduleViewModel(observeScheduleUseCase, observeTitleLanguageUseCase, triggerAnimeUpdateUseCase)
+
+    @Test
+    fun `schedule flow failure surfaces the load failed state`() = runTest {
+        every { observeScheduleUseCase() } returns flow { throw IllegalStateException("db error") }
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertThat(viewModel.uiState.value.hasLoadFailed).isTrue()
+        assertThat(viewModel.uiState.value.isLoading).isFalse()
+    }
+
+    @Test
+    fun `retry after failure resubscribes and recovers`() = runTest {
+        every { observeScheduleUseCase() } returns flow { throw IllegalStateException("db error") }
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        assertThat(viewModel.uiState.value.hasLoadFailed).isTrue()
+
+        every { observeScheduleUseCase() } returns flowOf(emptyList())
+        viewModel.retry()
+        advanceUntilIdle()
+
+        assertThat(viewModel.uiState.value.hasLoadFailed).isFalse()
+        assertThat(viewModel.uiState.value.isLoading).isFalse()
+    }
+
+    @Test
+    fun `refresh triggers an immediate update check and emits snackbar event`() = runTest {
+        every { observeScheduleUseCase() } returns flowOf(emptyList())
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.refresh()
+
+        verify(exactly = 1) { triggerAnimeUpdateUseCase() }
+        assertThat(viewModel.uiState.value.snackbarEvent).isEqualTo(ScheduleSnackbarEvent.UpdateCheckStarted)
+    }
+
+    @Test
+    fun `clearSnackbar removes the pending snackbar event`() = runTest {
+        every { observeScheduleUseCase() } returns flowOf(emptyList())
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        viewModel.refresh()
+
+        viewModel.clearSnackbar()
+
+        assertThat(viewModel.uiState.value.snackbarEvent).isNull()
+    }
 
     @Test
     fun `defaults to the current calendar season`() = runTest {

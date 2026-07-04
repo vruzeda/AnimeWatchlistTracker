@@ -22,12 +22,14 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseC
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetHomeNotificationFilterUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetHomeSortStateUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetHomeStatusFilterUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.TriggerAnimeUpdateUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonStatusUseCase
 import com.vuzeda.animewatchlist.tracker.module.ui.util.latestWatchedSeason
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -48,6 +50,7 @@ class HomeViewModel @Inject constructor(
     private val observeHomeNotificationFilterUseCase: ObserveHomeNotificationFilterUseCase,
     private val setHomeNotificationFilterUseCase: SetHomeNotificationFilterUseCase,
     private val updateSeasonStatusUseCase: UpdateSeasonStatusUseCase,
+    private val triggerAnimeUpdateUseCase: TriggerAnimeUpdateUseCase,
     private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
@@ -57,6 +60,10 @@ class HomeViewModel @Inject constructor(
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     init {
+        observeWatchlist()
+    }
+
+    private fun observeWatchlist() {
         viewModelScope.launch {
             combine(
                 observeAnimeListUseCase(),
@@ -113,15 +120,32 @@ class HomeViewModel @Inject constructor(
                     titleLanguage = titleLanguage,
                     isLoading = false
                 )
+            }.catch {
+                _uiState.update { it.copy(isLoading = false, hasLoadFailed = true) }
             }.collect { state ->
                 _uiState.update { current ->
                     state.copy(
                         isStatusSheetVisible = current.isStatusSheetVisible,
-                        pendingStatusSeason = current.pendingStatusSeason
+                        pendingStatusSeason = current.pendingStatusSeason,
+                        snackbarEvent = current.snackbarEvent
                     )
                 }
             }
         }
+    }
+
+    fun retry() {
+        _uiState.update { it.copy(isLoading = true, hasLoadFailed = false) }
+        observeWatchlist()
+    }
+
+    fun refresh() {
+        triggerAnimeUpdateUseCase()
+        _uiState.update { it.copy(snackbarEvent = HomeSnackbarEvent.UpdateCheckStarted) }
+    }
+
+    fun clearSnackbar() {
+        _uiState.update { it.copy(snackbarEvent = null) }
     }
 
     fun toggleStatusFilter(status: WatchStatus?) {

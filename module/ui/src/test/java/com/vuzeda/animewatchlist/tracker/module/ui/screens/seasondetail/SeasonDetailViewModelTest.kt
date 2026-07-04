@@ -788,6 +788,21 @@ class SeasonDetailViewModelTest {
     }
 
     @Test
+    fun `streaming link failure emits StreamingLinkFailed snackbar event`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            viewModel.notifyStreamingLinkFailed()
+
+            val state = expectMostRecentItem()
+            assertThat(state.snackbarEvent).isEqualTo(SeasonDetailSnackbarEvent.StreamingLinkFailed)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `loads cached episodes when initial fetch fails`() = runTest {
         coEvery { fetchEpisodesUseCase(malId = 16498, page = 1) } returns Result.failure(Exception("rate limited"))
         coEvery { getCachedEpisodesUseCase(16498) } returns sampleEpisodes
