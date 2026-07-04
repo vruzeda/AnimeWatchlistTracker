@@ -14,15 +14,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.MinTouchTarget
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
 
 @Composable
 fun SettingsSwitchRow(
+    modifier: Modifier = Modifier,
     label: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier,
     supporting: String? = null,
 ) {
     Row(
@@ -60,20 +61,24 @@ fun SettingsSwitchRow(
 @Preview(showBackground = true)
 @Composable
 private fun SettingsSwitchRowPreview() {
-    SettingsSwitchRow(
-        label = "Cache covers offline",
-        checked = true,
-        onCheckedChange = {},
-    )
+    AnimeWatchlistTrackerTheme(dynamicColor = false) {
+        SettingsSwitchRow(
+            label = "Cache covers offline",
+            checked = true,
+            onCheckedChange = {},
+        )
+    }
 }
 
 @Preview(showBackground = true)
 @Composable
 private fun SettingsSwitchRowWithSupportingPreview() {
-    SettingsSwitchRow(
-        label = "Cache covers offline",
-        supporting = "12.4 MB used",
-        checked = false,
-        onCheckedChange = {},
-    )
+    AnimeWatchlistTrackerTheme(dynamicColor = false) {
+        SettingsSwitchRow(
+            label = "Cache covers offline",
+            supporting = "12.4 MB used",
+            checked = false,
+            onCheckedChange = {},
+        )
+    }
 }
