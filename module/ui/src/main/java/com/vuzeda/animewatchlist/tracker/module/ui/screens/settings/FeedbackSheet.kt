@@ -28,7 +28,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentType
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.text.KeyboardOptions
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
@@ -113,6 +117,7 @@ fun FeedbackSheet(
                     value = uiState.message,
                     onValueChange = onMessageChanged,
                     modifier = Modifier.fillMaxWidth(),
+                    label = { Text(stringResource(R.string.feedback_message_label)) },
                     placeholder = { Text(stringResource(R.string.feedback_message_hint)) },
                     supportingText = {
                         Text(stringResource(R.string.feedback_char_count, uiState.charCount))
@@ -129,7 +134,10 @@ fun FeedbackSheet(
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text(stringResource(R.string.feedback_contact_name_hint)) },
                     singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Next
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(ElementSpacing))
@@ -137,14 +145,19 @@ fun FeedbackSheet(
                 OutlinedTextField(
                     value = uiState.contactEmail,
                     onValueChange = onContactEmailChanged,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics { contentType = ContentType.EmailAddress },
                     label = { Text(stringResource(R.string.feedback_contact_email_hint)) },
                     singleLine = true,
                     isError = uiState.contactEmail.isNotEmpty() && !uiState.isEmailValid,
                     supportingText = if (uiState.contactEmail.isNotEmpty() && !uiState.isEmailValid) {
                         { Text(stringResource(R.string.feedback_contact_email_error)) }
                     } else null,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Email,
+                        imeAction = ImeAction.Done
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(ElementSpacing))

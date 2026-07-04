@@ -1,0 +1,1 @@
+• Improved accessibility: screen readers now announce watched episodes, settings toggles, your rating, and selected filters, and can set ratings directly

@@ -238,6 +238,7 @@
     <string name="feedback_category_bug">Bug Report</string>
     <string name="feedback_category_feature">Feature Request</string>
     <string name="feedback_category_general">General</string>
+    <string name="feedback_message_label">Message</string>
     <string name="feedback_message_hint">Describe your feedback…</string>
     <string name="feedback_submit">Submit</string>
     <string name="feedback_success">Feedback sent. Thank you!</string>

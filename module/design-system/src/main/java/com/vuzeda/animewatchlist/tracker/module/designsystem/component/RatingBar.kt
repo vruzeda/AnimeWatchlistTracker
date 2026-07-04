@@ -20,9 +20,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.progressBarRangeInfo
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.setProgress
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlin.math.roundToInt
 import com.vuzeda.animewatchlist.tracker.module.designsystem.R
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.MinTouchTarget
@@ -40,6 +46,26 @@ fun RatingBar(
     onRatingChanged: (Int) -> Unit = {}
 ) {
     val starSizePx = with(LocalDensity.current) { starSize.toPx() }
+    val ratingDescription = stringResource(R.string.cd_rating, rating, maxRating)
+
+    val semanticsModifier = if (isInteractive) {
+        Modifier.semantics(mergeDescendants = true) {
+            contentDescription = ratingDescription
+            progressBarRangeInfo = ProgressBarRangeInfo(
+                current = rating.toFloat(),
+                range = 0f..maxRating.toFloat(),
+                steps = maxRating - 1
+            )
+            setProgress { targetValue ->
+                onRatingChanged(targetValue.roundToInt().coerceIn(1, maxRating))
+                true
+            }
+        }
+    } else {
+        Modifier.semantics(mergeDescendants = true) {
+            contentDescription = ratingDescription
+        }
+    }
 
     val gestureModifier = if (isInteractive) {
         var dragStartX by remember { mutableFloatStateOf(0f) }
@@ -67,14 +93,15 @@ fun RatingBar(
     Row(
         modifier = modifier
             .heightIn(min = MinTouchTarget)
-            .then(gestureModifier),
+            .then(gestureModifier)
+            .then(semanticsModifier),
         verticalAlignment = Alignment.CenterVertically
     ) {
         (1..maxRating).forEach { index ->
             val isFilled = index <= rating
             Icon(
                 imageVector = if (isFilled) Icons.Filled.Star else Icons.Outlined.Star,
-                contentDescription = stringResource(R.string.cd_star, index, maxRating),
+                contentDescription = null,
                 modifier = Modifier.size(starSize),
                 tint = if (isFilled) RatingGold else RatingEmpty
             )

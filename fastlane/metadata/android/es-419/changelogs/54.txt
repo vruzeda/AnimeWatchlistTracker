@@ -1,0 +1,1 @@
+• Accesibilidad mejorada: los lectores de pantalla ahora anuncian episodios vistos, opciones de configuración, tu calificación y filtros seleccionados, y pueden establecer calificaciones directamente
