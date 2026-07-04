@@ -1,4 +1,4 @@
-• Fixes: missed episode notifications, mixed search results, duplicate seasons, crashes from corrupted settings or streaming links, and notification taps not opening the season.
+• Fixes: missed notifications, mixed search results, duplicate seasons, crashes, and notification taps not opening the season.
 • Notification messages are now translated; app data is included in Android backups.
 • Improved screen reader support.
 • Smoother episode lists for long series.
