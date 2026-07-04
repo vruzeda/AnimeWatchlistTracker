@@ -3,3 +3,4 @@
 • Meilleure prise en charge des lecteurs d'écran.
 • Listes d'épisodes plus fluides.
 • Tirez vers le bas pour vérifier les nouveautés.
+• Meilleur contraste ; les couleurs de statut s'adaptent au thème sombre.

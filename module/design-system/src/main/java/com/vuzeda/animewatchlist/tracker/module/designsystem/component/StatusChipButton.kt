@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -15,11 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.MinTouchTarget
-import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusCompleted
-import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusDropped
-import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusOnHold
-import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusPlanToWatch
-import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusWatching
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.extendedColors
 
 @Composable
 fun StatusChipButton(
@@ -47,11 +44,11 @@ private fun StatusChipButtonPreview() {
             modifier = Modifier.padding(ElementSpacing),
             horizontalArrangement = Arrangement.spacedBy(ElementSpacing)
         ) {
-            StatusChipButton(label = "Watching", color = StatusWatching, onClick = {})
-            StatusChipButton(label = "Completed", color = StatusCompleted, onClick = {})
-            StatusChipButton(label = "Plan to Watch", color = StatusPlanToWatch, onClick = {})
-            StatusChipButton(label = "On Hold", color = StatusOnHold, onClick = {})
-            StatusChipButton(label = "Dropped", color = StatusDropped, onClick = {})
+            StatusChipButton(label = "Watching", color = MaterialTheme.extendedColors.statusWatching, onClick = {})
+            StatusChipButton(label = "Completed", color = MaterialTheme.extendedColors.statusCompleted, onClick = {})
+            StatusChipButton(label = "Plan to Watch", color = MaterialTheme.extendedColors.statusPlanToWatch, onClick = {})
+            StatusChipButton(label = "On Hold", color = MaterialTheme.extendedColors.statusOnHold, onClick = {})
+            StatusChipButton(label = "Dropped", color = MaterialTheme.extendedColors.statusDropped, onClick = {})
         }
     }
 }

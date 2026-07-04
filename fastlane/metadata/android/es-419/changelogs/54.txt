@@ -3,3 +3,4 @@
 • Mejor soporte para lectores de pantalla.
 • Listas de episodios más fluidas.
 • Desliza hacia abajo para buscar novedades.
+• Mejor contraste de colores; los colores de estado se adaptan al tema oscuro.

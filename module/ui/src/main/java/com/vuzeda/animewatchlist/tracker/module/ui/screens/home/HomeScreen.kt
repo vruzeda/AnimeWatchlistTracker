@@ -14,6 +14,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -42,11 +43,7 @@ import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusSel
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
-import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusCompleted
-import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusDropped
-import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusOnHold
-import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusPlanToWatch
-import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusWatching
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.extendedColors
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeSortOption
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
@@ -357,12 +354,13 @@ fun WatchStatus.toDisplayLabelRes(): Int = when (this) {
     WatchStatus.DROPPED -> R.string.status_dropped
 }
 
+@Composable
 fun WatchStatus.toColor(): Color = when (this) {
-    WatchStatus.WATCHING -> StatusWatching
-    WatchStatus.COMPLETED -> StatusCompleted
-    WatchStatus.PLAN_TO_WATCH -> StatusPlanToWatch
-    WatchStatus.ON_HOLD -> StatusOnHold
-    WatchStatus.DROPPED -> StatusDropped
+    WatchStatus.WATCHING -> MaterialTheme.extendedColors.statusWatching
+    WatchStatus.COMPLETED -> MaterialTheme.extendedColors.statusCompleted
+    WatchStatus.PLAN_TO_WATCH -> MaterialTheme.extendedColors.statusPlanToWatch
+    WatchStatus.ON_HOLD -> MaterialTheme.extendedColors.statusOnHold
+    WatchStatus.DROPPED -> MaterialTheme.extendedColors.statusDropped
 }
 @Preview(showBackground = true)
 @Composable

@@ -16,9 +16,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import coil.compose.AsyncImage
 import com.vuzeda.animewatchlist.tracker.module.designsystem.R
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
+
+private val ViewerBackground = Color.Black
+private val ViewerImagePlaceholder = Color(0xFF1A1A1A)
+private val ViewerControlTint = Color.White
 
 @Composable
 fun FullScreenImageViewer(
@@ -30,7 +36,7 @@ fun FullScreenImageViewer(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black)
+            .background(ViewerBackground)
             .clickable(onClick = onDismiss)
     ) {
         AsyncImage(
@@ -38,9 +44,9 @@ fun FullScreenImageViewer(
             contentDescription = contentDescription,
             modifier = imageModifier.fillMaxSize(),
             contentScale = ContentScale.Fit,
-            placeholder = ColorPainter(Color(0xFF1A1A1A)),
-            error = ColorPainter(Color(0xFF1A1A1A)),
-            fallback = ColorPainter(Color(0xFF1A1A1A))
+            placeholder = ColorPainter(ViewerImagePlaceholder),
+            error = ColorPainter(ViewerImagePlaceholder),
+            fallback = ColorPainter(ViewerImagePlaceholder)
         )
         IconButton(
             onClick = onDismiss,
@@ -51,8 +57,20 @@ fun FullScreenImageViewer(
             Icon(
                 imageVector = Icons.Default.Close,
                 contentDescription = stringResource(R.string.cd_close),
-                tint = Color.White
+                tint = ViewerControlTint
             )
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun FullScreenImageViewerPreview() {
+    AnimeWatchlistTrackerTheme(dynamicColor = false) {
+        FullScreenImageViewer(
+            imageUrl = "https://example.com/attack-on-titan-cover.jpg",
+            contentDescription = "Attack on Titan: Final Season Part 3",
+            onDismiss = {}
+        )
     }
 }

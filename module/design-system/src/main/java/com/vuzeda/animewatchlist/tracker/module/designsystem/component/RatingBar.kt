@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -27,21 +28,20 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.setProgress
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
 import com.vuzeda.animewatchlist.tracker.module.designsystem.R
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.MinTouchTarget
-import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.RatingEmpty
-import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.RatingGold
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.RatingStarSize
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SectionSpacing
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.extendedColors
 
 @Composable
 fun RatingBar(
     modifier: Modifier = Modifier,
     rating: Int,
     maxRating: Int = 10,
-    starSize: Dp = 24.dp,
+    starSize: Dp = RatingStarSize,
     isInteractive: Boolean = false,
     onRatingChanged: (Int) -> Unit = {}
 ) {
@@ -103,7 +103,11 @@ fun RatingBar(
                 imageVector = if (isFilled) Icons.Filled.Star else Icons.Outlined.Star,
                 contentDescription = null,
                 modifier = Modifier.size(starSize),
-                tint = if (isFilled) RatingGold else RatingEmpty
+                tint = if (isFilled) {
+                    MaterialTheme.extendedColors.ratingActive
+                } else {
+                    MaterialTheme.extendedColors.ratingInactive
+                }
             )
         }
     }
