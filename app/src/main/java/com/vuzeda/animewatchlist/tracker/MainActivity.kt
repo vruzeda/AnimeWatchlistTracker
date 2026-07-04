@@ -34,6 +34,7 @@ class MainActivity : ComponentActivity() {
                 AppNavigation(
                     modifier = Modifier.fillMaxSize(),
                     seasonMalId = seasonMalId,
+                    onSeasonDeepLinkConsumed = { seasonMalId = 0 },
                     versionName = BuildConfig.VERSION_NAME,
                     versionCode = BuildConfig.VERSION_CODE
                 )

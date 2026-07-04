@@ -1,6 +1,5 @@
-• Fixed missed episode notifications, mixed search results, duplicate seasons, and a crash with corrupted settings.
+• Fixes: missed episode notifications, mixed search results, duplicate seasons, crashes from corrupted settings or streaming links, and notification taps not opening the season.
 • Notification messages are now translated; app data is included in Android backups.
 • Improved screen reader support.
-• Fixed a crash when opening streaming links without a browser.
 • Smoother episode lists for long series.
-• Pull down on Home or Schedule to check for updates; load errors now offer a retry.
+• Pull down to check for new episodes.

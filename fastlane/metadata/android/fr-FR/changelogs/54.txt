@@ -1,6 +1,5 @@
-• Corrections : notifications d'épisodes manquées, résultats de recherche mélangés, saisons en double et plantage avec des réglages corrompus.
+• Corrections : notifications manquées, recherche mélangée, saisons en double, plantages liés aux réglages corrompus ou aux liens de streaming, et notifications qui n'ouvraient pas la saison.
 • Messages de notification traduits ; données incluses dans les sauvegardes Android.
 • Meilleure prise en charge des lecteurs d'écran.
-• Correction d'un plantage à l'ouverture des liens de streaming sans navigateur.
-• Listes d'épisodes plus fluides pour les longues séries.
-• Tirez vers le bas pour vérifier les nouveautés ; réessai en cas d'erreur.
+• Listes d'épisodes plus fluides.
+• Tirez vers le bas pour vérifier les nouveautés.

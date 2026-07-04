@@ -59,6 +59,7 @@ private val BottomNavItems = listOf(
 fun AppNavigation(
     modifier: Modifier = Modifier,
     seasonMalId: Int = 0,
+    onSeasonDeepLinkConsumed: () -> Unit = {},
     versionName: String = "",
     versionCode: Int = 0
 ) {
@@ -67,6 +68,7 @@ fun AppNavigation(
     LaunchedEffect(seasonMalId) {
         if (seasonMalId > 0) {
             navController.navigate(Route.SeasonDetail(malId = seasonMalId))
+            onSeasonDeepLinkConsumed()
         }
     }
     val navBackStackEntry by navController.currentBackStackEntryAsState()

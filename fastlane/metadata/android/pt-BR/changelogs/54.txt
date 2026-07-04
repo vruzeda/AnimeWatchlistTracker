@@ -1,6 +1,5 @@
-• Corrigidos: notificações de episódios perdidas, resultados de busca misturados, temporadas duplicadas e travamento com ajustes corrompidos.
-• Mensagens de notificação traduzidas; dados do app incluídos nos backups do Android.
+• Correções: notificações perdidas, busca misturada, temporadas duplicadas, travamentos com ajustes corrompidos ou links de streaming, e toques em notificação que não abriam a temporada.
+• Mensagens de notificação traduzidas; dados incluídos nos backups do Android.
 • Melhor suporte a leitores de tela.
-• Corrigido travamento ao abrir links de streaming sem navegador.
-• Listas de episódios mais fluidas em séries longas.
-• Puxe para baixo no Início ou na Programação para buscar novidades; erros agora permitem tentar novamente.
+• Listas de episódios mais fluidas.
+• Puxe para baixo para buscar novidades.
