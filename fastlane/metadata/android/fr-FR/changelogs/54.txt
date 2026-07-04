@@ -1,7 +1,4 @@
-• Corrections : notifications manquées, recherche mélangée, saisons en double, plantages et notifications qui n'ouvraient pas la saison.
-• Messages de notification traduits ; données incluses dans les sauvegardes Android.
-• Meilleure prise en charge des lecteurs d'écran.
-• Listes d'épisodes plus fluides.
-• Tirez vers le bas pour vérifier les nouveautés.
-• Meilleur contraste ; couleurs de statut adaptées au thème sombre.
-• Dates, heures et notes suivent désormais la langue de l'appareil.
+• Corrections : notifications manquées/mélangées, saisons en double, plantages et notifications sans ouverture.
+• Notifications traduites, listes plus fluides, meilleur support des lecteurs d'écran, sauvegardes complètes.
+• Tirez pour vérifier les nouveautés ; meilleur contraste et thème sombre ; dates/notes selon votre langue.
+• Les notifications utilisent désormais des canaux séparés pour épisodes et saisons.

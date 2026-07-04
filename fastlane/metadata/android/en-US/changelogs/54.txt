@@ -1,7 +1,4 @@
-• Fixes: missed notifications, mixed search results, duplicate seasons, crashes, and notification taps not opening the season.
-• Notification messages are now translated; app data is included in Android backups.
-• Improved screen reader support.
-• Smoother episode lists for long series.
-• Pull down to check for new episodes.
-• Better color contrast; status colors now adapt to dark mode.
-• Dates, times, and scores now follow your device language.
+• Fixes: missed/mixed notifications, duplicate seasons, crashes, and taps not opening the season.
+• Translated notifications, smoother episode lists, better screen reader support, backups include app data.
+• Pull down to check for updates; improved contrast and dark mode; dates/scores follow your device language.
+• Notifications now use separate channels for episodes and seasons.

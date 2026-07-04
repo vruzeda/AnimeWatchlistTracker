@@ -27,19 +27,26 @@ class NotificationHelper @Inject constructor(
     @NotificationLaunchActivity private val launchActivityClass: Class<*>
 ) : AnimeUpdateNotifier {
 
-    override fun createNotificationChannel() {
-        val channelName = context.getString(R.string.notification_channel_name)
-        val channelDescription = context.getString(R.string.notification_channel_description)
-        val channel = NotificationChannel(
-            CHANNEL_ID,
-            channelName,
+    override fun createNotificationChannels() {
+        val episodesChannel = NotificationChannel(
+            EPISODES_CHANNEL_ID,
+            context.getString(R.string.notification_channel_episodes_name),
             NotificationManager.IMPORTANCE_DEFAULT
         ).apply {
-            description = channelDescription
+            description = context.getString(R.string.notification_channel_episodes_description)
+        }
+        val seasonsChannel = NotificationChannel(
+            SEASONS_CHANNEL_ID,
+            context.getString(R.string.notification_channel_seasons_name),
+            NotificationManager.IMPORTANCE_DEFAULT
+        ).apply {
+            description = context.getString(R.string.notification_channel_seasons_description)
         }
 
         val notificationManager = NotificationManagerCompat.from(context)
-        notificationManager.createNotificationChannel(channel)
+        notificationManager.createNotificationChannel(episodesChannel)
+        notificationManager.createNotificationChannel(seasonsChannel)
+        notificationManager.deleteNotificationChannel(LEGACY_CHANNEL_ID)
     }
 
     @SuppressLint("MissingPermission")
@@ -75,6 +82,10 @@ class NotificationHelper @Inject constructor(
                 "season_${anime.id}_${update.sequelMalId}".hashCode()
             )
         }
+        val channelId = when (update) {
+            is AnimeUpdate.NewEpisodes -> EPISODES_CHANNEL_ID
+            is AnimeUpdate.NewSeason -> SEASONS_CHANNEL_ID
+        }
         val groupKey = "anime_${anime.id}"
         val seasonMalId = when (update) {
             is AnimeUpdate.NewEpisodes -> update.season.malId
@@ -88,10 +99,11 @@ class NotificationHelper @Inject constructor(
             getPendingIntent(notificationId, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         }
 
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+        val notification = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(animeTitle)
             .setContentText(text)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .setGroup(groupKey)
@@ -100,7 +112,7 @@ class NotificationHelper @Inject constructor(
 
         notificationManager.notify(notificationId, notification)
 
-        val summary = NotificationCompat.Builder(context, CHANNEL_ID)
+        val summary = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(animeTitle)
             .setGroup(groupKey)
@@ -113,6 +125,8 @@ class NotificationHelper @Inject constructor(
 
     companion object {
         const val EXTRA_SEASON_MAL_ID = "extra_season_mal_id"
-        const val CHANNEL_ID = "anime_updates"
+        const val EPISODES_CHANNEL_ID = "anime_new_episodes"
+        const val SEASONS_CHANNEL_ID = "anime_new_seasons"
+        const val LEGACY_CHANNEL_ID = "anime_updates"
     }
 }
