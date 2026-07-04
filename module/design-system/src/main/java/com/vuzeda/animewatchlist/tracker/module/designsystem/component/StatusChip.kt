@@ -3,17 +3,14 @@ package com.vuzeda.animewatchlist.tracker.module.designsystem.component
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
-import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusCompleted
-import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusDropped
-import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusOnHold
-import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusPlanToWatch
-import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusWatching
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.extendedColors
 
 @Composable
 fun StatusChip(
@@ -32,11 +29,11 @@ private fun StatusChipPreview() {
             modifier = Modifier.padding(ElementSpacing),
             horizontalArrangement = Arrangement.spacedBy(ElementSpacing)
         ) {
-            StatusChip(label = "Watching", color = StatusWatching)
-            StatusChip(label = "Completed", color = StatusCompleted)
-            StatusChip(label = "Plan to Watch", color = StatusPlanToWatch)
-            StatusChip(label = "On Hold", color = StatusOnHold)
-            StatusChip(label = "Dropped", color = StatusDropped)
+            StatusChip(label = "Watching", color = MaterialTheme.extendedColors.statusWatching)
+            StatusChip(label = "Completed", color = MaterialTheme.extendedColors.statusCompleted)
+            StatusChip(label = "Plan to Watch", color = MaterialTheme.extendedColors.statusPlanToWatch)
+            StatusChip(label = "On Hold", color = MaterialTheme.extendedColors.statusOnHold)
+            StatusChip(label = "Dropped", color = MaterialTheme.extendedColors.statusDropped)
         }
     }
 }

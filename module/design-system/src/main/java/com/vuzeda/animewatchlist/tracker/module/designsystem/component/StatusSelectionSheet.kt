@@ -28,11 +28,7 @@ import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.MinTouchTarge
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SheetBottomPadding
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SmallSpacing
-import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusCompleted
-import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusDropped
-import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusOnHold
-import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusPlanToWatch
-import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusWatching
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.extendedColors
 
 data class StatusOption(val label: String, val color: Color)
 
@@ -121,11 +117,11 @@ private fun StatusSelectionSheetContentPreview() {
                 title = "Add to watchlist",
                 subtitle = "Attack on Titan: Final Season Part 3",
                 options = listOf(
-                    StatusOption("Watching", StatusWatching),
-                    StatusOption("Completed", StatusCompleted),
-                    StatusOption("Plan to Watch", StatusPlanToWatch),
-                    StatusOption("On Hold", StatusOnHold),
-                    StatusOption("Dropped", StatusDropped)
+                    StatusOption("Watching", MaterialTheme.extendedColors.statusWatching),
+                    StatusOption("Completed", MaterialTheme.extendedColors.statusCompleted),
+                    StatusOption("Plan to Watch", MaterialTheme.extendedColors.statusPlanToWatch),
+                    StatusOption("On Hold", MaterialTheme.extendedColors.statusOnHold),
+                    StatusOption("Dropped", MaterialTheme.extendedColors.statusDropped)
                 ),
                 onOptionSelected = {}
             )
@@ -142,11 +138,11 @@ private fun StatusSelectionSheetContentShortTitlePreview() {
                 title = "Change status",
                 subtitle = "Spy x Family",
                 options = listOf(
-                    StatusOption("Watching", StatusWatching),
-                    StatusOption("Completed", StatusCompleted),
-                    StatusOption("Plan to Watch", StatusPlanToWatch),
-                    StatusOption("On Hold", StatusOnHold),
-                    StatusOption("Dropped", StatusDropped)
+                    StatusOption("Watching", MaterialTheme.extendedColors.statusWatching),
+                    StatusOption("Completed", MaterialTheme.extendedColors.statusCompleted),
+                    StatusOption("Plan to Watch", MaterialTheme.extendedColors.statusPlanToWatch),
+                    StatusOption("On Hold", MaterialTheme.extendedColors.statusOnHold),
+                    StatusOption("Dropped", MaterialTheme.extendedColors.statusDropped)
                 ),
                 onOptionSelected = {}
             )

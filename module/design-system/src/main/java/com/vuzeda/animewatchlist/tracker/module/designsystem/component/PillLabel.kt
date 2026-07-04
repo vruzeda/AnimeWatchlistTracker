@@ -26,7 +26,7 @@ fun PillLabel(
         Text(
             text = label,
             modifier = Modifier.padding(horizontal = ElementSpacing, vertical = SmallSpacing),
-            style = MaterialTheme.typography.labelSmall,
+            style = MaterialTheme.typography.labelMedium,
             color = color
         )
     }

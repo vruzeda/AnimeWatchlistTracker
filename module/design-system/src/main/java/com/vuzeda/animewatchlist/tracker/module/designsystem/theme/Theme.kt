@@ -8,6 +8,8 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
@@ -23,7 +25,7 @@ private val LightColorScheme = lightColorScheme(
     secondary = PurpleGrey40,
     tertiary = Pink40,
     background = SoftLavender,
-    surface = SoftLavender
+    surface = Color(0xFFFFFBFE)
 )
 
 @Composable
@@ -41,10 +43,14 @@ fun AnimeWatchlistTrackerTheme(
         else -> LightColorScheme
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        shapes = Shapes,
-        content = content
-    )
+    val extendedColors = if (darkTheme) DarkExtendedColors else LightExtendedColors
+
+    CompositionLocalProvider(LocalExtendedColors provides extendedColors) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = Typography,
+            shapes = Shapes,
+            content = content
+        )
+    }
 }

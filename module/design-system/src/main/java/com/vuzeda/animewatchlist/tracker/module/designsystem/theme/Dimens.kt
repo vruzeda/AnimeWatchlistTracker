@@ -4,6 +4,9 @@ import androidx.compose.ui.unit.dp
 
 val MinTouchTarget = 48.dp
 
+val RatingStarSize = 24.dp
+val ProgressBarHeight = 4.dp
+
 val PosterWidth = 120.dp
 val PosterHeight = 170.dp
 

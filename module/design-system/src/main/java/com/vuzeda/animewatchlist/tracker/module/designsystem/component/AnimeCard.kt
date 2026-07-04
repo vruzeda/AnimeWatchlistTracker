@@ -24,8 +24,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -40,10 +38,10 @@ import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.CardThumbnail
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.CardThumbnailWidth
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ListItemSpacing
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ProgressBarHeight
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SectionSpacing
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SmallSpacing
-import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusPlanToWatch
-import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.StatusWatching
+import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.extendedColors
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -97,9 +95,9 @@ fun AnimeCard(
                     .size(width = CardThumbnailWidth, height = CardThumbnailHeight)
                     .clip(MaterialTheme.shapes.small),
                 contentScale = ContentScale.Crop,
-                placeholder = ColorPainter(Color(0xFFE0E0E0)),
-                error = ColorPainter(Color(0xFFE0E0E0)),
-                fallback = ColorPainter(Color(0xFFE0E0E0))
+                placeholder = coverPlaceholderPainter(),
+                error = coverPlaceholderPainter(),
+                fallback = coverPlaceholderPainter()
             )
 
             Spacer(modifier = Modifier.width(ListItemSpacing))
@@ -147,7 +145,7 @@ fun AnimeCard(
                         progress = { progress.coerceIn(0f, 1f) },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(SmallSpacing)
+                            .height(ProgressBarHeight)
                             .clip(MaterialTheme.shapes.extraSmall),
                     )
                 }
@@ -177,7 +175,7 @@ private fun AnimeCardWatchlistPreview() {
             trailingContent = {
                 StatusChip(
                     label = "Watching",
-                    color = StatusWatching
+                    color = MaterialTheme.extendedColors.statusWatching
                 )
             }
         )
@@ -232,7 +230,7 @@ private fun AnimeCardInWatchlistPreview() {
                     Spacer(modifier = Modifier.height(SmallSpacing))
                     StatusChip(
                         label = "Plan to Watch",
-                        color = StatusPlanToWatch
+                        color = MaterialTheme.extendedColors.statusPlanToWatch
                     )
                 }
             }

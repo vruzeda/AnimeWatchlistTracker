@@ -48,8 +48,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -71,6 +69,7 @@ import com.vuzeda.animewatchlist.tracker.module.designsystem.component.RatingBar
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusChipButton
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusOption
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusSelectionSheet
+import com.vuzeda.animewatchlist.tracker.module.designsystem.component.coverPlaceholderPainter
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.PosterHeight
@@ -590,9 +589,9 @@ private fun AnimeHeaderSection(
                     else Modifier
                 ),
             contentScale = ContentScale.Crop,
-            placeholder = ColorPainter(Color(0xFFE0E0E0)),
-            error = ColorPainter(Color(0xFFE0E0E0)),
-            fallback = ColorPainter(Color(0xFFE0E0E0))
+            placeholder = coverPlaceholderPainter(),
+            error = coverPlaceholderPainter(),
+            fallback = coverPlaceholderPainter()
         )
 
         Spacer(modifier = Modifier.width(ElementSpacing))

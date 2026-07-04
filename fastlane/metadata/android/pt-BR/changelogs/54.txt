@@ -3,3 +3,4 @@
 • Melhor suporte a leitores de tela.
 • Listas de episódios mais fluidas.
 • Puxe para baixo para buscar novidades.
+• Melhor contraste de cores; cores de status agora se adaptam ao tema escuro.
