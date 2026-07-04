@@ -6,6 +6,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
 
@@ -17,7 +18,8 @@ fun ConfirmationDialog(
     confirmText: String,
     dismissText: String,
     onConfirm: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    confirmColor: Color = MaterialTheme.colorScheme.error
 ) {
     AlertDialog(
         modifier = modifier,
@@ -28,7 +30,7 @@ fun ConfirmationDialog(
             TextButton(onClick = onConfirm) {
                 Text(
                     text = confirmText,
-                    color = MaterialTheme.colorScheme.error
+                    color = confirmColor
                 )
             }
         },

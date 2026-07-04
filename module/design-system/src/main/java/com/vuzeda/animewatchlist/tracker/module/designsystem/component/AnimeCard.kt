@@ -173,7 +173,7 @@ private fun AnimeCardWatchlistPreview() {
             progress = 0.4f,
             onClick = {},
             trailingContent = {
-                StatusChip(
+                PillLabel(
                     label = "Watching",
                     color = MaterialTheme.extendedColors.statusWatching
                 )
@@ -228,7 +228,7 @@ private fun AnimeCardInWatchlistPreview() {
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.height(SmallSpacing))
-                    StatusChip(
+                    PillLabel(
                         label = "Plan to Watch",
                         color = MaterialTheme.extendedColors.statusPlanToWatch
                     )

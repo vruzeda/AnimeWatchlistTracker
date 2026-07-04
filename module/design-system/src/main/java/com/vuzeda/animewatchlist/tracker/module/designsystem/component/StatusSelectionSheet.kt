@@ -2,31 +2,22 @@ package com.vuzeda.animewatchlist.tracker.module.designsystem.component
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.MinTouchTarget
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
-import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SheetBottomPadding
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SmallSpacing
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.extendedColors
 
@@ -42,13 +33,7 @@ fun StatusSelectionSheet(
     onOptionSelected: (Int) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState()
-
-    ModalBottomSheet(
-        modifier = modifier,
-        onDismissRequest = onDismiss,
-        sheetState = sheetState
-    ) {
+    SelectionModalBottomSheet(modifier = modifier, onDismiss = onDismiss) {
         StatusSelectionSheetContent(
             title = title,
             subtitle = subtitle,
@@ -66,44 +51,26 @@ fun StatusSelectionSheetContent(
     options: List<StatusOption>,
     onOptionSelected: (Int) -> Unit
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .navigationBarsPadding()
-            .padding(bottom = SheetBottomPadding)
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(horizontal = ScreenPadding, vertical = ElementSpacing)
-        )
-
-        Text(
-            text = subtitle,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = ScreenPadding),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-
-        Spacer(modifier = Modifier.height(ElementSpacing))
-
-        options.forEachIndexed { index, option ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = MinTouchTarget)
-                    .clickable { onOptionSelected(index) }
-                    .padding(horizontal = ScreenPadding, vertical = SmallSpacing),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(ElementSpacing)
-            ) {
-                StatusChip(
-                    label = option.label,
-                    color = option.color
-                )
-            }
+    SelectionSheetContent(
+        modifier = modifier,
+        title = title,
+        subtitle = subtitle,
+        itemCount = options.size
+    ) { index ->
+        val option = options[index]
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = MinTouchTarget)
+                .clickable { onOptionSelected(index) }
+                .padding(horizontal = ScreenPadding, vertical = SmallSpacing),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(ElementSpacing)
+        ) {
+            PillLabel(
+                label = option.label,
+                color = option.color
+            )
         }
     }
 }
