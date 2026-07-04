@@ -2,3 +2,4 @@
 • Notification messages are now translated; app data is included in Android backups.
 • Improved screen reader support.
 • Fixed a crash when opening streaming links without a browser.
+• Smoother episode lists for long series.

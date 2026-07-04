@@ -15,6 +15,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -23,8 +24,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
@@ -49,6 +50,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -81,6 +83,7 @@ import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.PosterWidth
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SmallSpacing
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
+import com.vuzeda.animewatchlist.tracker.module.domain.StreamingInfo
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
@@ -374,116 +377,55 @@ private fun SeasonDetailContent(
     onStreamingLinkFailed: () -> Unit
 ) {
     val season = checkNotNull(state.season)
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = ScreenPadding, vertical = ElementSpacing)
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(horizontal = ScreenPadding, vertical = ElementSpacing)
     ) {
-        SeasonHeaderSection(
-            season = season,
-            titleLanguage = state.titleLanguage,
-            isInWatchlist = state.isInWatchlist,
-            broadcastLocalTime = state.broadcastLocalTime,
-            imageModifier = imageModifier,
-            onImageClick = onImageClick,
-            onStatusChipClick = onStatusChipClick,
-            onAddToWatchlistClick = onAddToWatchlistClick
-        )
+        item(key = "header") {
+            Column {
+                SeasonHeaderSection(
+                    season = season,
+                    titleLanguage = state.titleLanguage,
+                    isInWatchlist = state.isInWatchlist,
+                    broadcastLocalTime = state.broadcastLocalTime,
+                    imageModifier = imageModifier,
+                    onImageClick = onImageClick,
+                    onStatusChipClick = onStatusChipClick,
+                    onAddToWatchlistClick = onAddToWatchlistClick
+                )
 
-        Spacer(modifier = Modifier.height(ElementSpacing))
+                Spacer(modifier = Modifier.height(ElementSpacing))
 
-        OutlinedButton(
-            onClick = onViewFullSeriesClick,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(stringResource(R.string.season_detail_view_full_series))
+                OutlinedButton(
+                    onClick = onViewFullSeriesClick,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(stringResource(R.string.season_detail_view_full_series))
+                }
+            }
         }
 
         if (season.streamingLinks.isNotEmpty()) {
-            val context = LocalContext.current
-            var streamingExpanded by remember { mutableStateOf(false) }
-            val collapsedLimit = 3
-            val hasMore = season.streamingLinks.size > collapsedLimit
-            val visibleLinks = if (streamingExpanded || !hasMore) season.streamingLinks
-                               else season.streamingLinks.take(collapsedLimit)
-            Spacer(modifier = Modifier.height(ElementSpacing))
-            Text(
-                text = stringResource(R.string.season_detail_section_streaming),
-                style = MaterialTheme.typography.titleMedium
-            )
-            Spacer(modifier = Modifier.height(ElementSpacing))
-            visibleLinks.forEach { link ->
-                OutlinedButton(
-                    onClick = {
-                        try {
-                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(link.url)))
-                        } catch (_: ActivityNotFoundException) {
-                            onStreamingLinkFailed()
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(link.name)
-                }
-            }
-            if (hasMore) {
-                OutlinedButton(
-                    onClick = { streamingExpanded = !streamingExpanded },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        if (streamingExpanded) stringResource(R.string.season_detail_streaming_show_less)
-                        else pluralStringResource(
-                            R.plurals.season_detail_streaming_show_more,
-                            season.streamingLinks.size - collapsedLimit,
-                            season.streamingLinks.size - collapsedLimit
-                        )
-                    )
-                }
+            item(key = "streaming") {
+                StreamingLinksSection(
+                    streamingLinks = season.streamingLinks,
+                    onStreamingLinkFailed = onStreamingLinkFailed
+                )
             }
         }
 
         if (state.episodes.isNotEmpty() || state.isLoadingEpisodes) {
-            Spacer(modifier = Modifier.height(ElementSpacing))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(R.string.season_detail_section_episodes),
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.weight(1f)
+            item(key = "episodes_header") {
+                EpisodesSectionHeader(
+                    showMarkAllMenu = state.isInWatchlist && state.episodes.isNotEmpty(),
+                    onMarkAllEpisodesWatched = onMarkAllEpisodesWatched
                 )
-                if (state.isInWatchlist && state.episodes.isNotEmpty()) {
-                    var isMenuExpanded by remember { mutableStateOf(false) }
-                    Box {
-                        IconButton(onClick = { isMenuExpanded = true }) {
-                            Icon(
-                                imageVector = Icons.Default.MoreVert,
-                                contentDescription = stringResource(R.string.cd_episodes_menu)
-                            )
-                        }
-                        DropdownMenu(
-                            expanded = isMenuExpanded,
-                            onDismissRequest = { isMenuExpanded = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.season_detail_mark_all_episodes_watched)) },
-                                onClick = {
-                                    onMarkAllEpisodesWatched()
-                                    isMenuExpanded = false
-                                }
-                            )
-                        }
-                    }
-                }
             }
 
-            Spacer(modifier = Modifier.height(ElementSpacing))
-
-            state.episodes.forEachIndexed { index, episode ->
+            itemsIndexed(
+                items = state.episodes,
+                key = { _, episode -> episode.number }
+            ) { index, episode ->
                 EpisodeListItem(
                     episodeNumber = episode.number,
                     title = episode.title,
@@ -500,51 +442,162 @@ private fun SeasonDetailContent(
             }
 
             if (state.isLoadingEpisodes) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = ElementSpacing),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
+                item(key = "episodes_loading") {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = ElementSpacing),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
                 }
             } else if (state.hasMoreEpisodes) {
-                Spacer(modifier = Modifier.height(ElementSpacing))
-                OutlinedButton(
-                    onClick = onLoadMoreEpisodes,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(stringResource(R.string.season_detail_load_more_episodes))
+                item(key = "episodes_load_more") {
+                    Column {
+                        Spacer(modifier = Modifier.height(ElementSpacing))
+                        OutlinedButton(
+                            onClick = onLoadMoreEpisodes,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(stringResource(R.string.season_detail_load_more_episodes))
+                        }
+                    }
                 }
             }
         }
 
         if (state.isInWatchlist && state.isNotificationDebugInfoEnabled) {
-            Text(
-                text = stringResource(
-                    R.string.developer_last_checked_aired_episodes,
-                    season.lastCheckedAiredEpisodeCount?.toString()
-                        ?: stringResource(R.string.developer_value_none)
-                ),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = ElementSpacing)
-            )
-            Text(
-                text = stringResource(
-                    R.string.developer_last_episode_check,
-                    season.latestKnownEpisodeAirDate?.toString()
-                        ?: stringResource(R.string.developer_value_never)
-                ),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = ElementSpacing)
-            )
+            item(key = "notification_debug_info") {
+                NotificationDebugInfoSection(season = season)
+            }
         }
+    }
+}
+
+@Composable
+private fun StreamingLinksSection(
+    streamingLinks: List<StreamingInfo>,
+    onStreamingLinkFailed: () -> Unit
+) {
+    val context = LocalContext.current
+    var streamingExpanded by rememberSaveable { mutableStateOf(false) }
+    val collapsedLimit = 3
+    val hasMore = streamingLinks.size > collapsedLimit
+    val visibleLinks = if (streamingExpanded || !hasMore) streamingLinks
+                       else streamingLinks.take(collapsedLimit)
+    Column {
+        Spacer(modifier = Modifier.height(ElementSpacing))
+        Text(
+            text = stringResource(R.string.season_detail_section_streaming),
+            style = MaterialTheme.typography.titleMedium
+        )
+        Spacer(modifier = Modifier.height(ElementSpacing))
+        visibleLinks.forEach { link ->
+            OutlinedButton(
+                onClick = {
+                    try {
+                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(link.url)))
+                    } catch (_: ActivityNotFoundException) {
+                        onStreamingLinkFailed()
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(link.name)
+            }
+        }
+        if (hasMore) {
+            OutlinedButton(
+                onClick = { streamingExpanded = !streamingExpanded },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    if (streamingExpanded) stringResource(R.string.season_detail_streaming_show_less)
+                    else pluralStringResource(
+                        R.plurals.season_detail_streaming_show_more,
+                        streamingLinks.size - collapsedLimit,
+                        streamingLinks.size - collapsedLimit
+                    )
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun EpisodesSectionHeader(
+    showMarkAllMenu: Boolean,
+    onMarkAllEpisodesWatched: () -> Unit
+) {
+    Column {
+        Spacer(modifier = Modifier.height(ElementSpacing))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(R.string.season_detail_section_episodes),
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.weight(1f)
+            )
+            if (showMarkAllMenu) {
+                var isMenuExpanded by remember { mutableStateOf(false) }
+                Box {
+                    IconButton(onClick = { isMenuExpanded = true }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = stringResource(R.string.cd_episodes_menu)
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = isMenuExpanded,
+                        onDismissRequest = { isMenuExpanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.season_detail_mark_all_episodes_watched)) },
+                            onClick = {
+                                onMarkAllEpisodesWatched()
+                                isMenuExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(ElementSpacing))
+    }
+}
+
+@Composable
+private fun NotificationDebugInfoSection(season: Season) {
+    Column {
+        Text(
+            text = stringResource(
+                R.string.developer_last_checked_aired_episodes,
+                season.lastCheckedAiredEpisodeCount?.toString()
+                    ?: stringResource(R.string.developer_value_none)
+            ),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = ElementSpacing)
+        )
+        Text(
+            text = stringResource(
+                R.string.developer_last_episode_check,
+                season.latestKnownEpisodeAirDate?.toString()
+                    ?: stringResource(R.string.developer_value_never)
+            ),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = ElementSpacing)
+        )
     }
 }
 

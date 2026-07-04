@@ -2,3 +2,4 @@
 • Mensajes de notificación traducidos; datos de la app incluidos en las copias de seguridad de Android.
 • Mejor soporte para lectores de pantalla.
 • Se corrigió un cierre al abrir enlaces de streaming sin navegador.
+• Listas de episodios más fluidas en series largas.
