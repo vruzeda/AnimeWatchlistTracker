@@ -4,3 +4,4 @@
 • Corrigido um travamento quando os ajustes do app ficavam corrompidos.
 • As mensagens de notificação agora são traduzidas.
 • Os dados do app agora são incluídos nos backups do Android.
+• Suporte a leitores de tela aprimorado em todo o app.

@@ -243,6 +243,7 @@
     <string name="feedback_category_bug">Rapport de Bug</string>
     <string name="feedback_category_feature">Demande de Fonctionnalité</string>
     <string name="feedback_category_general">Général</string>
+    <string name="feedback_message_label">Message</string>
     <string name="feedback_message_hint">Décrivez vos commentaires…</string>
     <string name="feedback_submit">Envoyer</string>
     <string name="feedback_success">Commentaires envoyés. Merci !</string>

@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -76,7 +77,11 @@ fun AnimeCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
+            .clickable(
+                onClickLabel = stringResource(R.string.cd_open_anime_details),
+                role = Role.Button,
+                onClick = onClick
+            ),
         elevation = CardDefaults.cardElevation(defaultElevation = CardElevation)
     ) {
         Row(

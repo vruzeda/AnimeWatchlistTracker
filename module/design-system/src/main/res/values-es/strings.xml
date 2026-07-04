@@ -2,6 +2,7 @@
 <resources>
     <!-- AnimeCard -->
     <string name="score_format">★ %1$s</string>
+    <string name="cd_open_anime_details">Abrir detalles</string>
 
     <!-- SearchBar -->
     <string name="search_placeholder">Buscar anime…</string>
@@ -16,12 +17,6 @@
     <string name="cd_ascending">Ascendente</string>
     <string name="cd_descending">Descendente</string>
 
-    <!-- EpisodeStepper -->
-    <string name="episode_stepper_decrement">−</string>
-    <string name="episode_stepper_increment">+</string>
-    <string name="episode_stepper_with_total">%1$d / %2$d</string>
-    <string name="episode_stepper_without_total">%1$d</string>
-
     <!-- EpisodeListItem -->
     <string name="episode_number_format">EP %1$d</string>
     <string name="episode_number_fallback">Episodio %1$d</string>
@@ -29,7 +24,7 @@
     <string name="episode_badge_recap">Resumen</string>
 
     <!-- RatingBar -->
-    <string name="cd_star">Estrella %1$d de %2$d</string>
+    <string name="cd_rating">Calificación: %1$d de %2$d</string>
 
     <!-- SeasonPickerRow -->
     <string name="cd_previous_season">Temporada anterior</string>

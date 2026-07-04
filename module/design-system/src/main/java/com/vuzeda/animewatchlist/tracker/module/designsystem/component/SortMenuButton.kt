@@ -19,6 +19,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import com.vuzeda.animewatchlist.tracker.module.designsystem.R
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
@@ -50,6 +52,7 @@ fun SortMenuButton(
         ) {
             options.forEachIndexed { index, label ->
                 DropdownMenuItem(
+                    modifier = Modifier.semantics { selected = index == selectedIndex },
                     text = { Text(label) },
                     onClick = {
                         onOptionSelected(index)

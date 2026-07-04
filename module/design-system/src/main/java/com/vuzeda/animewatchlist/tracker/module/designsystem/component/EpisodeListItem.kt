@@ -1,6 +1,5 @@
 package com.vuzeda.animewatchlist.tracker.module.designsystem.component
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -54,7 +55,17 @@ fun EpisodeListItem(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = MinTouchTarget)
-            .then(if (onWatchedToggle != null) Modifier.clickable { onWatchedToggle() } else Modifier)
+            .then(
+                if (onWatchedToggle != null) {
+                    Modifier.toggleable(
+                        value = isWatched,
+                        role = Role.Checkbox,
+                        onValueChange = { onWatchedToggle() }
+                    )
+                } else {
+                    Modifier
+                }
+            )
     ) {
         Row(
             modifier = Modifier

@@ -20,6 +20,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.vuzeda.animewatchlist.tracker.module.designsystem.R
@@ -78,6 +80,7 @@ fun NestedFilterMenuButton(
 
                 group.options.forEachIndexed { optionIndex, label ->
                     DropdownMenuItem(
+                        modifier = Modifier.semantics { selected = optionIndex in group.selectedIndices },
                         text = {
                             Text(
                                 text = label,

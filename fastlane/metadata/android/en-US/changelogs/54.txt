@@ -4,3 +4,4 @@
 • Fixed a crash when app settings became corrupted.
 • Notification messages are now translated.
 • App data is now included in Android backups.
+• Improved screen reader support across the app.

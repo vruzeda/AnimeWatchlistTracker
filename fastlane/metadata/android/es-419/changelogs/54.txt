@@ -4,3 +4,4 @@
 • Se corrigió un cierre cuando los ajustes de la app se dañaban.
 • Los mensajes de notificación ahora están traducidos.
 • Los datos de la app ahora se incluyen en las copias de seguridad de Android.
+• Mejor soporte para lectores de pantalla.

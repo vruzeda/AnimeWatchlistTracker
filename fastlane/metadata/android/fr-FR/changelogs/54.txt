@@ -4,3 +4,4 @@
 • Correction d'un plantage quand les réglages de l'appli étaient corrompus.
 • Les messages de notification sont désormais traduits.
 • Les données de l'appli sont désormais incluses dans les sauvegardes Android.
+• Lecteurs d'écran mieux pris en charge.

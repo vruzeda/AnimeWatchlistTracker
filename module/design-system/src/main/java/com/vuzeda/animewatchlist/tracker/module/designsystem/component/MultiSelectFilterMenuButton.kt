@@ -20,6 +20,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.vuzeda.animewatchlist.tracker.module.designsystem.R
@@ -70,6 +72,7 @@ fun MultiSelectFilterMenuButton(
             options.forEach { option ->
                 val isSelected = option in selectedOptions
                 DropdownMenuItem(
+                    modifier = Modifier.semantics { selected = isSelected },
                     text = {
                         Text(
                             text = option,
