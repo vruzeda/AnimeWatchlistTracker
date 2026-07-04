@@ -28,13 +28,14 @@ private val ViewerControlTint = Color.White
 
 @Composable
 fun FullScreenImageViewer(
+    modifier: Modifier = Modifier,
     imageUrl: String,
     contentDescription: String?,
     imageModifier: Modifier = Modifier,
     onDismiss: () -> Unit
 ) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(ViewerBackground)
             .clickable(onClick = onDismiss)
