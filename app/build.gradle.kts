@@ -116,8 +116,6 @@ dependencies {
     "prodImplementation"(libs.firebase.auth)
     "prodImplementation"(libs.firebase.crashlytics)
     "prodImplementation"(libs.firebase.firestore)
-    "prodImplementation"(libs.play.services.auth)
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
