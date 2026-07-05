@@ -1,13 +1,21 @@
 package com.vuzeda.animewatchlist.tracker.module.ui.screens.developer
 
+import android.content.Context
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
+import com.vuzeda.animewatchlist.tracker.module.domain.Anime
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdate
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdateResult
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdateSchedulerState
+import com.vuzeda.animewatchlist.tracker.module.domain.Season
+import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
+import com.vuzeda.animewatchlist.tracker.module.ui.R
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveAnimeUpdateSchedulerStateUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveIsNotificationDebugInfoEnabledUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetIsDeveloperOptionsEnabledUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetIsNotificationDebugInfoEnabledUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.ShowAnimeUpdateNotificationUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.TriggerAnimeUpdateUseCase
 import io.mockk.coVerify
 import io.mockk.every
@@ -29,11 +37,14 @@ import kotlin.time.Instant
 class DeveloperViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
+    private val context: Context = mockk()
     private val observeAnimeUpdateSchedulerStateUseCase: ObserveAnimeUpdateSchedulerStateUseCase = mockk()
-    private val triggerAnimeUpdateUseCase: TriggerAnimeUpdateUseCase = mockk(relaxUnitFun = true)
-    private val setIsDeveloperOptionsEnabledUseCase: SetIsDeveloperOptionsEnabledUseCase = mockk(relaxUnitFun = true)
     private val observeIsNotificationDebugInfoEnabledUseCase: ObserveIsNotificationDebugInfoEnabledUseCase = mockk()
+    private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
+    private val setIsDeveloperOptionsEnabledUseCase: SetIsDeveloperOptionsEnabledUseCase = mockk(relaxUnitFun = true)
     private val setIsNotificationDebugInfoEnabledUseCase: SetIsNotificationDebugInfoEnabledUseCase = mockk(relaxUnitFun = true)
+    private val showAnimeUpdateNotificationUseCase: ShowAnimeUpdateNotificationUseCase = mockk(relaxUnitFun = true)
+    private val triggerAnimeUpdateUseCase: TriggerAnimeUpdateUseCase = mockk(relaxUnitFun = true)
 
     private val emptySchedulerState = AnimeUpdateSchedulerState(
         lastSuccessfulRunAt = null,
@@ -46,6 +57,9 @@ class DeveloperViewModelTest {
         Dispatchers.setMain(testDispatcher)
         every { observeAnimeUpdateSchedulerStateUseCase() } returns flowOf(emptySchedulerState)
         every { observeIsNotificationDebugInfoEnabledUseCase() } returns flowOf(false)
+        every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
+        every { context.getString(R.string.developer_test_notification_anime_title) } returns "Test Anime"
+        every { context.getString(R.string.developer_test_notification_season_title) } returns "Test Season"
     }
 
     @AfterEach
@@ -54,11 +68,14 @@ class DeveloperViewModelTest {
     }
 
     private fun createViewModel() = DeveloperViewModel(
+        context,
         observeAnimeUpdateSchedulerStateUseCase,
-        triggerAnimeUpdateUseCase,
-        setIsDeveloperOptionsEnabledUseCase,
         observeIsNotificationDebugInfoEnabledUseCase,
-        setIsNotificationDebugInfoEnabledUseCase
+        observeTitleLanguageUseCase,
+        setIsDeveloperOptionsEnabledUseCase,
+        setIsNotificationDebugInfoEnabledUseCase,
+        showAnimeUpdateNotificationUseCase,
+        triggerAnimeUpdateUseCase
     )
 
     @Test
@@ -160,6 +177,45 @@ class DeveloperViewModelTest {
         testDispatcher.scheduler.advanceUntilIdle()
 
         verify(exactly = 1) { triggerAnimeUpdateUseCase() }
+    }
+
+    @Test
+    fun `triggerNewEpisodesTestNotification shows a NewEpisodes update with the current title language`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.triggerNewEpisodesTestNotification()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        coVerify(exactly = 1) {
+            showAnimeUpdateNotificationUseCase(
+                update = AnimeUpdate.NewEpisodes(
+                    anime = Anime(id = 0, title = "Test Anime"),
+                    season = Season(malId = 0, title = "Test Season"),
+                    newEpisodeCount = 3
+                ),
+                titleLanguage = TitleLanguage.DEFAULT
+            )
+        }
+    }
+
+    @Test
+    fun `triggerNewSeasonTestNotification shows a NewSeason update with the current title language`() = runTest {
+        every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.ENGLISH)
+        val viewModel = createViewModel()
+
+        viewModel.triggerNewSeasonTestNotification()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        coVerify(exactly = 1) {
+            showAnimeUpdateNotificationUseCase(
+                update = AnimeUpdate.NewSeason(
+                    anime = Anime(id = 0, title = "Test Anime"),
+                    sequelMalId = 0,
+                    sequelTitle = "Test Season"
+                ),
+                titleLanguage = TitleLanguage.ENGLISH
+            )
+        }
     }
 
     @Test

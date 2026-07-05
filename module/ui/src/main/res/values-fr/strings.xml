@@ -224,6 +224,10 @@
     <string name="developer_last_checked_aired_episodes">Épisodes diffusés vérifiés : %1$s</string>
     <string name="developer_value_never">Jamais</string>
     <string name="developer_value_none">Aucun</string>
+    <string name="developer_trigger_new_episodes_notification">Déclencher la notification de test de nouveaux épisodes</string>
+    <string name="developer_trigger_new_season_notification">Déclencher la notification de test de nouvelle saison</string>
+    <string name="developer_test_notification_anime_title">Anime de Test</string>
+    <string name="developer_test_notification_season_title">Saison de Test</string>
 
     <!-- ScheduleScreen -->
     <string name="schedule_title">Programme</string>

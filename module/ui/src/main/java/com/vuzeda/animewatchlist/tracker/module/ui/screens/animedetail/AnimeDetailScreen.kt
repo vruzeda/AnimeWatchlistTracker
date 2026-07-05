@@ -63,7 +63,6 @@ import com.vuzeda.animewatchlist.tracker.module.designsystem.component.FullScree
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.LocalNavAnimatedVisibilityScope
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.LocalSharedTransitionScope
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.MultiSelectFilterMenuButton
-import com.vuzeda.animewatchlist.tracker.module.designsystem.component.NotificationButton
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.OptionSelectionSheet
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.RatingBar
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusChipButton

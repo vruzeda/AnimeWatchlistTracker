@@ -70,7 +70,6 @@ import com.vuzeda.animewatchlist.tracker.module.designsystem.component.EpisodeLi
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.FullScreenImageViewer
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.LocalNavAnimatedVisibilityScope
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.LocalSharedTransitionScope
-import com.vuzeda.animewatchlist.tracker.module.designsystem.component.NotificationButton
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusChipButton
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusOption
 import com.vuzeda.animewatchlist.tracker.module.designsystem.component.StatusSelectionSheet

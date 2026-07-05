@@ -49,6 +49,8 @@ fun DeveloperScreenRoute(
         uiState = uiState,
         onNavigateBack = onNavigateBack,
         onTriggerAnimeUpdate = viewModel::triggerAnimeUpdate,
+        onTriggerNewEpisodesTestNotification = viewModel::triggerNewEpisodesTestNotification,
+        onTriggerNewSeasonTestNotification = viewModel::triggerNewSeasonTestNotification,
         onDisableDeveloperOptions = {
             viewModel.disableDeveloperOptions()
             onNavigateBack()
@@ -63,6 +65,8 @@ fun DeveloperScreen(
     uiState: DeveloperUiState,
     onNavigateBack: () -> Unit,
     onTriggerAnimeUpdate: () -> Unit,
+    onTriggerNewEpisodesTestNotification: () -> Unit,
+    onTriggerNewSeasonTestNotification: () -> Unit,
     onDisableDeveloperOptions: () -> Unit,
     onToggleNotificationDebugInfo: () -> Unit
 ) {
@@ -171,6 +175,30 @@ fun DeveloperScreen(
                     modifier = Modifier.weight(1f)
                 )
             }
+
+            TextButton(
+                onClick = onTriggerNewEpisodesTestNotification,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = ScreenPadding)
+            ) {
+                Text(
+                    text = stringResource(R.string.developer_trigger_new_episodes_notification),
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            TextButton(
+                onClick = onTriggerNewSeasonTestNotification,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = ScreenPadding)
+            ) {
+                Text(
+                    text = stringResource(R.string.developer_trigger_new_season_notification),
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
     }
 }
@@ -192,6 +220,7 @@ private fun AnimeUpdateResult?.toDisplayString(): String = when (this) {
 
 private fun Instant.formatWith(formatter: DateTimeFormatter): String =
     formatter.format(java.time.Instant.ofEpochMilli(toEpochMilliseconds()))
+
 @Preview(showBackground = true)
 @Composable
 private fun DeveloperScreenPreview() {
@@ -200,6 +229,8 @@ private fun DeveloperScreenPreview() {
             uiState = ScreenPreviewSamples.developerUiState,
             onNavigateBack = {},
             onTriggerAnimeUpdate = {},
+            onTriggerNewEpisodesTestNotification = {},
+            onTriggerNewSeasonTestNotification = {},
             onDisableDeveloperOptions = {},
             onToggleNotificationDebugInfo = {}
         )
