@@ -132,6 +132,24 @@ class NotificationHelperTest {
     }
 
     @Test
+    fun `posted notifications use the monochrome small icon`() {
+        notificationHelper.showUpdateNotification(newEpisodes, TitleLanguage.DEFAULT)
+
+        postedNotifications().forEach { notification ->
+            assertThat(notification.smallIcon.resId).isEqualTo(R.drawable.ic_notification)
+        }
+    }
+
+    @Test
+    fun `posted notifications are tinted with the brand accent color`() {
+        notificationHelper.showUpdateNotification(newEpisodes, TitleLanguage.DEFAULT)
+
+        postedNotifications().forEach { notification ->
+            assertThat(notification.color).isEqualTo(context.getColor(R.color.notification_accent))
+        }
+    }
+
+    @Test
     fun `new episodes notification carries the plural episode text`() {
         notificationHelper.showUpdateNotification(newEpisodes, TitleLanguage.DEFAULT)
 

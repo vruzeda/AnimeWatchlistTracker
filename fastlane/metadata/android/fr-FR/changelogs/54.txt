@@ -2,3 +2,4 @@
 • Notifications traduites, listes plus fluides, meilleur support des lecteurs d'écran, sauvegardes complètes.
 • Tirez pour vérifier les nouveautés ; meilleur contraste et thème sombre ; dates/notes selon votre langue.
 • Les notifications utilisent désormais des canaux séparés pour épisodes et saisons.
+• Icônes de notification plus lisibles.

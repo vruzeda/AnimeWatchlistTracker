@@ -2,3 +2,4 @@
 • Notificações traduzidas, listas mais fluidas, melhor suporte a leitores de tela, backups incluem dados do app.
 • Puxe para baixo para buscar novidades; melhor contraste e tema escuro; datas/notas seguem o idioma do aparelho.
 • Notificações agora usam canais separados para episódios e temporadas.
+• Ícones de notificação mais nítidos.

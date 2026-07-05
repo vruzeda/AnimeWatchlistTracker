@@ -101,6 +101,7 @@ class NotificationHelper @Inject constructor(
 
         val notification = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_notification)
+            .setColor(ContextCompat.getColor(context, R.color.notification_accent))
             .setContentTitle(animeTitle)
             .setContentText(text)
             .setStyle(NotificationCompat.BigTextStyle().bigText(text))
@@ -114,6 +115,7 @@ class NotificationHelper @Inject constructor(
 
         val summary = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_notification)
+            .setColor(ContextCompat.getColor(context, R.color.notification_accent))
             .setContentTitle(animeTitle)
             .setGroup(groupKey)
             .setGroupSummary(true)

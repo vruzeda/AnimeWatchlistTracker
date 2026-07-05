@@ -2,3 +2,4 @@
 • Notificaciones traducidas, listas más fluidas, mejor soporte para lectores de pantalla, backups con datos del app.
 • Desliza para buscar novedades; mejor contraste y tema oscuro; fechas/puntuaciones según tu idioma.
 • Las notificaciones ahora usan canales separados para episodios y temporadas.
+• Íconos de notificación más nítidos.

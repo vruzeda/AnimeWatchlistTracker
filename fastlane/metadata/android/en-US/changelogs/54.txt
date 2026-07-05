@@ -2,3 +2,4 @@
 • Translated notifications, smoother episode lists, better screen reader support, backups include app data.
 • Pull down to check for updates; improved contrast and dark mode; dates/scores follow your device language.
 • Notifications now use separate channels for episodes and seasons.
+• Clearer notification icons.
