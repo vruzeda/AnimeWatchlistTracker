@@ -4,6 +4,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
+import com.vuzeda.animewatchlist.tracker.module.ui.screens.LoadErrorType
 
 sealed interface SeasonsSnackbarEvent {
     data object RefreshFailed : SeasonsSnackbarEvent
@@ -27,7 +28,7 @@ data class SeasonsUiState(
     val isLoadingMore: Boolean = false,
     val hasNextPage: Boolean = false,
     val currentPage: Int = 1,
-    val errorMessage: String? = null,
+    val loadError: LoadErrorType? = null,
     val titleLanguage: TitleLanguage = TitleLanguage.DEFAULT,
     val selectedResultForAdd: SearchResult? = null,
     val selectedResultForDelete: SearchResult? = null,

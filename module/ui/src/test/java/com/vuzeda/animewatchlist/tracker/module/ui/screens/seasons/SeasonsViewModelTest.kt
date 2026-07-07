@@ -6,6 +6,7 @@ import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsTracker
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
+import com.vuzeda.animewatchlist.tracker.module.domain.DataError
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonalAnimePage
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
@@ -18,6 +19,7 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseC
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveWatchlistMalIdsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.RemoveAnimeByMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetSeasonFilterUseCase
+import com.vuzeda.animewatchlist.tracker.module.ui.screens.LoadErrorType
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -215,10 +217,10 @@ class SeasonsViewModelTest {
     }
 
     @Test
-    fun `error state is set on fetch failure`() = runTest {
+    fun `fetch failure maps DataError Network to NETWORK load error`() = runTest {
         coEvery {
             getSeasonAnimeUseCase(any(), any(), any(), any())
-        } returns Result.failure(IOException("Network error"))
+        } returns Result.failure(DataError.Network(throwable = IOException("Network error")))
 
         val viewModel = createViewModel()
 
@@ -227,8 +229,24 @@ class SeasonsViewModelTest {
 
             val error = awaitItem()
             assertThat(error.isLoading).isFalse()
-            assertThat(error.errorMessage).isEqualTo("Network error")
+            assertThat(error.loadError).isEqualTo(LoadErrorType.NETWORK)
             assertThat(error.animeList).isEmpty()
+        }
+    }
+
+    @Test
+    fun `fetch failure maps unexpected exceptions to UNKNOWN load error`() = runTest {
+        coEvery {
+            getSeasonAnimeUseCase(any(), any(), any(), any())
+        } returns Result.failure(IOException("Network error"))
+
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val error = expectMostRecentItem()
+            assertThat(error.loadError).isEqualTo(LoadErrorType.UNKNOWN)
         }
     }
 
@@ -477,6 +495,56 @@ class SeasonsViewModelTest {
             assertThat(refreshed.animeList).hasSize(2)
             assertThat(refreshed.snackbarEvent).isEqualTo(SeasonsSnackbarEvent.RefreshFailed)
             cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `retry re-runs full season load with loading state and clears error on success`() = runTest {
+        coEvery {
+            getSeasonAnimeUseCase(any(), any(), any(), any())
+        } returns Result.failure(DataError.Network(throwable = IOException("Network error")))
+
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            val failed = expectMostRecentItem()
+            assertThat(failed.loadError).isEqualTo(LoadErrorType.NETWORK)
+
+            coEvery { getSeasonAnimeUseCase(any(), any(), any(), any()) } returns Result.success(samplePage)
+            viewModel.retry()
+
+            val loading = awaitItem()
+            assertThat(loading.isLoading).isTrue()
+            assertThat(loading.loadError).isNull()
+
+            testDispatcher.scheduler.advanceUntilIdle()
+            val retried = expectMostRecentItem()
+            assertThat(retried.isLoading).isFalse()
+            assertThat(retried.loadError).isNull()
+            assertThat(retried.animeList).hasSize(2)
+        }
+    }
+
+    @Test
+    fun `retry failure restores the error state`() = runTest {
+        coEvery {
+            getSeasonAnimeUseCase(any(), any(), any(), any())
+        } returns Result.failure(DataError.Network(throwable = IOException("Network error")))
+
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.retry()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val retried = expectMostRecentItem()
+            assertThat(retried.isLoading).isFalse()
+            assertThat(retried.loadError).isEqualTo(LoadErrorType.NETWORK)
+            assertThat(retried.snackbarEvent).isNull()
         }
     }
 

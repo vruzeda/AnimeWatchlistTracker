@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
@@ -58,6 +60,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
 import com.vuzeda.animewatchlist.tracker.module.ui.R
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.ScreenPreviewSamples
+import com.vuzeda.animewatchlist.tracker.module.ui.screens.displayMessageRes
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.home.toColor
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.home.toDisplayLabelRes
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.search.displayLabelRes
@@ -92,7 +95,8 @@ fun SeasonsScreenRoute(
         onLoadMore = viewModel::loadMore,
         onSnackbarDismissed = viewModel::clearSnackbar,
         onSnackbarEventDismissed = viewModel::clearSnackbarEvent,
-        onRefresh = viewModel::refresh
+        onRefresh = viewModel::refresh,
+        onRetryClick = viewModel::retry
     )
 }
 
@@ -113,7 +117,8 @@ fun SeasonsScreen(
     onLoadMore: () -> Unit,
     onSnackbarDismissed: () -> Unit,
     onSnackbarEventDismissed: () -> Unit = {},
-    onRefresh: () -> Unit = {}
+    onRefresh: () -> Unit = {},
+    onRetryClick: () -> Unit = {}
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -167,50 +172,66 @@ fun SeasonsScreen(
                 onNextClick = onNextSeason
             )
 
-            PullToRefreshBox(
-                isRefreshing = uiState.isRefreshing,
-                onRefresh = onRefresh,
-                modifier = Modifier.fillMaxSize()
-            ) {
-                when {
-                    uiState.isLoading -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
-                        }
+            when {
+                uiState.isLoading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
                     }
-                    uiState.errorMessage != null -> {
+                }
+                uiState.loadError != null -> {
+                    PullToRefreshBox(
+                        isRefreshing = false,
+                        onRefresh = onRetryClick,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
                         EmptyStateMessage(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .verticalScroll(rememberScrollState()),
                             title = stringResource(R.string.seasons_error_title),
-                            subtitle = uiState.errorMessage,
-                            onRetry = onRefresh
+                            subtitle = stringResource(uiState.loadError.displayMessageRes),
+                            onRetry = onRetryClick
                         )
                     }
-                    uiState.animeList.isEmpty() -> {
+                }
+                uiState.animeList.isEmpty() -> {
+                    PullToRefreshBox(
+                        isRefreshing = false,
+                        onRefresh = onRetryClick,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
                         EmptyStateMessage(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .verticalScroll(rememberScrollState()),
                             title = stringResource(R.string.seasons_empty_title),
                             subtitle = stringResource(R.string.seasons_empty_subtitle)
                         )
                     }
-                    else -> {
-                        val listState = rememberLazyListState()
+                }
+                else -> {
+                    val listState = rememberLazyListState()
 
-                        val shouldLoadMore by remember {
-                            derivedStateOf {
-                                val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1
-                                val total = listState.layoutInfo.totalItemsCount
-                                total > 0 && lastVisible >= total - 3
-                            }
+                    val shouldLoadMore by remember {
+                        derivedStateOf {
+                            val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1
+                            val total = listState.layoutInfo.totalItemsCount
+                            total > 0 && lastVisible >= total - 3
                         }
+                    }
 
-                        LaunchedEffect(shouldLoadMore) {
-                            if (shouldLoadMore) onLoadMore()
-                        }
+                    LaunchedEffect(shouldLoadMore) {
+                        if (shouldLoadMore) onLoadMore()
+                    }
 
+                    PullToRefreshBox(
+                        isRefreshing = uiState.isRefreshing,
+                        onRefresh = onRefresh,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
                         LazyColumn(
                             state = listState,
                             contentPadding = PaddingValues(horizontal = ScreenPadding, vertical = ElementSpacing),

@@ -1,1 +1,1 @@
-• Search: fewer errors when the anime service is busy, clearer error messages, and a retry that works.
+• Search and seasons: fewer errors when the anime service is busy, clearer error messages, and a retry that works.
