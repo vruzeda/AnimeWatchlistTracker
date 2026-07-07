@@ -1,0 +1,1 @@
+• Fewer errors when the anime service is busy.

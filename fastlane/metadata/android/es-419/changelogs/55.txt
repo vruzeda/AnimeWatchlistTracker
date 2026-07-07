@@ -1,0 +1,1 @@
+• Menos errores cuando el servicio de anime está saturado.

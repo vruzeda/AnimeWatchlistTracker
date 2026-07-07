@@ -1,0 +1,1 @@
+• Menos erros quando o serviço de animes está sobrecarregado.
