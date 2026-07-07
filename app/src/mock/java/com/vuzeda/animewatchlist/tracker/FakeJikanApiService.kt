@@ -18,6 +18,9 @@ import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.Se
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.StreamingDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.JikanApiService
 import kotlinx.coroutines.delay
+import okhttp3.ResponseBody.Companion.toResponseBody
+import retrofit2.HttpException
+import retrofit2.Response
 import kotlin.time.Duration.Companion.seconds
 
 class FakeJikanApiService : JikanApiService {
@@ -30,8 +33,16 @@ class FakeJikanApiService : JikanApiService {
         status: String?,
         orderBy: String?,
         sort: String?
-    ): AnimeSearchResponseDto =
-        AnimeSearchResponseDto(data = fakeResults)
+    ): AnimeSearchResponseDto {
+        if (query == GATEWAY_TIMEOUT_TRIGGER_QUERY) {
+            throw HttpException(Response.error<AnimeSearchResponseDto>(504, "".toResponseBody()))
+        }
+        return AnimeSearchResponseDto(data = fakeResults)
+    }
+
+    companion object {
+        const val GATEWAY_TIMEOUT_TRIGGER_QUERY = "error504"
+    }
 
     override suspend fun getAnimeFullById(malId: Int): AnimeFullResponseDto {
         val fullData = fakeFullDetails[malId]
