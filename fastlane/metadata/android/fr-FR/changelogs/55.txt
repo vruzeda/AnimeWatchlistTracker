@@ -1,1 +1,1 @@
-• Moins d'erreurs quand le service d'anime est surchargé.
+• Recherche : moins d'erreurs quand le service d'anime est surchargé, messages plus clairs et réessai qui fonctionne.

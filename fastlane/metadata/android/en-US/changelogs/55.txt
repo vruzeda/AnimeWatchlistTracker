@@ -1,1 +1,1 @@
-• Fewer errors when the anime service is busy.
+• Search: fewer errors when the anime service is busy, clearer error messages, and a retry that works.

@@ -8,6 +8,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchOrderBy
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchStatus
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
+import com.vuzeda.animewatchlist.tracker.module.domain.DataError
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchFilterState
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResultPage
@@ -21,6 +22,7 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveWatchlistMalIdsUs
 import com.vuzeda.animewatchlist.tracker.module.usecase.RemoveAnimeByMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SearchAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetSearchFilterStateUseCase
+import com.vuzeda.animewatchlist.tracker.module.ui.screens.LoadErrorType
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -178,8 +180,9 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun `search with error updates error state`() = runTest {
-        coEvery { searchAnimeUseCase("test", any(), 1) } returns Result.failure(IOException("Network error"))
+    fun `search failure maps DataError Network to NETWORK load error`() = runTest {
+        coEvery { searchAnimeUseCase("test", any(), 1) } returns
+            Result.failure(DataError.Network(throwable = IOException("Network error")))
 
         viewModel.uiState.test {
             awaitItem()
@@ -193,8 +196,45 @@ class SearchViewModelTest {
 
             val error = awaitItem()
             assertThat(error.isLoading).isFalse()
-            assertThat(error.errorMessage).isEqualTo("Network error")
+            assertThat(error.loadError).isEqualTo(LoadErrorType.NETWORK)
             assertThat(error.hasSearched).isTrue()
+        }
+    }
+
+    @Test
+    fun `search failure maps DataError RateLimited to RATE_LIMITED load error`() = runTest {
+        coEvery { searchAnimeUseCase("test", any(), 1) } returns
+            Result.failure(DataError.RateLimited(retryAfterMs = 1_000L))
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            viewModel.updateQuery("test")
+            awaitItem()
+
+            viewModel.search()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val error = expectMostRecentItem()
+            assertThat(error.loadError).isEqualTo(LoadErrorType.RATE_LIMITED)
+        }
+    }
+
+    @Test
+    fun `search failure maps unexpected exceptions to UNKNOWN load error`() = runTest {
+        coEvery { searchAnimeUseCase("test", any(), 1) } returns Result.failure(IOException("Network error"))
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            viewModel.updateQuery("test")
+            awaitItem()
+
+            viewModel.search()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val error = expectMostRecentItem()
+            assertThat(error.loadError).isEqualTo(LoadErrorType.UNKNOWN)
         }
     }
 
@@ -698,6 +738,72 @@ class SearchViewModelTest {
             awaitItem()
 
             viewModel.refresh()
+
+            expectNoEvents()
+        }
+    }
+
+    @Test
+    fun `retry re-runs full search with loading state and clears error on success`() = runTest {
+        coEvery { searchAnimeUseCase("one punch", any(), 1) } returns
+            Result.failure(DataError.Network(throwable = IOException("Network error")))
+
+        viewModel.uiState.test {
+            awaitItem()
+            viewModel.updateQuery("one punch")
+            awaitItem()
+            viewModel.search()
+            testDispatcher.scheduler.advanceUntilIdle()
+            val failed = expectMostRecentItem()
+            assertThat(failed.loadError).isEqualTo(LoadErrorType.NETWORK)
+
+            coEvery { searchAnimeUseCase("one punch", any(), 1) } returns Result.success(pageOf(listOf(sampleResult)))
+            viewModel.retry()
+
+            val loading = awaitItem()
+            assertThat(loading.isLoading).isTrue()
+            assertThat(loading.loadError).isNull()
+
+            testDispatcher.scheduler.advanceUntilIdle()
+            val retried = expectMostRecentItem()
+            assertThat(retried.isLoading).isFalse()
+            assertThat(retried.loadError).isNull()
+            assertThat(retried.results).hasSize(1)
+        }
+    }
+
+    @Test
+    fun `retry failure restores the error state`() = runTest {
+        coEvery { searchAnimeUseCase("one punch", any(), 1) } returns
+            Result.failure(DataError.Network(throwable = IOException("Network error")))
+
+        viewModel.uiState.test {
+            awaitItem()
+            viewModel.updateQuery("one punch")
+            awaitItem()
+            viewModel.search()
+            testDispatcher.scheduler.advanceUntilIdle()
+            expectMostRecentItem()
+
+            viewModel.retry()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val retried = expectMostRecentItem()
+            assertThat(retried.isLoading).isFalse()
+            assertThat(retried.loadError).isEqualTo(LoadErrorType.NETWORK)
+            assertThat(retried.snackbarEvent).isNull()
+        }
+    }
+
+    @Test
+    fun `retry does nothing when hasSearched is false`() = runTest {
+        viewModel.uiState.test {
+            awaitItem()
+
+            viewModel.updateQuery("one punch")
+            awaitItem()
+
+            viewModel.retry()
 
             expectNoEvents()
         }

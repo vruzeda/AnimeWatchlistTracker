@@ -18,6 +18,7 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveWatchlistMalIdsUs
 import com.vuzeda.animewatchlist.tracker.module.usecase.RemoveAnimeByMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SearchAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetSearchFilterStateUseCase
+import com.vuzeda.animewatchlist.tracker.module.ui.screens.toLoadErrorType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -88,6 +89,13 @@ class SearchViewModel @Inject constructor(
         performSearch(query)
     }
 
+    fun retry() {
+        if (!_uiState.value.hasSearched) return
+        val query = _uiState.value.query.trim()
+        if (query.isBlank()) return
+        performSearch(query)
+    }
+
     private fun performSearch(query: String) {
         searchJob?.cancel()
         val filterState = _uiState.value.filterState
@@ -98,7 +106,7 @@ class SearchViewModel @Inject constructor(
             _uiState.update {
                 it.copy(
                     isLoading = true,
-                    errorMessage = null,
+                    loadError = null,
                     results = emptyList(),
                     hasNextPage = false,
                     currentPage = 1
@@ -126,7 +134,7 @@ class SearchViewModel @Inject constructor(
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
-                                errorMessage = error.message,
+                                loadError = error.toLoadErrorType(),
                                 hasSearched = true
                             )
                         }
@@ -182,7 +190,7 @@ class SearchViewModel @Inject constructor(
         val generation = currentQueryGeneration
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isRefreshing = true, errorMessage = null) }
+            _uiState.update { it.copy(isRefreshing = true) }
             searchAnimeUseCase(query, filterState, page = 1)
                 .onSuccess { page ->
                     if (generation == currentQueryGeneration) {

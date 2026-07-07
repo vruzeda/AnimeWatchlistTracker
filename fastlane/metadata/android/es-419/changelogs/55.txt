@@ -1,1 +1,1 @@
-• Menos errores cuando el servicio de anime está saturado.
+• Búsqueda: menos errores cuando el servicio de anime está saturado, mensajes más claros y reintento que funciona.

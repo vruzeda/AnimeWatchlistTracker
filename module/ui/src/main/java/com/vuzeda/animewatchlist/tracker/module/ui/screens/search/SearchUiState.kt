@@ -7,6 +7,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.SearchFilterState
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.ui.R
+import com.vuzeda.animewatchlist.tracker.module.ui.screens.LoadErrorType
 
 val AnimeSearchOrderBy.displayLabelRes: Int
     get() = when (this) {
@@ -58,7 +59,7 @@ data class SearchUiState(
     val isLoadingMore: Boolean = false,
     val hasNextPage: Boolean = false,
     val currentPage: Int = 1,
-    val errorMessage: String? = null,
+    val loadError: LoadErrorType? = null,
     val hasSearched: Boolean = false,
     val selectedResultForAdd: SearchResult? = null,
     val selectedResultForDelete: SearchResult? = null,
