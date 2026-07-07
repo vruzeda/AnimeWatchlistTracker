@@ -10,11 +10,10 @@ coreKtx = "1.19.0"
 coroutines = "1.11.0"
 dataStore = "1.2.1"
 detekt = "1.23.8"
-errorProneAnnotations = "2.50.0"
 firebase-bom = "34.15.0"
 firebase-crashlytics-plugin = "3.0.7"
 google-services = "4.5.0"
-hilt = "2.60"
+hilt = "2.60.1"
 hiltNavigationCompose = "1.4.0"
 hiltWork = "1.4.0"
 junit5 = "6.1.1"
@@ -60,7 +59,6 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-android-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
 androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
-error-prone-annotations = { group = "com.google.errorprone", name = "error_prone_annotations", version.ref = "errorProneAnnotations" }
 
 # Room
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
@@ -86,7 +84,6 @@ androidx-datastore-preferences = { group = "androidx.datastore", name = "datasto
 androidx-hilt-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "hiltWork" }
 androidx-hilt-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "hiltWork" }
 androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workManager" }
-androidx-work-testing = { group = "androidx.work", name = "work-testing", version.ref = "workManager" }
 
 # Serialization
 kotlinx-serialization-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "kotlinxSerialization" }

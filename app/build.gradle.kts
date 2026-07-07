@@ -134,7 +134,6 @@ dependencies {
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
-    compileOnly(libs.error.prone.annotations)
 
     implementation(libs.room.runtime)
     implementation(libs.androidx.datastore.preferences)
