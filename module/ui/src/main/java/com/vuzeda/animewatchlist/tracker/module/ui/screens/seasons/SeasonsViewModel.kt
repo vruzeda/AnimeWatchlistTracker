@@ -17,6 +17,7 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseC
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveWatchlistMalIdsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.RemoveAnimeByMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetSeasonFilterUseCase
+import com.vuzeda.animewatchlist.tracker.module.ui.screens.toLoadErrorType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -83,9 +84,14 @@ class SeasonsViewModel @Inject constructor(
         }
     }
 
+    fun retry() {
+        val state = _uiState.value
+        loadSeason(year = state.selectedYear, season = state.selectedSeason, filter = state.seasonFilter)
+    }
+
     fun refresh() {
         val state = _uiState.value
-        _uiState.update { it.copy(isRefreshing = true, errorMessage = null) }
+        _uiState.update { it.copy(isRefreshing = true) }
         viewModelScope.launch {
             getSeasonAnimeUseCase(year = state.selectedYear, season = state.selectedSeason, page = 1, filter = state.seasonFilter)
                 .onSuccess { page ->
@@ -116,7 +122,7 @@ class SeasonsViewModel @Inject constructor(
                 animeList = emptyList(),
                 hasNextPage = false,
                 currentPage = 1,
-                errorMessage = null
+                loadError = null
             )
         }
         loadSeason(
@@ -137,7 +143,7 @@ class SeasonsViewModel @Inject constructor(
                 animeList = emptyList(),
                 hasNextPage = false,
                 currentPage = 1,
-                errorMessage = null
+                loadError = null
             )
         }
         loadSeason(year = nextYear, season = nextSeason, filter = state.seasonFilter)
@@ -154,7 +160,7 @@ class SeasonsViewModel @Inject constructor(
                 animeList = emptyList(),
                 hasNextPage = false,
                 currentPage = 1,
-                errorMessage = null
+                loadError = null
             )
         }
         loadSeason(year = prevYear, season = prevSeason, filter = state.seasonFilter)
@@ -271,7 +277,7 @@ class SeasonsViewModel @Inject constructor(
 
     private fun loadSeason(year: Int, season: AnimeSeason, filter: AnimeSearchType) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            _uiState.update { it.copy(isLoading = true, loadError = null) }
             getSeasonAnimeUseCase(year = year, season = season, page = 1, filter = filter)
                 .onSuccess { page ->
                     _uiState.update {
@@ -287,7 +293,7 @@ class SeasonsViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            errorMessage = error.message
+                            loadError = error.toLoadErrorType()
                         )
                     }
                 }

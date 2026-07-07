@@ -1,0 +1,1 @@
+• Busca e temporadas: menos erros quando o serviço de animes está sobrecarregado, mensagens mais claras e nova tentativa que funciona.

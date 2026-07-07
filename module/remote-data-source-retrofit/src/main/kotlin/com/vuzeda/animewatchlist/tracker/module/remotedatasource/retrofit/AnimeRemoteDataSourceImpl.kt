@@ -121,8 +121,10 @@ class AnimeRemoteDataSourceImpl @Inject constructor(
 }
 
 private const val BASE_RETRY_DELAY_MS = 500L
-private const val MAX_RETRY_ATTEMPTS = 2
+private const val MAX_RETRY_ATTEMPTS = 3
 private val RETRYABLE_HTTP_CODES = setOf(429, 502, 503, 504)
+
+private fun exponentialBackoffMs(attempt: Int): Long = BASE_RETRY_DELAY_MS * (1L shl attempt)
 
 private suspend fun <T> safeApiCall(block: suspend () -> T): Result<T> {
     var attempt = 0
@@ -137,13 +139,13 @@ private suspend fun <T> safeApiCall(block: suspend () -> T): Result<T> {
             if (e.code() !in RETRYABLE_HTTP_CODES || attempt >= MAX_RETRY_ATTEMPTS) {
                 return Result.failure(mapHttpException(e) as Throwable)
             }
-            delay(e.retryAfterMs() ?: (BASE_RETRY_DELAY_MS * (attempt + 1)))
+            delay(e.retryAfterMs() ?: exponentialBackoffMs(attempt))
             attempt++
         } catch (e: ChiakiRequestException) {
             if (e.statusCode !in RETRYABLE_HTTP_CODES || attempt >= MAX_RETRY_ATTEMPTS) {
                 return Result.failure(mapChiakiException(e) as Throwable)
             }
-            delay(BASE_RETRY_DELAY_MS * (attempt + 1))
+            delay(exponentialBackoffMs(attempt))
             attempt++
         } catch (e: Exception) {
             return Result.failure(DataError.Unknown(throwable = e))

@@ -144,7 +144,7 @@ class AnimeRemoteDataSourceImplTest {
 
         assertThat(result.isFailure).isTrue()
         assertThat(result.exceptionOrNull()).isInstanceOf(DataError.RateLimited::class.java)
-        coVerify(exactly = 3) { jikanApiService.searchAnime(any()) }
+        coVerify(exactly = 4) { jikanApiService.searchAnime(any()) }
     }
 
     @Test
@@ -155,7 +155,7 @@ class AnimeRemoteDataSourceImplTest {
 
         val error = result.exceptionOrNull() as DataError.RateLimited
         assertThat(error.retryAfterMs).isEqualTo(30_000L)
-        coVerify(exactly = 3) { jikanApiService.searchAnime(any()) }
+        coVerify(exactly = 4) { jikanApiService.searchAnime(any()) }
     }
 
     @Test
@@ -166,7 +166,7 @@ class AnimeRemoteDataSourceImplTest {
 
         val error = result.exceptionOrNull() as DataError.RateLimited
         assertThat(error.retryAfterMs).isNull()
-        coVerify(exactly = 3) { jikanApiService.searchAnime(any()) }
+        coVerify(exactly = 4) { jikanApiService.searchAnime(any()) }
     }
 
     @Test
@@ -177,7 +177,7 @@ class AnimeRemoteDataSourceImplTest {
 
         val error = result.exceptionOrNull() as DataError.RateLimited
         assertThat(error.retryAfterMs).isNull()
-        coVerify(exactly = 3) { jikanApiService.searchAnime(any()) }
+        coVerify(exactly = 4) { jikanApiService.searchAnime(any()) }
     }
 
     @Test
@@ -210,7 +210,8 @@ class AnimeRemoteDataSourceImplTest {
 
         assertThat(result.isFailure).isTrue()
         assertThat(result.exceptionOrNull()).isInstanceOf(DataError.Network::class.java)
-        coVerify(exactly = 3) { jikanApiService.searchAnime(any()) }
+        coVerify(exactly = 4) { jikanApiService.searchAnime(any()) }
+        assertThat(testScheduler.currentTime).isEqualTo(3_500L)
     }
 
     @Test
@@ -234,8 +235,8 @@ class AnimeRemoteDataSourceImplTest {
 
         val error = result.exceptionOrNull() as DataError.RateLimited
         assertThat(error.retryAfterMs).isEqualTo(120_000L)
-        coVerify(exactly = 3) { jikanApiService.searchAnime(any()) }
-        assertThat(testScheduler.currentTime).isEqualTo(240_000L)
+        coVerify(exactly = 4) { jikanApiService.searchAnime(any()) }
+        assertThat(testScheduler.currentTime).isEqualTo(360_000L)
     }
 
     @Test
@@ -486,7 +487,8 @@ class AnimeRemoteDataSourceImplTest {
 
         assertThat(result.isFailure).isTrue()
         assertThat(result.exceptionOrNull()).isInstanceOf(DataError.Network::class.java)
-        coVerify(exactly = 3) { chiakiService.fetchWatchOrder(1) }
+        coVerify(exactly = 4) { chiakiService.fetchWatchOrder(1) }
+        assertThat(testScheduler.currentTime).isEqualTo(3_500L)
     }
 
     @Test

@@ -93,6 +93,9 @@
     <string name="error_refresh_failed">Não foi possível atualizar. Exibindo dados em cache.</string>
     <string name="error_load_more_failed">Não foi possível carregar mais resultados. Tente novamente.</string>
     <string name="error_detail_fetch_failed">Não foi possível carregar os detalhes. Tente novamente.</string>
+    <string name="error_network">Não foi possível conectar ao serviço de animes. Verifique sua conexão e tente novamente.</string>
+    <string name="error_rate_limited">Muitas solicitações. Aguarde um momento e tente novamente.</string>
+    <string name="error_generic">Algo inesperado aconteceu. Tente novamente.</string>
     <string name="delete_anime_dialog_title">Remover da lista?</string>
     <string name="delete_anime_dialog_message">Isso removerá o anime e todas as suas temporadas da sua lista. Esta ação não pode ser desfeita.</string>
     <string name="delete_anime_dialog_confirm">Remover</string>
