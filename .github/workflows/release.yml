@@ -20,19 +20,25 @@ on:
         description: Version name (e.g. 6.8 — use the current name to only bump versionCode)
         required: true
 
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  release:
+  verify:
     runs-on: ubuntu-latest
-    environment: release
+    outputs:
+      version_code: ${{ steps.next_version.outputs.version_code }}
+      version_name: ${{ steps.next_version.outputs.version_name }}
+      tag: ${{ steps.next_version.outputs.tag }}
 
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/setup-java@v4
         with:
@@ -45,10 +51,34 @@ jobs:
         with:
           bundler-cache: true
 
-      - name: Configure git identity
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+      - name: Decode google-services.json
+        run: echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 -d > app/google-services.json
+
+      - name: Run tests and coverage verification
+        run: bundle exec fastlane test
+
+      - name: Compute next version
+        id: next_version
+        run: bundle exec fastlane next_version "version_name:${{ inputs.version_name }}"
+
+  build:
+    runs-on: ubuntu-latest
+    environment: release
+    needs: verify
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
 
       - name: Decode keystore
         run: echo "${{ secrets.KEYSTORE_FILE }}" | base64 -d > keystore.jks
@@ -62,17 +92,69 @@ jobs:
           keyPassword=${{ secrets.KEYSTORE_KEY_PASSWORD }}
           EOF
 
-      - name: Write Play Store key
-        run: echo '${{ secrets.PLAY_STORE_JSON_KEY }}' > fastlane/play-store-key.json
-
       - name: Decode google-services.json
         run: echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 -d > app/google-services.json
 
-      - name: Release
+      - name: Set release version
+        run: bundle exec fastlane set_version "version_code:${{ needs.verify.outputs.version_code }}" "version_name:${{ needs.verify.outputs.version_name }}"
+
+      - name: Build release AAB
+        run: bundle exec fastlane build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-aab
+          path: app/build/outputs/bundle/prodRelease/app-prod-release.aab
+          if-no-files-found: error
+
+  deploy:
+    runs-on: ubuntu-latest
+    environment: release
+    needs: [verify, build]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-aab
+          path: app/build/outputs/bundle/prodRelease
+
+      - name: Write Play Store key
+        run: echo '${{ secrets.PLAY_STORE_JSON_KEY }}' > fastlane/play-store-key.json
+
+      - name: Deploy to Google Play
+        run: bundle exec fastlane deploy "track:${{ inputs.deploy_track }}" "rollout:${{ inputs.rollout }}"
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: [verify, deploy]
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Set release version
+        run: bundle exec fastlane set_version "version_code:${{ needs.verify.outputs.version_code }}" "version_name:${{ needs.verify.outputs.version_name }}"
+
+      - name: Commit, tag, push, and create GitHub release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          bundle exec fastlane release \
-            deploy_track:${{ inputs.deploy_track }} \
-            rollout:${{ inputs.rollout }} \
-            version_name:${{ inputs.version_name }}
+        run: bundle exec fastlane publish "tag:${{ needs.verify.outputs.tag }}" "version_name:${{ needs.verify.outputs.version_name }}"

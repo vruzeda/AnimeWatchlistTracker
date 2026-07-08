@@ -1,3 +1,18 @@
+BUILD_GRADLE_PATH = "../app/build.gradle.kts"
+
+def read_version
+  content = File.read(BUILD_GRADLE_PATH)
+  {
+    code: content.match(/versionCode\s*=\s*(\d+)/)[1].to_i,
+    name: content.match(/versionName\s*=\s*"([^"]+)"/)[1]
+  }
+end
+
+def release_tag_for(version_code, version_name)
+  tag_exists = !`git tag -l "v#{version_name}"`.strip.empty?
+  tag_exists ? "v#{version_name}+#{version_code}" : "v#{version_name}"
+end
+
 desc "Clean the project build artifacts"
 lane :clean do
   gradle(task: "clean")
@@ -8,19 +23,42 @@ lane :test do
   gradle(task: "jacocoTestCoverageVerification")
 end
 
+desc "Write explicit version values into app/build.gradle.kts. Options: version_code (Integer), version_name (String)"
+lane :set_version do |options|
+  UI.user_error!("version_code is required") unless options[:version_code]
+  UI.user_error!("version_name is required") unless options[:version_name]
+
+  content = File.read(BUILD_GRADLE_PATH)
+  content = content.sub(/versionCode\s*=\s*\d+/, "versionCode = #{options[:version_code]}")
+  content = content.sub(/versionName\s*=\s*"[^"]+"/, "versionName = \"#{options[:version_name]}\"")
+  File.write(BUILD_GRADLE_PATH, content)
+end
+
 desc "Increment versionCode and optionally set versionName. Options: version_name (String)"
 lane :bump_version do |options|
-  path = "../app/build.gradle.kts"
-  content = File.read(path)
+  version = read_version
+  set_version(
+    version_code: version[:code] + 1,
+    version_name: options[:version_name] || version[:name]
+  )
+end
 
-  current_code = content.match(/versionCode\s*=\s*(\d+)/)[1].to_i
-  content = content.sub(/versionCode\s*=\s*\d+/, "versionCode = #{current_code + 1}")
+desc "Compute the next versionCode, versionName and release tag; exports them to $GITHUB_OUTPUT when set. Options: version_name (String, optional)"
+lane :next_version do |options|
+  version = read_version
+  next_version_code = version[:code] + 1
+  next_version_name = options[:version_name] || version[:name]
+  tag = release_tag_for(next_version_code, next_version_name)
 
-  if options[:version_name]
-    content = content.sub(/versionName\s*=\s*"[^"]+"/, "versionName = \"#{options[:version_name]}\"")
+  UI.important("Next version: #{next_version_name} (#{next_version_code}), tag: #{tag}")
+
+  if ENV["GITHUB_OUTPUT"]
+    File.open(ENV["GITHUB_OUTPUT"], "a") do |output|
+      output.puts("version_code=#{next_version_code}")
+      output.puts("version_name=#{next_version_name}")
+      output.puts("tag=#{tag}")
+    end
   end
-
-  File.write(path, content)
 end
 
 desc "Build the production release AAB"
@@ -58,27 +96,39 @@ lane :promote do |options|
   )
 end
 
+desc "Commit the version bump, tag, push, and create the GitHub release — safe to rerun. Options: tag (String), version_name (String, optional)"
+lane :publish do |options|
+  tag = options[:tag]
+  UI.user_error!("tag is required") unless tag
+
+  tag_on_remote = !sh("git ls-remote --tags origin refs/tags/#{tag}").strip.empty?
+  if tag_on_remote
+    UI.important("Tag #{tag} already exists on origin — skipping commit, tag, and push")
+  else
+    commit_message = options[:version_name] ? "Bump version" : "Bump version code"
+    git_commit(path: "app/build.gradle.kts", message: commit_message)
+    add_git_tag(tag: tag)
+    push_to_git_remote
+  end
+
+  release_exists = system("gh", "release", "view", tag, out: File::NULL, err: File::NULL)
+  if release_exists
+    UI.important("GitHub release #{tag} already exists — skipping creation")
+  else
+    sh("gh release create #{tag} --generate-notes --title #{tag}")
+  end
+end
+
 desc "Deploy to Google Play and push to remote. Options: deploy_track (default: production), rollout (default: 1.0), version_name (optional)"
 lane :release do |options|
-  deploy_track = options[:deploy_track] || "production"
-  rollout      = options[:rollout]      || "1.0"
-
-  commit_message = options[:version_name] ? "Bump version" : "Bump version code"
-
   clean
   test
   bump_version(version_name: options[:version_name])
+
+  version = read_version
+  tag = release_tag_for(version[:code], version[:name])
+
   build
-  git_commit(path: "app/build.gradle.kts", message: commit_message)
-
-  content      = File.read("../app/build.gradle.kts")
-  version_code = content.match(/versionCode\s*=\s*(\d+)/)[1]
-  version_name = content.match(/versionName\s*=\s*"([^"]+)"/)[1]
-  tag_exists   = !`git tag -l "v#{version_name}"`.strip.empty?
-  tag          = tag_exists ? "v#{version_name}+#{version_code}" : "v#{version_name}"
-  add_git_tag(tag: tag)
-
-  deploy(track: deploy_track, rollout: rollout)
-  push_to_git_remote
-  sh("gh release create #{tag} --generate-notes --title #{tag}")
+  deploy(track: options[:deploy_track] || "production", rollout: options[:rollout] || "1.0")
+  publish(tag: tag, version_name: options[:version_name])
 end

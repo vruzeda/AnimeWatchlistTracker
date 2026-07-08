@@ -29,6 +29,14 @@ Clean the project build artifacts
 
 Run unit tests and verify branch coverage (≥80%)
 
+### set_version
+
+```sh
+[bundle exec] fastlane set_version
+```
+
+Write explicit version values into app/build.gradle.kts. Options: version_code (Integer), version_name (String)
+
 ### bump_version
 
 ```sh
@@ -36,6 +44,14 @@ Run unit tests and verify branch coverage (≥80%)
 ```
 
 Increment versionCode and optionally set versionName. Options: version_name (String)
+
+### next_version
+
+```sh
+[bundle exec] fastlane next_version
+```
+
+Compute the next versionCode, versionName and release tag; exports them to $GITHUB_OUTPUT when set. Options: version_name (String, optional)
 
 ### build
 
@@ -60,6 +76,14 @@ Upload the production AAB and metadata to Google Play. Options: track (default: 
 ```
 
 Promote a release between tracks. Options: from_track (default: internal), to_track (default: alpha), rollout (default: 1.0)
+
+### publish
+
+```sh
+[bundle exec] fastlane publish
+```
+
+Commit the version bump, tag, push, and create the GitHub release — safe to rerun. Options: tag (String), version_name (String, optional)
 
 ### release
 
