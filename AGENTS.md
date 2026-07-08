@@ -173,6 +173,7 @@ Before making any code changes for a new topic, create a dedicated git worktree 
 - Run the full Milestone Checklist inside the worktree, on its own branch.
 - Skip for read-only investigation/research/planning that makes no file edits.
 - When the topic is verified complete, merge the branch back into `main` and `ExitWorktree` (`remove` once merged cleanly, `keep` if work is left unfinished).
+- Strive for a linear commit history: rebase the worktree branch onto `main` first, then merge with `git merge --ff-only`. Only fall back to a merge commit if the rebase is impractical (e.g., the branch has already been shared).
 
 ### Milestone Checklist (mandatory after every working change)
 
