@@ -169,6 +169,7 @@ Conventions:
 
 Before making any code changes for a new topic, create a dedicated git worktree with `EnterWorktree` instead of editing the primary checkout directly — the user or other agents may be working there concurrently, and direct edits risk clobbering uncommitted work.
 
+- Before planning a topic or creating its worktree, update `main` with `git pull --ff-only` — release commits (e.g., `versionCode` bumps) land on the remote, and planning against a stale checkout targets the wrong changelog files. Pull `main` again the same way right before the final merge, so the topic lands on the true remote tip.
 - One worktree per topic; don't reuse across unrelated tasks or share with concurrent work.
 - Run the full Milestone Checklist inside the worktree, on its own branch.
 - Skip for read-only investigation/research/planning that makes no file edits.
