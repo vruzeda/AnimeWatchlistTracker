@@ -27,7 +27,7 @@ All modules except `:app` live under `module/`. Package root: `com.vuzeda.animew
 | `notification` | Pure Kotlin | Interface-only: `AnimeUpdateNotifier` interface. No jacoco. |
 | `notification-android` | Android | `NotificationHelper` (implements `AnimeUpdateNotifier`), `NotificationLaunchActivity`. Strings in `res/values*/strings.xml` (en/pt/es/fr locales). |
 | `scheduler` | Pure Kotlin | Interface-only: `AnimeUpdateScheduler` interface. No jacoco. |
-| `scheduler-work` | Android | `AnimeUpdateWorker`, `AnimeUpdateWorkerScheduler`, `BackfillAiringSeasonWorker` — WorkManager-backed. Tests mandatory. |
+| `scheduler-work` | Android | `AnimeUpdateWorker`, `AnimeUpdateWorkerScheduler` — WorkManager-backed. Tests mandatory. |
 | `cover-cache` | Android | `AppCoverCacheRepository` (implements `CoverCacheRepository` from `repository`) and `DiskCachePolicyInterceptor` — Coil-backed offline cover image caching. |
 | `design-system` | Android | Material 3 theme, design tokens, all reusable Compose components. Purely presentational — never touches ViewModels or business logic, never depends on `domain` or any other module. Every component gets a `@Preview` with realistic sample data. |
 | `ui` | Android | Compose screens + ViewModels + navigation (MVVM). Screens are built exclusively from `design-system` components — never one-off styled components. Never depends on any `local-data-source*` or `remote-data-source*` module. |
@@ -145,7 +145,7 @@ Every component must have unit tests — non-negotiable. High-risk areas demand 
 - **ViewModels**: fake use cases; verify UI state transitions per action, loading/error states, via Turbine on the `StateFlow`.
 - **DAOs**: in-memory Room database; verify CRUD and query correctness. Instrumented tests using `MigrationTestHelper` for risky migrations (schema changes, renames).
 - **Migrations**: schema safety tests; verify data preservation across schema versions, foreign-key correctness, index integrity.
-- **Workers** (`AnimeUpdateWorker`, `BackfillAiringSeasonWorker`): verify retry logic, error handling, attempt caps.
+- **Workers** (`AnimeUpdateWorker`): verify retry logic, error handling, attempt caps.
 - **Mappers**: representative data per mapper, including null/empty edge cases.
 - **DataStore/Preferences**: corrupt-data recovery paths (`.catch` emit defaults).
 

@@ -17,6 +17,7 @@ class AnimeUpdateWorkerScheduler @Inject constructor(
 ) : AnimeUpdateScheduler {
 
     override fun schedulePeriodicUpdate() {
+        workManager.cancelUniqueWork(LEGACY_BACKFILL_WORK_NAME)
         workManager.enqueueUniquePeriodicWork(
             AnimeUpdateWorker.WORK_NAME,
             ExistingPeriodicWorkPolicy.KEEP,
@@ -46,20 +47,6 @@ class AnimeUpdateWorkerScheduler @Inject constructor(
         )
     }
 
-    override fun scheduleAiringSeasonBackfill() {
-        workManager.enqueueUniqueWork(
-            BackfillAiringSeasonWorker.WORK_NAME,
-            ExistingWorkPolicy.KEEP,
-            OneTimeWorkRequestBuilder<BackfillAiringSeasonWorker>()
-                .setConstraints(
-                    Constraints.Builder()
-                        .setRequiredNetworkType(NetworkType.CONNECTED)
-                        .build()
-                )
-                .build()
-        )
-    }
-
     override fun scheduleRetryAfterRateLimit(delayMs: Long) {
         workManager.enqueueUniqueWork(
             AnimeUpdateWorker.WORK_NAME_RATE_LIMIT_RETRY,
@@ -73,5 +60,9 @@ class AnimeUpdateWorkerScheduler @Inject constructor(
                 .setInitialDelay(delayMs, TimeUnit.MILLISECONDS)
                 .build()
         )
+    }
+
+    companion object {
+        const val LEGACY_BACKFILL_WORK_NAME = "backfill_airing_season"
     }
 }
