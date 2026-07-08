@@ -1,1 +1,2 @@
 • Search and seasons: fewer errors when the anime service is busy, clearer error messages, and a retry that works.
+• Episode update checks now run overnight while your device is idle, keeping the app fast while you use it.

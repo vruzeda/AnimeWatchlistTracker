@@ -1,1 +1,2 @@
 • Recherche et saisons : moins d'erreurs quand le service d'anime est surchargé, messages plus clairs et réessai qui fonctionne.
+• La recherche de nouveaux épisodes s'exécute désormais la nuit, quand l'appareil est inactif, pour garder l'appli rapide pendant que vous l'utilisez.

@@ -9,6 +9,9 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.vuzeda.animewatchlist.tracker.module.scheduler.AnimeUpdateScheduler
+import java.time.Duration
+import java.time.LocalTime
+import java.time.ZonedDateTime
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -17,16 +20,19 @@ class AnimeUpdateWorkerScheduler @Inject constructor(
 ) : AnimeUpdateScheduler {
 
     override fun schedulePeriodicUpdate() {
+        workManager.cancelUniqueWork(LEGACY_BACKFILL_WORK_NAME)
+        workManager.cancelUniqueWork(LEGACY_DAYTIME_PERIODIC_WORK_NAME)
         workManager.enqueueUniquePeriodicWork(
-            AnimeUpdateWorker.WORK_NAME,
+            AnimeUpdateWorker.WORK_NAME_NIGHTLY,
             ExistingPeriodicWorkPolicy.KEEP,
             PeriodicWorkRequestBuilder<AnimeUpdateWorker>(1, TimeUnit.DAYS)
+                .setInitialDelay(initialDelayUntilNextNightRun(ZonedDateTime.now()))
                 .setConstraints(
                     Constraints.Builder()
                         .setRequiredNetworkType(NetworkType.CONNECTED)
+                        .setRequiresDeviceIdle(true)
                         .build()
                 )
-                .setBackoffCriteria(BackoffPolicy.LINEAR, 1, TimeUnit.MINUTES)
                 .build()
         )
     }
@@ -46,20 +52,6 @@ class AnimeUpdateWorkerScheduler @Inject constructor(
         )
     }
 
-    override fun scheduleAiringSeasonBackfill() {
-        workManager.enqueueUniqueWork(
-            BackfillAiringSeasonWorker.WORK_NAME,
-            ExistingWorkPolicy.KEEP,
-            OneTimeWorkRequestBuilder<BackfillAiringSeasonWorker>()
-                .setConstraints(
-                    Constraints.Builder()
-                        .setRequiredNetworkType(NetworkType.CONNECTED)
-                        .build()
-                )
-                .build()
-        )
-    }
-
     override fun scheduleRetryAfterRateLimit(delayMs: Long) {
         workManager.enqueueUniqueWork(
             AnimeUpdateWorker.WORK_NAME_RATE_LIMIT_RETRY,
@@ -73,5 +65,17 @@ class AnimeUpdateWorkerScheduler @Inject constructor(
                 .setInitialDelay(delayMs, TimeUnit.MILLISECONDS)
                 .build()
         )
+    }
+
+    companion object {
+        const val LEGACY_BACKFILL_WORK_NAME = "backfill_airing_season"
+        const val LEGACY_DAYTIME_PERIODIC_WORK_NAME = "anime_update_check"
+        private val NIGHT_RUN_TIME: LocalTime = LocalTime.of(3, 0)
+
+        fun initialDelayUntilNextNightRun(now: ZonedDateTime): Duration {
+            val nightRunToday = now.toLocalDate().atTime(NIGHT_RUN_TIME).atZone(now.zone)
+            val nextNightRun = if (now.isBefore(nightRunToday)) nightRunToday else nightRunToday.plusDays(1)
+            return Duration.between(now, nextNightRun)
+        }
     }
 }

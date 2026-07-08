@@ -1,1 +1,2 @@
 • Busca e temporadas: menos erros quando o serviço de animes está sobrecarregado, mensagens mais claras e nova tentativa que funciona.
+• As verificações de novos episódios agora rodam de madrugada, com o aparelho ocioso, mantendo o app rápido enquanto você o usa.

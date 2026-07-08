@@ -75,7 +75,7 @@ class AnimeUpdateWorker @AssistedInject constructor(
     }
 
     companion object {
-        const val WORK_NAME = "anime_update_check"
+        const val WORK_NAME_NIGHTLY = "anime_update_check_nightly"
         const val WORK_NAME_IMMEDIATE = "anime_update_check_immediate"
         const val WORK_NAME_RATE_LIMIT_RETRY = "anime_update_check_rate_limit_retry"
     }
