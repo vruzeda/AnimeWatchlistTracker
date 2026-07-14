@@ -17,12 +17,14 @@ import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mapper
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mapper.toSeasonDataList
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mapper.toSeasonalAnimePage
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.ChiakiService
-import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.JikanApiService
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.MalApiService
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.MalEpisodeListService
 import java.time.LocalDate
 import javax.inject.Inject
 
-class AnimeRemoteDataSourceImpl @Inject constructor(
-    private val jikanApiService: JikanApiService,
+class MalAnimeRemoteDataSourceImpl @Inject constructor(
+    private val malApiService: MalApiService,
+    private val malEpisodeListService: MalEpisodeListService,
     private val chiakiService: ChiakiService
 ) : AnimeRemoteDataSource {
 
@@ -31,26 +33,18 @@ class AnimeRemoteDataSourceImpl @Inject constructor(
         filterState: SearchFilterState,
         page: Int
     ): Result<SearchResultPage> = safeApiCall {
-        jikanApiService.searchAnime(
+        malApiService.searchAnime(
             query = query,
-            page = page,
-            type = filterState.type.toApiValue(),
-            status = filterState.status.toApiValue(),
-            orderBy = filterState.orderBy.toApiValue(),
-            sort = if (filterState.orderBy.toApiValue() != null) {
-                if (filterState.isAscending) "asc" else "desc"
-            } else {
-                null
-            }
+            offset = (page - 1) * MalApiService.PAGE_SIZE
         ).toSearchResultPage(currentPage = page)
     }
 
     override suspend fun fetchAnimeFullById(malId: Int): Result<AnimeFullDetails> = safeApiCall {
-        jikanApiService.getAnimeFullById(malId).data.toAnimeFullDetails()
+        malApiService.getAnimeById(malId).toAnimeFullDetails()
     }
 
     override suspend fun fetchAnimeEpisodes(malId: Int, page: Int): Result<EpisodePage> = safeApiCall {
-        jikanApiService.getAnimeEpisodes(malId = malId, page = page).toEpisodePage(currentPage = page)
+        malEpisodeListService.fetchEpisodePage(malId = malId, page = page).toEpisodePage(currentPage = page)
     }
 
     override suspend fun fetchEpisodesAiredBetween(
@@ -64,7 +58,7 @@ class AnimeRemoteDataSourceImpl @Inject constructor(
             upTo = upTo,
             startingFromEpisode = startingFromEpisode
         ) { page ->
-            jikanApiService.getAnimeEpisodes(malId = malId, page = page).toEpisodePage(currentPage = page)
+            malEpisodeListService.fetchEpisodePage(malId = malId, page = page).toEpisodePage(currentPage = page)
         }
     }
 
@@ -78,11 +72,10 @@ class AnimeRemoteDataSourceImpl @Inject constructor(
         page: Int,
         filter: AnimeSearchType
     ): Result<SeasonalAnimePage> = safeApiCall {
-        jikanApiService.getSeasonAnime(
+        malApiService.getSeasonAnime(
             year = year,
             season = season.toApiValue(),
-            page = page,
-            filter = filter.toApiValue()
+            offset = (page - 1) * MalApiService.PAGE_SIZE
         ).toSeasonalAnimePage(currentPage = page)
     }
 }
