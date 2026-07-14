@@ -5,6 +5,7 @@ import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeSortOption
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeSortState
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeProvider
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchOrderBy
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchStatus
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
@@ -459,5 +460,34 @@ class UserPreferencesRepositoryImplTest {
         repository.setAnimeDetailTypeFilter(setOf("TV"))
 
         coVerify { dataSource.setAnimeDetailTypeFilter("TV") }
+    }
+
+    @Test
+    fun `observeAnimeProvider returns matching AnimeProvider for valid stored value`() = runTest {
+        every { dataSource.observeAnimeProvider() } returns flowOf("MAL")
+
+        repository.observeAnimeProvider().test {
+            assertThat(awaitItem()).isEqualTo(AnimeProvider.MAL)
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `observeAnimeProvider returns JIKAN for unknown stored value`() = runTest {
+        every { dataSource.observeAnimeProvider() } returns flowOf("UNKNOWN_VALUE")
+
+        repository.observeAnimeProvider().test {
+            assertThat(awaitItem()).isEqualTo(AnimeProvider.JIKAN)
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `setAnimeProvider delegates to data source with enum name`() = runTest {
+        coEvery { dataSource.setAnimeProvider(any()) } returns Unit
+
+        repository.setAnimeProvider(AnimeProvider.MAL)
+
+        coVerify { dataSource.setAnimeProvider("MAL") }
     }
 }

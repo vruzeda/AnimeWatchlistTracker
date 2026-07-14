@@ -25,4 +25,6 @@ interface UserPreferencesLocalDataSource {
     suspend fun setIsNotificationDebugInfoEnabled(enabled: Boolean)
     fun observeIsOfflineCoverCachingEnabled(): Flow<Boolean>
     suspend fun setIsOfflineCoverCachingEnabled(enabled: Boolean)
+    fun observeAnimeProvider(): Flow<String>
+    suspend fun setAnimeProvider(provider: String)
 }

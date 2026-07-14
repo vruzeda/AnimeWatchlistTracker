@@ -155,6 +155,17 @@ class UserPreferencesDataStore(
         }
     }
 
+    override fun observeAnimeProvider(): Flow<String> =
+        safePreferences.map { preferences ->
+            preferences[ANIME_PROVIDER_KEY] ?: DEFAULT_ANIME_PROVIDER
+        }
+
+    override suspend fun setAnimeProvider(provider: String) {
+        dataStore.edit { preferences ->
+            preferences[ANIME_PROVIDER_KEY] = provider
+        }
+    }
+
     companion object {
         private val TITLE_LANGUAGE_KEY = stringPreferencesKey("title_language")
         const val DEFAULT_TITLE_LANGUAGE = "DEFAULT"
@@ -174,5 +185,7 @@ class UserPreferencesDataStore(
         private val DEVELOPER_OPTIONS_ENABLED_KEY = booleanPreferencesKey("developer_options_enabled")
         private val NOTIFICATION_DEBUG_INFO_ENABLED_KEY = booleanPreferencesKey("notification_debug_info_enabled")
         private val OFFLINE_COVER_CACHING_KEY = booleanPreferencesKey("offline_cover_caching_enabled")
+        private val ANIME_PROVIDER_KEY = stringPreferencesKey("anime_provider")
+        const val DEFAULT_ANIME_PROVIDER = "JIKAN"
     }
 }

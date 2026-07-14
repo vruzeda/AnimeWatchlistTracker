@@ -1,5 +1,6 @@
 package com.vuzeda.animewatchlist.tracker.module.repository
 
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeProvider
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeSortState
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
@@ -53,4 +54,8 @@ interface UserPreferencesRepository {
     fun observeIsOfflineCoverCachingEnabled(): Flow<Boolean>
 
     suspend fun setIsOfflineCoverCachingEnabled(enabled: Boolean)
+
+    fun observeAnimeProvider(): Flow<AnimeProvider>
+
+    suspend fun setAnimeProvider(provider: AnimeProvider)
 }

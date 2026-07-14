@@ -62,6 +62,22 @@ class UserPreferencesDataStoreTest {
     }
 
     @Test
+    fun `observeAnimeProvider emits default when preferences file is corrupted`() = runTest {
+        val provider = corruptedDataStore().observeAnimeProvider().first()
+
+        assertThat(provider).isEqualTo(UserPreferencesDataStore.DEFAULT_ANIME_PROVIDER)
+    }
+
+    @Test
+    fun `setAnimeProvider round-trips through observeAnimeProvider`() = runTest {
+        val dataStore = UserPreferencesDataStore(InMemoryDataStore())
+
+        dataStore.setAnimeProvider("MAL")
+
+        assertThat(dataStore.observeAnimeProvider().first()).isEqualTo("MAL")
+    }
+
+    @Test
     fun `non-IO failures propagate to collectors`() = runTest {
         val dataStore = UserPreferencesDataStore(FailingDataStore(IllegalStateException("bug")))
 

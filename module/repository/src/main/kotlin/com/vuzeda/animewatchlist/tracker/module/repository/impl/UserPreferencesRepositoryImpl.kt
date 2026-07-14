@@ -1,5 +1,6 @@
 package com.vuzeda.animewatchlist.tracker.module.repository.impl
 
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeProvider
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchOrderBy
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchStatus
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
@@ -123,5 +124,14 @@ class UserPreferencesRepositoryImpl @Inject constructor(
 
     override suspend fun setIsOfflineCoverCachingEnabled(enabled: Boolean) {
         dataSource.setIsOfflineCoverCachingEnabled(enabled)
+    }
+
+    override fun observeAnimeProvider(): Flow<AnimeProvider> =
+        dataSource.observeAnimeProvider().map { value ->
+            AnimeProvider.entries.firstOrNull { it.name == value } ?: AnimeProvider.JIKAN
+        }
+
+    override suspend fun setAnimeProvider(provider: AnimeProvider) {
+        dataSource.setAnimeProvider(provider.name)
     }
 }
