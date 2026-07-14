@@ -34,6 +34,7 @@ Anime Watchlist Tracker is a personal anime management app built for fans who wa
 - **Localization** — UI fully translated in English, Brazilian Portuguese, Latin American Spanish, and French
 - **Settings** — Configure title language preference, Home view mode, and delete all data
 - **Developer Options** — Advanced debugging tools for development and testing (debug builds only)
+- **Selectable Anime Data Source** — Choose between Jikan (default) and MyAnimeList's official API as the anime data provider; MyAnimeList mode is experimental and available from the Developer screen
 - **Schedule Management** — Upcoming schedule view with auto-refresh and airing status tracking
 - **Offline Cover Caching** — Automatically cache anime cover images for offline viewing; disable in Settings if preferred
 - **Offline First** — All data stored locally on your device using Room, with user preferences in DataStore
@@ -61,7 +62,7 @@ _Coming soon_
 - **Analytics & Crash Reporting** — Firebase Analytics, Firebase Crashlytics
 - **Async** — Kotlin Coroutines 1.11.0 + Flow
 - **Logging** — Timber 5.0.1
-- **API** — Jikan v4 (MyAnimeList unofficial API), chiaki.site (watch order scraping)
+- **API** — Jikan v4 (MyAnimeList unofficial API), MyAnimeList API v2 (experimental, selectable), chiaki.site (watch order scraping)
 - **Testing** — JUnit 5, MockK, Turbine, Truth
 - **Min SDK** — API 26 (Android 8.0)
 - **Target SDK** — API 37 (Android 14)
@@ -106,7 +107,7 @@ The project follows **Clean Architecture** with strict layer separation enforced
 
 ## API
 
-This app uses two external data sources:
+This app uses three external data sources:
 
 ### Jikan API v4
 [Jikan](https://jikan.moe/) is a free, open-source, unofficial API for MyAnimeList.
@@ -121,6 +122,15 @@ This app uses two external data sources:
 
 - Used to resolve series structure (prequels, sequels, related entries) for season grouping
 - HTML scraping — no official API
+- All user data stays local
+
+### MyAnimeList API v2 (experimental)
+[MyAnimeList API v2](https://myanimelist.net/apiconfig) is the official MyAnimeList API. It is an **experimental, selectable alternative** to Jikan for search, detail viewing, and seasonal browsing, chosen from the Developer screen (Jikan remains the default). A public Client ID is sent as the `X-MAL-CLIENT-ID` header — no OAuth required.
+
+- Register an app at [myanimelist.net/apiconfig](https://myanimelist.net/apiconfig) (type "other") to obtain a Client ID
+- Used for search, detail viewing, and seasonal browsing when selected
+- Episode data is fetched by scraping `myanimelist.net` (same approach as chiaki.site)
+- **Limitations compared to Jikan:** no search filters (type, status, or order), no streaming links, and scraped episode titles are English-only and lack filler/recap flags
 - All user data stays local
 
 ## Getting Started
