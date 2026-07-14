@@ -100,6 +100,8 @@ jobs:
 
       - name: Build release AAB
         run: bundle exec fastlane build
+        env:
+          MAL_CLIENT_ID: ${{ secrets.MAL_CLIENT_ID }}
 
       - uses: actions/upload-artifact@v4
         with:

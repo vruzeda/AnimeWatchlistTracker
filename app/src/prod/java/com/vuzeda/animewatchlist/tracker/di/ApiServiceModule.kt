@@ -5,10 +5,14 @@ import android.webkit.WebSettings
 import com.squareup.moshi.Moshi
 import com.vuzeda.animewatchlist.tracker.BuildConfig
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.interceptor.BrowserUserAgentInterceptor
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.interceptor.MalClientIdInterceptor
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.interceptor.RateLimitInterceptor
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.ChiakiService
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.ChiakiServiceImpl
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.JikanApiService
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.MalApiService
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.MalEpisodeListService
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.MalEpisodeListServiceImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -34,6 +38,25 @@ object ApiServiceModule {
     @Singleton
     fun provideChiakiService(okHttpClient: OkHttpClient): ChiakiService =
         ChiakiServiceImpl(okHttpClient)
+
+    @Provides
+    @Singleton
+    fun provideMalApiService(okHttpClient: OkHttpClient, moshi: Moshi): MalApiService =
+        Retrofit.Builder()
+            .baseUrl(MalApiService.BASE_URL)
+            .client(
+                okHttpClient.newBuilder()
+                    .addInterceptor(MalClientIdInterceptor(BuildConfig.MAL_CLIENT_ID))
+                    .build()
+            )
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+            .create(MalApiService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideMalEpisodeListService(okHttpClient: OkHttpClient): MalEpisodeListService =
+        MalEpisodeListServiceImpl(okHttpClient)
 
     @Provides
     @Singleton

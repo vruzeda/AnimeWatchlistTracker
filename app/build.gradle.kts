@@ -16,6 +16,16 @@ val keystoreProperties = Properties().apply {
     }
 }
 
+val localPropertiesFile = rootProject.file("local.properties")
+val localProperties = Properties().apply {
+    if (localPropertiesFile.exists()) {
+        load(localPropertiesFile.inputStream())
+    }
+}
+val malClientId: String = localProperties.getProperty("mal.clientId")
+    ?: System.getenv("MAL_CLIENT_ID")
+    ?: ""
+
 android {
     namespace = "com.vuzeda.animewatchlist.tracker"
     compileSdk = libs.versions.androidCompileSdk.get().toInt()
@@ -45,6 +55,7 @@ android {
     productFlavors {
         create("prod") {
             isDefault = true
+            buildConfigField("String", "MAL_CLIENT_ID", "\"$malClientId\"")
         }
         create("mock") {
             applicationIdSuffix = ".mock"
