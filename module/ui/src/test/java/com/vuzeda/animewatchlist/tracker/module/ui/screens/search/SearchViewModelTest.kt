@@ -23,6 +23,7 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.RemoveAnimeByMalIdUseCas
 import com.vuzeda.animewatchlist.tracker.module.usecase.SearchAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetSearchFilterStateUseCase
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.LoadErrorType
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveIsSearchFilteringAvailableUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -55,6 +56,7 @@ class SearchViewModelTest {
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
     private val searchFilterStateFlow = MutableStateFlow(SearchFilterState())
     private val observeSearchFilterStateUseCase: ObserveSearchFilterStateUseCase = mockk()
+    private val observeIsSearchFilteringAvailableUseCase: ObserveIsSearchFilteringAvailableUseCase = mockk()
     private val setSearchFilterStateUseCase: SetSearchFilterStateUseCase = mockk()
     private val analyticsTracker: AnalyticsTracker = mockk(relaxed = true)
 
@@ -86,6 +88,7 @@ class SearchViewModelTest {
         every { observeWatchlistMalIdsUseCase() } returns watchlistMalIdsFlow
         every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
         every { observeSearchFilterStateUseCase() } returns searchFilterStateFlow
+        every { observeIsSearchFilteringAvailableUseCase() } returns flowOf(true)
         coEvery { setSearchFilterStateUseCase(any()) } answers { searchFilterStateFlow.value = firstArg() }
         viewModel = SearchViewModel(
             searchAnimeUseCase = searchAnimeUseCase,
@@ -95,6 +98,7 @@ class SearchViewModelTest {
             observeWatchlistMalIdsUseCase = observeWatchlistMalIdsUseCase,
             observeTitleLanguageUseCase = observeTitleLanguageUseCase,
             observeSearchFilterStateUseCase = observeSearchFilterStateUseCase,
+            observeIsSearchFilteringAvailableUseCase = observeIsSearchFilteringAvailableUseCase,
             setSearchFilterStateUseCase = setSearchFilterStateUseCase,
             analyticsTracker = analyticsTracker
         )

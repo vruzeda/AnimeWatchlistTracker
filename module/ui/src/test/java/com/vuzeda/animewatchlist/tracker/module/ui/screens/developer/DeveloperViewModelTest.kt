@@ -4,6 +4,7 @@ import android.content.Context
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.domain.Anime
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeProvider
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdate
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdateResult
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdateSchedulerState

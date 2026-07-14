@@ -20,6 +20,7 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveWatchlistMalIdsUs
 import com.vuzeda.animewatchlist.tracker.module.usecase.RemoveAnimeByMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetSeasonFilterUseCase
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.LoadErrorType
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveIsSearchFilteringAvailableUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -50,6 +51,7 @@ class SeasonsViewModelTest {
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
     private val seasonFilterFlow = MutableStateFlow(AnimeSearchType.TV)
     private val observeSeasonFilterUseCase: ObserveSeasonFilterUseCase = mockk()
+    private val observeIsSearchFilteringAvailableUseCase: ObserveIsSearchFilteringAvailableUseCase = mockk()
     private val setSeasonFilterUseCase: SetSeasonFilterUseCase = mockk()
     private val analyticsTracker: AnalyticsTracker = mockk(relaxed = true)
 
@@ -88,6 +90,7 @@ class SeasonsViewModelTest {
         every { observeWatchlistMalIdsUseCase() } returns watchlistMalIdsFlow
         every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
         every { observeSeasonFilterUseCase() } returns seasonFilterFlow
+        every { observeIsSearchFilteringAvailableUseCase() } returns flowOf(true)
         coEvery { setSeasonFilterUseCase(any()) } answers { seasonFilterFlow.value = firstArg() }
         coEvery { getSeasonAnimeUseCase(any(), any(), any(), any()) } returns Result.success(samplePage)
     }
@@ -105,6 +108,7 @@ class SeasonsViewModelTest {
         observeWatchlistMalIdsUseCase = observeWatchlistMalIdsUseCase,
         observeTitleLanguageUseCase = observeTitleLanguageUseCase,
         observeSeasonFilterUseCase = observeSeasonFilterUseCase,
+        observeIsSearchFilteringAvailableUseCase = observeIsSearchFilteringAvailableUseCase,
         setSeasonFilterUseCase = setSeasonFilterUseCase,
         analyticsTracker = analyticsTracker
     )
