@@ -12,6 +12,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddAnimeFromDetailsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.GetSeasonAnimeUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveIsSearchFilteringAvailableUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSeasonFilterUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveWatchlistMalIdsUseCase
@@ -39,6 +40,7 @@ class SeasonsViewModel @Inject constructor(
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase,
     private val observeSeasonFilterUseCase: ObserveSeasonFilterUseCase,
     private val setSeasonFilterUseCase: SetSeasonFilterUseCase,
+    private val observeIsSearchFilteringAvailableUseCase: ObserveIsSearchFilteringAvailableUseCase,
     private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
@@ -64,14 +66,20 @@ class SeasonsViewModel @Inject constructor(
         viewModelScope.launch {
             combine(
                 observeTitleLanguageUseCase(),
-                observeWatchlistMalIdsUseCase()
-            ) { titleLanguage, watchlistMalIds ->
-                SeasonsDisplayData(titleLanguage = titleLanguage, addedMalIds = watchlistMalIds)
+                observeWatchlistMalIdsUseCase(),
+                observeIsSearchFilteringAvailableUseCase()
+            ) { titleLanguage, watchlistMalIds, areFiltersAvailable ->
+                SeasonsDisplayData(
+                    titleLanguage = titleLanguage,
+                    addedMalIds = watchlistMalIds,
+                    areFiltersAvailable = areFiltersAvailable
+                )
             }.collect { data ->
                 _uiState.update {
                     it.copy(
                         titleLanguage = data.titleLanguage,
-                        addedMalIds = data.addedMalIds
+                        addedMalIds = data.addedMalIds,
+                        areFiltersAvailable = data.areFiltersAvailable
                     )
                 }
             }

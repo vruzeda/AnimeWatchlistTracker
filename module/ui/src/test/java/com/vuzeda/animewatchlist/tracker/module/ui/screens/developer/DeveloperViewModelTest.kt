@@ -10,9 +10,11 @@ import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdateSchedulerState
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.ui.R
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveAnimeProviderUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveAnimeUpdateSchedulerStateUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveIsNotificationDebugInfoEnabledUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.SetAnimeProviderUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetIsDeveloperOptionsEnabledUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetIsNotificationDebugInfoEnabledUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ShowAnimeUpdateNotificationUseCase
@@ -40,7 +42,9 @@ class DeveloperViewModelTest {
     private val context: Context = mockk()
     private val observeAnimeUpdateSchedulerStateUseCase: ObserveAnimeUpdateSchedulerStateUseCase = mockk()
     private val observeIsNotificationDebugInfoEnabledUseCase: ObserveIsNotificationDebugInfoEnabledUseCase = mockk()
+    private val observeAnimeProviderUseCase: ObserveAnimeProviderUseCase = mockk()
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
+    private val setAnimeProviderUseCase: SetAnimeProviderUseCase = mockk(relaxUnitFun = true)
     private val setIsDeveloperOptionsEnabledUseCase: SetIsDeveloperOptionsEnabledUseCase = mockk(relaxUnitFun = true)
     private val setIsNotificationDebugInfoEnabledUseCase: SetIsNotificationDebugInfoEnabledUseCase = mockk(relaxUnitFun = true)
     private val showAnimeUpdateNotificationUseCase: ShowAnimeUpdateNotificationUseCase = mockk(relaxUnitFun = true)
@@ -57,6 +61,7 @@ class DeveloperViewModelTest {
         Dispatchers.setMain(testDispatcher)
         every { observeAnimeUpdateSchedulerStateUseCase() } returns flowOf(emptySchedulerState)
         every { observeIsNotificationDebugInfoEnabledUseCase() } returns flowOf(false)
+        every { observeAnimeProviderUseCase() } returns flowOf(AnimeProvider.JIKAN)
         every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
         every { context.getString(R.string.developer_test_notification_anime_title) } returns "Test Anime"
         every { context.getString(R.string.developer_test_notification_season_title) } returns "Test Season"
@@ -71,7 +76,9 @@ class DeveloperViewModelTest {
         context,
         observeAnimeUpdateSchedulerStateUseCase,
         observeIsNotificationDebugInfoEnabledUseCase,
+        observeAnimeProviderUseCase,
         observeTitleLanguageUseCase,
+        setAnimeProviderUseCase,
         setIsDeveloperOptionsEnabledUseCase,
         setIsNotificationDebugInfoEnabledUseCase,
         showAnimeUpdateNotificationUseCase,

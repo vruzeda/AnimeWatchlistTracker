@@ -14,7 +14,8 @@ sealed interface SeasonsSnackbarEvent {
 
 data class SeasonsDisplayData(
     val titleLanguage: TitleLanguage,
-    val addedMalIds: Set<Int>
+    val addedMalIds: Set<Int>,
+    val areFiltersAvailable: Boolean
 )
 
 data class SeasonsUiState(
@@ -37,7 +38,8 @@ data class SeasonsUiState(
     val addedMalIds: Set<Int> = emptySet(),
     val resolvingMalId: Int? = null,
     val isRefreshing: Boolean = false,
-    val snackbarEvent: SeasonsSnackbarEvent? = null
+    val snackbarEvent: SeasonsSnackbarEvent? = null,
+    val areFiltersAvailable: Boolean = true
 ) {
 
     val isNextSeasonEnabled: Boolean

@@ -150,11 +150,13 @@ fun SeasonsScreen(
                 title = { Text(stringResource(R.string.seasons_title)) },
                 windowInsets = WindowInsets(0, 0, 0, 0),
                 actions = {
-                    FilterMenuButton(
-                        options = filterOptions,
-                        selectedIndex = uiState.seasonFilter.ordinal,
-                        onOptionSelected = { index -> onFilterSelected(AnimeSearchType.entries[index]) }
-                    )
+                    if (uiState.areFiltersAvailable) {
+                        FilterMenuButton(
+                            options = filterOptions,
+                            selectedIndex = uiState.seasonFilter.ordinal,
+                            onOptionSelected = { index -> onFilterSelected(AnimeSearchType.entries[index]) }
+                        )
+                    }
                 }
             )
         }

@@ -206,6 +206,9 @@
     <string name="developer_trigger_update">Trigger update check now</string>
     <string name="developer_disable_options">Disable developer options</string>
     <string name="developer_notification_debug_info">Debug notification info</string>
+    <string name="developer_anime_provider">Anime data provider</string>
+    <string name="developer_anime_provider_jikan">Jikan (unofficial API)</string>
+    <string name="developer_anime_provider_mal">MAL official API (experimental)</string>
     <string name="developer_last_attempt_run">Last update attempt</string>
     <string name="developer_last_update_result">Last result</string>
     <string name="developer_update_result_success">Success</string>

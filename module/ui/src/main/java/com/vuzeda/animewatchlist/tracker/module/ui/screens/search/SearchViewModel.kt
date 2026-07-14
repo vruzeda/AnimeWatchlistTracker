@@ -12,6 +12,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddAnimeFromDetailsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FetchSeasonDetailUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveIsSearchFilteringAvailableUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveSearchFilterStateUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveWatchlistMalIdsUseCase
@@ -39,6 +40,7 @@ class SearchViewModel @Inject constructor(
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase,
     private val observeSearchFilterStateUseCase: ObserveSearchFilterStateUseCase,
     private val setSearchFilterStateUseCase: SetSearchFilterStateUseCase,
+    private val observeIsSearchFilteringAvailableUseCase: ObserveIsSearchFilteringAvailableUseCase,
     private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
@@ -54,12 +56,14 @@ class SearchViewModel @Inject constructor(
             combine(
                 observeSearchFilterStateUseCase(),
                 observeTitleLanguageUseCase(),
-                observeWatchlistMalIdsUseCase()
-            ) { filterState, titleLanguage, watchlistMalIds ->
+                observeWatchlistMalIdsUseCase(),
+                observeIsSearchFilteringAvailableUseCase()
+            ) { filterState, titleLanguage, watchlistMalIds, areFiltersAvailable ->
                 SearchDisplayData(
                     filterState = filterState,
                     titleLanguage = titleLanguage,
-                    addedMalIds = watchlistMalIds
+                    addedMalIds = watchlistMalIds,
+                    areFiltersAvailable = areFiltersAvailable
                 )
             }.collect { data ->
                 val previousFilter = _uiState.value.filterState
@@ -69,7 +73,8 @@ class SearchViewModel @Inject constructor(
                     it.copy(
                         filterState = data.filterState,
                         titleLanguage = data.titleLanguage,
-                        addedMalIds = data.addedMalIds
+                        addedMalIds = data.addedMalIds,
+                        areFiltersAvailable = data.areFiltersAvailable
                     )
                 }
                 if (data.filterState != previousFilter && hasSearched && query.isNotBlank()) {

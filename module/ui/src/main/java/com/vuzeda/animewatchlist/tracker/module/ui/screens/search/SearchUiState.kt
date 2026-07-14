@@ -49,7 +49,8 @@ sealed interface SearchSnackbarEvent {
 data class SearchDisplayData(
     val filterState: SearchFilterState,
     val titleLanguage: TitleLanguage,
-    val addedMalIds: Set<Int>
+    val addedMalIds: Set<Int>,
+    val areFiltersAvailable: Boolean
 )
 
 data class SearchUiState(
@@ -70,5 +71,6 @@ data class SearchUiState(
     val addedMalIds: Set<Int> = emptySet(),
     val resolvingMalId: Int? = null,
     val isRefreshing: Boolean = false,
-    val snackbarEvent: SearchSnackbarEvent? = null
+    val snackbarEvent: SearchSnackbarEvent? = null,
+    val areFiltersAvailable: Boolean = true
 )

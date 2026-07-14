@@ -217,6 +217,9 @@
     <string name="developer_trigger_update">Disparar verificação agora</string>
     <string name="developer_disable_options">Desativar opções de desenvolvedor</string>
     <string name="developer_notification_debug_info">Depurar notificações</string>
+    <string name="developer_anime_provider">Provedor de dados de anime</string>
+    <string name="developer_anime_provider_jikan">Jikan (API não oficial)</string>
+    <string name="developer_anime_provider_mal">API oficial do MAL (experimental)</string>
     <string name="developer_last_attempt_run">Última tentativa de atualização</string>
     <string name="developer_last_update_result">Último resultado</string>
     <string name="developer_update_result_success">Sucesso</string>

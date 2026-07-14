@@ -160,7 +160,7 @@ fun SearchScreen(
                 title = { Text(stringResource(R.string.search_title)) },
                 windowInsets = WindowInsets(0, 0, 0, 0),
                 actions = {
-                    if (uiState.hasSearched) {
+                    if (uiState.hasSearched && uiState.areFiltersAvailable) {
                         SortMenuButton(
                             options = sortOptions,
                             selectedIndex = filterState.orderBy.ordinal,

@@ -4,12 +4,15 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vuzeda.animewatchlist.tracker.module.domain.Anime
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeProvider
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdate
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.ui.R
+import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveAnimeProviderUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveAnimeUpdateSchedulerStateUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveIsNotificationDebugInfoEnabledUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
+import com.vuzeda.animewatchlist.tracker.module.usecase.SetAnimeProviderUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetIsDeveloperOptionsEnabledUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetIsNotificationDebugInfoEnabledUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ShowAnimeUpdateNotificationUseCase
@@ -30,7 +33,9 @@ class DeveloperViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val observeAnimeUpdateSchedulerStateUseCase: ObserveAnimeUpdateSchedulerStateUseCase,
     private val observeIsNotificationDebugInfoEnabledUseCase: ObserveIsNotificationDebugInfoEnabledUseCase,
+    private val observeAnimeProviderUseCase: ObserveAnimeProviderUseCase,
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase,
+    private val setAnimeProviderUseCase: SetAnimeProviderUseCase,
     private val setIsDeveloperOptionsEnabledUseCase: SetIsDeveloperOptionsEnabledUseCase,
     private val setIsNotificationDebugInfoEnabledUseCase: SetIsNotificationDebugInfoEnabledUseCase,
     private val showAnimeUpdateNotificationUseCase: ShowAnimeUpdateNotificationUseCase,
@@ -44,16 +49,18 @@ class DeveloperViewModel @Inject constructor(
         viewModelScope.launch {
             combine(
                 observeAnimeUpdateSchedulerStateUseCase(),
-                observeIsNotificationDebugInfoEnabledUseCase()
-            ) { schedulerState, isNotificationDebugInfoEnabled ->
-                schedulerState to isNotificationDebugInfoEnabled
-            }.collect { (schedulerState, isNotificationDebugInfoEnabled) ->
+                observeIsNotificationDebugInfoEnabledUseCase(),
+                observeAnimeProviderUseCase()
+            ) { schedulerState, isNotificationDebugInfoEnabled, animeProvider ->
+                Triple(schedulerState, isNotificationDebugInfoEnabled, animeProvider)
+            }.collect { (schedulerState, isNotificationDebugInfoEnabled, animeProvider) ->
                 _uiState.update {
                     it.copy(
                         lastAnimeUpdateRun = schedulerState.lastSuccessfulRunAt,
                         lastAnimeUpdateAttemptAt = schedulerState.lastAttemptAt,
                         lastAnimeUpdateAttemptResult = schedulerState.lastAttemptResult,
-                        isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled
+                        isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled,
+                        animeProvider = animeProvider
                     )
                 }
             }
@@ -104,5 +111,9 @@ class DeveloperViewModel @Inject constructor(
     fun toggleNotificationDebugInfo() {
         val enabled = _uiState.value.isNotificationDebugInfoEnabled
         viewModelScope.launch { setIsNotificationDebugInfoEnabledUseCase(!enabled) }
+    }
+
+    fun setAnimeProvider(provider: AnimeProvider) {
+        viewModelScope.launch { setAnimeProviderUseCase(provider) }
     }
 }
