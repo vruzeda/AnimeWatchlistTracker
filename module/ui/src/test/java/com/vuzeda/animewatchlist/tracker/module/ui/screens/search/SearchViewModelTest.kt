@@ -835,4 +835,37 @@ class SearchViewModelTest {
             coVerify { removeAnimeByMalIdUseCase(21) }
         }
     }
+
+    @Test
+    fun `initial state has areFiltersAvailable true when use case emits true`() = runTest {
+        viewModel.uiState.test {
+            val state = awaitItem()
+            assertThat(state.areFiltersAvailable).isTrue()
+        }
+    }
+
+    @Test
+    fun `areFiltersAvailable is false when use case emits false`() = runTest {
+        every { observeIsSearchFilteringAvailableUseCase() } returns flowOf(false)
+
+        viewModel = SearchViewModel(
+            searchAnimeUseCase = searchAnimeUseCase,
+            fetchSeasonDetailUseCase = fetchSeasonDetailUseCase,
+            addAnimeFromDetailsUseCase = addAnimeFromDetailsUseCase,
+            removeAnimeByMalIdUseCase = removeAnimeByMalIdUseCase,
+            observeWatchlistMalIdsUseCase = observeWatchlistMalIdsUseCase,
+            observeTitleLanguageUseCase = observeTitleLanguageUseCase,
+            observeSearchFilterStateUseCase = observeSearchFilterStateUseCase,
+            observeIsSearchFilteringAvailableUseCase = observeIsSearchFilteringAvailableUseCase,
+            setSearchFilterStateUseCase = setSearchFilterStateUseCase,
+            analyticsTracker = analyticsTracker
+        )
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            val updated = awaitItem()
+            assertThat(updated.areFiltersAvailable).isFalse()
+        }
+    }
 }

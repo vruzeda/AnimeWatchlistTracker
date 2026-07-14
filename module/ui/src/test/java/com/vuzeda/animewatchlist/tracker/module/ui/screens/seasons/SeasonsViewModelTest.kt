@@ -601,4 +601,27 @@ class SeasonsViewModelTest {
         assertThat(SeasonsViewModel.seasonFromMonth(10)).isEqualTo(AnimeSeason.FALL)
         assertThat(SeasonsViewModel.seasonFromMonth(12)).isEqualTo(AnimeSeason.FALL)
     }
+
+    @Test
+    fun `initial state has areFiltersAvailable true when use case emits true`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            val state = awaitItem()
+            assertThat(state.areFiltersAvailable).isTrue()
+        }
+    }
+
+    @Test
+    fun `areFiltersAvailable is false when use case emits false`() = runTest {
+        every { observeIsSearchFilteringAvailableUseCase() } returns flowOf(false)
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val state = expectMostRecentItem()
+            assertThat(state.areFiltersAvailable).isFalse()
+        }
+    }
 }

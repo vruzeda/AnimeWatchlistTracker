@@ -290,4 +290,38 @@ class DeveloperViewModelTest {
 
         coVerify(exactly = 1) { setIsNotificationDebugInfoEnabledUseCase(false) }
     }
+
+    @Test
+    fun `initial state has animeProvider from use case`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            val initial = awaitItem()
+            assertThat(initial.animeProvider).isEqualTo(AnimeProvider.JIKAN)
+        }
+    }
+
+    @Test
+    fun `updates animeProvider when use case emits MAL`() = runTest {
+        every { observeAnimeProviderUseCase() } returns flowOf(AnimeProvider.MAL)
+
+        val viewModel = createViewModel()
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            val updated = awaitItem()
+            assertThat(updated.animeProvider).isEqualTo(AnimeProvider.MAL)
+        }
+    }
+
+    @Test
+    fun `setAnimeProvider delegates to use case`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.setAnimeProvider(AnimeProvider.MAL)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        coVerify(exactly = 1) { setAnimeProviderUseCase(AnimeProvider.MAL) }
+    }
 }
