@@ -31,13 +31,18 @@ object ApiServiceModule {
 
     @Provides
     @Singleton
-    fun provideJikanApiService(retrofit: Retrofit): JikanApiService =
-        retrofit.create(JikanApiService::class.java)
+    fun provideChiakiService(okHttpClient: OkHttpClient): ChiakiService =
+        ChiakiServiceImpl(okHttpClient)
 
     @Provides
     @Singleton
-    fun provideChiakiService(okHttpClient: OkHttpClient): ChiakiService =
-        ChiakiServiceImpl(okHttpClient)
+    fun provideJikanApiService(okHttpClient: OkHttpClient, moshi: Moshi): JikanApiService =
+        Retrofit.Builder()
+            .baseUrl(JikanApiService.BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+            .create(JikanApiService::class.java)
 
     @Provides
     @Singleton
@@ -86,14 +91,5 @@ object ApiServiceModule {
     @Singleton
     fun provideMoshi(): Moshi =
         Moshi.Builder()
-            .build()
-
-    @Provides
-    @Singleton
-    fun provideRetrofit(okHttpClient: OkHttpClient, moshi: Moshi): Retrofit =
-        Retrofit.Builder()
-            .baseUrl(JikanApiService.BASE_URL)
-            .client(okHttpClient)
-            .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
 }
