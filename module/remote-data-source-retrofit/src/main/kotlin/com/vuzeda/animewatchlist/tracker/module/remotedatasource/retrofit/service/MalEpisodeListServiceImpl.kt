@@ -9,6 +9,8 @@ import okhttp3.Request
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlin.text.Regex
+import kotlin.text.RegexOption
 
 class MalEpisodeListServiceImpl(
     private val okHttpClient: OkHttpClient
@@ -52,6 +54,9 @@ class MalEpisodeListServiceImpl(
         private val TITLE_PATTERN = Regex(
             """<td[^>]*class="episode-title[^"]*"[^>]*>\s*<a[^>]*>([^<]*)</a>"""
         )
+        private val JAPANESE_TITLE_PATTERN = Regex(
+            """<br>\s*<span[^>]*class="di-ib"[^>]*>([^<]*)</span>"""
+        )
         private val AIRED_PATTERN = Regex(
             """<td[^>]*class="episode-aired[^"]*"[^>]*>([^<]*)</td>"""
         )
@@ -72,15 +77,62 @@ class MalEpisodeListServiceImpl(
         private fun parseEpisodeRow(rowHtml: String): MalEpisodeRowDto? {
             val number = NUMBER_PATTERN.find(rowHtml)?.groupValues?.get(1)?.toIntOrNull()
                 ?: return null
-            val title = TITLE_PATTERN.find(rowHtml)?.groupValues?.get(1)
+            val titleEnglish = TITLE_PATTERN.find(rowHtml)?.groupValues?.get(1)
                 ?.decodeHtmlEntities()?.trim()?.takeIf { it.isNotEmpty() }
+
+            val japaneseWithRomaji = JAPANESE_TITLE_PATTERN.find(rowHtml)?.groupValues?.get(1)
+                ?.decodeHtmlEntities()?.trim()?.takeIf { it.isNotEmpty() }
+            val titleJapanese = extractJapaneseTitle(japaneseWithRomaji)
+
             val airedIsoDate = AIRED_PATTERN.find(rowHtml)?.groupValues?.get(1)?.trim()
                 ?.let { airedText ->
                     runCatching { LocalDate.parse(airedText, AIRED_DATE_FORMATTER) }.getOrNull()
                 }
                 ?.toString()
-            return MalEpisodeRowDto(number = number, title = title, airedIsoDate = airedIsoDate)
+            return MalEpisodeRowDto(
+                number = number,
+                title = titleEnglish, // default/fallback title is English
+                titleEnglish = titleEnglish,
+                titleJapanese = titleJapanese,
+                airedIsoDate = airedIsoDate
+            )
         }
+    }
+}
+
+internal fun extractJapaneseTitle(japaneseWithRomaji: String?): String? {
+    return japaneseWithRomaji?.let { text ->
+        // Pattern: "Romaji (日本語)" or "(日本語)" or "Romaji"
+        // We want to extract just the Japanese characters inside parentheses, or the whole text if no parentheses
+        val parenPattern = Regex("\\(([^)]+)\\)")
+        val match = parenPattern.find(text)
+        if (match != null) {
+            val insideParens = match.groupValues[1]
+            // Check if it contains Japanese characters (Kanji, Hiragana, Katakana)
+            if (insideParens.any { it.isJapaneseLetterOrDigit() }) {
+                insideParens
+            } else {
+                // No Japanese chars in parens, might be just Romaji in parens
+                // Return the text without the parenthesized part
+                text.replace(parenPattern, "").trim()
+            }
+        } else {
+            // No parentheses, return as-is (could be just Romaji or just Japanese)
+            text
+        }
+    }
+}
+
+internal fun Char.isJapaneseLetterOrDigit(): Boolean {
+    return when {
+        this in '㐀'..'䶿' -> true // CJK Unified Ideographs Extension A
+        this in '一'..'龯' -> true // CJK Unified Ideographs
+        this in '぀'..'ゟ' -> true // Hiragana
+        this in '゠'..'ヿ' -> true // Katakana
+        this in 'ㇰ'..'ㇿ' -> true // Katakana Phonetic Extensions
+        this in '㈀'..'㈿' -> true // Enclosed CJK Letters
+        this in '㊀'..'㊿' -> true // Enclosed CJK Letters and Months
+        else -> false
     }
 }
 

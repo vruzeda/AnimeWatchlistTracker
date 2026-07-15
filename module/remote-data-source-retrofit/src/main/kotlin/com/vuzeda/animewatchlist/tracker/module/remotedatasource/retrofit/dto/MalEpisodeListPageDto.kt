@@ -8,5 +8,7 @@ data class MalEpisodeListPageDto(
 data class MalEpisodeRowDto(
     val number: Int,
     val title: String?,
+    val titleEnglish: String?,
+    val titleJapanese: String?,
     val airedIsoDate: String?
 )

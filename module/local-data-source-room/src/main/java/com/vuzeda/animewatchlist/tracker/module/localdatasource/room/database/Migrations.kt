@@ -3,6 +3,13 @@ package com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val MIGRATION_25_26 = object : Migration(25, 26) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE episode_info ADD COLUMN titleEnglish TEXT")
+        db.execSQL("ALTER TABLE episode_info ADD COLUMN titleJapanese TEXT")
+    }
+}
+
 val MIGRATION_24_25 = object : Migration(24, 25) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL(

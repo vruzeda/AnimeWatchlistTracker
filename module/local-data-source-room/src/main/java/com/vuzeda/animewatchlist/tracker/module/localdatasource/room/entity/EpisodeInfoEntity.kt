@@ -8,6 +8,8 @@ data class EpisodeInfoEntity(
     val malId: Int,
     val number: Int,
     val title: String?,
+    val titleEnglish: String?,
+    val titleJapanese: String?,
     val aired: String?,
     val isFiller: Boolean,
     val isRecap: Boolean
@@ -16,6 +18,8 @@ data class EpisodeInfoEntity(
 fun EpisodeInfoEntity.toDomainModel(): EpisodeInfo = EpisodeInfo(
     number = number,
     title = title,
+    titleEnglish = titleEnglish,
+    titleJapanese = titleJapanese,
     aired = aired,
     isFiller = isFiller,
     isRecap = isRecap
@@ -25,6 +29,8 @@ fun EpisodeInfo.toEntity(malId: Int): EpisodeInfoEntity = EpisodeInfoEntity(
     malId = malId,
     number = number,
     title = title,
+    titleEnglish = titleEnglish,
+    titleJapanese = titleJapanese,
     aired = aired,
     isFiller = isFiller,
     isRecap = isRecap

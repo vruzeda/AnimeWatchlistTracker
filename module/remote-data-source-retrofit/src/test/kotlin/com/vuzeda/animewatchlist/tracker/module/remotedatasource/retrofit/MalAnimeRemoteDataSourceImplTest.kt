@@ -74,7 +74,7 @@ class MalAnimeRemoteDataSourceImplTest {
     fun `fetchAnimeEpisodes maps scraped page to episode page`() = runTest {
         coEvery { malEpisodeListService.fetchEpisodePage(malId = 52991, page = 2) } returns
             MalEpisodeListPageDto(
-                episodes = listOf(MalEpisodeRowDto(number = 101, title = "Title", airedIsoDate = "2024-01-05")),
+                episodes = listOf(MalEpisodeRowDto(number = 101, title = "Title", titleEnglish = "Title", titleJapanese = null, airedIsoDate = "2024-01-05")),
                 hasNextPage = true
             )
 
@@ -93,16 +93,16 @@ class MalAnimeRemoteDataSourceImplTest {
         coEvery { malEpisodeListService.fetchEpisodePage(malId = 1, page = 1) } returns
             MalEpisodeListPageDto(
                 episodes = listOf(
-                    MalEpisodeRowDto(number = 1, title = "Old", airedIsoDate = "2024-01-01"),
-                    MalEpisodeRowDto(number = 2, title = "In window", airedIsoDate = "2024-02-01")
+                    MalEpisodeRowDto(number = 1, title = "Old", titleEnglish = "Old", titleJapanese = null, airedIsoDate = "2024-01-01"),
+                    MalEpisodeRowDto(number = 2, title = "In window", titleEnglish = "In window", titleJapanese = null, airedIsoDate = "2024-02-01")
                 ),
                 hasNextPage = true
             )
         coEvery { malEpisodeListService.fetchEpisodePage(malId = 1, page = 2) } returns
             MalEpisodeListPageDto(
                 episodes = listOf(
-                    MalEpisodeRowDto(number = 3, title = "Also in window", airedIsoDate = "2024-02-15"),
-                    MalEpisodeRowDto(number = 4, title = "Too new", airedIsoDate = "2024-05-01")
+                    MalEpisodeRowDto(number = 3, title = "Also in window", titleEnglish = "Also in window", titleJapanese = null, airedIsoDate = "2024-02-15"),
+                    MalEpisodeRowDto(number = 4, title = "Too new", titleEnglish = "Too new", titleJapanese = null, airedIsoDate = "2024-05-01")
                 ),
                 hasNextPage = true
             )
@@ -122,7 +122,7 @@ class MalAnimeRemoteDataSourceImplTest {
     fun `fetchEpisodesAiredBetween starts from the page containing the starting episode`() = runTest {
         coEvery { malEpisodeListService.fetchEpisodePage(malId = 1, page = 3) } returns
             MalEpisodeListPageDto(
-                episodes = listOf(MalEpisodeRowDto(number = 201, title = null, airedIsoDate = "2024-02-01")),
+                episodes = listOf(MalEpisodeRowDto(number = 201, title = null, titleEnglish = null, titleJapanese = null, airedIsoDate = "2024-02-01")),
                 hasNextPage = false
             )
 

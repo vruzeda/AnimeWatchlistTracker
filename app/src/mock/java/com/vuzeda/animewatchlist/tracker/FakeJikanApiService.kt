@@ -88,6 +88,8 @@ class FakeJikanApiService : JikanApiService {
             EpisodeDto(
                 malId = ep,
                 title = "Episode $ep",
+                titleJapanese = "日本語 $ep",
+                titleRomaji = "Romaji $ep",
                 aired = "2024-01-${ep.toString().padStart(2, '0')}T00:00:00+00:00"
             )
         }
