@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-39941289-3"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag(){dataLayer.push(arguments);}
+		gtag('js', new Date());
+		gtag('config', 'UA-39941289-3');
+	</script>
+		<title>Fruits Basket / Watch Order / chiaki.site</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<base href="https://chiaki.site/">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.21.6/css/uikit.min.css">
+		<link rel="stylesheet" href="css/common.css?v=1.21">
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.21.6/js/uikit.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.21.6/js/uikit-icons.min.js"></script>
+					<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.3/themes/base/jquery-ui.min.css">
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.3/jquery-ui.min.js"></script>
+			<script src="js/common.js?v=1.19"></script>
+			</head>
+	<body >
+		<div class="uk-container uk-container-small">
+			<nav class="uk-navbar-container uk-navbar-transparent" uk-navbar="offset:0">
+				<div class="uk-navbar-left">
+					<a class="uk-navbar-item uk-logo" href="https://chiaki.site/"><img src="media/logo.png" width="150"></a>
+				</div>
+				<div class="uk-navbar-right uk-visible@m">
+					<ul class="uk-navbar-nav">
+						<li>
+							<a class="uk-button uk-button-text">Sections</a>
+							<div class="uk-navbar-dropdown" pos="bottom-right">
+								<ul class="uk-nav uk-navbar-dropdown-nav">
+									<li class="uk-active"><a href="?/tools/watch_order">Watch Order</a></li>
+									<li ><a href="?/tools/sequel_locator">Sequel Locator</a></li>
+									<li ><a href="?/quiz">Anime Quiz</a></li>
+									<li ><a href="?/pages/quizbot">Discord Anime Quiz Bot</a></li>
+									<li ><a href="?/tools/seiyuu_comparison">Seiyuu Comparison</a></li>
+								</ul>
+							</div>
+						</li>
+						<li>
+							<a class="uk-button uk-button-text">Discussions</a>
+							<div class="uk-navbar-dropdown" pos="bottom-right">
+								<ul class="uk-nav uk-navbar-dropdown-nav">
+									<li ><a href="?/forum">Forum <span class="uk-label uk-label-danger" style="padding:0 4px">New</span></a></li>
+									<li><a href="https://discord.gg/mGF72KQ">Discord server</a></li>
+									<li ><a href="?/pages/feedback">Feedback</a></li>
+								</ul>
+							</div>
+						</li>
+													<li><a href="?/auth" class="uk-button uk-button-text uk-text-danger">Sign in</a></li>
+																			<li>
+								<a class=" uk-button uk-button-text"><span uk-icon="bell"></span></a>
+								<div class="forum-notifications uk-navbar-dropdown uk-width-large" pos="bottom-right">
+																			<p class="uk-text-center"><span uk-icon="check" class="uk-text-success" style="vertical-align:text-bottom"></span> No new notifications</p>
+																	</div>
+							</li>
+												<li><a class="theme-modifier uk-button uk-button-text"><span class="uk-icon uk-icon-image"></span></a></li>
+					</ul>
+				</div>
+				<div class="uk-navbar-right uk-hidden@m">
+					<ul class="uk-navbar-nav">
+						<li><a href="#menu_offcanvas" class="" uk-icon="menu" uk-toggle></a></li>
+					</ul>
+				</div>
+			</nav>
+									<style>
+@keyframes wo_splash {
+	from {background-position: 86% center;}
+	to {background-position: 10000% center;}
+}
+</style>
+<script>
+var _t = {
+	selected: 'Selected',
+	add_to_list: 'Add to my list',
+	add_via_mal: 'Add via',
+	watching: 'Currently Watching',
+	completed: 'Completed',
+	on_hold: 'On Hold',
+	dropped: 'Dropped',
+	plan_to_watch: 'Plan to Watch'
+};
+
+$(function() {
+	var t = new Timeline({
+		'elem': $('#wo_timeline'),
+		'period': [991699200, 1647734400]
+	});
+	
+	UIkit.util.on('#wo_timeline_tab', 'shown', function(event, area) {
+		t.adjust_height();
+	});
+	
+	});
+</script>
+<div id="spacer"></div>
+<h2>Fruits Basket Watch Order</h2>
+<div class="uk-inline uk-width-1-1 uk-margin-bottom">
+	<span class="uk-form-icon" uk-icon="search"></span>
+	<input id="ac_series" class="uk-input">
+</div>
+	<ul class="uk-flex-center noborder" uk-tab uk-switcher>
+		<li><a href="#">List</a></li>
+		<li><a href="#">Timeline</a></li>
+			</ul>
+	<p class="uk-text-right">
+		<a href="?/user/settings"><span uk-icon="cog" style="vertical-align:text-bottom"></span> Preferences</a> |
+		Your anime list source:
+					<a href="?/user">Not connected</a>
+			<span uk-icon="icon:question; ratio:0.8" uk-tooltip="Connect your personal anime list for more convenient management and more personalized results"></span>
+			</p>
+	<div id="large_list_warning"></div>
+	<div class="uk-background-muted uk-panel uk-padding-small uk-margin" id="wo_type_filter">
+					<label class="uk-margin-right uk-text-nowrap"><input class="uk-checkbox" type="checkbox" value="1" checked> TV</label>
+					<label class="uk-margin-right uk-text-nowrap"><input class="uk-checkbox" type="checkbox" value="3" checked> Movie</label>
+					<label class="uk-margin-right uk-text-nowrap"><input class="uk-checkbox" type="checkbox" value="6" checked> Music</label>
+			</div>
+		<ul class="uk-switcher">
+		<li>
+						<table class="uk-table uk-table-divider uk-table-small" id="wo_list">
+				<colgroup>
+					<col style="width:100px"></col>
+					<col></col>
+				</colgroup>
+									<tr data-id="120" data-anilist-id="120" data-type="1" data-eps="26" data-duration="1440" data-related='{"38680":"Alternative Version","40417":"Alternative Version"}' data-breakers='{}'>
+						<td><div class="wo_avatar_big" style="background-image:url('media/a/ab/120.jpg')"></div></td>
+						<td class="uk-text-middle">
+							<div class="uk-label wo_relation"></div>
+							<span class="wo_title">Fruits Basket</span><br>
+														<span class="wo_meta">
+								Jul 5 – Dec 27, 2001								| TV																	| 26ep × 24min.																									| <span class="wo_rating">★7.69 (295,425)</span>
+																									|
+																									<a href="https://myanimelist.net/anime/120"><span class="uk-icon uk-icon-image" style="background-image:url('media/mal.png')"></span></a>
+																																			<a href="https://anilist.co/anime/120"><span class="uk-icon uk-icon-image" style="background-image:url('media/anilist.png')"></span></a>
+																																		<a href="https://shikimori.io/animes/120"><span class="uk-icon uk-icon-image" style="background-image:url('media/shikimori.png')"></span></a>
+																									<a href="https://api.simkl.com/redirect?&mal=120"><span class="uk-icon uk-icon-image" style="background-image:url('media/simkl.png')"></span></a>
+																							</span>
+							<div class="list_status"></div>
+						</td>
+					</tr>
+									<tr data-id="38680" data-anilist-id="105334" data-type="1" data-eps="25" data-duration="1380" data-related='{"120":"Alternative Version","40417":"Sequel","49310":"Summary"}' data-breakers='{}'>
+						<td><div class="wo_avatar_big" style="background-image:url('media/a/ea/38680.jpg')"></div></td>
+						<td class="uk-text-middle">
+							<div class="uk-label wo_relation"></div>
+							<span class="wo_title">Fruits Basket 1st Season</span><br>
+														<span class="wo_meta">
+								Apr 6 – Sep 21, 2019								| TV																	| 25ep × 23min.																									| <span class="wo_rating">★8.19 (452,164)</span>
+																									|
+																									<a href="https://myanimelist.net/anime/38680"><span class="uk-icon uk-icon-image" style="background-image:url('media/mal.png')"></span></a>
+																																			<a href="https://anilist.co/anime/105334"><span class="uk-icon uk-icon-image" style="background-image:url('media/anilist.png')"></span></a>
+																																		<a href="https://shikimori.io/animes/38680"><span class="uk-icon uk-icon-image" style="background-image:url('media/shikimori.png')"></span></a>
+																									<a href="https://api.simkl.com/redirect?&mal=38680"><span class="uk-icon uk-icon-image" style="background-image:url('media/simkl.png')"></span></a>
+																							</span>
+							<div class="list_status"></div>
+						</td>
+					</tr>
+									<tr data-id="40417" data-anilist-id="111762" data-type="1" data-eps="25" data-duration="1380" data-related='{"38680":"Prequel","42938":"Sequel","49310":"Summary","53751":"Other"}' data-breakers='{}'>
+						<td><div class="wo_avatar_big" style="background-image:url('media/a/51/40417.jpg')"></div></td>
+						<td class="uk-text-middle">
+							<div class="uk-label wo_relation"></div>
+							<span class="wo_title">Fruits Basket 2nd Season</span><br>
+														<span class="wo_meta">
+								Apr 7 – Sep 22, 2020								| TV																	| 25ep × 23min.																									| <span class="wo_rating">★8.52 (304,429)</span>
+																									|
+																									<a href="https://myanimelist.net/anime/40417"><span class="uk-icon uk-icon-image" style="background-image:url('media/mal.png')"></span></a>
+																																			<a href="https://anilist.co/anime/111762"><span class="uk-icon uk-icon-image" style="background-image:url('media/anilist.png')"></span></a>
+																																		<a href="https://shikimori.io/animes/40417"><span class="uk-icon uk-icon-image" style="background-image:url('media/shikimori.png')"></span></a>
+																									<a href="https://api.simkl.com/redirect?&mal=40417"><span class="uk-icon uk-icon-image" style="background-image:url('media/simkl.png')"></span></a>
+																							</span>
+							<div class="list_status"></div>
+						</td>
+					</tr>
+									<tr class="wo_row_secondary uk-background-muted" data-id="53751" data-anilist-id="" data-type="6" data-eps="1" data-duration="180" data-related='{"40417":"Other"}' data-breakers='{}'>
+						<td><div class="wo_avatar_big" style="background-image:url('media/a/02/53751.jpg')"></div></td>
+						<td class="uk-text-middle">
+							<div class="uk-label wo_relation"></div>
+							<span class="wo_title">Ad Meliora</span><br>
+														<span class="wo_meta">
+								Apr 13, 2020								| Music																	| 1ep × 3min.																									| <span class="wo_rating">★6.37 (831)</span>
+																									|
+																									<a href="https://myanimelist.net/anime/53751"><span class="uk-icon uk-icon-image" style="background-image:url('media/mal.png')"></span></a>
+																																			<a href="?/redirect/anilist_anime/53751" rel="nofollow"><span class="uk-icon uk-icon-image" style="background-image:url('media/anilist.png')"></span></a>
+																																		<a href="https://shikimori.io/animes/53751"><span class="uk-icon uk-icon-image" style="background-image:url('media/shikimori.png')"></span></a>
+																									<a href="https://api.simkl.com/redirect?&mal=53751"><span class="uk-icon uk-icon-image" style="background-image:url('media/simkl.png')"></span></a>
+																							</span>
+							<div class="list_status"></div>
+						</td>
+					</tr>
+									<tr data-id="42938" data-anilist-id="124194" data-type="1" data-eps="13" data-duration="1380" data-related='{"40417":"Prequel","49310":"Summary"}' data-breakers='{}'>
+						<td><div class="wo_avatar_big" style="background-image:url('media/a/08/42938.jpg')"></div></td>
+						<td class="uk-text-middle">
+							<div class="uk-label wo_relation"></div>
+							<span class="wo_title">Fruits Basket: The Final</span><br>
+															<span class="uk-text-small">Fruits Basket: The Final Season</span><br>
+														<span class="wo_meta">
+								Apr 6 – Jun 29, 2021								| TV																	| 13ep × 23min.																									| <span class="wo_rating">★8.93 (281,794)</span>
+																									|
+																									<a href="https://myanimelist.net/anime/42938"><span class="uk-icon uk-icon-image" style="background-image:url('media/mal.png')"></span></a>
+																																			<a href="https://anilist.co/anime/124194"><span class="uk-icon uk-icon-image" style="background-image:url('media/anilist.png')"></span></a>
+																																		<a href="https://shikimori.io/animes/42938"><span class="uk-icon uk-icon-image" style="background-image:url('media/shikimori.png')"></span></a>
+																									<a href="https://api.simkl.com/redirect?&mal=42938"><span class="uk-icon uk-icon-image" style="background-image:url('media/simkl.png')"></span></a>
+																							</span>
+							<div class="list_status"></div>
+						</td>
+					</tr>
+									<tr data-id="49310" data-anilist-id="136192" data-type="3" data-eps="1" data-duration="5280" data-related='{"38680":"Full Story","40417":"Full Story","42938":"Full Story"}' data-breakers='{}'>
+						<td><div class="wo_avatar_big" style="background-image:url('media/a/dd/49310.jpg')"></div></td>
+						<td class="uk-text-middle">
+							<div class="uk-label wo_relation"></div>
+							<span class="wo_title">Fruits Basket: Prelude</span><br>
+														<span class="wo_meta">
+								Feb 18, 2022								| Movie																	| 1ep × 1hr. 28min.																									| <span class="wo_rating">★8.36 (50,772)</span>
+																									|
+																									<a href="https://myanimelist.net/anime/49310"><span class="uk-icon uk-icon-image" style="background-image:url('media/mal.png')"></span></a>
+																																			<a href="https://anilist.co/anime/136192"><span class="uk-icon uk-icon-image" style="background-image:url('media/anilist.png')"></span></a>
+																																		<a href="https://shikimori.io/animes/49310"><span class="uk-icon uk-icon-image" style="background-image:url('media/shikimori.png')"></span></a>
+																									<a href="https://api.simkl.com/redirect?&mal=49310"><span class="uk-icon uk-icon-image" style="background-image:url('media/simkl.png')"></span></a>
+																							</span>
+							<div class="list_status"></div>
+						</td>
+					</tr>
+							</table>
+		</li>
+		<li id="wo_timeline_tab">
+			<table class="wo_timeline" id="wo_timeline" data-time-min="991699200" data-time-max="1647734400" width="100%">
+				<tr>
+					<th width="50"></th>
+					<th class="wo_year_container"></th>
+				</tr>
+									<tr>
+						<td><div class="wo_avatar" style="background-image:url('media/a/ab/120.jpg')" uk-tooltip="pos:right;title:Fruits Basket<br>&#128198; Jul 5 – Dec 27, 2001"></div></td>
+						<td><div class="wo_item" data-time-start="994291200" data-time-end="1009411200"></div></td>
+					</tr>
+									<tr>
+						<td><div class="wo_avatar" style="background-image:url('media/a/ea/38680.jpg')" uk-tooltip="pos:right;title:Fruits Basket 1st Season<br>&#128198; Apr 6 – Sep 21, 2019"></div></td>
+						<td><div class="wo_item" data-time-start="1554508800" data-time-end="1569024000"></div></td>
+					</tr>
+									<tr>
+						<td><div class="wo_avatar" style="background-image:url('media/a/51/40417.jpg')" uk-tooltip="pos:right;title:Fruits Basket 2nd Season<br>&#128198; Apr 7 – Sep 22, 2020"></div></td>
+						<td><div class="wo_item" data-time-start="1586217600" data-time-end="1600732800"></div></td>
+					</tr>
+									<tr>
+						<td><div class="wo_avatar" style="background-image:url('media/a/02/53751.jpg')" uk-tooltip="pos:right;title:Ad Meliora<br>&#128198; Apr 13, 2020"></div></td>
+						<td><div class="wo_item" data-time-start="1586736000" data-time-end="1586736000"></div></td>
+					</tr>
+									<tr>
+						<td><div class="wo_avatar" style="background-image:url('media/a/08/42938.jpg')" uk-tooltip="pos:right;title:Fruits Basket: The Final<br>&#128198; Apr 6 – Jun 29, 2021"></div></td>
+						<td><div class="wo_item" data-time-start="1617667200" data-time-end="1624924800"></div></td>
+					</tr>
+									<tr>
+						<td><div class="wo_avatar" style="background-image:url('media/a/dd/49310.jpg')" uk-tooltip="pos:right;title:Fruits Basket: Prelude<br>&#128198; Feb 18, 2022"></div></td>
+						<td><div class="wo_item" data-time-start="1645142400" data-time-end="1645142400"></div></td>
+					</tr>
+							</table>
+		</li>
+			</ul>
+	<div class="uk-background-muted uk-panel uk-padding-small uk-margin" id="wo_stats"></div>
+			<h3>Comments <span class="uk-label uk-label-danger">New</span></h3>
+	<div class="forum">
+					<p class="uk-text-center">
+				<span uk-icon="comment"></span><br>
+				No comments here yet<br>
+				<a href="?/forum/topic/0/group_id/67">You can be first</a>
+			</p>
+				<div class="uk-background-muted uk-padding uk-panel uk-margin-top">
+			<h4 class="uk-margin-remove-bottom">Add comment</h4>
+			<p class="uk-margin-remove-top"><a href="?/forum/topic/0/group_id/67">Open this group's conversation on forum</a> to add a comment.</p>
+		</div>
+	</div>
+		<div class="uk-margin-top"><div uk-grid>
+    <div class="uk-width-auto@s uk-text-center">
+		<img src="media/c/8f/13531.jpg" class="uk-box-shadow-large" style="width:100px; height:auto">
+	</div>
+    <div class="uk-width-expand@s">
+		<div id="widget_options">
+			<h4>Can you guess this character?</h4>
+			<div class="uk-child-width-expand@s uk-grid-small" uk-grid>
+				<div>
+					<button class="quiz-widget-button uk-button uk-button-default uk-width-1-1" data-a="0">
+						Koizumi, Itsuki<br><span class="uk-text-truncate">Suzumiya Haruhi Series</span>
+					</button>
+				</div>
+				<div>
+					<button class="quiz-widget-button uk-button uk-button-default uk-width-1-1" data-a="0">
+						Nakajima, Atsushi<br><span class="uk-text-truncate">Bungou Stray Dogs</span>
+					</button>
+				</div>
+			</div>
+			<div class="uk-child-width-expand@s uk-grid-small" uk-grid>
+				<div>
+					<button class="quiz-widget-button uk-button uk-button-default uk-width-1-1" data-a="1">
+						Kazehaya, Shouta<br><span class="uk-text-truncate">Kimi ni Todoke</span>
+					</button>
+				</div>
+				<div>
+					<button class="quiz-widget-button uk-button uk-button-default uk-width-1-1" data-a="0">
+						Nishimiya, Shouko<br><span class="uk-text-truncate">Koe no Katachi</span>
+					</button>
+				</div>
+			</div>
+		</div>
+		<div id="widget_response" class="uk-text-center">
+			<div class="uk-text-success"><span uk-icon="check"></span> Correct!</div>
+			<div class="uk-text-danger"><span uk-icon="close"></span> Incorrect</div>
+			<div>Kazehaya, Shouta (Kimi ni Todoke)<br><a href="?/quiz">Play more</a></div>
+		</div>
+	</div>
+</div>
+<script>
+$('.quiz-widget-button').click(function() {
+	$response = $('#widget_response');
+	
+	if ($(this).data('a')) {
+		$response.find('.uk-text-danger').hide();
+	} else {
+		$response.find('.uk-text-success').hide();
+	}
+	
+	$('#widget_options').hide();
+	$response.show();
+});
+</script></div>
+			<hr>
+							<div class="uk-flex uk-flex-center uk-text-truncate">
+					<ul class="uk-subnav uk-subnav-pill uk-margin-remove">
+						<li class="uk-active"><a href="?/tools/watch_order">Watch Order</a></li>
+						<li ><a href="?/tools/sequel_locator">Sequel Locator</a></li>
+						<li class="uk-visible@s "><a href="?/tools/seiyuu_comparison">Seiyuu Comparison</a></li>
+						<li class="uk-visible@m "><a href="?/quiz">Anime Quiz</a></li>
+						<li><a href="?/tools">More</a></li>
+					</ul>
+				</div>
+						<p class="uk-text-small uk-text-center uk-margin-small-top">
+				2019–2026 chiaki.site, <a href="?/pages/feedback">contact</a><br><br>
+			</p>
+		</div>
+		<div id="menu_offcanvas" uk-offcanvas="mode:reveal;overlay:true;flip:true">
+			<div class="uk-offcanvas-bar">
+				<button class="uk-offcanvas-close" type="button" uk-close></button>
+				<ul class="uk-nav-default uk-nav-parent-icon uk-margin-medium-top" uk-nav>
+					<li ><a href="https://chiaki.site/">Home</a></li>
+					<li class="uk-nav-header">Sections</li>
+					<li class="uk-active"><a href="?/tools/watch_order">Watch Order</a></li>
+					<li ><a href="?/tools/sequel_locator">Sequel Locator</a></li>
+					<li ><a href="?/quiz">Anime Quiz</a></li>
+					<li ><a href="?/pages/quizbot">Discord Anime Quiz Bot</a></li>
+					<li ><a href="?/tools/seiyuu_comparison">Seiyuu Comparison</a></li>
+					<li class="uk-nav-header">Discussions</li>
+					<li ><a href="?/forum">Forum <span class="uk-label uk-label-danger" style="padding:0 4px">New</span></a></li>
+					<li><a href="https://discord.gg/mGF72KQ">Discord server</a></li>
+					<li ><a href="?/pages/feedback">Feedback</a></li>
+											<li class="uk-nav-header"><a href="?/auth" class="uk-text-danger">Sign in</a></li>
+										<li class="uk-nav-divider uk-margin"></li>
+											<li class="uk-parent">
+							<a class=""><span uk-icon="bell"></span> Notifications <span uk-nav-parent-icon></span></a>
+							<ul class="uk-nav-sub">
+																	<li><a><span uk-icon="check" class="uk-text-success" style="vertical-align:text-bottom"></span> No new notifications</a></li>
+															</ul>
+						</li>
+										<li><a class="theme-modifier"><span class="uk-icon uk-icon-image vert" style="filter:invert(100%)"></span></a></li>
+				</ul>
+			</div>
+		</div>
+	<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1b33c3f8e33bc5a',t:'MTc4NDA2MDUwMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
