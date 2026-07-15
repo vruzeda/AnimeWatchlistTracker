@@ -15,6 +15,8 @@ class FakeMalEpisodeListService(
                 MalEpisodeRowDto(
                     number = episode.malId,
                     title = episode.title,
+                    titleEnglish = episode.title,
+                    titleJapanese = episode.titleJapanese,
                     airedIsoDate = episode.aired?.take(10)
                 )
             },

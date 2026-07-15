@@ -7,7 +7,9 @@ import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.Ma
 
 fun MalEpisodeRowDto.toEpisodeInfo(): EpisodeInfo = EpisodeInfo(
     number = number,
-    title = title,
+    title = titleJapanese?.takeIf { it.isNotBlank() } ?: titleEnglish ?: title,
+    titleEnglish = titleEnglish,
+    titleJapanese = titleJapanese,
     aired = airedIsoDate,
     isFiller = false,
     isRecap = false

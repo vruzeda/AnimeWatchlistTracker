@@ -15,13 +15,14 @@ import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.Anim
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.EpisodeInfoEntity
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.SeasonEntity
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.WatchedEpisodeEntity
+import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database.MIGRATION_25_26
 
 @DeleteColumn(tableName = "season", columnName = "currentEpisode")
 class SeasonDropCurrentEpisodeMigration : AutoMigrationSpec
 
 @Database(
     entities = [AnimeEntity::class, SeasonEntity::class, AnimeUpdateSchedulerStateEntity::class, WatchedEpisodeEntity::class, EpisodeInfoEntity::class],
-    version = 25,
+    version = 26,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 19, to = 20, spec = SeasonDropCurrentEpisodeMigration::class)
@@ -33,4 +34,8 @@ abstract class AnimeDatabase : RoomDatabase() {
     abstract fun seasonDao(): SeasonRoomDao
     abstract fun watchedEpisodeDao(): WatchedEpisodeRoomDao
     abstract fun episodeInfoDao(): EpisodeInfoRoomDao
+
+    companion object {
+        val MIGRATIONS = listOf(MIGRATION_25_26)
+    }
 }

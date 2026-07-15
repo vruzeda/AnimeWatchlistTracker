@@ -433,7 +433,12 @@ private fun SeasonDetailContent(
             ) { index, episode ->
                 EpisodeListItem(
                     episodeNumber = episode.number,
-                    title = episode.title,
+                    title = resolveDisplayTitle(
+                        title = episode.title ?: "",
+                        titleEnglish = episode.titleEnglish,
+                        titleJapanese = episode.titleJapanese,
+                        language = state.titleLanguage
+                    ),
                     airedDate = episode.aired?.toLocalizedAiredDate(airedDateFormatter),
                     isFiller = episode.isFiller,
                     isRecap = episode.isRecap,

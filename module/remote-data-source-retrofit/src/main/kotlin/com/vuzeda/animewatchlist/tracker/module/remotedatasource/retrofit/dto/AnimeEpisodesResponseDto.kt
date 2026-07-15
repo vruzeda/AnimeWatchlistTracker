@@ -19,6 +19,8 @@ data class EpisodesPaginationDto(
 data class EpisodeDto(
     @Json(name = "mal_id") val malId: Int,
     @Json(name = "title") val title: String? = null,
+    @Json(name = "title_japanese") val titleJapanese: String? = null,
+    @Json(name = "title_romanji") val titleRomaji: String? = null,
     @Json(name = "aired") val aired: String? = null,
     @Json(name = "filler") val filler: Boolean = false,
     @Json(name = "recap") val recap: Boolean = false
