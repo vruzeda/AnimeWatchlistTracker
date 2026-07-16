@@ -8,11 +8,33 @@ class FillEpisodeGapsUseCaseTest {
 
     private val useCase = FillEpisodeGapsUseCase()
 
-    private fun episode(number: Int) =
-        EpisodeInfo(number = number, title = "Ep $number", aired = null, isFiller = false, isRecap = false)
+    private fun episode(
+        number: Int,
+        titleRomaji: String? = "Ep $number",
+        titleEnglish: String? = "Ep $number",
+        titleJapanese: String? = "第${number}話"
+    ) =
+        EpisodeInfo(
+            number = number,
+            titleRomaji = titleRomaji,
+            titleEnglish = titleEnglish,
+            titleJapanese = titleJapanese,
+            aired = null,
+            isFiller = false,
+            isRecap = false
+        )
 
     private fun placeholder(number: Int) =
-        EpisodeInfo(number = number, title = null, aired = null, isFiller = false, isRecap = false, isPlaceholder = true)
+        EpisodeInfo(
+            number = number,
+            titleRomaji = null,
+            titleEnglish = null,
+            titleJapanese = null,
+            aired = null,
+            isFiller = false,
+            isRecap = false,
+            isPlaceholder = true
+        )
 
     @Test
     fun `returns list unchanged when episodeCount is null`() {

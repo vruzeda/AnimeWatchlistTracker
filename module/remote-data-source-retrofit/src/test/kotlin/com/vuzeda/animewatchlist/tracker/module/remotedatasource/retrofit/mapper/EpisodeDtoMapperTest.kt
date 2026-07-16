@@ -9,10 +9,12 @@ import org.junit.jupiter.api.Test
 class EpisodeDtoMapperTest {
 
     @Test
-    fun `maps EpisodeDto fields to EpisodeInfo`() {
+    fun `maps EpisodeDto fields to EpisodeInfo with titleEnglish and titleRomaji`() {
         val dto = EpisodeDto(
             malId = 5,
             title = "The Battle Begins",
+            titleJapanese = "戦いの始まり",
+            titleRomaji = "Tatakai no Hajimari",
             aired = "2024-02-10T00:00:00+00:00",
             filler = true,
             recap = false
@@ -21,22 +23,42 @@ class EpisodeDtoMapperTest {
         val info = dto.toEpisodeInfo()
 
         assertThat(info.number).isEqualTo(5)
-        assertThat(info.title).isEqualTo("The Battle Begins")
+        assertThat(info.titleEnglish).isEqualTo("The Battle Begins")
+        assertThat(info.titleJapanese).isEqualTo("戦いの始まり")
+        assertThat(info.titleRomaji).isEqualTo("Tatakai no Hajimari")
         assertThat(info.aired).isEqualTo("2024-02-10T00:00:00+00:00")
         assertThat(info.isFiller).isTrue()
         assertThat(info.isRecap).isFalse()
     }
 
     @Test
-    fun `maps null title and aired`() {
+    fun `maps null title fields`() {
         val dto = EpisodeDto(malId = 1)
 
         val info = dto.toEpisodeInfo()
 
-        assertThat(info.title).isNull()
+        assertThat(info.titleEnglish).isNull()
+        assertThat(info.titleJapanese).isNull()
+        assertThat(info.titleRomaji).isNull()
         assertThat(info.aired).isNull()
         assertThat(info.isFiller).isFalse()
         assertThat(info.isRecap).isFalse()
+    }
+
+    @Test
+    fun `maps empty string title fields as null`() {
+        val dto = EpisodeDto(
+            malId = 1,
+            title = "",
+            titleJapanese = "",
+            titleRomaji = ""
+        )
+
+        val info = dto.toEpisodeInfo()
+
+        assertThat(info.titleEnglish).isNull()
+        assertThat(info.titleJapanese).isNull()
+        assertThat(info.titleRomaji).isNull()
     }
 
     @Test
@@ -44,8 +66,8 @@ class EpisodeDtoMapperTest {
         val response = AnimeEpisodesResponseDto(
             pagination = EpisodesPaginationDto(lastVisiblePage = 3, hasNextPage = true),
             data = listOf(
-                EpisodeDto(malId = 1, title = "Ep 1"),
-                EpisodeDto(malId = 2, title = "Ep 2")
+                EpisodeDto(malId = 1, title = "Ep 1", titleRomaji = "Ep 1"),
+                EpisodeDto(malId = 2, title = "Ep 2", titleRomaji = "Ep 2")
             )
         )
 
@@ -62,7 +84,7 @@ class EpisodeDtoMapperTest {
     fun `maps last page correctly`() {
         val response = AnimeEpisodesResponseDto(
             pagination = EpisodesPaginationDto(lastVisiblePage = 2, hasNextPage = false),
-            data = listOf(EpisodeDto(malId = 26, title = "Final"))
+            data = listOf(EpisodeDto(malId = 26, title = "Final", titleRomaji = "Final"))
         )
 
         val page = response.toEpisodePage(currentPage = 2)

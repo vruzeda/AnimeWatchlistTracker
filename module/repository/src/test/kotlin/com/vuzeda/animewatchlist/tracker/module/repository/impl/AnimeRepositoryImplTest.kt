@@ -348,7 +348,9 @@ class AnimeRepositoryImplTest {
             listOf(
                 EpisodeInfo(
                     number = 13,
-                    title = null,
+                    titleRomaji = null,
+                    titleEnglish = null,
+                    titleJapanese = null,
                     aired = "2026-03-15",
                     isFiller = false,
                     isRecap = false

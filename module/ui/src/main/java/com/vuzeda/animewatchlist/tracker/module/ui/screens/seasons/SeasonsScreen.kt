@@ -57,7 +57,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
-import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
+import com.vuzeda.animewatchlist.tracker.module.domain.resolveAnimeDisplayTitle
 import com.vuzeda.animewatchlist.tracker.module.ui.R
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.ScreenPreviewSamples
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.displayMessageRes
@@ -245,8 +245,8 @@ fun SeasonsScreen(
                             ) { result ->
                                 val isAdded = result.malId in uiState.addedMalIds
                                 val isResolving = uiState.resolvingMalId == result.malId
-                                val displayTitle = resolveDisplayTitle(
-                                    title = result.title,
+                                val displayTitle = resolveAnimeDisplayTitle(
+                                    titleRomaji = result.title,
                                     titleEnglish = result.titleEnglish,
                                     titleJapanese = result.titleJapanese,
                                     language = uiState.titleLanguage
@@ -320,8 +320,8 @@ fun SeasonsScreen(
                 val statusOptions = WatchStatus.entries.map {
                     StatusOption(stringResource(it.toDisplayLabelRes()), it.toColor())
                 }
-                val sheetSubtitle = resolveDisplayTitle(
-                    title = uiState.selectedResultForAdd.title,
+                val sheetSubtitle = resolveAnimeDisplayTitle(
+                    titleRomaji = uiState.selectedResultForAdd.title,
                     titleEnglish = uiState.selectedResultForAdd.titleEnglish,
                     titleJapanese = uiState.selectedResultForAdd.titleJapanese,
                     language = uiState.titleLanguage

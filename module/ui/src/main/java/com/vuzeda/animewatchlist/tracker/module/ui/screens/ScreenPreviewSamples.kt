@@ -95,9 +95,33 @@ internal object ScreenPreviewSamples {
     )
 
     private val episodes = listOf(
-        EpisodeInfo(number = 1, title = "The Journey's End", titleEnglish = "The Journey's End", titleJapanese = "旅の終わり", aired = "2023-09-29", isFiller = false, isRecap = false),
-        EpisodeInfo(number = 2, title = "It Didn't Have to Be Magic", titleEnglish = "It Didn't Have to Be Magic", titleJapanese = "魔法でなくても", aired = "2023-10-06", isFiller = false, isRecap = false),
-        EpisodeInfo(number = 3, title = "Killing Magic", titleEnglish = "Killing Magic", titleJapanese = "魔法殺し", aired = "2023-10-13", isFiller = false, isRecap = false)
+        EpisodeInfo(
+            number = 1,
+            titleRomaji = null,
+            titleEnglish = "The Journey's End",
+            titleJapanese = null,
+            aired = "2023-09-29",
+            isFiller = false,
+            isRecap = false
+        ),
+        EpisodeInfo(
+            number = 2,
+            titleRomaji = null,
+            titleEnglish = "It Didn't Have to Be Magic",
+            titleJapanese = null,
+            aired = "2023-10-06",
+            isFiller = false,
+            isRecap = false
+        ),
+        EpisodeInfo(
+            number = 3,
+            titleRomaji = null,
+            titleEnglish = "Killing Magic",
+            titleJapanese = null,
+            aired = "2023-10-13",
+            isFiller = false,
+            isRecap = false
+        )
     )
 
     val homeUiState = HomeUiState(

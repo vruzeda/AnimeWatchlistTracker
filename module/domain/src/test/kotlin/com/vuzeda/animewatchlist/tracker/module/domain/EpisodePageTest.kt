@@ -8,7 +8,15 @@ class EpisodePageTest {
     @Test
     fun `EpisodePage holds episodes, hasNextPage, and nextPage`() {
         val episodes = listOf(
-            EpisodeInfo(number = 1, title = "Ep1", aired = null, isFiller = false, isRecap = false)
+            EpisodeInfo(
+                number = 1,
+                titleRomaji = "Ep1",
+                titleEnglish = "Ep1",
+                titleJapanese = "Ep1",
+                aired = null,
+                isFiller = false,
+                isRecap = false
+            )
         )
         val page = EpisodePage(episodes = episodes, hasNextPage = true, nextPage = 2)
 

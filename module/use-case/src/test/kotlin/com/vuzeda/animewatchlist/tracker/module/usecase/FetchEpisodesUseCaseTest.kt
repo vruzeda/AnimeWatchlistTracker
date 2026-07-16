@@ -18,7 +18,15 @@ class FetchEpisodesUseCaseTest {
     @Test
     fun `returns episode page on success`() = runTest {
         val episodes = listOf(
-            EpisodeInfo(number = 1, title = "Ep 1", aired = "2023-01-01", isFiller = false, isRecap = false)
+            EpisodeInfo(
+                number = 1,
+                titleRomaji = "Ep 1",
+                titleEnglish = "Ep 1",
+                titleJapanese = "第1話",
+                aired = "2023-01-01",
+                isFiller = false,
+                isRecap = false
+            )
         )
         val page = EpisodePage(episodes = episodes, hasNextPage = true, nextPage = 2)
         coEvery { animeRepository.fetchAnimeEpisodes(malId = 100, page = 1) } returns Result.success(page)

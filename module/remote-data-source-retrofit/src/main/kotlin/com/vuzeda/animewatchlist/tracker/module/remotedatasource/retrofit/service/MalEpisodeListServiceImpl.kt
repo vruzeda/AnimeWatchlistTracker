@@ -9,8 +9,6 @@ import okhttp3.Request
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-import kotlin.text.Regex
-import kotlin.text.RegexOption
 
 class MalEpisodeListServiceImpl(
     private val okHttpClient: OkHttpClient
@@ -23,6 +21,7 @@ class MalEpisodeListServiceImpl(
                 .url("${MalEpisodeListService.BASE_URL}/anime/$malId/_/episode?offset=$offset")
                 .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                 .header("Accept-Language", "en-US,en;q=0.5")
+                .addHeader("Cookie", "view=pc")
                 .build()
 
             val html = okHttpClient.newCall(request).execute().use { response ->
@@ -54,8 +53,8 @@ class MalEpisodeListServiceImpl(
         private val TITLE_PATTERN = Regex(
             """<td[^>]*class="episode-title[^"]*"[^>]*>\s*<a[^>]*>([^<]*)</a>"""
         )
-        private val JAPANESE_TITLE_PATTERN = Regex(
-            """<br>\s*<span[^>]*class="di-ib"[^>]*>([^<]*)</span>"""
+        private val ROMAJI_TITLE_AND_JAPANESE_TITLE_PATTERN = Regex(
+            """<br><span class="di-ib">(?:(?<romaji>.+)&nbsp;)?(?:\((?<japanese>.+)\))?</span>"""
         )
         private val AIRED_PATTERN = Regex(
             """<td[^>]*class="episode-aired[^"]*"[^>]*>([^<]*)</td>"""
@@ -79,60 +78,23 @@ class MalEpisodeListServiceImpl(
                 ?: return null
             val titleEnglish = TITLE_PATTERN.find(rowHtml)?.groupValues?.get(1)
                 ?.decodeHtmlEntities()?.trim()?.takeIf { it.isNotEmpty() }
-
-            val japaneseWithRomaji = JAPANESE_TITLE_PATTERN.find(rowHtml)?.groupValues?.get(1)
-                ?.decodeHtmlEntities()?.trim()?.takeIf { it.isNotEmpty() }
-            val titleJapanese = extractJapaneseTitle(japaneseWithRomaji)
-
+            val romajiJapaneseGroups = ROMAJI_TITLE_AND_JAPANESE_TITLE_PATTERN.find(rowHtml)?.groups
+            val titleRomaji = romajiJapaneseGroups?.get("romaji")?.value?.decodeHtmlEntities()?.trim()?.takeIf { it.isNotEmpty() }
+            val titleJapanese = romajiJapaneseGroups?.get("japanese")?.value?.decodeHtmlEntities()?.trim()?.takeIf { it.isNotEmpty() }
             val airedIsoDate = AIRED_PATTERN.find(rowHtml)?.groupValues?.get(1)?.trim()
                 ?.let { airedText ->
                     runCatching { LocalDate.parse(airedText, AIRED_DATE_FORMATTER) }.getOrNull()
                 }
                 ?.toString()
+
             return MalEpisodeRowDto(
                 number = number,
-                title = titleEnglish, // default/fallback title is English
                 titleEnglish = titleEnglish,
+                titleRomaji = titleRomaji,
                 titleJapanese = titleJapanese,
                 airedIsoDate = airedIsoDate
             )
         }
-    }
-}
-
-internal fun extractJapaneseTitle(japaneseWithRomaji: String?): String? {
-    return japaneseWithRomaji?.let { text ->
-        // Pattern: "Romaji (日本語)" or "(日本語)" or "Romaji"
-        // We want to extract just the Japanese characters inside parentheses, or the whole text if no parentheses
-        val parenPattern = Regex("\\(([^)]+)\\)")
-        val match = parenPattern.find(text)
-        if (match != null) {
-            val insideParens = match.groupValues[1]
-            // Check if it contains Japanese characters (Kanji, Hiragana, Katakana)
-            if (insideParens.any { it.isJapaneseLetterOrDigit() }) {
-                insideParens
-            } else {
-                // No Japanese chars in parens, might be just Romaji in parens
-                // Return the text without the parenthesized part
-                text.replace(parenPattern, "").trim()
-            }
-        } else {
-            // No parentheses, return as-is (could be just Romaji or just Japanese)
-            text
-        }
-    }
-}
-
-internal fun Char.isJapaneseLetterOrDigit(): Boolean {
-    return when {
-        this in '㐀'..'䶿' -> true // CJK Unified Ideographs Extension A
-        this in '一'..'龯' -> true // CJK Unified Ideographs
-        this in '぀'..'ゟ' -> true // Hiragana
-        this in '゠'..'ヿ' -> true // Katakana
-        this in 'ㇰ'..'ㇿ' -> true // Katakana Phonetic Extensions
-        this in '㈀'..'㈿' -> true // Enclosed CJK Letters
-        this in '㊀'..'㊿' -> true // Enclosed CJK Letters and Months
-        else -> false
     }
 }
 

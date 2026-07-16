@@ -14,7 +14,7 @@ class FakeMalEpisodeListService(
             episodes = response.data.map { episode ->
                 MalEpisodeRowDto(
                     number = episode.malId,
-                    title = episode.title,
+                    titleRomaji = episode.titleRomaji ?: "Episode ${episode.malId}",
                     titleEnglish = episode.title,
                     titleJapanese = episode.titleJapanese,
                     airedIsoDate = episode.aired?.take(10)

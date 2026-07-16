@@ -48,7 +48,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.HomeSortOption
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
-import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
+import com.vuzeda.animewatchlist.tracker.module.domain.resolveAnimeDisplayTitle
 import com.vuzeda.animewatchlist.tracker.module.ui.R
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.ScreenPreviewSamples
 
@@ -269,8 +269,8 @@ private fun HomeScreenContent(
                             items = uiState.animeList,
                             key = { it.id }
                         ) { anime ->
-                            val displayTitle = resolveDisplayTitle(
-                                title = anime.title,
+                            val displayTitle = resolveAnimeDisplayTitle(
+                                titleRomaji = anime.title,
                                 titleEnglish = anime.titleEnglish,
                                 titleJapanese = anime.titleJapanese,
                                 language = uiState.titleLanguage
@@ -307,8 +307,8 @@ private fun HomeScreenContent(
                             items = uiState.seasonItems,
                             key = { it.season.id }
                         ) { item ->
-                            val displayTitle = resolveDisplayTitle(
-                                title = item.season.title,
+                            val displayTitle = resolveAnimeDisplayTitle(
+                                titleRomaji = item.season.title,
                                 titleEnglish = item.season.titleEnglish,
                                 titleJapanese = item.season.titleJapanese,
                                 language = uiState.titleLanguage

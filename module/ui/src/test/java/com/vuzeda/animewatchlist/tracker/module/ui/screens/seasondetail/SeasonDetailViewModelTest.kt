@@ -95,8 +95,24 @@ class SeasonDetailViewModelTest {
     )
 
     private val sampleEpisodes = listOf(
-        EpisodeInfo(number = 1, title = "Episode 1", aired = "2013-04-07", isFiller = false, isRecap = false),
-        EpisodeInfo(number = 2, title = "Episode 2", aired = "2013-04-14", isFiller = false, isRecap = false)
+        EpisodeInfo(
+            number = 1,
+            titleRomaji = null,
+            titleEnglish = "Episode 1",
+            titleJapanese = null,
+            aired = "2013-04-07",
+            isFiller = false,
+            isRecap = false
+        ),
+        EpisodeInfo(
+            number = 2,
+            titleRomaji = null,
+            titleEnglish = "Episode 2",
+            titleJapanese = null,
+            aired = "2013-04-14",
+            isFiller = false,
+            isRecap = false
+        )
     )
 
     private lateinit var seasonFlow: MutableStateFlow<Season?>
@@ -198,7 +214,15 @@ class SeasonDetailViewModelTest {
     @Test
     fun `loadMoreEpisodes appends episodes and fills gaps on last page`() = runTest {
         val moreEpisodes = listOf(
-            EpisodeInfo(number = 3, title = "Episode 3", aired = "2013-04-21", isFiller = false, isRecap = false)
+            EpisodeInfo(
+                number = 3,
+                titleRomaji = null,
+                titleEnglish = "Episode 3",
+                titleJapanese = null,
+                aired = "2013-04-21",
+                isFiller = false,
+                isRecap = false
+            )
         )
         coEvery { fetchEpisodesUseCase(malId = 16498, page = 2) } returns Result.success(
             EpisodePage(episodes = moreEpisodes, hasNextPage = false, nextPage = 3)

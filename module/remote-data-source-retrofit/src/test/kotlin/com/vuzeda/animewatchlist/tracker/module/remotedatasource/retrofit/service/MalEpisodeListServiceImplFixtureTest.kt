@@ -110,176 +110,176 @@ class MalEpisodeListServiceImplFixtureTest {
     private object ShingekiNoKyojinEpisodeRowDtoFixture {
         val episodeRow1 = MalEpisodeRowDto(
             number = 1,
-            title = "Smoke Signal",
             titleEnglish = "Smoke Signal",
+            titleRomaji = "Noroshi",
             titleJapanese = "狼煙",
             airedIsoDate = "2018-07-23",
         )
 
         val episodeRow2 = MalEpisodeRowDto(
             number = 2,
-            title = "Pain",
             titleEnglish = "Pain",
+            titleRomaji = "Itami",
             titleJapanese = "痛み",
             airedIsoDate = "2018-07-30",
         )
 
         val episodeRow3 = MalEpisodeRowDto(
             number = 3,
-            title = "Old Story",
             titleEnglish = "Old Story",
+            titleRomaji = "Mukashibanashi",
             titleJapanese = "オールドストーリー",
             airedIsoDate = "2018-08-06",
         )
 
         val episodeRow4 = MalEpisodeRowDto(
             number = 4,
-            title = "Trust",
             titleEnglish = "Trust",
+            titleRomaji = "Shinrai",
             titleJapanese = "信頼",
             airedIsoDate = "2018-08-13",
         )
 
         val episodeRow5 = MalEpisodeRowDto(
             number = 5,
-            title = "Reply",
             titleEnglish = "Reply",
+            titleRomaji = "Kaitou",
             titleJapanese = "回答",
             airedIsoDate = "2018-08-20",
         )
 
         val episodeRow6 = MalEpisodeRowDto(
             number = 6,
-            title = "Sin",
             titleEnglish = "Sin",
+            titleRomaji = "Tsumi",
             titleJapanese = "罪",
             airedIsoDate = "2018-08-27",
         )
 
         val episodeRow7 = MalEpisodeRowDto(
             number = 7,
-            title = "Wish",
             titleEnglish = "Wish",
+            titleRomaji = "Negai",
             titleJapanese = "願い",
             airedIsoDate = "2018-09-03",
         )
 
         val episodeRow8 = MalEpisodeRowDto(
             number = 8,
-            title = "Outside the Walls of Orvud District",
             titleEnglish = "Outside the Walls of Orvud District",
+            titleRomaji = "Orvud-ku Sotokabe",
             titleJapanese = "オルブド区外壁",
             airedIsoDate = "2018-09-10",
         )
 
         val episodeRow9 = MalEpisodeRowDto(
             number = 9,
-            title = "Ruler of the Walls",
             titleEnglish = "Ruler of the Walls",
+            titleRomaji = "Kabe no Ou",
             titleJapanese = "壁の王",
             airedIsoDate = "2018-09-17",
         )
 
         val episodeRow10 = MalEpisodeRowDto(
             number = 10,
-            title = "Friends",
             titleEnglish = "Friends",
+            titleRomaji = "Yuujin",
             titleJapanese = "友人",
             airedIsoDate = "2018-09-24",
         )
 
         val episodeRow11 = MalEpisodeRowDto(
             number = 11,
-            title = "Bystander",
             titleEnglish = "Bystander",
+            titleRomaji = "Boukansha",
             titleJapanese = "傍観者",
             airedIsoDate = "2018-10-08",
         )
 
         val episodeRow12 = MalEpisodeRowDto(
             number = 12,
-            title = "Night of the Battle to Retake the Wall",
             titleEnglish = "Night of the Battle to Retake the Wall",
+            titleRomaji = "Dakkan Sakusen no Yoru",
             titleJapanese = "奪還作戦の夜",
             airedIsoDate = "2018-10-15",
         )
 
         val episodeRow13 = MalEpisodeRowDto(
             number = 13,
-            title = "The Town Where Everything Began",
             titleEnglish = "The Town Where Everything Began",
+            titleRomaji = null,
             titleJapanese = null,
             airedIsoDate = null,
         )
 
         val episodeRow14 = MalEpisodeRowDto(
             number = 14,
-            title = "Thunder Spears",
             titleEnglish = "Thunder Spears",
+            titleRomaji = null,
             titleJapanese = null,
             airedIsoDate = null,
         )
 
         val episodeRow15 = MalEpisodeRowDto(
             number = 15,
-            title = "Descent",
             titleEnglish = "Descent",
+            titleRomaji = null,
             titleJapanese = null,
             airedIsoDate = null,
         )
 
         val episodeRow16 = MalEpisodeRowDto(
             number = 16,
-            title = "Perfect Game",
             titleEnglish = "Perfect Game",
+            titleRomaji = null,
             titleJapanese = null,
             airedIsoDate = null,
         )
 
         val episodeRow17 = MalEpisodeRowDto(
             number = 17,
-            title = "Hero",
             titleEnglish = "Hero",
+            titleRomaji = null,
             titleJapanese = null,
             airedIsoDate = null,
         )
 
         val episodeRow18 = MalEpisodeRowDto(
             number = 18,
-            title = "Midnight Sun",
             titleEnglish = "Midnight Sun",
+            titleRomaji = null,
             titleJapanese = null,
             airedIsoDate = null,
         )
 
         val episodeRow19 = MalEpisodeRowDto(
             number = 19,
-            title = "The Basement",
             titleEnglish = "The Basement",
+            titleRomaji = null,
             titleJapanese = null,
             airedIsoDate = null,
         )
 
         val episodeRow20 = MalEpisodeRowDto(
             number = 20,
-            title = "That Day",
             titleEnglish = "That Day",
+            titleRomaji = null,
             titleJapanese = null,
             airedIsoDate = null,
         )
 
         val episodeRow21 = MalEpisodeRowDto(
             number = 21,
-            title = "Attack Titan",
             titleEnglish = "Attack Titan",
+            titleRomaji = null,
             titleJapanese = null,
             airedIsoDate = null,
         )
 
         val episodeRow22 = MalEpisodeRowDto(
             number = 22,
-            title = "The Other Side of the Wall",
             titleEnglish = "The Other Side of the Wall",
+            titleRomaji = null,
             titleJapanese = null,
             airedIsoDate = null,
         )
@@ -288,96 +288,96 @@ class MalEpisodeListServiceImplFixtureTest {
     private object SeihantaiEpisodeRowDtoFixture {
         val episodeRow1 = MalEpisodeRowDto(
             number = 1,
-            title = "You, My Polar Opposite",
             titleEnglish = "You, My Polar Opposite",
+            titleRomaji = "Seihantai na Kimi",
             titleJapanese = "正反対な君",
             airedIsoDate = "2026-01-11",
         )
 
         val episodeRow2 = MalEpisodeRowDto(
             number = 2,
-            title = "First Date!",
             titleEnglish = "First Date!",
+            titleRomaji = "Hatsu Date!",
             titleJapanese = "初デート!",
             airedIsoDate = "2026-01-18",
         )
 
         val episodeRow3 = MalEpisodeRowDto(
             number = 3,
-            title = "Cute and Cool",
             titleEnglish = "Cute and Cool",
+            titleRomaji = "Kawaii to Kakkoii",
             titleJapanese = "カワイイとカッコイイ",
             airedIsoDate = "2026-01-25",
         )
 
         val episodeRow4 = MalEpisodeRowDto(
             number = 4,
-            title = "Summer Night Vibes",
             titleEnglish = "Summer Night Vibes",
+            titleRomaji = "Natsu no Yoru no Vibes",
             titleJapanese = "夏の夜のバイブス",
             airedIsoDate = "2026-02-01",
         )
 
         val episodeRow5 = MalEpisodeRowDto(
             number = 5,
-            title = "Someone Who Thinks and Someone Who Doesn't",
             titleEnglish = "Someone Who Thinks and Someone Who Doesn't",
+            titleRomaji = "Kangaeru Hito, Kangaenai Hito",
             titleJapanese = "考える人、考えない人",
             airedIsoDate = "2026-02-08",
         )
 
         val episodeRow6 = MalEpisodeRowDto(
             number = 6,
-            title = "Cultural Festival!",
             titleEnglish = "Cultural Festival!",
+            titleRomaji = "Bunkasai!",
             titleJapanese = "文化祭！",
             airedIsoDate = "2026-02-15",
         )
 
         val episodeRow7 = MalEpisodeRowDto(
             number = 7,
-            title = "Fluttery Confusion",
             titleEnglish = "Fluttery Confusion",
+            titleRomaji = "Doki Moya",
             titleJapanese = "ドキモヤ",
             airedIsoDate = "2026-02-22",
         )
 
         val episodeRow8 = MalEpisodeRowDto(
             number = 8,
-            title = "This Autumn...",
             titleEnglish = "This Autumn...",
+            titleRomaji = "Kotoshi no Aki wa...",
             titleJapanese = "今年の秋は...",
             airedIsoDate = "2026-03-01",
         )
 
         val episodeRow9 = MalEpisodeRowDto(
             number = 9,
-            title = "Surprise!",
             titleEnglish = "Surprise!",
+            titleRomaji = "Surprise!",
             titleJapanese = "サプライズ!",
             airedIsoDate = "2026-03-08",
         )
 
         val episodeRow10 = MalEpisodeRowDto(
             number = 10,
-            title = "Class Trip (Part 1)",
             titleEnglish = "Class Trip (Part 1)",
-            titleJapanese = "Shuugaku Ryokou!  )",
+            titleRomaji = "Shuugaku Ryokou! (Zenpen)",
+            titleJapanese = "修学旅行！(前編)",
             airedIsoDate = "2026-03-15",
         )
 
         val episodeRow11 = MalEpisodeRowDto(
             number = 11,
-            title = "Class Trip (Part 2)",
             titleEnglish = "Class Trip (Part 2)",
-            titleJapanese = "Shuugaku Ryokou!  )",
+            titleRomaji = "Shuugaku Ryokou! (Kouhen)",
+            titleJapanese = "修学旅行！(後編)",
             airedIsoDate = "2026-03-22",
         )
 
         val episodeRow12 = MalEpisodeRowDto(
             number = 12,
-            title = "Step by Step",
             titleEnglish = "Step by Step",
+            titleRomaji = "Hoippo",
             titleJapanese = "ほいっぽ",
             airedIsoDate = "2026-03-29",
         )
@@ -386,104 +386,104 @@ class MalEpisodeListServiceImplFixtureTest {
     private object ReplicaEpisodeRowDtoFixture {
         val episodeRow1 = MalEpisodeRowDto(
             number = 1,
-            title = "A Replica Never Dreams",
             titleEnglish = "A Replica Never Dreams",
+            titleRomaji = null,
             titleJapanese = "レプリカは、夢を見ない。",
             airedIsoDate = "2026-04-07",
         )
 
         val episodeRow2 = MalEpisodeRowDto(
             number = 2,
-            title = "A Replica Skips School",
             titleEnglish = "A Replica Skips School",
+            titleRomaji = null,
             titleJapanese = "レプリカは、サボる。",
             airedIsoDate = "2026-04-14",
         )
 
         val episodeRow3 = MalEpisodeRowDto(
             number = 3,
-            title = "A Replica Is Confused",
             titleEnglish = "A Replica Is Confused",
+            titleRomaji = "Replica wa, Madou.",
             titleJapanese = "レプリカは、惑う。",
             airedIsoDate = "2026-04-21",
         )
 
         val episodeRow4 = MalEpisodeRowDto(
             number = 4,
-            title = "A Replica Cries",
             titleEnglish = "A Replica Cries",
+            titleRomaji = "Replica wa, Naiteiru.",
             titleJapanese = "レプリカは、泣いている。",
             airedIsoDate = "2026-04-28",
         )
 
         val episodeRow5 = MalEpisodeRowDto(
             number = 5,
-            title = "A Replica Dreams",
             titleEnglish = "A Replica Dreams",
+            titleRomaji = "Replica wa, Yume wo Miru.",
             titleJapanese = "レプリカは、夢を見る。",
             airedIsoDate = "2026-05-05",
         )
 
         val episodeRow6 = MalEpisodeRowDto(
             number = 6,
-            title = "A Replica is Shaken",
             titleEnglish = "A Replica is Shaken",
-            titleJapanese = "Replica wa, Yureru.",
+            titleRomaji = "Replica wa, Yureru.",
+            titleJapanese = null,
             airedIsoDate = "2026-05-12",
         )
 
         val episodeRow7 = MalEpisodeRowDto(
             number = 7,
-            title = "A Replica Searches",
             titleEnglish = "A Replica Searches",
-            titleJapanese = "Replica wa, Sagasu.",
+            titleRomaji = "Replica wa, Sagasu.",
+            titleJapanese = null,
             airedIsoDate = "2026-05-19",
         )
 
         val episodeRow8 = MalEpisodeRowDto(
             number = 8,
-            title = "A Replica Is Messed Up",
             titleEnglish = "A Replica Is Messed Up",
+            titleRomaji = null,
             titleJapanese = "レプリカは、歪む。",
             airedIsoDate = "2026-05-26",
         )
 
         val episodeRow9 = MalEpisodeRowDto(
             number = 9,
-            title = "A Replica is Lost",
             titleEnglish = "A Replica is Lost",
+            titleRomaji = null,
             titleJapanese = "レプリカは、失う。",
             airedIsoDate = "2026-06-02",
         )
 
         val episodeRow10 = MalEpisodeRowDto(
             number = 10,
-            title = "A Replica Stumbles",
             titleEnglish = "A Replica Stumbles",
+            titleRomaji = "Replica wa, Korogaru.",
             titleJapanese = "レプリカは、転がる。",
             airedIsoDate = "2026-06-10",
         )
 
         val episodeRow11 = MalEpisodeRowDto(
             number = 11,
-            title = "A Replica Goes On a Journey",
             titleEnglish = "A Replica Goes On a Journey",
+            titleRomaji = null,
             titleJapanese = "レプリカは、旅に出る。",
             airedIsoDate = "2026-06-16",
         )
 
         val episodeRow12 = MalEpisodeRowDto(
             number = 12,
-            title = "A Replica Tosses",
             titleEnglish = "A Replica Tosses",
+            titleRomaji = "Replica wa, Nageru.",
             titleJapanese = "レプリカは、投げる。",
             airedIsoDate = "2026-06-24",
         )
 
         val episodeRow13 = MalEpisodeRowDto(
             number = 13,
-            title = "And Then, the Replica",
             titleEnglish = "And Then, the Replica",
+            titleRomaji = "Soshite, Replica wa.",
             titleJapanese = "そして、レプリカは。",
             airedIsoDate = "2026-06-30",
         )

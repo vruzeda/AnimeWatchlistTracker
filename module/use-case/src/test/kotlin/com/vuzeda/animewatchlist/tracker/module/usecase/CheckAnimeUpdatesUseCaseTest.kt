@@ -56,7 +56,15 @@ class CheckAnimeUpdatesUseCaseTest {
     )
 
     private fun episodeInfo(number: Int, aired: String?) =
-        EpisodeInfo(number = number, title = null, aired = aired, isFiller = false, isRecap = false)
+        EpisodeInfo(
+            number = number,
+            titleRomaji = null,
+            titleEnglish = null,
+            titleJapanese = null,
+            aired = aired,
+            isFiller = false,
+            isRecap = false
+        )
 
     @Test
     fun `returns empty list when no notified anime`() = runTest {

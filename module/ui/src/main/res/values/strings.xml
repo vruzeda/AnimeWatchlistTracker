@@ -185,9 +185,10 @@
     <string name="settings_home_view_mode">Home View Mode</string>
     <string name="settings_home_view_mode_anime">By Anime</string>
     <string name="settings_home_view_mode_season">By Season</string>
-    <string name="settings_title_language_default">Default (Romaji)</string>
+    <string name="settings_title_language_default">Default</string>
     <string name="settings_title_language_english">English</string>
     <string name="settings_title_language_japanese">Japanese</string>
+    <string name="settings_title_language_romaji">Romaji</string>
     <string name="settings_offline_covers_title">Offline Covers</string>
     <string name="settings_offline_covers_enabled">Cache covers for offline use</string>
     <string name="settings_offline_covers_size">%1$s used</string>

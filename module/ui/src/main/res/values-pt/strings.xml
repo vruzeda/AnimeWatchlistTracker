@@ -189,9 +189,10 @@
     <string name="settings_home_view_mode">Modo de exibição inicial</string>
     <string name="settings_home_view_mode_anime">Por anime</string>
     <string name="settings_home_view_mode_season">Por temporada</string>
-    <string name="settings_title_language_default">Padrão (Romaji)</string>
+    <string name="settings_title_language_default">Padrão</string>
     <string name="settings_title_language_english">Inglês</string>
     <string name="settings_title_language_japanese">Japonês</string>
+    <string name="settings_title_language_romaji">Romaji</string>
     <string name="settings_offline_covers_title">Capas Offline</string>
     <string name="settings_offline_covers_enabled">Salvar capas para uso offline</string>
     <string name="settings_offline_covers_size">%1$s em uso</string>

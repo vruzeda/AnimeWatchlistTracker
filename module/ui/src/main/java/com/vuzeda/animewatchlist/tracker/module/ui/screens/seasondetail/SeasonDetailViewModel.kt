@@ -11,6 +11,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.EpisodeInfo
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
+import com.vuzeda.animewatchlist.tracker.module.domain.resolveAnimeDisplayTitle
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddAnimeFromDetailsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddSeasonToWatchlistUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.DeleteOrphanedWatchedEpisodesUseCase
@@ -397,7 +398,14 @@ open class SeasonDetailViewModel @Inject constructor(
                 analyticsTracker.track(AnalyticsEvent.AddSeason(status.name))
                 _uiState.update { it.copy(
                     isAddSheetVisible = false,
-                    snackbarEvent = SeasonDetailSnackbarEvent.AddedToWatchlist(season.title)
+                    snackbarEvent = SeasonDetailSnackbarEvent.AddedToWatchlist(
+                        resolveAnimeDisplayTitle(
+                            titleRomaji = season.title,
+                            titleEnglish = season.titleEnglish,
+                            titleJapanese = season.titleJapanese,
+                            language = state.titleLanguage
+                        )
+                    )
                 ) }
             }
             return
@@ -472,12 +480,14 @@ open class SeasonDetailViewModel @Inject constructor(
         val maxRealNumber = realEpisodes.maxOfOrNull { it.number } ?: 0
         val watchedBeyondReal = watchedEpisodes.filter { it > maxRealNumber }
         val watchedPlaceholders = watchedBeyondReal.map { n ->
-            EpisodeInfo(number = n, title = null, aired = null, isFiller = false, isRecap = false, isPlaceholder = true)
+            EpisodeInfo(number = n, titleRomaji = null, titleEnglish = null, titleJapanese = null, aired = null, isFiller = false, isRecap = false, isPlaceholder = true)
         }
         val maxKnown = maxOf(maxRealNumber, watchedBeyondReal.maxOrNull() ?: 0)
         val trailing = EpisodeInfo(
             number = maxKnown + 1,
-            title = null,
+            titleRomaji = null,
+            titleEnglish = null,
+            titleJapanese = null,
             aired = null,
             isFiller = false,
             isRecap = false,

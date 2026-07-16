@@ -21,7 +21,9 @@ class FillEpisodeGapsUseCase @Inject constructor() {
             .map { n ->
                 EpisodeInfo(
                     number = n,
-                    title = null,
+                    titleRomaji = null,
+                    titleEnglish = null,
+                    titleJapanese = null,
                     aired = null,
                     isFiller = false,
                     isRecap = false,

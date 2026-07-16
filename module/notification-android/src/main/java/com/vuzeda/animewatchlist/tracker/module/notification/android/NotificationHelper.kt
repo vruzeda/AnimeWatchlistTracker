@@ -15,7 +15,7 @@ import androidx.core.app.TaskStackBuilder
 import androidx.core.content.ContextCompat
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdate
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
-import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
+import com.vuzeda.animewatchlist.tracker.module.domain.resolveAnimeDisplayTitle
 import com.vuzeda.animewatchlist.tracker.module.notification.AnimeUpdateNotifier
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -64,7 +64,7 @@ class NotificationHelper @Inject constructor(
             is AnimeUpdate.NewEpisodes -> update.anime
             is AnimeUpdate.NewSeason -> update.anime
         }
-        val animeTitle = resolveDisplayTitle(anime.title, anime.titleEnglish, anime.titleJapanese, titleLanguage)
+        val animeTitle = resolveAnimeDisplayTitle(anime.title, anime.titleEnglish, anime.titleJapanese, titleLanguage)
         val (text, notificationId) = when (update) {
             is AnimeUpdate.NewEpisodes -> Pair(
                 context.resources.getQuantityString(
@@ -77,7 +77,7 @@ class NotificationHelper @Inject constructor(
             is AnimeUpdate.NewSeason -> Pair(
                 context.getString(
                     R.string.new_season_announced,
-                    resolveDisplayTitle(update.sequelTitle, update.sequelTitleEnglish, update.sequelTitleJapanese, titleLanguage)
+                    resolveAnimeDisplayTitle(update.sequelTitle, update.sequelTitleEnglish, update.sequelTitleJapanese, titleLanguage)
                 ),
                 "season_${anime.id}_${update.sequelMalId}".hashCode()
             )

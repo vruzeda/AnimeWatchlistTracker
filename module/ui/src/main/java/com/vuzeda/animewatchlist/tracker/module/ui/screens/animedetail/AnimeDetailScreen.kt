@@ -79,7 +79,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
-import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
+import com.vuzeda.animewatchlist.tracker.module.domain.resolveAnimeDisplayTitle
 import com.vuzeda.animewatchlist.tracker.module.ui.R
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.ScreenPreviewSamples
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.home.toColor
@@ -229,8 +229,8 @@ fun AnimeDetailScreen(
                 }
                 else -> {
                     val anime = checkNotNull(uiState.anime)
-                    val animeDisplayTitle = resolveDisplayTitle(
-                        title = anime.title,
+                    val animeDisplayTitle = resolveAnimeDisplayTitle(
+                        titleRomaji = anime.title,
                         titleEnglish = anime.titleEnglish,
                         titleJapanese = anime.titleJapanese,
                         language = uiState.titleLanguage
@@ -343,8 +343,8 @@ fun AnimeDetailScreen(
                         StatusSelectionSheet(
                             title = stringResource(R.string.anime_detail_add_sheet_title),
                             subtitle = uiState.pendingAddSeason?.let {
-                                resolveDisplayTitle(
-                                    title = it.title,
+                                resolveAnimeDisplayTitle(
+                                    titleRomaji = it.title,
                                     titleEnglish = it.titleEnglish,
                                     titleJapanese = it.titleJapanese,
                                     language = uiState.titleLanguage
@@ -399,8 +399,8 @@ fun AnimeDetailScreen(
                         StatusSelectionSheet(
                             title = stringResource(R.string.anime_detail_change_status_title),
                             subtitle = if (pendingSeason != null) {
-                                resolveDisplayTitle(
-                                    title = pendingSeason.title,
+                                resolveAnimeDisplayTitle(
+                                    titleRomaji = pendingSeason.title,
                                     titleEnglish = pendingSeason.titleEnglish,
                                     titleJapanese = pendingSeason.titleJapanese,
                                     language = uiState.titleLanguage
@@ -569,8 +569,8 @@ private fun AnimeHeaderSection(
     onAddToWatchlistClick: () -> Unit,
     onStatusChipClick: () -> Unit = {}
 ) {
-    val displayTitle = resolveDisplayTitle(
-        title = anime.title,
+    val displayTitle = resolveAnimeDisplayTitle(
+        titleRomaji = anime.title,
         titleEnglish = anime.titleEnglish,
         titleJapanese = anime.titleJapanese,
         language = titleLanguage
@@ -656,8 +656,8 @@ private fun SeasonCardItem(
     onStatusChipClick: () -> Unit = {},
     animeImageUrl: String? = null
 ) {
-    val displayTitle = resolveDisplayTitle(
-        title = season.title,
+    val displayTitle = resolveAnimeDisplayTitle(
+        titleRomaji = season.title,
         titleEnglish = season.titleEnglish,
         titleJapanese = season.titleJapanese,
         language = titleLanguage

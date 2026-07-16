@@ -84,7 +84,8 @@ import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.StreamingInfo
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
-import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
+import com.vuzeda.animewatchlist.tracker.module.domain.resolveAnimeDisplayTitle
+import com.vuzeda.animewatchlist.tracker.module.domain.resolveEpisodeDisplayTitle
 import com.vuzeda.animewatchlist.tracker.module.ui.R
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.ScreenPreviewSamples
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.home.toColor
@@ -233,8 +234,8 @@ fun SeasonDetailScreen(
                 }
                 else -> {
                     val season = checkNotNull(uiState.season)
-                    val seasonDisplayTitle = resolveDisplayTitle(
-                        title = season.title,
+                    val seasonDisplayTitle = resolveAnimeDisplayTitle(
+                        titleRomaji = season.title,
                         titleEnglish = season.titleEnglish,
                         titleJapanese = season.titleJapanese,
                         language = uiState.titleLanguage
@@ -431,14 +432,15 @@ private fun SeasonDetailContent(
                 items = state.episodes,
                 key = { _, episode -> episode.number }
             ) { index, episode ->
+                val episodeTitle = resolveEpisodeDisplayTitle(
+                    titleRomaji = episode.titleRomaji,
+                    titleEnglish = episode.titleEnglish,
+                    titleJapanese = episode.titleJapanese,
+                    language = state.titleLanguage
+                )
                 EpisodeListItem(
                     episodeNumber = episode.number,
-                    title = resolveDisplayTitle(
-                        title = episode.title ?: "",
-                        titleEnglish = episode.titleEnglish,
-                        titleJapanese = episode.titleJapanese,
-                        language = state.titleLanguage
-                    ),
+                    title = episodeTitle,
                     airedDate = episode.aired?.toLocalizedAiredDate(airedDateFormatter),
                     isFiller = episode.isFiller,
                     isRecap = episode.isRecap,
@@ -623,8 +625,8 @@ private fun SeasonHeaderSection(
     onStatusChipClick: () -> Unit,
     onAddToWatchlistClick: () -> Unit
 ) {
-    val displayTitle = resolveDisplayTitle(
-        title = season.title,
+    val displayTitle = resolveAnimeDisplayTitle(
+        titleRomaji = season.title,
         titleEnglish = season.titleEnglish,
         titleJapanese = season.titleJapanese,
         language = titleLanguage

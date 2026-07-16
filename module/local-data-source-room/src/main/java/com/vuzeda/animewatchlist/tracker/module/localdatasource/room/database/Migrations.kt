@@ -5,8 +5,34 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 val MIGRATION_25_26 = object : Migration(25, 26) {
     override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL("ALTER TABLE episode_info ADD COLUMN titleEnglish TEXT")
-        db.execSQL("ALTER TABLE episode_info ADD COLUMN titleJapanese TEXT")
+        // SQLite < 3.25 (API 29+) doesn't support ALTER TABLE RENAME COLUMN
+        // Recreate episode_info table with title renamed to titleRomaji and new columns
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `episode_info_new` (
+                `malId` INTEGER NOT NULL,
+                `number` INTEGER NOT NULL,
+                `titleRomaji` TEXT,
+                `titleEnglish` TEXT,
+                `titleJapanese` TEXT,
+                `aired` TEXT,
+                `isFiller` INTEGER NOT NULL,
+                `isRecap` INTEGER NOT NULL,
+                PRIMARY KEY(`malId`, `number`)
+            )
+            """.trimIndent()
+        )
+        db.execSQL(
+            """
+            INSERT INTO episode_info_new
+                (malId, number, titleRomaji, titleEnglish, titleJapanese, aired, isFiller, isRecap)
+            SELECT
+                malId, number, title, NULL, NULL, aired, isFiller, isRecap
+            FROM episode_info
+            """.trimIndent()
+        )
+        db.execSQL("DROP TABLE episode_info")
+        db.execSQL("ALTER TABLE episode_info_new RENAME TO episode_info")
     }
 }
 

@@ -1,0 +1,1 @@
+• Episode titles now support multiple languages — choose English, Japanese, or Romaji in settings.

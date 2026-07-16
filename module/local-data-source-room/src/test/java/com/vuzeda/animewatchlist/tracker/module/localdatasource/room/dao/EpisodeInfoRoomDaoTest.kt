@@ -30,9 +30,16 @@ class EpisodeInfoRoomDaoTest {
         database.close()
     }
 
-    private fun episode(number: Int, title: String? = "Ep $number") = EpisodeInfo(
+    private fun episode(
+        number: Int,
+        titleRomaji: String? = "Ep $number",
+        titleEnglish: String? = null,
+        titleJapanese: String? = null
+    ) = EpisodeInfo(
         number = number,
-        title = title,
+        titleRomaji = titleRomaji,
+        titleEnglish = titleEnglish,
+        titleJapanese = titleJapanese,
         aired = "2026-01-0$number",
         isFiller = false,
         isRecap = false
@@ -63,20 +70,22 @@ class EpisodeInfoRoomDaoTest {
 
     @Test
     fun `upsertEpisodes replaces an existing episode with the same number`() = runTest {
-        dao.upsertEpisodes(malId = 100, episodes = listOf(episode(1, title = "Old title")))
+        dao.upsertEpisodes(malId = 100, episodes = listOf(episode(1, titleRomaji = "Old title")))
 
-        dao.upsertEpisodes(malId = 100, episodes = listOf(episode(1, title = "New title")))
+        dao.upsertEpisodes(malId = 100, episodes = listOf(episode(1, titleRomaji = "New title")))
 
         val episodes = dao.getEpisodes(100)
         assertThat(episodes).hasSize(1)
-        assertThat(episodes.first().title).isEqualTo("New title")
+        assertThat(episodes.first().titleRomaji).isEqualTo("New title")
     }
 
     @Test
     fun `episode fields round-trip including flags`() = runTest {
         val fillerRecap = EpisodeInfo(
             number = 5,
-            title = "Recap special",
+            titleRomaji = "Recap special",
+            titleEnglish = "Recap special",
+            titleJapanese = "総集編",
             aired = "2026-02-14",
             isFiller = true,
             isRecap = true
@@ -89,7 +98,15 @@ class EpisodeInfoRoomDaoTest {
 
     @Test
     fun `null title and aired round-trip`() = runTest {
-        val tbaEpisode = EpisodeInfo(number = 7, title = null, aired = null, isFiller = false, isRecap = false)
+        val tbaEpisode = EpisodeInfo(
+            number = 7,
+            titleRomaji = null,
+            titleEnglish = null,
+            titleJapanese = null,
+            aired = null,
+            isFiller = false,
+            isRecap = false
+        )
 
         dao.upsertEpisodes(malId = 100, episodes = listOf(tbaEpisode))
 

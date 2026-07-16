@@ -59,7 +59,8 @@ private enum class TitleLanguageOption(
 ) {
     DEFAULT(TitleLanguage.DEFAULT, R.string.settings_title_language_default),
     ENGLISH(TitleLanguage.ENGLISH, R.string.settings_title_language_english),
-    JAPANESE(TitleLanguage.JAPANESE, R.string.settings_title_language_japanese)
+    JAPANESE(TitleLanguage.JAPANESE, R.string.settings_title_language_japanese),
+    ROMAJI(TitleLanguage.ROMAJI, R.string.settings_title_language_japanese)
 }
 
 private enum class HomeViewModeOption(

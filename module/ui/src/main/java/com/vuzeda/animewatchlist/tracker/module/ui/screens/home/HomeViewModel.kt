@@ -11,7 +11,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
-import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
+import com.vuzeda.animewatchlist.tracker.module.domain.resolveAnimeDisplayTitle
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveAllSeasonsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveAnimeListUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveHomeNotificationFilterUseCase
@@ -254,7 +254,12 @@ fun sortSeasonItems(
         HomeSortOption.ALPHABETICAL -> {
             val collator = Collator.getInstance(titleLanguage.toLocale())
             items.sortedWith(compareBy(collator) {
-                resolveDisplayTitle(it.season.title, it.season.titleEnglish, it.season.titleJapanese, titleLanguage)
+                resolveAnimeDisplayTitle(
+                    titleRomaji = it.season.title,
+                    titleEnglish = it.season.titleEnglish,
+                    titleJapanese = it.season.titleJapanese,
+                    language = titleLanguage
+                )
             })
         }
         HomeSortOption.RECENTLY_ADDED -> items.sortedByDescending { it.season.addedAt }
@@ -286,7 +291,12 @@ fun sortAnimeList(
         HomeSortOption.ALPHABETICAL -> {
             val collator = Collator.getInstance(titleLanguage.toLocale())
             list.sortedWith(compareBy(collator) {
-                resolveDisplayTitle(it.title, it.titleEnglish, it.titleJapanese, titleLanguage)
+                resolveAnimeDisplayTitle(
+                    titleRomaji = it.title,
+                    titleEnglish = it.titleEnglish,
+                    titleJapanese = it.titleJapanese,
+                    language = titleLanguage
+                )
             })
         }
         HomeSortOption.RECENTLY_ADDED -> list.sortedByDescending { it.addedAt }
@@ -301,4 +311,5 @@ private fun TitleLanguage.toLocale(): Locale = when (this) {
     TitleLanguage.DEFAULT -> Locale.ROOT
     TitleLanguage.ENGLISH -> Locale.ENGLISH
     TitleLanguage.JAPANESE -> Locale.JAPANESE
+    TitleLanguage.ROMAJI -> Locale.ROOT
 }

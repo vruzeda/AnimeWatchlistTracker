@@ -44,7 +44,7 @@ import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SmallSpacing
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
-import com.vuzeda.animewatchlist.tracker.module.domain.resolveDisplayTitle
+import com.vuzeda.animewatchlist.tracker.module.domain.resolveAnimeDisplayTitle
 import com.vuzeda.animewatchlist.tracker.module.ui.R
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.ScreenPreviewSamples
 import java.time.DayOfWeek
@@ -195,8 +195,8 @@ private fun ScheduleSeasonCard(
     onSeasonClick: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val displayTitle = resolveDisplayTitle(
-        title = season.title,
+    val displayTitle = resolveAnimeDisplayTitle(
+        titleRomaji = season.title,
         titleEnglish = season.titleEnglish,
         titleJapanese = season.titleJapanese,
         language = titleLanguage

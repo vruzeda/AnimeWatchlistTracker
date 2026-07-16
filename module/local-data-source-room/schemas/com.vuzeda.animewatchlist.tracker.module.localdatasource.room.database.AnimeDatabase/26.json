@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 26,
-    "identityHash": "0ec96b19111d20882f3532379705d42c",
+    "identityHash": "621f4c0575e2388d21091e2d069686f4",
     "entities": [
       {
         "tableName": "anime",
@@ -361,7 +361,7 @@
       },
       {
         "tableName": "episode_info",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`malId` INTEGER NOT NULL, `number` INTEGER NOT NULL, `title` TEXT, `titleEnglish` TEXT, `titleJapanese` TEXT, `aired` TEXT, `isFiller` INTEGER NOT NULL, `isRecap` INTEGER NOT NULL, PRIMARY KEY(`malId`, `number`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`malId` INTEGER NOT NULL, `number` INTEGER NOT NULL, `titleRomaji` TEXT, `titleEnglish` TEXT, `titleJapanese` TEXT, `aired` TEXT, `isFiller` INTEGER NOT NULL, `isRecap` INTEGER NOT NULL, PRIMARY KEY(`malId`, `number`))",
         "fields": [
           {
             "fieldPath": "malId",
@@ -376,8 +376,8 @@
             "notNull": true
           },
           {
-            "fieldPath": "title",
-            "columnName": "title",
+            "fieldPath": "titleRomaji",
+            "columnName": "titleRomaji",
             "affinity": "TEXT"
           },
           {
@@ -419,7 +419,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '0ec96b19111d20882f3532379705d42c')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '621f4c0575e2388d21091e2d069686f4')"
     ]
   }
 }
