@@ -1,8 +1,8 @@
 package com.vuzeda.animewatchlist.tracker.module.usecase
 
 import com.google.common.truth.Truth.assertThat
-import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonalAnimePage
 import com.vuzeda.animewatchlist.tracker.module.repository.AnimeRepository

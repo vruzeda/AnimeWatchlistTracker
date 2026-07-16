@@ -1,7 +1,7 @@
 package com.vuzeda.animewatchlist.tracker.module.usecase
 
-import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonalAnimePage
 import com.vuzeda.animewatchlist.tracker.module.repository.AnimeRepository
 import javax.inject.Inject

@@ -1,8 +1,8 @@
 package com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit
 
 import com.google.common.truth.Truth.assertThat
-import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.domain.DataError
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchFilterState
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.ChiakiWatchOrderEntryDto

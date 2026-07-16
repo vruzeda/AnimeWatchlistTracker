@@ -1,10 +1,10 @@
 package com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mapper
 
 import com.google.common.truth.Truth.assertThat
-import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchOrderBy
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchStatus
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import org.junit.jupiter.api.Test
 
 class AnimeSearchTypeMapperTest {

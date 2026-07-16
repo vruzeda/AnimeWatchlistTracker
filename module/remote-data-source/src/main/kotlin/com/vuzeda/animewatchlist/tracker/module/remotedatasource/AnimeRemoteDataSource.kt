@@ -1,13 +1,11 @@
 package com.vuzeda.animewatchlist.tracker.module.remotedatasource
 
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
-import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
-import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchStatus
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.domain.EpisodeInfo
 import com.vuzeda.animewatchlist.tracker.module.domain.EpisodePage
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchFilterState
-import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResultPage
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonData
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonalAnimePage

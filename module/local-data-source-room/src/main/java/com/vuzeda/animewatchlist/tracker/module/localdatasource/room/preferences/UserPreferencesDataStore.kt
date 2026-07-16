@@ -8,10 +8,10 @@ import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.UserPreferencesLocalDataSource
-import java.io.IOException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import java.io.IOException
 
 class UserPreferencesDataStore(
     private val dataStore: DataStore<Preferences>

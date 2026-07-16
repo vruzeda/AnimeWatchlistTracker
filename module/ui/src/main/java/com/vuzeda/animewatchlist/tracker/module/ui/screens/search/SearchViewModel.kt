@@ -10,6 +10,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchStatus
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
+import com.vuzeda.animewatchlist.tracker.module.ui.screens.toLoadErrorType
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddAnimeFromDetailsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveIsSearchFilteringAvailableUseCase
@@ -19,7 +20,6 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveWatchlistMalIdsUs
 import com.vuzeda.animewatchlist.tracker.module.usecase.RemoveAnimeByMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SearchAnimeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetSearchFilterStateUseCase
-import com.vuzeda.animewatchlist.tracker.module.ui.screens.toLoadErrorType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow

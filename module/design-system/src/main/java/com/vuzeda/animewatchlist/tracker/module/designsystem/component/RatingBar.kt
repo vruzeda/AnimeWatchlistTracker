@@ -28,13 +28,13 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.setProgress
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
-import kotlin.math.roundToInt
 import com.vuzeda.animewatchlist.tracker.module.designsystem.R
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlistTrackerTheme
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.MinTouchTarget
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.RatingStarSize
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SectionSpacing
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.extendedColors
+import kotlin.math.roundToInt
 
 @Composable
 fun RatingBar(

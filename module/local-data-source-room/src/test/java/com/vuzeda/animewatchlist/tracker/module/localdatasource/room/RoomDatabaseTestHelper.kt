@@ -1,6 +1,5 @@
 package com.vuzeda.animewatchlist.tracker.module.localdatasource.room
 
-import android.content.Context
 import androidx.room.Room
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database.AnimeDatabase
 import org.robolectric.RuntimeEnvironment

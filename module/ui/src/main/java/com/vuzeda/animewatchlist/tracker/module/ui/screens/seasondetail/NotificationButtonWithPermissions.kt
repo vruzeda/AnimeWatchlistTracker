@@ -25,8 +25,8 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.vuzeda.animewatchlist.tracker.module.designsystem.component.NotificationButton
 import com.vuzeda.animewatchlist.tracker.module.designsystem.R
+import com.vuzeda.animewatchlist.tracker.module.designsystem.component.NotificationButton
 
 @Composable
 fun NotificationButtonWithPermissions(

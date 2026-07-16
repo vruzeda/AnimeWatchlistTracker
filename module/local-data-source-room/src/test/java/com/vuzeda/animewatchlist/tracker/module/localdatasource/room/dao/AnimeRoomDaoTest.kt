@@ -7,7 +7,6 @@ import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdateResult
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.RoomDatabaseTestHelper
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database.AnimeDatabase
-import java.time.LocalDate
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -15,6 +14,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import java.time.LocalDate
 
 @RunWith(RobolectricTestRunner::class)
 class AnimeRoomDaoTest {

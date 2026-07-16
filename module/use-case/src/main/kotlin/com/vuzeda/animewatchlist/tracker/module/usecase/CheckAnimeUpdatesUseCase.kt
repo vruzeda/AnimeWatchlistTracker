@@ -1,8 +1,8 @@
 package com.vuzeda.animewatchlist.tracker.module.usecase
 
+import com.vuzeda.animewatchlist.tracker.module.domain.AiringStatus
 import com.vuzeda.animewatchlist.tracker.module.domain.Anime
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdate
-import com.vuzeda.animewatchlist.tracker.module.domain.AiringStatus
 import com.vuzeda.animewatchlist.tracker.module.domain.DataError
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.domain.Season

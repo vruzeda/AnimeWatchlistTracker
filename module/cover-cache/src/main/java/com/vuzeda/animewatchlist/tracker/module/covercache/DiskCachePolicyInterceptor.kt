@@ -1,8 +1,8 @@
 package com.vuzeda.animewatchlist.tracker.module.covercache
 
 import coil.intercept.Interceptor
-import coil.request.ImageResult
 import coil.request.CachePolicy
+import coil.request.ImageResult
 import java.util.concurrent.atomic.AtomicBoolean
 
 class DiskCachePolicyInterceptor(private val isEnabled: AtomicBoolean) : Interceptor {

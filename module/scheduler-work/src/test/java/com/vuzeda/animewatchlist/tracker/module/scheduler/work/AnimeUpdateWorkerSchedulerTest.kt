@@ -9,10 +9,10 @@ import com.google.common.truth.Truth.assertThat
 import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifyOrder
+import org.junit.jupiter.api.Test
 import java.time.Duration
 import java.time.ZoneId
 import java.time.ZonedDateTime
-import org.junit.jupiter.api.Test
 
 class AnimeUpdateWorkerSchedulerTest {
 

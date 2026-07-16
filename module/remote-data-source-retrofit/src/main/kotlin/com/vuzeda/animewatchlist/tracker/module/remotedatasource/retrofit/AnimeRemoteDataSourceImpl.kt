@@ -1,8 +1,8 @@
 package com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit
 
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
-import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.domain.EpisodeInfo
 import com.vuzeda.animewatchlist.tracker.module.domain.EpisodePage
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchFilterState

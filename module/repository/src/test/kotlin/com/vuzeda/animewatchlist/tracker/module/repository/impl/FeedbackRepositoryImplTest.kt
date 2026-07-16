@@ -8,9 +8,9 @@ import com.vuzeda.animewatchlist.tracker.module.remotedatasource.FeedbackRemoteD
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import java.io.IOException
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
+import java.io.IOException
 
 class FeedbackRepositoryImplTest {
 

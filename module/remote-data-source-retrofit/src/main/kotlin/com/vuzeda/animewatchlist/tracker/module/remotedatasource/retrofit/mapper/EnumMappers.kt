@@ -1,9 +1,9 @@
 package com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mapper
 
-import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchOrderBy
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchStatus
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 
 internal fun AnimeSearchType.toApiValue(): String? = when (this) {
     AnimeSearchType.ALL -> null

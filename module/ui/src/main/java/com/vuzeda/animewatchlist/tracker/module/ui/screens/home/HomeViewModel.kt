@@ -12,6 +12,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.domain.resolveAnimeDisplayTitle
+import com.vuzeda.animewatchlist.tracker.module.ui.util.latestWatchedSeason
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveAllSeasonsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveAnimeListUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveHomeNotificationFilterUseCase
@@ -24,7 +25,6 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.SetHomeSortStateUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetHomeStatusFilterUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.TriggerAnimeUpdateUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.UpdateSeasonStatusUseCase
-import com.vuzeda.animewatchlist.tracker.module.ui.util.latestWatchedSeason
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

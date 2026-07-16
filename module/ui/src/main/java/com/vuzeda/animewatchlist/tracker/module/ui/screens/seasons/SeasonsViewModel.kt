@@ -5,10 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsEvent
 import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsTracker
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
-import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
+import com.vuzeda.animewatchlist.tracker.module.ui.screens.toLoadErrorType
 import com.vuzeda.animewatchlist.tracker.module.usecase.AddAnimeFromDetailsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.FetchSeasonDetailUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.GetSeasonAnimeUseCase
@@ -18,7 +19,6 @@ import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseC
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveWatchlistMalIdsUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.RemoveAnimeByMalIdUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SetSeasonFilterUseCase
-import com.vuzeda.animewatchlist.tracker.module.ui.screens.toLoadErrorType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

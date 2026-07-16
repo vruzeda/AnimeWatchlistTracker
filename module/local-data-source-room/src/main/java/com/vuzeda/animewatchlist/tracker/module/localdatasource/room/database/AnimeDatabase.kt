@@ -15,7 +15,6 @@ import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.Anim
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.EpisodeInfoEntity
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.SeasonEntity
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity.WatchedEpisodeEntity
-import com.vuzeda.animewatchlist.tracker.module.localdatasource.room.database.MIGRATION_25_26
 
 @DeleteColumn(tableName = "season", columnName = "currentEpisode")
 class SeasonDropCurrentEpisodeMigration : AutoMigrationSpec

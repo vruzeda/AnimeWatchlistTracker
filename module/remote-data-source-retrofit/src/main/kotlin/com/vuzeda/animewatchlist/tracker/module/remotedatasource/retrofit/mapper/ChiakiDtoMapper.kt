@@ -4,7 +4,6 @@ import com.vuzeda.animewatchlist.tracker.module.domain.AiringStatus
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonData
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.ChiakiWatchOrderEntryDto
 import java.time.LocalDate
-import kotlin.time.Clock
 
 private val TYPE_CODE_TO_STRING = mapOf(
     1 to "TV",

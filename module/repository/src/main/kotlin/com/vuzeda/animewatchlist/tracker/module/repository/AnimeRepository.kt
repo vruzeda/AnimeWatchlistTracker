@@ -2,19 +2,18 @@ package com.vuzeda.animewatchlist.tracker.module.repository
 
 import com.vuzeda.animewatchlist.tracker.module.domain.Anime
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
-import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSearchType
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdateResult
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdateSchedulerState
 import com.vuzeda.animewatchlist.tracker.module.domain.EpisodeInfo
 import com.vuzeda.animewatchlist.tracker.module.domain.EpisodePage
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchFilterState
-import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResultPage
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonData
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonalAnimePage
-import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdateResult
-import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdateSchedulerState
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
