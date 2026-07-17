@@ -1,0 +1,1 @@
+• Uso da API do MAL como provedora oficial de conteúdo para resolver problemas de limite de requisições.

@@ -186,6 +186,6 @@ class UserPreferencesDataStore(
         private val NOTIFICATION_DEBUG_INFO_ENABLED_KEY = booleanPreferencesKey("notification_debug_info_enabled")
         private val OFFLINE_COVER_CACHING_KEY = booleanPreferencesKey("offline_cover_caching_enabled")
         private val ANIME_PROVIDER_KEY = stringPreferencesKey("anime_provider")
-        const val DEFAULT_ANIME_PROVIDER = "JIKAN"
+        const val DEFAULT_ANIME_PROVIDER = "MAL"
     }
 }

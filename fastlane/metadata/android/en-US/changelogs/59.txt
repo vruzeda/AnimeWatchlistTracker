@@ -1,0 +1,1 @@
+• Use MAL API as official content provider to solve rate limiting issues.

@@ -1,0 +1,1 @@
+• Utilisation de l'API MAL comme fournisseur officiel de contenu afin de résoudre les problèmes de limitation du nombre de requêtes.

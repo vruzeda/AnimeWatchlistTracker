@@ -1,0 +1,1 @@
+• Se utiliza la API de MAL como proveedor oficial de contenido para solucionar los problemas de límite de solicitudes.
