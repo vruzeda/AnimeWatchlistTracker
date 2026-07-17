@@ -1,2 +1,3 @@
 • Exibir os filtros de pesquisa antes de realizar a pesquisa.
 • Continuar exibindo temporadas com detalhes de programação ausentes na agenda.
+• Corrigido um problema de rolagem nas configurações.
