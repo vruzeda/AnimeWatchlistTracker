@@ -238,7 +238,7 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `onVersionTap persists developer options enabled after 5 taps`() = runTest {
+    fun `onVersionTap persists developer options enabled and resets tap count after 5 taps`() = runTest {
         val viewModel = createViewModel()
 
         viewModel.uiState.test {
@@ -253,6 +253,10 @@ class SettingsViewModelTest {
         testDispatcher.scheduler.advanceUntilIdle()
 
         coVerify(exactly = 1) { setIsDeveloperOptionsEnabledUseCase(true) }
+        viewModel.uiState.test {
+            val reset = awaitItem()
+            assertThat(reset.developerTapCount).isEqualTo(0)
+        }
     }
 
     @Test

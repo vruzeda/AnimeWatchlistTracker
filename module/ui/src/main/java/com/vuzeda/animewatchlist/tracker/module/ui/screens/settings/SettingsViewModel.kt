@@ -131,7 +131,10 @@ class SettingsViewModel @Inject constructor(
             )
         }
         if (newCount >= 5) {
-            viewModelScope.launch { setIsDeveloperOptionsEnabledUseCase(true) }
+            viewModelScope.launch {
+                setIsDeveloperOptionsEnabledUseCase(true)
+                _uiState.update { it.copy(developerTapCount = 0) }
+            }
         }
     }
 
