@@ -1,0 +1,1 @@
+• Afficher les filtres de recherche avant de lancer la recherche.
