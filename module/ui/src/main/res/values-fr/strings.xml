@@ -219,7 +219,7 @@
     <string name="developer_disable_options">Désactiver les options développeur</string>
     <string name="developer_notification_debug_info">Débogage des notifications</string>
     <string name="developer_anime_provider">Fournisseur de données d\'anime</string>
-    <string name="developer_anime_provider_jikan">Jikan (API non officielle)</string>
+    <string name="developer_anime_provider_tenrai">Tenrai (API non officielle)</string>
     <string name="developer_anime_provider_mal">API officielle de MAL (expérimentale)</string>
     <string name="developer_last_attempt_run">Dernière tentative de mise à jour</string>
     <string name="developer_last_update_result">Dernier résultat</string>

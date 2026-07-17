@@ -22,7 +22,7 @@ class BrowserUserAgentInterceptorTest {
         val interceptor = BrowserUserAgentInterceptor(userAgent = "TestAgent/1.0")
         val proceededRequest = slot<Request>()
         val chain = buildChain(
-            request = Request.Builder().url("https://api.jikan.moe/").build(),
+            request = Request.Builder().url("https://api.tenrai.org/").build(),
             proceededRequest = proceededRequest
         )
 

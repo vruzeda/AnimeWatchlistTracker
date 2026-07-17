@@ -29,11 +29,11 @@ class ObserveAnimeProviderUseCaseTest {
     }
 
     @Test
-    fun `emits JIKAN as default provider`() = runTest {
-        every { repository.observeAnimeProvider() } returns flowOf(AnimeProvider.JIKAN)
+    fun `emits TENRAI as default provider`() = runTest {
+        every { repository.observeAnimeProvider() } returns flowOf(AnimeProvider.TENRAI)
 
         useCase().test {
-            assertThat(awaitItem()).isEqualTo(AnimeProvider.JIKAN)
+            assertThat(awaitItem()).isEqualTo(AnimeProvider.TENRAI)
             awaitComplete()
         }
     }

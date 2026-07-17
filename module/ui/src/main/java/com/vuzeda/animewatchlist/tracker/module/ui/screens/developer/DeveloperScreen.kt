@@ -49,7 +49,7 @@ private enum class AnimeProviderOption(
     val provider: AnimeProvider,
     @StringRes val labelRes: Int
 ) {
-    JIKAN(AnimeProvider.JIKAN, R.string.developer_anime_provider_jikan),
+    TENRAI(AnimeProvider.TENRAI, R.string.developer_anime_provider_tenrai),
     MAL(AnimeProvider.MAL, R.string.developer_anime_provider_mal)
 }
 

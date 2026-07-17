@@ -9,5 +9,5 @@ data class DeveloperUiState(
     val lastAnimeUpdateAttemptAt: Instant? = null,
     val lastAnimeUpdateAttemptResult: AnimeUpdateResult? = null,
     val isNotificationDebugInfoEnabled: Boolean = false,
-    val animeProvider: AnimeProvider = AnimeProvider.JIKAN
+    val animeProvider: AnimeProvider = AnimeProvider.TENRAI
 )

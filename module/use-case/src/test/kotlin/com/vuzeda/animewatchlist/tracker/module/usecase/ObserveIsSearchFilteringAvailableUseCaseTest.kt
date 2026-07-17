@@ -16,8 +16,8 @@ class ObserveIsSearchFilteringAvailableUseCaseTest {
     private val useCase = ObserveIsSearchFilteringAvailableUseCase(repository)
 
     @Test
-    fun `emits true when Jikan is the selected provider`() = runTest {
-        every { repository.observeAnimeProvider() } returns flowOf(AnimeProvider.JIKAN)
+    fun `emits true when Tenrai is the selected provider`() = runTest {
+        every { repository.observeAnimeProvider() } returns flowOf(AnimeProvider.TENRAI)
 
         useCase().test {
             assertThat(awaitItem()).isTrue()
@@ -38,7 +38,7 @@ class ObserveIsSearchFilteringAvailableUseCaseTest {
     @Test
     fun `re-emits availability when the provider changes`() = runTest {
         every { repository.observeAnimeProvider() } returns
-            flowOf(AnimeProvider.JIKAN, AnimeProvider.MAL)
+            flowOf(AnimeProvider.TENRAI, AnimeProvider.MAL)
 
         useCase().test {
             assertThat(awaitItem()).isTrue()

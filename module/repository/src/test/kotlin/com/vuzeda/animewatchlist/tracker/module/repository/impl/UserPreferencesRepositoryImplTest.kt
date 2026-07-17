@@ -473,11 +473,11 @@ class UserPreferencesRepositoryImplTest {
     }
 
     @Test
-    fun `observeAnimeProvider returns JIKAN for unknown stored value`() = runTest {
+    fun `observeAnimeProvider returns MAL for unknown stored value`() = runTest {
         every { dataSource.observeAnimeProvider() } returns flowOf("UNKNOWN_VALUE")
 
         repository.observeAnimeProvider().test {
-            assertThat(awaitItem()).isEqualTo(AnimeProvider.JIKAN)
+            assertThat(awaitItem()).isEqualTo(AnimeProvider.MAL)
             awaitComplete()
         }
     }

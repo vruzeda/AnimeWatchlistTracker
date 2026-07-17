@@ -62,7 +62,7 @@ class DeveloperViewModelTest {
         Dispatchers.setMain(testDispatcher)
         every { observeAnimeUpdateSchedulerStateUseCase() } returns flowOf(emptySchedulerState)
         every { observeIsNotificationDebugInfoEnabledUseCase() } returns flowOf(false)
-        every { observeAnimeProviderUseCase() } returns flowOf(AnimeProvider.JIKAN)
+        every { observeAnimeProviderUseCase() } returns flowOf(AnimeProvider.TENRAI)
         every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
         every { context.getString(R.string.developer_test_notification_anime_title) } returns "Test Anime"
         every { context.getString(R.string.developer_test_notification_season_title) } returns "Test Season"
@@ -297,7 +297,7 @@ class DeveloperViewModelTest {
 
         viewModel.uiState.test {
             val initial = awaitItem()
-            assertThat(initial.animeProvider).isEqualTo(AnimeProvider.JIKAN)
+            assertThat(initial.animeProvider).isEqualTo(AnimeProvider.TENRAI)
         }
     }
 

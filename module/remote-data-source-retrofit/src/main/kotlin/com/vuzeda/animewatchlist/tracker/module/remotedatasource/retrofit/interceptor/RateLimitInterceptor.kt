@@ -15,7 +15,7 @@ class RateLimitInterceptor(
         val host = request.url.host
 
         var waitMs = 0L
-        if (host == JIKAN_HOST) {
+        if (host == TENRAI_HOST) {
             synchronized(lock) {
                 val now = System.currentTimeMillis()
                 val elapsed = now - lastRequestTimeMs
@@ -33,7 +33,7 @@ class RateLimitInterceptor(
     }
 
     companion object {
-        const val JIKAN_HOST = "api.jikan.moe"
+        const val TENRAI_HOST = "api.tenrai.org"
         const val DEFAULT_INTERVAL_MS = 334L
     }
 }

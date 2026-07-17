@@ -19,4 +19,4 @@ PRIVACIDADE
 
 Seus dados ficam no seu dispositivo. O app faz requisições de rede apenas para pesquisar anime e verificar atualizações — nenhuma informação pessoal é coletada ou compartilhada. Consulte nossa política de privacidade completa para mais detalhes.
 
-Os dados de anime são fornecidos pela API Jikan, uma API open source não oficial do MyAnimeList.
+Os dados de anime são fornecidos pela API Tenrai, uma API open source não oficial do MyAnimeList.

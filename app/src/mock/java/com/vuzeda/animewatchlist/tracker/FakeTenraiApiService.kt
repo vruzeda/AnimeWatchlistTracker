@@ -16,14 +16,14 @@ import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.Im
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.RelatedEntryDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.SearchPaginationDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.StreamingDto
-import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.JikanApiService
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.TenraiApiService
 import kotlinx.coroutines.delay
 import okhttp3.ResponseBody.Companion.toResponseBody
 import retrofit2.HttpException
 import retrofit2.Response
 import kotlin.time.Duration.Companion.seconds
 
-class FakeJikanApiService : JikanApiService {
+class FakeTenraiApiService : TenraiApiService {
 
     override suspend fun searchAnime(
         query: String,

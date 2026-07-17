@@ -14,7 +14,7 @@ import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.Ep
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.SearchPaginationDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.ChiakiRequestException
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.ChiakiService
-import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.JikanApiService
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.TenraiApiService
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -33,9 +33,9 @@ import java.time.LocalDate
 @OptIn(ExperimentalCoroutinesApi::class)
 class AnimeRemoteDataSourceImplTest {
 
-    private val jikanApiService: JikanApiService = mockk()
+    private val tenraiApiService: TenraiApiService = mockk()
     private val chiakiService: ChiakiService = mockk()
-    private val repository = AnimeRemoteDataSourceImpl(jikanApiService, chiakiService)
+    private val repository = AnimeRemoteDataSourceImpl(tenraiApiService, chiakiService)
 
     private fun httpException(
         code: Int,
@@ -46,7 +46,7 @@ class AnimeRemoteDataSourceImplTest {
             .code(code)
             .message(message)
             .protocol(Protocol.HTTP_1_1)
-            .request(Request.Builder().url("https://api.jikan.moe/").build())
+            .request(Request.Builder().url("https://api.tenrai.org/").build())
         headers.forEach { (name, value) -> builder.addHeader(name, value) }
         return HttpException(Response.error<Any>("".toResponseBody(null), builder.build()))
     }
@@ -58,7 +58,7 @@ class AnimeRemoteDataSourceImplTest {
             AnimeDataDto(malId = 2, title = "Bleach"),
             AnimeDataDto(malId = 1, title = "Naruto")
         )
-        coEvery { jikanApiService.searchAnime(query = "naruto") } returns
+        coEvery { tenraiApiService.searchAnime(query = "naruto") } returns
             AnimeSearchResponseDto(data = duplicatedData)
 
         val result = repository.searchAnime("naruto").getOrThrow()
@@ -75,7 +75,7 @@ class AnimeRemoteDataSourceImplTest {
             AnimeDataDto(malId = 2, title = "Bleach"),
             AnimeDataDto(malId = 3, title = "One Piece")
         )
-        coEvery { jikanApiService.searchAnime(query = "anime") } returns
+        coEvery { tenraiApiService.searchAnime(query = "anime") } returns
             AnimeSearchResponseDto(data = uniqueData)
 
         val result = repository.searchAnime("anime").getOrThrow()
@@ -89,7 +89,7 @@ class AnimeRemoteDataSourceImplTest {
             AnimeDataDto(malId = 1, title = "Naruto Original"),
             AnimeDataDto(malId = 1, title = "Naruto Duplicate")
         )
-        coEvery { jikanApiService.searchAnime(query = "naruto") } returns
+        coEvery { tenraiApiService.searchAnime(query = "naruto") } returns
             AnimeSearchResponseDto(data = duplicatedData)
 
         val result = repository.searchAnime("naruto").getOrThrow()
@@ -104,7 +104,7 @@ class AnimeRemoteDataSourceImplTest {
             pagination = SearchPaginationDto(hasNextPage = true, lastVisiblePage = 5),
             data = listOf(AnimeDataDto(malId = 1, title = "Naruto"))
         )
-        coEvery { jikanApiService.searchAnime(query = "naruto", page = 2) } returns response
+        coEvery { tenraiApiService.searchAnime(query = "naruto", page = 2) } returns response
 
         val result = repository.searchAnime("naruto", page = 2).getOrThrow()
 
@@ -115,132 +115,132 @@ class AnimeRemoteDataSourceImplTest {
 
     @Test
     fun `searchAnime returns failure wrapping DataError Network on IOException`() = runTest {
-        coEvery { jikanApiService.searchAnime(any()) } throws IOException("Connection reset")
+        coEvery { tenraiApiService.searchAnime(any()) } throws IOException("Connection reset")
 
         val result = repository.searchAnime("naruto")
 
         assertThat(result.isFailure).isTrue()
         assertThat(result.exceptionOrNull()).isInstanceOf(DataError.Network::class.java)
-        coVerify(exactly = 1) { jikanApiService.searchAnime(any()) }
+        coVerify(exactly = 1) { tenraiApiService.searchAnime(any()) }
     }
 
     @Test
     fun `searchAnime returns failure wrapping DataError NotFound on HTTP 404`() = runTest {
-        coEvery { jikanApiService.searchAnime(any()) } throws httpException(404, "Not Found")
+        coEvery { tenraiApiService.searchAnime(any()) } throws httpException(404, "Not Found")
 
         val result = repository.searchAnime("naruto")
 
         assertThat(result.isFailure).isTrue()
         assertThat(result.exceptionOrNull()).isInstanceOf(DataError.NotFound::class.java)
-        coVerify(exactly = 1) { jikanApiService.searchAnime(any()) }
+        coVerify(exactly = 1) { tenraiApiService.searchAnime(any()) }
     }
 
     @Test
     fun `searchAnime returns failure wrapping DataError RateLimited on HTTP 429`() = runTest {
-        coEvery { jikanApiService.searchAnime(any()) } throws httpException(429)
+        coEvery { tenraiApiService.searchAnime(any()) } throws httpException(429)
 
         val result = repository.searchAnime("naruto")
 
         assertThat(result.isFailure).isTrue()
         assertThat(result.exceptionOrNull()).isInstanceOf(DataError.RateLimited::class.java)
-        coVerify(exactly = 4) { jikanApiService.searchAnime(any()) }
+        coVerify(exactly = 4) { tenraiApiService.searchAnime(any()) }
     }
 
     @Test
     fun `searchAnime populates retryAfterMs from Retry-After header on HTTP 429`() = runTest {
-        coEvery { jikanApiService.searchAnime(any()) } throws httpException(429, headers = mapOf("Retry-After" to "30"))
+        coEvery { tenraiApiService.searchAnime(any()) } throws httpException(429, headers = mapOf("Retry-After" to "30"))
 
         val result = repository.searchAnime("naruto")
 
         val error = result.exceptionOrNull() as DataError.RateLimited
         assertThat(error.retryAfterMs).isEqualTo(30_000L)
-        coVerify(exactly = 4) { jikanApiService.searchAnime(any()) }
+        coVerify(exactly = 4) { tenraiApiService.searchAnime(any()) }
     }
 
     @Test
     fun `searchAnime sets retryAfterMs to null when Retry-After header is absent on HTTP 429`() = runTest {
-        coEvery { jikanApiService.searchAnime(any()) } throws httpException(429)
+        coEvery { tenraiApiService.searchAnime(any()) } throws httpException(429)
 
         val result = repository.searchAnime("naruto")
 
         val error = result.exceptionOrNull() as DataError.RateLimited
         assertThat(error.retryAfterMs).isNull()
-        coVerify(exactly = 4) { jikanApiService.searchAnime(any()) }
+        coVerify(exactly = 4) { tenraiApiService.searchAnime(any()) }
     }
 
     @Test
     fun `searchAnime sets retryAfterMs to null when Retry-After header is non-numeric on HTTP 429`() = runTest {
-        coEvery { jikanApiService.searchAnime(any()) } throws httpException(429, headers = mapOf("Retry-After" to "Wed, 21 Oct 2015 07:28:00 GMT"))
+        coEvery { tenraiApiService.searchAnime(any()) } throws httpException(429, headers = mapOf("Retry-After" to "Wed, 21 Oct 2015 07:28:00 GMT"))
 
         val result = repository.searchAnime("naruto")
 
         val error = result.exceptionOrNull() as DataError.RateLimited
         assertThat(error.retryAfterMs).isNull()
-        coVerify(exactly = 4) { jikanApiService.searchAnime(any()) }
+        coVerify(exactly = 4) { tenraiApiService.searchAnime(any()) }
     }
 
     @Test
     fun `searchAnime returns failure wrapping DataError Network on other HTTP errors`() = runTest {
-        coEvery { jikanApiService.searchAnime(any()) } throws httpException(500)
+        coEvery { tenraiApiService.searchAnime(any()) } throws httpException(500)
 
         val result = repository.searchAnime("naruto")
 
         assertThat(result.isFailure).isTrue()
         assertThat(result.exceptionOrNull()).isInstanceOf(DataError.Network::class.java)
-        coVerify(exactly = 1) { jikanApiService.searchAnime(any()) }
+        coVerify(exactly = 1) { tenraiApiService.searchAnime(any()) }
     }
 
     @Test
     fun `searchAnime retries on HTTP 503 and succeeds on second attempt`() = runTest {
         val response = AnimeSearchResponseDto(data = listOf(AnimeDataDto(malId = 1, title = "Naruto")))
-        coEvery { jikanApiService.searchAnime(any()) } throws httpException(503) andThen response
+        coEvery { tenraiApiService.searchAnime(any()) } throws httpException(503) andThen response
 
         val result = repository.searchAnime("naruto")
 
         assertThat(result.isSuccess).isTrue()
-        coVerify(exactly = 2) { jikanApiService.searchAnime(any()) }
+        coVerify(exactly = 2) { tenraiApiService.searchAnime(any()) }
     }
 
     @Test
     fun `searchAnime exhausts retries and fails with DataError Network on persistent HTTP 504`() = runTest {
-        coEvery { jikanApiService.searchAnime(any()) } throws httpException(504)
+        coEvery { tenraiApiService.searchAnime(any()) } throws httpException(504)
 
         val result = repository.searchAnime("naruto")
 
         assertThat(result.isFailure).isTrue()
         assertThat(result.exceptionOrNull()).isInstanceOf(DataError.Network::class.java)
-        coVerify(exactly = 4) { jikanApiService.searchAnime(any()) }
+        coVerify(exactly = 4) { tenraiApiService.searchAnime(any()) }
         assertThat(testScheduler.currentTime).isEqualTo(3_500L)
     }
 
     @Test
     fun `searchAnime retries on HTTP 429 honoring Retry-After header and succeeds on second attempt`() = runTest {
         val response = AnimeSearchResponseDto(data = listOf(AnimeDataDto(malId = 1, title = "Naruto")))
-        coEvery { jikanApiService.searchAnime(any()) } throws
+        coEvery { tenraiApiService.searchAnime(any()) } throws
             httpException(429, headers = mapOf("Retry-After" to "2")) andThen response
 
         val result = repository.searchAnime("naruto")
 
         assertThat(result.isSuccess).isTrue()
-        coVerify(exactly = 2) { jikanApiService.searchAnime(any()) }
+        coVerify(exactly = 2) { tenraiApiService.searchAnime(any()) }
         assertThat(testScheduler.currentTime).isEqualTo(2_000L)
     }
 
     @Test
     fun `searchAnime exhausts retries waiting the full uncapped Retry-After on persistent HTTP 429`() = runTest {
-        coEvery { jikanApiService.searchAnime(any()) } throws httpException(429, headers = mapOf("Retry-After" to "120"))
+        coEvery { tenraiApiService.searchAnime(any()) } throws httpException(429, headers = mapOf("Retry-After" to "120"))
 
         val result = repository.searchAnime("naruto")
 
         val error = result.exceptionOrNull() as DataError.RateLimited
         assertThat(error.retryAfterMs).isEqualTo(120_000L)
-        coVerify(exactly = 4) { jikanApiService.searchAnime(any()) }
+        coVerify(exactly = 4) { tenraiApiService.searchAnime(any()) }
         assertThat(testScheduler.currentTime).isEqualTo(360_000L)
     }
 
     @Test
     fun `searchAnime returns failure wrapping DataError Unknown on unexpected exceptions`() = runTest {
-        coEvery { jikanApiService.searchAnime(any()) } throws RuntimeException("Unexpected")
+        coEvery { tenraiApiService.searchAnime(any()) } throws RuntimeException("Unexpected")
 
         val result = repository.searchAnime("naruto")
 
@@ -258,7 +258,7 @@ class AnimeRemoteDataSourceImplTest {
             )
         )
         coEvery {
-            jikanApiService.getSeasonAnime(
+            tenraiApiService.getSeasonAnime(
                 year = 2026,
                 season = "winter",
                 page = 1
@@ -289,7 +289,7 @@ class AnimeRemoteDataSourceImplTest {
                 EpisodeDto(malId = 14, aired = "2026-03-16")
             )
         )
-        coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 1) } returns page
+        coEvery { tenraiApiService.getAnimeEpisodes(malId = 100, page = 1) } returns page
 
         val result = repository.fetchEpisodesAiredBetween(100, after, upTo, null).getOrThrow()
 
@@ -312,14 +312,14 @@ class AnimeRemoteDataSourceImplTest {
             pagination = EpisodesPaginationDto(lastVisiblePage = 2, hasNextPage = false),
             data = listOf(EpisodeDto(malId = 12, aired = "2026-03-12"))
         )
-        coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 1) } returns page1
-        coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 2) } returns page2
+        coEvery { tenraiApiService.getAnimeEpisodes(malId = 100, page = 1) } returns page1
+        coEvery { tenraiApiService.getAnimeEpisodes(malId = 100, page = 2) } returns page2
 
         val result = repository.fetchEpisodesAiredBetween(100, after, upTo, null).getOrThrow()
 
         assertThat(result).hasSize(2)
         assertThat(result.map { it.number }).containsExactly(10, 12).inOrder()
-        coVerify(exactly = 1) { jikanApiService.getAnimeEpisodes(malId = 100, page = 2) }
+        coVerify(exactly = 1) { tenraiApiService.getAnimeEpisodes(malId = 100, page = 2) }
     }
 
     @Test
@@ -334,8 +334,8 @@ class AnimeRemoteDataSourceImplTest {
             pagination = EpisodesPaginationDto(lastVisiblePage = 2, hasNextPage = false),
             data = listOf(EpisodeDto(malId = 11, aired = "2026-03-12"))
         )
-        coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 1) } returns page1
-        coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 2) } returns page2
+        coEvery { tenraiApiService.getAnimeEpisodes(malId = 100, page = 1) } returns page1
+        coEvery { tenraiApiService.getAnimeEpisodes(malId = 100, page = 2) } returns page2
 
         val result = repository.fetchEpisodesAiredBetween(100, after, upTo, null).getOrThrow()
 
@@ -351,13 +351,13 @@ class AnimeRemoteDataSourceImplTest {
             pagination = EpisodesPaginationDto(lastVisiblePage = 2, hasNextPage = false),
             data = listOf(EpisodeDto(malId = 100, aired = "2026-03-10"))
         )
-        coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 1) } returns page1
+        coEvery { tenraiApiService.getAnimeEpisodes(malId = 100, page = 1) } returns page1
 
         val result = repository.fetchEpisodesAiredBetween(100, after, upTo, startingFromEpisode = 100).getOrThrow()
 
         assertThat(result).hasSize(1)
         assertThat(result[0].number).isEqualTo(100)
-        coVerify(exactly = 1) { jikanApiService.getAnimeEpisodes(malId = 100, page = 1) }
+        coVerify(exactly = 1) { tenraiApiService.getAnimeEpisodes(malId = 100, page = 1) }
     }
 
     @Test
@@ -368,14 +368,14 @@ class AnimeRemoteDataSourceImplTest {
             pagination = EpisodesPaginationDto(lastVisiblePage = 2, hasNextPage = false),
             data = listOf(EpisodeDto(malId = 101, aired = "2026-03-10"))
         )
-        coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 2) } returns page2
+        coEvery { tenraiApiService.getAnimeEpisodes(malId = 100, page = 2) } returns page2
 
         val result = repository.fetchEpisodesAiredBetween(100, after, upTo, startingFromEpisode = 101).getOrThrow()
 
         assertThat(result).hasSize(1)
         assertThat(result[0].number).isEqualTo(101)
-        coVerify(exactly = 0) { jikanApiService.getAnimeEpisodes(malId = 100, page = 1) }
-        coVerify(exactly = 1) { jikanApiService.getAnimeEpisodes(malId = 100, page = 2) }
+        coVerify(exactly = 0) { tenraiApiService.getAnimeEpisodes(malId = 100, page = 1) }
+        coVerify(exactly = 1) { tenraiApiService.getAnimeEpisodes(malId = 100, page = 2) }
     }
 
     @Test
@@ -389,7 +389,7 @@ class AnimeRemoteDataSourceImplTest {
                 EpisodeDto(malId = 2, aired = "2026-03-13")
             )
         )
-        coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 1) } returns page
+        coEvery { tenraiApiService.getAnimeEpisodes(malId = 100, page = 1) } returns page
 
         val result = repository.fetchEpisodesAiredBetween(100, after, upTo, null).getOrThrow()
 
@@ -404,7 +404,7 @@ class AnimeRemoteDataSourceImplTest {
             pagination = EpisodesPaginationDto(lastVisiblePage = 1, hasNextPage = false),
             data = listOf(EpisodeDto(malId = 5, aired = "2026-03-15"))
         )
-        coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 1) } returns page
+        coEvery { tenraiApiService.getAnimeEpisodes(malId = 100, page = 1) } returns page
 
         val result = repository.fetchEpisodesAiredBetween(100, after, upTo, null).getOrThrow()
 
@@ -423,7 +423,7 @@ class AnimeRemoteDataSourceImplTest {
                 EpisodeDto(malId = 2, aired = "2026-06-01T00:00:00+00:00")
             )
         )
-        coEvery { jikanApiService.getAnimeEpisodes(malId = 100, page = 1) } returns page
+        coEvery { tenraiApiService.getAnimeEpisodes(malId = 100, page = 1) } returns page
 
         val result = repository.fetchEpisodesAiredBetween(100, after, upTo, null).getOrThrow()
 
@@ -436,7 +436,7 @@ class AnimeRemoteDataSourceImplTest {
         val response = AnimeFullResponseDto(
             data = AnimeFullDataDto(malId = 21, title = "One Punch Man", relations = null)
         )
-        coEvery { jikanApiService.getAnimeFullById(21) } returns response
+        coEvery { tenraiApiService.getAnimeFullById(21) } returns response
 
         val result = repository.fetchAnimeFullById(21).getOrThrow()
 
@@ -449,13 +449,13 @@ class AnimeRemoteDataSourceImplTest {
         val response = AnimeFullResponseDto(
             data = AnimeFullDataDto(malId = 56735, title = "Oh Boy, Was I Wrong About Her", relations = null)
         )
-        coEvery { jikanApiService.getAnimeFullById(56735) } throws httpException(504) andThen response
+        coEvery { tenraiApiService.getAnimeFullById(56735) } throws httpException(504) andThen response
 
         val result = repository.fetchAnimeFullById(56735)
 
         assertThat(result.isSuccess).isTrue()
         assertThat(result.getOrThrow().title).isEqualTo("Oh Boy, Was I Wrong About Her")
-        coVerify(exactly = 2) { jikanApiService.getAnimeFullById(56735) }
+        coVerify(exactly = 2) { tenraiApiService.getAnimeFullById(56735) }
     }
 
     @Test
@@ -503,7 +503,7 @@ class AnimeRemoteDataSourceImplTest {
 
     @Test
     fun `searchAnime rethrows CancellationException without retrying`() = runTest {
-        coEvery { jikanApiService.searchAnime(any()) } throws CancellationException("Cancelled")
+        coEvery { tenraiApiService.searchAnime(any()) } throws CancellationException("Cancelled")
 
         val result = runCatching {
             repository.searchAnime("naruto")
@@ -511,6 +511,6 @@ class AnimeRemoteDataSourceImplTest {
 
         assertThat(result.isFailure).isTrue()
         assertThat(result.exceptionOrNull()).isInstanceOf(CancellationException::class.java)
-        coVerify(exactly = 1) { jikanApiService.searchAnime(any()) }
+        coVerify(exactly = 1) { tenraiApiService.searchAnime(any()) }
     }
 }

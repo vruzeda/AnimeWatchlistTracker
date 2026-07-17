@@ -11,5 +11,5 @@ class ObserveIsSearchFilteringAvailableUseCase @Inject constructor(
 ) {
 
     operator fun invoke(): Flow<Boolean> =
-        userPreferencesRepository.observeAnimeProvider().map { it == AnimeProvider.JIKAN }
+        userPreferencesRepository.observeAnimeProvider().map { it == AnimeProvider.TENRAI }
 }

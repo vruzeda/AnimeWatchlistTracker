@@ -21,7 +21,7 @@ class RateLimitInterceptorTest {
     }
 
     @Test
-    fun `non-Jikan host passes through without rate limiting`() {
+    fun `non-Tenrai host passes through without rate limiting`() {
         val interceptor = RateLimitInterceptor(minIntervalMs = 10_000)
         val chain = buildChain("example.com")
 
@@ -31,9 +31,9 @@ class RateLimitInterceptorTest {
     }
 
     @Test
-    fun `Jikan host passes through when interval is zero`() {
+    fun `Tenrai host passes through when interval is zero`() {
         val interceptor = RateLimitInterceptor(minIntervalMs = 0)
-        val chain = buildChain(RateLimitInterceptor.JIKAN_HOST)
+        val chain = buildChain(RateLimitInterceptor.TENRAI_HOST)
 
         interceptor.intercept(chain)
         interceptor.intercept(chain)
@@ -42,9 +42,9 @@ class RateLimitInterceptorTest {
     }
 
     @Test
-    fun `Jikan host delays second request when called too soon`() {
+    fun `Tenrai host delays second request when called too soon`() {
         val interceptor = RateLimitInterceptor(minIntervalMs = 100)
-        val chain = buildChain(RateLimitInterceptor.JIKAN_HOST)
+        val chain = buildChain(RateLimitInterceptor.TENRAI_HOST)
 
         interceptor.intercept(chain)
         val startMs = System.currentTimeMillis()
@@ -61,7 +61,7 @@ class RateLimitInterceptorTest {
     }
 
     @Test
-    fun `Jikan host constant matches api subdomain`() {
-        assertThat(RateLimitInterceptor.JIKAN_HOST).isEqualTo("api.jikan.moe")
+    fun `Tenrai host constant matches api subdomain`() {
+        assertThat(RateLimitInterceptor.TENRAI_HOST).isEqualTo("api.tenrai.org")
     }
 }

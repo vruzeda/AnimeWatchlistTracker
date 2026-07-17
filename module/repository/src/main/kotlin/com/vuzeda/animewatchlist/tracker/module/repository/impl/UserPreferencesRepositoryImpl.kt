@@ -128,7 +128,7 @@ class UserPreferencesRepositoryImpl @Inject constructor(
 
     override fun observeAnimeProvider(): Flow<AnimeProvider> =
         dataSource.observeAnimeProvider().map { value ->
-            AnimeProvider.entries.firstOrNull { it.name == value } ?: AnimeProvider.JIKAN
+            AnimeProvider.entries.firstOrNull { it.name == value } ?: AnimeProvider.MAL
         }
 
     override suspend fun setAnimeProvider(provider: AnimeProvider) {

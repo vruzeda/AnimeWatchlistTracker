@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test
 class MalEnumMappersTest {
 
     @Test
-    fun `maps known media types to Jikan-style display values`() {
+    fun `maps known media types to Tenrai-style display values`() {
         assertThat("tv".malMediaTypeToDisplayType()).isEqualTo("TV")
         assertThat("ova".malMediaTypeToDisplayType()).isEqualTo("OVA")
         assertThat("movie".malMediaTypeToDisplayType()).isEqualTo("Movie")
@@ -42,7 +42,7 @@ class MalEnumMappersTest {
     }
 
     @Test
-    fun `maps broadcast days to Jikan-style plural day names`() {
+    fun `maps broadcast days to Tenrai-style plural day names`() {
         assertThat("monday".malBroadcastDayToDisplayDay()).isEqualTo("Mondays")
         assertThat("tuesday".malBroadcastDayToDisplayDay()).isEqualTo("Tuesdays")
         assertThat("wednesday".malBroadcastDayToDisplayDay()).isEqualTo("Wednesdays")

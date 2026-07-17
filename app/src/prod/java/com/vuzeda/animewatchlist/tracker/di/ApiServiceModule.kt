@@ -9,10 +9,10 @@ import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.interc
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.interceptor.RateLimitInterceptor
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.ChiakiService
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.ChiakiServiceImpl
-import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.JikanApiService
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.MalApiService
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.MalEpisodeListService
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.MalEpisodeListServiceImpl
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.TenraiApiService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -36,13 +36,13 @@ object ApiServiceModule {
 
     @Provides
     @Singleton
-    fun provideJikanApiService(okHttpClient: OkHttpClient, moshi: Moshi): JikanApiService =
+    fun provideTenraiApiService(okHttpClient: OkHttpClient, moshi: Moshi): TenraiApiService =
         Retrofit.Builder()
-            .baseUrl(JikanApiService.BASE_URL)
+            .baseUrl(TenraiApiService.BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
-            .create(JikanApiService::class.java)
+            .create(TenraiApiService::class.java)
 
     @Provides
     @Singleton

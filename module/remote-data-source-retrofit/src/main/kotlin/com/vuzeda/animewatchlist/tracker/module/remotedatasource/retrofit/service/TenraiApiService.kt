@@ -7,9 +7,9 @@ import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-interface JikanApiService {
+interface TenraiApiService {
 
-    @GET("v4/anime")
+    @GET("anime")
     suspend fun searchAnime(
         @Query("q") query: String,
         @Query("page") page: Int = 1,
@@ -20,16 +20,16 @@ interface JikanApiService {
         @Query("sort") sort: String? = null
     ): AnimeSearchResponseDto
 
-    @GET("v4/anime/{id}/full")
+    @GET("anime/{id}/full")
     suspend fun getAnimeFullById(@Path("id") malId: Int): AnimeFullResponseDto
 
-    @GET("v4/anime/{id}/episodes")
+    @GET("anime/{id}/episodes")
     suspend fun getAnimeEpisodes(
         @Path("id") malId: Int,
         @Query("page") page: Int = 1
     ): AnimeEpisodesResponseDto
 
-    @GET("v4/seasons/{year}/{season}")
+    @GET("seasons/{year}/{season}")
     suspend fun getSeasonAnime(
         @Path("year") year: Int,
         @Path("season") season: String,
@@ -39,6 +39,6 @@ interface JikanApiService {
     ): AnimeSearchResponseDto
 
     companion object {
-        const val BASE_URL = "https://api.jikan.moe/"
+        const val BASE_URL = "https://api.tenrai.org/v1/"
     }
 }

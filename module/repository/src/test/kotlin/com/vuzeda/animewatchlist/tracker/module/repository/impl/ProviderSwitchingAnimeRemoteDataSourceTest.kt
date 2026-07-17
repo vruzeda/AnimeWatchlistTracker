@@ -19,11 +19,11 @@ import java.time.LocalDate
 
 class ProviderSwitchingAnimeRemoteDataSourceTest {
 
-    private val jikanDataSource: AnimeRemoteDataSource = mockk()
+    private val tenraiDataSource: AnimeRemoteDataSource = mockk()
     private val malDataSource: AnimeRemoteDataSource = mockk()
     private val userPreferencesRepository: UserPreferencesRepository = mockk()
     private val dataSource = ProviderSwitchingAnimeRemoteDataSource(
-        jikanDataSource = jikanDataSource,
+        tenraiDataSource = tenraiDataSource,
         malDataSource = malDataSource,
         userPreferencesRepository = userPreferencesRepository
     )
@@ -33,10 +33,10 @@ class ProviderSwitchingAnimeRemoteDataSourceTest {
     }
 
     @Test
-    fun `searchAnime delegates to Jikan when Jikan is selected`() = runTest {
-        selectProvider(AnimeProvider.JIKAN)
+    fun `searchAnime delegates to Tenrai when Tenrai is selected`() = runTest {
+        selectProvider(AnimeProvider.TENRAI)
         val page = SearchResultPage(results = emptyList(), hasNextPage = false, currentPage = 1)
-        coEvery { jikanDataSource.searchAnime(any(), any(), any()) } returns Result.success(page)
+        coEvery { tenraiDataSource.searchAnime(any(), any(), any()) } returns Result.success(page)
 
         val result = dataSource.searchAnime("frieren")
 
@@ -53,20 +53,20 @@ class ProviderSwitchingAnimeRemoteDataSourceTest {
         val result = dataSource.searchAnime("frieren")
 
         assertThat(result.getOrThrow()).isEqualTo(page)
-        coVerify(exactly = 0) { jikanDataSource.searchAnime(any(), any(), any()) }
+        coVerify(exactly = 0) { tenraiDataSource.searchAnime(any(), any(), any()) }
     }
 
     @Test
     fun `fetchAnimeFullById follows the selected provider per call`() = runTest {
         every { userPreferencesRepository.observeAnimeProvider() } returns
-            flowOf(AnimeProvider.JIKAN) andThen flowOf(AnimeProvider.MAL)
-        coEvery { jikanDataSource.fetchAnimeFullById(1) } returns Result.failure(IllegalStateException())
+            flowOf(AnimeProvider.TENRAI) andThen flowOf(AnimeProvider.MAL)
+        coEvery { tenraiDataSource.fetchAnimeFullById(1) } returns Result.failure(IllegalStateException())
         coEvery { malDataSource.fetchAnimeFullById(1) } returns Result.failure(IllegalStateException())
 
         dataSource.fetchAnimeFullById(1)
         dataSource.fetchAnimeFullById(1)
 
-        coVerify(exactly = 1) { jikanDataSource.fetchAnimeFullById(1) }
+        coVerify(exactly = 1) { tenraiDataSource.fetchAnimeFullById(1) }
         coVerify(exactly = 1) { malDataSource.fetchAnimeFullById(1) }
     }
 
@@ -83,11 +83,11 @@ class ProviderSwitchingAnimeRemoteDataSourceTest {
 
     @Test
     fun `fetchEpisodesAiredBetween delegates all arguments`() = runTest {
-        selectProvider(AnimeProvider.JIKAN)
+        selectProvider(AnimeProvider.TENRAI)
         val after = LocalDate.parse("2024-01-01")
         val upTo = LocalDate.parse("2024-02-01")
         coEvery {
-            jikanDataSource.fetchEpisodesAiredBetween(
+            tenraiDataSource.fetchEpisodesAiredBetween(
                 malId = 1,
                 after = after,
                 upTo = upTo,
@@ -104,7 +104,7 @@ class ProviderSwitchingAnimeRemoteDataSourceTest {
 
         assertThat(result.isSuccess).isTrue()
         coVerify {
-            jikanDataSource.fetchEpisodesAiredBetween(
+            tenraiDataSource.fetchEpisodesAiredBetween(
                 malId = 1,
                 after = after,
                 upTo = upTo,
@@ -121,15 +121,15 @@ class ProviderSwitchingAnimeRemoteDataSourceTest {
         val result = dataSource.fetchWatchOrder(1)
 
         assertThat(result.isSuccess).isTrue()
-        coVerify(exactly = 0) { jikanDataSource.fetchWatchOrder(any()) }
+        coVerify(exactly = 0) { tenraiDataSource.fetchWatchOrder(any()) }
     }
 
     @Test
     fun `fetchSeasonAnime delegates to the selected provider`() = runTest {
-        selectProvider(AnimeProvider.JIKAN)
+        selectProvider(AnimeProvider.TENRAI)
         val page = SeasonalAnimePage(results = emptyList(), hasNextPage = false, currentPage = 1)
         coEvery {
-            jikanDataSource.fetchSeasonAnime(year = 2023, season = AnimeSeason.FALL, page = 1, filter = any())
+            tenraiDataSource.fetchSeasonAnime(year = 2023, season = AnimeSeason.FALL, page = 1, filter = any())
         } returns Result.success(page)
 
         val result = dataSource.fetchSeasonAnime(year = 2023, season = AnimeSeason.FALL, page = 1)

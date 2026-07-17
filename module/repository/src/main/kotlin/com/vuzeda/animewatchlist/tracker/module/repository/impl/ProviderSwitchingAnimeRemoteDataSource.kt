@@ -17,14 +17,14 @@ import java.time.LocalDate
 import javax.inject.Inject
 
 class ProviderSwitchingAnimeRemoteDataSource @Inject constructor(
-    private val jikanDataSource: AnimeRemoteDataSource,
+    private val tenraiDataSource: AnimeRemoteDataSource,
     private val malDataSource: AnimeRemoteDataSource,
     private val userPreferencesRepository: UserPreferencesRepository
 ) : AnimeRemoteDataSource {
 
     private suspend fun selectedDataSource(): AnimeRemoteDataSource =
         when (userPreferencesRepository.observeAnimeProvider().first()) {
-            AnimeProvider.JIKAN -> jikanDataSource
+            AnimeProvider.TENRAI -> tenraiDataSource
             AnimeProvider.MAL -> malDataSource
         }
 

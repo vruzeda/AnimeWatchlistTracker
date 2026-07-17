@@ -18,7 +18,7 @@ import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.Ma
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.MalApiService
 
 class FakeMalApiService(
-    private val fakeJikanApiService: FakeJikanApiService
+    private val fakeTenraiApiService: FakeTenraiApiService
 ) : MalApiService {
 
     override suspend fun searchAnime(
@@ -28,10 +28,10 @@ class FakeMalApiService(
         nsfw: Boolean,
         fields: String
     ): MalAnimeListResponseDto =
-        fakeJikanApiService.searchAnime(query = query, page = offset / limit + 1).toMalListResponse()
+        fakeTenraiApiService.searchAnime(query = query, page = offset / limit + 1).toMalListResponse()
 
     override suspend fun getAnimeById(malId: Int, fields: String): MalAnimeDto =
-        fakeJikanApiService.getAnimeFullById(malId).data.toMalAnime()
+        fakeTenraiApiService.getAnimeFullById(malId).data.toMalAnime()
 
     override suspend fun getSeasonAnime(
         year: Int,
@@ -41,7 +41,7 @@ class FakeMalApiService(
         nsfw: Boolean,
         fields: String
     ): MalAnimeListResponseDto =
-        fakeJikanApiService.getSeasonAnime(year = year, season = season, page = offset / limit + 1)
+        fakeTenraiApiService.getSeasonAnime(year = year, season = season, page = offset / limit + 1)
             .toMalListResponse()
 }
 

@@ -5,11 +5,11 @@ import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.Ma
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.service.MalEpisodeListService
 
 class FakeMalEpisodeListService(
-    private val fakeJikanApiService: FakeJikanApiService
+    private val fakeTenraiApiService: FakeTenraiApiService
 ) : MalEpisodeListService {
 
     override suspend fun fetchEpisodePage(malId: Int, page: Int): MalEpisodeListPageDto {
-        val response = fakeJikanApiService.getAnimeEpisodes(malId = malId, page = page)
+        val response = fakeTenraiApiService.getAnimeEpisodes(malId = malId, page = page)
         return MalEpisodeListPageDto(
             episodes = response.data.map { episode ->
                 MalEpisodeRowDto(

@@ -5,39 +5,56 @@
 [![Release](https://img.shields.io/github/v/release/vruzeda/AnimeWatchlistTracker)](https://github.com/vruzeda/AnimeWatchlistTracker/releases/latest)
 [![Min SDK](https://img.shields.io/badge/minSdk-26-brightgreen)](https://developer.android.com/about/versions/oreo)
 
-A clean, offline-first Android app for tracking your anime journey. Organize what you're watching, what you've completed, and what's next — all from your pocket.
+A clean, offline-first Android app for tracking your anime journey. Organize what you're watching,
+what you've completed, and what's next — all from your pocket.
 
 ## About
 
-Anime Watchlist Tracker is a personal anime management app built for fans who want a lightweight, fast, and private way to keep track of their anime library. No account required, no data collection — just you and your list.
+Anime Watchlist Tracker is a personal anime management app built for fans who want a lightweight,
+fast, and private way to keep track of their anime library. No account required, no data
+collection — just you and your list.
 
 ### Key Features
 
 - **Watchlist Management** — Add, edit, and remove anime from your personal library
-- **Season Grouping** — Anime are organized as series with multiple seasons, resolved automatically via chiaki.site watch order data with progressive loading of prequels and sequels
+- **Season Grouping** — Anime are organized as series with multiple seasons, resolved automatically
+  via chiaki.site watch order data with progressive loading of prequels and sequels
 - **Status Categories** — Organize anime by status:
-  - 📺 Watching
-  - ✅ Completed
-  - 📋 Plan to Watch
-  - ⏸️ On Hold
-  - ❌ Dropped
-- **Episode Progress** — Mark individual episodes as watched per season; progress is tracked automatically from your selections
+    - 📺 Watching
+    - ✅ Completed
+    - 📋 Plan to Watch
+    - ⏸️ On Hold
+    - ❌ Dropped
+- **Episode Progress** — Mark individual episodes as watched per season; progress is tracked
+  automatically from your selections
 - **Rating System** — Rate anime on a 1–10 star scale
-- **Anime Search** — Look up anime info using the Jikan API (unofficial MyAnimeList API) and add to your watchlist
-- **Search Result Browsing** — Tap any search result to view full details, or use the "+" button to add directly to your watchlist
-- **Seasonal Browsing** — Browse anime by year and season (Winter, Spring, Summer, Fall) with pagination, sorting, and quick add to watchlist
-- **Sorting** — Sort your watchlist, search results, and seasonal lists by title, score, or recently added, with reversible ascending/descending direction
-- **Filtering** — Multi-dimensional filtering on the Home screen (by status and notification toggle) and search results (All, In Watchlist, Not in Watchlist)
-- **Home View Mode** — Toggle the Home screen between Anime view (one card per series) and Season view (one card per individual season), configurable in Settings
-- **Notifications** — Enable per-anime notifications for new episodes and/or new seasons, plus a per-season toggle to include or exclude individual seasons from daily episode checks
+- **Anime Search** — Look up anime info using the Tenrai API (unofficial MyAnimeList API) and add to
+  your watchlist
+- **Search Result Browsing** — Tap any search result to view full details, or use the "+" button to
+  add directly to your watchlist
+- **Seasonal Browsing** — Browse anime by year and season (Winter, Spring, Summer, Fall) with
+  pagination, sorting, and quick add to watchlist
+- **Sorting** — Sort your watchlist, search results, and seasonal lists by title, score, or recently
+  added, with reversible ascending/descending direction
+- **Filtering** — Multi-dimensional filtering on the Home screen (by status and notification toggle)
+  and search results (All, In Watchlist, Not in Watchlist)
+- **Home View Mode** — Toggle the Home screen between Anime view (one card per series) and Season
+  view (one card per individual season), configurable in Settings
+- **Notifications** — Enable per-anime notifications for new episodes and/or new seasons, plus a
+  per-season toggle to include or exclude individual seasons from daily episode checks
 - **Title Language** — Choose to display anime titles in Romaji (default), English, or Japanese
-- **Localization** — UI fully translated in English, Brazilian Portuguese, Latin American Spanish, and French
+- **Localization** — UI fully translated in English, Brazilian Portuguese, Latin American Spanish,
+  and French
 - **Settings** — Configure title language preference, Home view mode, and delete all data
 - **Developer Options** — Advanced debugging tools for development and testing (debug builds only)
-- **Selectable Anime Data Source** — Choose between Jikan (default) and MyAnimeList's official API as the anime data provider; MyAnimeList mode is experimental and available from the Developer screen
+- **Selectable Anime Data Source** — Choose between Tenrai (default) and MyAnimeList's official API
+  as the anime data provider; MyAnimeList mode is experimental and available from the Developer
+  screen
 - **Schedule Management** — Upcoming schedule view with auto-refresh and airing status tracking
-- **Offline Cover Caching** — Automatically cache anime cover images for offline viewing; disable in Settings if preferred
-- **Offline First** — All data stored locally on your device using Room, with user preferences in DataStore
+- **Offline Cover Caching** — Automatically cache anime cover images for offline viewing; disable in
+  Settings if preferred
+- **Offline First** — All data stored locally on your device using Room, with user preferences in
+  DataStore
 - **Material You** — Modern, dynamic theming that adapts to your wallpaper (Android 12+)
 
 ## Screenshots
@@ -62,62 +79,75 @@ _Coming soon_
 - **Analytics & Crash Reporting** — Firebase Analytics, Firebase Crashlytics
 - **Async** — Kotlin Coroutines 1.11.0 + Flow
 - **Logging** — Timber 5.0.1
-- **API** — Jikan v4 (MyAnimeList unofficial API), MyAnimeList API v2 (experimental, selectable), chiaki.site (watch order scraping)
+- **API** — Tenrai v1 (MyAnimeList unofficial API), MyAnimeList API v2 (experimental, selectable),
+  chiaki.site (watch order scraping)
 - **Testing** — JUnit 5, MockK, Turbine, Truth
 - **Min SDK** — API 26 (Android 8.0)
 - **Target SDK** — API 37 (Android 14)
 
 ## Architecture
 
-The project follows **Clean Architecture** with strict layer separation enforced at the **Gradle module level**, and **MVVM** in the UI layer. Each layer is its own independent module. Dependencies point inward only.
+The project follows **Clean Architecture** with strict layer separation enforced at the **Gradle
+module level**, and **MVVM** in the UI layer. Each layer is its own independent module. Dependencies
+point inward only.
 
-| Module | Type | Description |
-|--------|------|-------------|
-| `:module:domain` | Pure Kotlin lib | Domain models only |
-| `:module:local-data-source` | Pure Kotlin lib | Local data source interfaces |
-| `:module:local-data-source-room` | Android lib | Room entities, DAOs, DataStore, migrations |
-| `:module:remote-data-source` | Pure Kotlin lib | Remote data source interfaces |
+| Module                                | Type            | Description                                    |
+|---------------------------------------|-----------------|------------------------------------------------|
+| `:module:domain`                      | Pure Kotlin lib | Domain models only                             |
+| `:module:local-data-source`           | Pure Kotlin lib | Local data source interfaces                   |
+| `:module:local-data-source-room`      | Android lib     | Room entities, DAOs, DataStore, migrations     |
+| `:module:remote-data-source`          | Pure Kotlin lib | Remote data source interfaces                  |
 | `:module:remote-data-source-retrofit` | Pure Kotlin lib | Retrofit impl, DTOs, DTO mappers, interceptors |
-| `:module:remote-data-source-firebase` | Android lib | Firebase Firestore impl (prod only) |
-| `:module:repository` | Pure Kotlin lib | Repository interfaces + implementations |
-| `:module:use-case` | Pure Kotlin lib | All use cases |
-| `:module:analytics` | Pure Kotlin lib | Analytics interface + no-op impl |
-| `:module:analytics-firebase` | Android lib | Firebase Analytics impl (prod only) |
-| `:module:notification` | Pure Kotlin lib | Notification interface |
-| `:module:notification-android` | Android lib | Android notification implementation |
-| `:module:scheduler` | Pure Kotlin lib | Scheduler interface |
-| `:module:scheduler-work` | Android lib | WorkManager scheduler implementation |
-| `:module:design-system` | Android lib | Material 3 theme, reusable Compose components |
-| `:module:ui` | Android lib | Compose screens, ViewModels, navigation (MVVM) |
-| `:app` | Android app | Hilt entry point, DI wiring |
+| `:module:remote-data-source-firebase` | Android lib     | Firebase Firestore impl (prod only)            |
+| `:module:repository`                  | Pure Kotlin lib | Repository interfaces + implementations        |
+| `:module:use-case`                    | Pure Kotlin lib | All use cases                                  |
+| `:module:analytics`                   | Pure Kotlin lib | Analytics interface + no-op impl               |
+| `:module:analytics-firebase`          | Android lib     | Firebase Analytics impl (prod only)            |
+| `:module:notification`                | Pure Kotlin lib | Notification interface                         |
+| `:module:notification-android`        | Android lib     | Android notification implementation            |
+| `:module:scheduler`                   | Pure Kotlin lib | Scheduler interface                            |
+| `:module:scheduler-work`              | Android lib     | WorkManager scheduler implementation           |
+| `:module:design-system`               | Android lib     | Material 3 theme, reusable Compose components  |
+| `:module:ui`                          | Android lib     | Compose screens, ViewModels, navigation (MVVM) |
+| `:app`                                | Android app     | Hilt entry point, DI wiring                    |
 
-- `:module:ui` screens are built from `:module:design-system` components; ViewModels call use cases from `:module:use-case`.
-- `:module:repository` is the only layer that coordinates local (Room) and remote (Retrofit/Firebase) data sources.
+- `:module:ui` screens are built from `:module:design-system` components; ViewModels call use cases
+  from `:module:use-case`.
+- `:module:repository` is the only layer that coordinates local (Room) and remote (
+  Retrofit/Firebase) data sources.
 - `:module:domain` has zero dependencies — it is the innermost layer.
 - `:app` is the only module that sees everything; all Hilt cross-module bindings live here.
 
 ### Screens
 
-- **Home** — Watchlist with multi-dimensional filtering (by status and notification toggle), sortable by multiple criteria with reversible direction
-- **Seasons** — Browse anime by year and season via Jikan API, with pagination, sorting, and quick add to watchlist
-- **Search** — Search anime via Jikan API, filter by watchlist status, sort results, and browse or add to your watchlist
+- **Home** — Watchlist with multi-dimensional filtering (by status and notification toggle),
+  sortable by multiple criteria with reversible direction
+- **Seasons** — Browse anime by year and season via Tenrai API, with pagination, sorting, and quick
+  add to watchlist
+- **Search** — Search anime via Tenrai API, filter by watchlist status, sort results, and browse or
+  add to your watchlist
 - **Settings** — Title language preference (Romaji/English/Japanese) and delete all data
-- **Anime Detail** — View anime series details with grouped season list, edit status/rating, toggle notifications, progressive prequel/sequel resolution
-- **Season Detail** — View individual season details with a paginated episode list, per-episode watched toggles, and a per-season notification toggle
+- **Anime Detail** — View anime series details with grouped season list, edit status/rating, toggle
+  notifications, progressive prequel/sequel resolution
+- **Season Detail** — View individual season details with a paginated episode list, per-episode
+  watched toggles, and a per-season notification toggle
 
 ## API
 
 This app uses three external data sources:
 
-### Jikan API v4
-[Jikan](https://jikan.moe/) is a free, open-source, unofficial API for MyAnimeList.
+### Tenrai API v1
+
+[Tenrai](https://tenrai.org/) is a free, open-source, unofficial API for MyAnimeList.
 
 - No API key required
 - Rate limited to ~3 requests/second
 - Used for search, seasonal browsing, detail viewing, episode lists, and daily notification checks
-- Endpoints used: `/v4/anime` (search), `/v4/anime/{id}` (details), `/v4/anime/{id}/full` (full details with relations), `/v4/anime/{id}/episodes` (episode list), `/v4/seasons/{year}/{season}` (seasonal browsing)
+- Endpoints used: `/anime` (search), `/anime/{id}` (details), `/anime/{id}/full` (full details with
+  relations), `/anime/{id}/episodes` (episode list), `/seasons/{year}/{season}` (seasonal browsing)
 
 ### chiaki.site
+
 [chiaki.site](https://chiaki.site/) provides anime watch order data.
 
 - Used to resolve series structure (prequels, sequels, related entries) for season grouping
@@ -125,19 +155,26 @@ This app uses three external data sources:
 - All user data stays local
 
 ### MyAnimeList API v2 (experimental)
-[MyAnimeList API v2](https://myanimelist.net/apiconfig) is the official MyAnimeList API. It is an **experimental, selectable alternative** to Jikan for search, detail viewing, and seasonal browsing, chosen from the Developer screen (Jikan remains the default). A public Client ID is sent as the `X-MAL-CLIENT-ID` header — no OAuth required.
 
-- Register an app at [myanimelist.net/apiconfig](https://myanimelist.net/apiconfig) (type "other") to obtain a Client ID
+[MyAnimeList API v2](https://myanimelist.net/apiconfig) is the official MyAnimeList API. It is an *
+*experimental, selectable alternative** to Tenrai for search, detail viewing, and seasonal browsing,
+chosen from the Developer screen (Tenrai remains the default). A public Client ID is sent as the
+`X-MAL-CLIENT-ID` header — no OAuth required.
+
+- Register an app at [myanimelist.net/apiconfig](https://myanimelist.net/apiconfig) (type "other")
+  to obtain a Client ID
 - Used for search, detail viewing, and seasonal browsing when selected
 - Episode data is fetched by scraping `myanimelist.net` (same approach as chiaki.site)
-- **Limitations compared to Jikan:** no search filters (type, status, or order), no streaming links, and scraped episode titles are English-only and lack filler/recap flags
+- **Limitations compared to Tenrai:** no search filters (type, status, or order), no streaming
+  links, and scraped episode titles are English-only and lack filler/recap flags
 - All user data stays local
 
 ## Getting Started
 
 ### Prerequisites
 
-- [Android Studio](https://developer.android.com/studio) Meerkat (2025.1.1) or newer (AGP 9.2.1 required)
+- [Android Studio](https://developer.android.com/studio) Meerkat (2025.1.1) or newer (AGP 9.2.1
+  required)
 - JDK 17+
 - Android SDK with API 37
 
@@ -169,11 +206,11 @@ This app uses three external data sources:
 - [x] Multi-module Gradle setup
 - [x] Domain layer (models, repository interfaces, use cases)
 - [x] Local database with Room
-- [x] API layer (Jikan v4 DTOs, Retrofit service)
+- [x] API layer (Tenrai v1 DTOs, Retrofit service)
 - [x] Repository layer with mappers
 - [x] Design system (theme, reusable components)
 - [x] Home screen with multi-dimensional filtering and sorting
-- [x] Anime search via Jikan API
+- [x] Anime search via Tenrai API
 - [x] Detail screen with episode tracking and rating
 - [x] DI wiring with Hilt
 - [x] Per-anime notification toggle with daily update checks
@@ -194,7 +231,8 @@ This app uses three external data sources:
 
 ## Contributing
 
-This is a personal project, but contributions are welcome! Feel free to open issues or submit pull requests.
+This is a personal project, but contributions are welcome! Feel free to open issues or submit pull
+requests.
 
 ## License
 
