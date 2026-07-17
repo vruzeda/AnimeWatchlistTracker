@@ -1,6 +1,7 @@
 package com.vuzeda.animewatchlist.tracker.module.ui.screens.schedule
 
 import com.google.common.truth.Truth.assertThat
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeDayOfWeek
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
@@ -160,7 +161,8 @@ class ScheduleViewModelTest {
         val (currentYear, currentSeason) = ScheduleViewModel.currentAnimeSeason()
         val seasons = listOf(
             Season(id = 1, malId = 1, title = "Saturday Show", broadcastDay = "Saturdays", isInWatchlist = true, airingSeasonName = currentSeason.name.lowercase(), airingSeasonYear = currentYear),
-            Season(id = 2, malId = 2, title = "Monday Show", broadcastDay = "Mondays", isInWatchlist = true, airingSeasonName = currentSeason.name.lowercase(), airingSeasonYear = currentYear)
+            Season(id = 2, malId = 2, title = "Monday Show", broadcastDay = "Mondays", isInWatchlist = true, airingSeasonName = currentSeason.name.lowercase(), airingSeasonYear = currentYear),
+            Season(id = 3, malId = 3, title = "Unknown Day Show", broadcastDay = null, isInWatchlist = true, airingSeasonName = currentSeason.name.lowercase(), airingSeasonYear = currentYear),
         )
         every { observeScheduleUseCase() } returns flowOf(seasons)
         val viewModel = createViewModel()
@@ -168,10 +170,12 @@ class ScheduleViewModelTest {
 
         val schedule = viewModel.uiState.value.schedule
 
-        assertThat(schedule).containsKey(DayOfWeek.SATURDAY)
-        assertThat(schedule).containsKey(DayOfWeek.MONDAY)
-        assertThat(schedule[DayOfWeek.SATURDAY]?.map { it.id }).containsExactly(1L)
-        assertThat(schedule[DayOfWeek.MONDAY]?.map { it.id }).containsExactly(2L)
+        assertThat(schedule).containsKey(AnimeDayOfWeek.SATURDAY)
+        assertThat(schedule).containsKey(AnimeDayOfWeek.MONDAY)
+        assertThat(schedule).containsKey(AnimeDayOfWeek.UNKNOWN)
+        assertThat(schedule[AnimeDayOfWeek.SATURDAY]?.map { it.id }).containsExactly(1L)
+        assertThat(schedule[AnimeDayOfWeek.MONDAY]?.map { it.id }).containsExactly(2L)
+        assertThat(schedule[AnimeDayOfWeek.UNKNOWN]?.map { it.id }).containsExactly(3L)
     }
 
     @Test
@@ -186,7 +190,7 @@ class ScheduleViewModelTest {
         val viewModel = createViewModel()
         advanceUntilIdle()
 
-        val saturdayIds = viewModel.uiState.value.schedule[DayOfWeek.SATURDAY]?.map { it.id }
+        val saturdayIds = viewModel.uiState.value.schedule[AnimeDayOfWeek.SATURDAY]?.map { it.id }
 
         assertThat(saturdayIds).containsExactly(2L, 3L, 1L).inOrder()
     }

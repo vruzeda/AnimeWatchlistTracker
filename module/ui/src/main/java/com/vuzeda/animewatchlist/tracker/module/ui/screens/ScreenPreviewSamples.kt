@@ -1,6 +1,7 @@
 package com.vuzeda.animewatchlist.tracker.module.ui.screens
 
 import com.vuzeda.animewatchlist.tracker.module.domain.Anime
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeDayOfWeek
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdateResult
 import com.vuzeda.animewatchlist.tracker.module.domain.EpisodeInfo
@@ -165,7 +166,7 @@ internal object ScreenPreviewSamples {
     val scheduleUiState = ScheduleUiState(
         selectedYear = 2026,
         selectedSeason = AnimeSeason.SUMMER,
-        schedule = mapOf(DayOfWeek.FRIDAY to listOf(frierenSeason)),
+        schedule = mapOf(AnimeDayOfWeek.FRIDAY to listOf(frierenSeason)),
         availableSeasons = listOf(2026 to AnimeSeason.SUMMER),
         isLoading = false
     )

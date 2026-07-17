@@ -1,1 +1,2 @@
 • Show search filters before searching.
+• Still show seasons with missing schedule details in the schedule.

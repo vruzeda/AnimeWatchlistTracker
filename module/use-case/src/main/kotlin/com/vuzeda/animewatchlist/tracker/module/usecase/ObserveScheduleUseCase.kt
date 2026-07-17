@@ -6,13 +6,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
-/** Emits watchlist seasons that have a known broadcast day, for use in the schedule screen. */
+/** Emits watchlist seasons that have a known airing season, for use in the schedule screen. */
 class ObserveScheduleUseCase @Inject constructor(
     private val seasonRepository: SeasonRepository
 ) {
 
     operator fun invoke(): Flow<List<Season>> =
         seasonRepository.observeAllSeasons().map { seasons ->
-            seasons.filter { it.isInWatchlist && it.broadcastDay != null }
+            seasons.filter { it.isInWatchlist && it.airingSeasonYear != null && it.airingSeasonName != null }
         }
 }

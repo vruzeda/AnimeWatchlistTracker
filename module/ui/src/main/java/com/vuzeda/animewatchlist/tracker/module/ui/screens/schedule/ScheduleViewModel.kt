@@ -2,6 +2,7 @@ package com.vuzeda.animewatchlist.tracker.module.ui.screens.schedule
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeDayOfWeek
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveScheduleUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
@@ -14,7 +15,6 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.time.DayOfWeek
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -55,7 +55,7 @@ class ScheduleViewModel @Inject constructor(
                 }
 
                 val schedule = filteredSeasons
-                    .groupBy { it.broadcastDay?.toDayOfWeek() ?: DayOfWeek.MONDAY }
+                    .groupBy { it.broadcastDay.toDayOfWeek() }
                     .mapValues { (_, seasons) -> seasons.sortedBy { it.broadcastTime } }
                     .toSortedMap()
 
@@ -132,13 +132,13 @@ private fun String.toAnimeSeason(): AnimeSeason? {
     }
 }
 
-private fun String.toDayOfWeek(): DayOfWeek = when (this.lowercase().trimEnd('s')) {
-    "monday" -> DayOfWeek.MONDAY
-    "tuesday" -> DayOfWeek.TUESDAY
-    "wednesday" -> DayOfWeek.WEDNESDAY
-    "thursday" -> DayOfWeek.THURSDAY
-    "friday" -> DayOfWeek.FRIDAY
-    "saturday" -> DayOfWeek.SATURDAY
-    "sunday" -> DayOfWeek.SUNDAY
-    else -> DayOfWeek.MONDAY
+private fun String?.toDayOfWeek(): AnimeDayOfWeek = when (this?.lowercase()?.trimEnd('s')) {
+    "monday" -> AnimeDayOfWeek.MONDAY
+    "tuesday" -> AnimeDayOfWeek.TUESDAY
+    "wednesday" -> AnimeDayOfWeek.WEDNESDAY
+    "thursday" -> AnimeDayOfWeek.THURSDAY
+    "friday" -> AnimeDayOfWeek.FRIDAY
+    "saturday" -> AnimeDayOfWeek.SATURDAY
+    "sunday" -> AnimeDayOfWeek.SUNDAY
+    else -> AnimeDayOfWeek.UNKNOWN
 }

@@ -1,1 +1,2 @@
 • Afficher les filtres de recherche avant de lancer la recherche.
+• Continuer d'afficher les saisons dont les détails de programmation sont incomplets dans le planning.

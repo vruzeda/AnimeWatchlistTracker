@@ -1,1 +1,2 @@
 • Mostrar los filtros de búsqueda antes de realizar la búsqueda.
+• Seguir mostrando las temporadas con detalles de programación faltantes en el calendario.

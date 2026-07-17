@@ -42,12 +42,12 @@ import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.AnimeWatchlis
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ElementSpacing
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SmallSpacing
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeDayOfWeek
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.resolveAnimeDisplayTitle
 import com.vuzeda.animewatchlist.tracker.module.ui.R
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.ScreenPreviewSamples
-import java.time.DayOfWeek
 
 @Composable
 fun ScheduleScreenRoute(
@@ -162,7 +162,7 @@ fun ScheduleScreen(
                             verticalArrangement = Arrangement.spacedBy(0.dp)
                         ) {
                             uiState.schedule.forEach { (dayOfWeek, seasons) ->
-                                item(key = dayOfWeek.name) {
+                                item(key = dayOfWeek) {
                                     Text(
                                         text = dayOfWeekLabel(dayOfWeek),
                                         style = MaterialTheme.typography.titleSmall,
@@ -220,15 +220,17 @@ private fun seasonDisplayLabel(season: AnimeSeason): String = when (season) {
 }
 
 @Composable
-private fun dayOfWeekLabel(dayOfWeek: DayOfWeek): String = when (dayOfWeek) {
-    DayOfWeek.MONDAY -> stringResource(R.string.schedule_day_monday)
-    DayOfWeek.TUESDAY -> stringResource(R.string.schedule_day_tuesday)
-    DayOfWeek.WEDNESDAY -> stringResource(R.string.schedule_day_wednesday)
-    DayOfWeek.THURSDAY -> stringResource(R.string.schedule_day_thursday)
-    DayOfWeek.FRIDAY -> stringResource(R.string.schedule_day_friday)
-    DayOfWeek.SATURDAY -> stringResource(R.string.schedule_day_saturday)
-    DayOfWeek.SUNDAY -> stringResource(R.string.schedule_day_sunday)
+private fun dayOfWeekLabel(dayOfWeek: AnimeDayOfWeek): String = when (dayOfWeek) {
+    AnimeDayOfWeek.MONDAY -> stringResource(R.string.schedule_day_monday)
+    AnimeDayOfWeek.TUESDAY -> stringResource(R.string.schedule_day_tuesday)
+    AnimeDayOfWeek.WEDNESDAY -> stringResource(R.string.schedule_day_wednesday)
+    AnimeDayOfWeek.THURSDAY -> stringResource(R.string.schedule_day_thursday)
+    AnimeDayOfWeek.FRIDAY -> stringResource(R.string.schedule_day_friday)
+    AnimeDayOfWeek.SATURDAY -> stringResource(R.string.schedule_day_saturday)
+    AnimeDayOfWeek.SUNDAY -> stringResource(R.string.schedule_day_sunday)
+    AnimeDayOfWeek.UNKNOWN -> stringResource(R.string.schedule_day_unknown)
 }
+
 @Preview(showBackground = true)
 @Composable
 private fun ScheduleScreenPreview() {
