@@ -353,19 +353,19 @@ fun SettingsScreen(
                     .padding(horizontal = ScreenPadding, vertical = SectionSpacing)
             )
         }
+    }
 
-        if (uiState.isDeleteConfirmationVisible) {
-            TypeToConfirmDialog(
-                title = stringResource(R.string.settings_delete_dialog_title),
-                message = stringResource(R.string.settings_delete_dialog_message),
-                confirmationPhrase = stringResource(R.string.settings_delete_dialog_confirmation_phrase),
-                confirmationHint = stringResource(R.string.settings_delete_dialog_confirmation_hint),
-                confirmText = stringResource(R.string.settings_delete_dialog_confirm),
-                dismissText = stringResource(R.string.settings_delete_dialog_dismiss),
-                onConfirm = onConfirmDelete,
-                onDismiss = onDismissDelete
-            )
-        }
+    if (uiState.isDeleteConfirmationVisible) {
+        TypeToConfirmDialog(
+            title = stringResource(R.string.settings_delete_dialog_title),
+            message = stringResource(R.string.settings_delete_dialog_message),
+            confirmationPhrase = stringResource(R.string.settings_delete_dialog_confirmation_phrase),
+            confirmationHint = stringResource(R.string.settings_delete_dialog_confirmation_hint),
+            confirmText = stringResource(R.string.settings_delete_dialog_confirm),
+            dismissText = stringResource(R.string.settings_delete_dialog_dismiss),
+            onConfirm = onConfirmDelete,
+            onDismiss = onDismissDelete
+        )
     }
 
     if (uiState.isFeedbackSheetVisible) {
