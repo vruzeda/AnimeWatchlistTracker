@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.UserPreferencesLocalDataSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.io.IOException
 
@@ -55,7 +56,8 @@ class UserPreferencesDataStore(
         dataStore.edit { preferences ->
             val parts = state.split(":")
             preferences[HOME_SORT_OPTION_KEY] = parts.getOrNull(0) ?: "ALPHABETICAL"
-            preferences[HOME_SORT_ASCENDING_KEY] = parts.getOrNull(1)?.toBooleanStrictOrNull() ?: true
+            preferences[HOME_SORT_ASCENDING_KEY] =
+                parts.getOrNull(1)?.toBooleanStrictOrNull() ?: true
         }
     }
 
@@ -66,7 +68,8 @@ class UserPreferencesDataStore(
 
     override suspend fun setHomeStatusFilter(filter: String) {
         dataStore.edit { preferences ->
-            preferences[HOME_STATUS_FILTER_SET_KEY] = if (filter.isEmpty()) emptySet() else filter.split(",").toSet()
+            preferences[HOME_STATUS_FILTER_SET_KEY] =
+                if (filter.isEmpty()) emptySet() else filter.split(",").toSet()
         }
     }
 
@@ -107,7 +110,8 @@ class UserPreferencesDataStore(
             preferences[SEARCH_FILTER_TYPE_KEY] = parts.getOrNull(0) ?: "ALL"
             preferences[SEARCH_FILTER_STATUS_KEY] = parts.getOrNull(1) ?: "ALL"
             preferences[SEARCH_FILTER_ORDER_BY_KEY] = parts.getOrNull(2) ?: "DEFAULT"
-            preferences[SEARCH_FILTER_ASCENDING_KEY] = parts.getOrNull(3)?.toBooleanStrictOrNull() ?: true
+            preferences[SEARCH_FILTER_ASCENDING_KEY] =
+                parts.getOrNull(3)?.toBooleanStrictOrNull() ?: true
         }
     }
 
@@ -118,7 +122,8 @@ class UserPreferencesDataStore(
 
     override suspend fun setAnimeDetailTypeFilter(filter: String) {
         dataStore.edit { preferences ->
-            preferences[ANIME_DETAIL_TYPE_FILTER_SET_KEY] = if (filter.isEmpty()) emptySet() else filter.split(",").toSet()
+            preferences[ANIME_DETAIL_TYPE_FILTER_SET_KEY] =
+                if (filter.isEmpty()) emptySet() else filter.split(",").toSet()
         }
     }
 
@@ -166,6 +171,15 @@ class UserPreferencesDataStore(
         }
     }
 
+    override suspend fun getInstallationId(): String? =
+        safePreferences.first()[INSTALLATION_ID_KEY]
+
+    override suspend fun setInstallationId(installationId: String) {
+        dataStore.edit { preferences ->
+            preferences[INSTALLATION_ID_KEY] = installationId
+        }
+    }
+
     companion object {
         private val TITLE_LANGUAGE_KEY = stringPreferencesKey("title_language")
         const val DEFAULT_TITLE_LANGUAGE = "DEFAULT"
@@ -181,11 +195,16 @@ class UserPreferencesDataStore(
         private val SEARCH_FILTER_ASCENDING_KEY = booleanPreferencesKey("search_filter_ascending")
         private val HOME_STATUS_FILTER_SET_KEY = stringSetPreferencesKey("home_status_filter_set")
         private val HOME_NOTIFICATION_FILTER_KEY = stringPreferencesKey("home_notification_filter")
-        private val ANIME_DETAIL_TYPE_FILTER_SET_KEY = stringSetPreferencesKey("anime_detail_type_filter_set")
-        private val DEVELOPER_OPTIONS_ENABLED_KEY = booleanPreferencesKey("developer_options_enabled")
-        private val NOTIFICATION_DEBUG_INFO_ENABLED_KEY = booleanPreferencesKey("notification_debug_info_enabled")
-        private val OFFLINE_COVER_CACHING_KEY = booleanPreferencesKey("offline_cover_caching_enabled")
+        private val ANIME_DETAIL_TYPE_FILTER_SET_KEY =
+            stringSetPreferencesKey("anime_detail_type_filter_set")
+        private val DEVELOPER_OPTIONS_ENABLED_KEY =
+            booleanPreferencesKey("developer_options_enabled")
+        private val NOTIFICATION_DEBUG_INFO_ENABLED_KEY =
+            booleanPreferencesKey("notification_debug_info_enabled")
+        private val OFFLINE_COVER_CACHING_KEY =
+            booleanPreferencesKey("offline_cover_caching_enabled")
         private val ANIME_PROVIDER_KEY = stringPreferencesKey("anime_provider")
+        private val INSTALLATION_ID_KEY = stringPreferencesKey("anime_provider")
         const val DEFAULT_ANIME_PROVIDER = "MAL"
     }
 }

@@ -130,4 +130,13 @@ class UserPreferencesDataStoreTest {
 
         assertThat(dataStore.observeHomeSortState().first()).isEqualTo("garbage:true")
     }
+
+    @Test
+    fun `setInstallationId round-trips an installation id`() = runTest {
+        val dataStore = UserPreferencesDataStore(InMemoryDataStore())
+
+        dataStore.setInstallationId("InstallationId")
+
+        assertThat(dataStore.getInstallationId()).isEqualTo("InstallationId")
+    }
 }

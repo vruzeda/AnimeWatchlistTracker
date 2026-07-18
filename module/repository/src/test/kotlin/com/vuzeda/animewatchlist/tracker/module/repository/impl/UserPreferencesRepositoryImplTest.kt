@@ -16,7 +16,10 @@ import com.vuzeda.animewatchlist.tracker.module.localdatasource.UserPreferencesL
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.runs
+import io.mockk.verify
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
@@ -24,7 +27,8 @@ import org.junit.jupiter.api.Test
 class UserPreferencesRepositoryImplTest {
 
     private val dataSource: UserPreferencesLocalDataSource = mockk()
-    private val repository = UserPreferencesRepositoryImpl(dataSource)
+    private val generateInstallationId: () -> String = mockk()
+    private val repository = UserPreferencesRepositoryImpl(dataSource, generateInstallationId)
 
     @Test
     fun `observeTitleLanguage returns matching TitleLanguage for valid stored value`() = runTest {
@@ -138,24 +142,26 @@ class UserPreferencesRepositoryImplTest {
     }
 
     @Test
-    fun `observeIsNotificationDebugInfoEnabled returns true when data source emits true`() = runTest {
-        every { dataSource.observeIsNotificationDebugInfoEnabled() } returns flowOf(true)
+    fun `observeIsNotificationDebugInfoEnabled returns true when data source emits true`() =
+        runTest {
+            every { dataSource.observeIsNotificationDebugInfoEnabled() } returns flowOf(true)
 
-        repository.observeIsNotificationDebugInfoEnabled().test {
-            assertThat(awaitItem()).isTrue()
-            awaitComplete()
+            repository.observeIsNotificationDebugInfoEnabled().test {
+                assertThat(awaitItem()).isTrue()
+                awaitComplete()
+            }
         }
-    }
 
     @Test
-    fun `observeIsNotificationDebugInfoEnabled returns false when data source emits false`() = runTest {
-        every { dataSource.observeIsNotificationDebugInfoEnabled() } returns flowOf(false)
+    fun `observeIsNotificationDebugInfoEnabled returns false when data source emits false`() =
+        runTest {
+            every { dataSource.observeIsNotificationDebugInfoEnabled() } returns flowOf(false)
 
-        repository.observeIsNotificationDebugInfoEnabled().test {
-            assertThat(awaitItem()).isFalse()
-            awaitComplete()
+            repository.observeIsNotificationDebugInfoEnabled().test {
+                assertThat(awaitItem()).isFalse()
+                awaitComplete()
+            }
         }
-    }
 
     @Test
     fun `setIsNotificationDebugInfoEnabled delegates to data source`() = runTest {
@@ -217,24 +223,31 @@ class UserPreferencesRepositoryImplTest {
     }
 
     @Test
-    fun `observeHomeStatusFilter returns set with matching WatchStatus for single stored value`() = runTest {
-        every { dataSource.observeHomeStatusFilter() } returns flowOf("WATCHING")
+    fun `observeHomeStatusFilter returns set with matching WatchStatus for single stored value`() =
+        runTest {
+            every { dataSource.observeHomeStatusFilter() } returns flowOf("WATCHING")
 
-        repository.observeHomeStatusFilter().test {
-            assertThat(awaitItem()).isEqualTo(setOf(WatchStatus.WATCHING))
-            awaitComplete()
+            repository.observeHomeStatusFilter().test {
+                assertThat(awaitItem()).isEqualTo(setOf(WatchStatus.WATCHING))
+                awaitComplete()
+            }
         }
-    }
 
     @Test
-    fun `observeHomeStatusFilter returns set with multiple WatchStatus for comma-separated stored value`() = runTest {
-        every { dataSource.observeHomeStatusFilter() } returns flowOf("WATCHING,COMPLETED")
+    fun `observeHomeStatusFilter returns set with multiple WatchStatus for comma-separated stored value`() =
+        runTest {
+            every { dataSource.observeHomeStatusFilter() } returns flowOf("WATCHING,COMPLETED")
 
-        repository.observeHomeStatusFilter().test {
-            assertThat(awaitItem()).isEqualTo(setOf(WatchStatus.WATCHING, WatchStatus.COMPLETED))
-            awaitComplete()
+            repository.observeHomeStatusFilter().test {
+                assertThat(awaitItem()).isEqualTo(
+                    setOf(
+                        WatchStatus.WATCHING,
+                        WatchStatus.COMPLETED
+                    )
+                )
+                awaitComplete()
+            }
         }
-    }
 
     @Test
     fun `observeHomeStatusFilter returns all WatchStatus variants correctly`() = runTest {
@@ -258,13 +271,18 @@ class UserPreferencesRepositoryImplTest {
     }
 
     @Test
-    fun `setHomeStatusFilter delegates comma-separated names to data source for multiple statuses`() = runTest {
-        coEvery { dataSource.setHomeStatusFilter(any()) } returns Unit
+    fun `setHomeStatusFilter delegates comma-separated names to data source for multiple statuses`() =
+        runTest {
+            coEvery { dataSource.setHomeStatusFilter(any()) } returns Unit
 
-        repository.setHomeStatusFilter(setOf(WatchStatus.WATCHING, WatchStatus.ON_HOLD))
+            repository.setHomeStatusFilter(setOf(WatchStatus.WATCHING, WatchStatus.ON_HOLD))
 
-        coVerify { dataSource.setHomeStatusFilter(match { it.split(",").toSet() == setOf("WATCHING", "ON_HOLD") }) }
-    }
+            coVerify {
+                dataSource.setHomeStatusFilter(match {
+                    it.split(",").toSet() == setOf("WATCHING", "ON_HOLD")
+                })
+            }
+        }
 
     @Test
     fun `setHomeStatusFilter delegates empty string to data source for empty set`() = runTest {
@@ -435,14 +453,15 @@ class UserPreferencesRepositoryImplTest {
     }
 
     @Test
-    fun `observeAnimeDetailTypeFilter returns multiple types for comma-separated stored value`() = runTest {
-        every { dataSource.observeAnimeDetailTypeFilter() } returns flowOf("TV,OVA,Movie")
+    fun `observeAnimeDetailTypeFilter returns multiple types for comma-separated stored value`() =
+        runTest {
+            every { dataSource.observeAnimeDetailTypeFilter() } returns flowOf("TV,OVA,Movie")
 
-        repository.observeAnimeDetailTypeFilter().test {
-            assertThat(awaitItem()).containsExactly("TV", "OVA", "Movie")
-            awaitComplete()
+            repository.observeAnimeDetailTypeFilter().test {
+                assertThat(awaitItem()).containsExactly("TV", "OVA", "Movie")
+                awaitComplete()
+            }
         }
-    }
 
     @Test
     fun `setAnimeDetailTypeFilter delegates empty string to data source for empty set`() = runTest {
@@ -489,5 +508,31 @@ class UserPreferencesRepositoryImplTest {
         repository.setAnimeProvider(AnimeProvider.MAL)
 
         coVerify { dataSource.setAnimeProvider("MAL") }
+    }
+
+    @Test
+    fun `getInstallationId returns installation id from data source if one exists`() = runTest {
+        val installationId = "InstallationId"
+        coEvery { dataSource.getInstallationId() } returns installationId
+
+        val result = repository.getInstallationId()
+
+        assertThat(result).isEqualTo(installationId)
+        coVerify { dataSource.getInstallationId() }
+    }
+
+    @Test
+    fun `getInstallationId creates a new installation id and inserts in data source if none exists`() = runTest {
+        val installationId = "NewInstallationId"
+        coEvery { dataSource.getInstallationId() } returns null
+        coEvery { dataSource.setInstallationId(installationId) } just runs
+        every { generateInstallationId() } returns "NewInstallationId"
+
+        val result = repository.getInstallationId()
+
+        assertThat(result).isEqualTo(installationId)
+        coVerify { dataSource.getInstallationId() }
+        coVerify { dataSource.setInstallationId(installationId) }
+        verify { generateInstallationId() }
     }
 }

@@ -14,10 +14,12 @@ import com.vuzeda.animewatchlist.tracker.module.localdatasource.UserPreferencesL
 import com.vuzeda.animewatchlist.tracker.module.repository.UserPreferencesRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.util.UUID
 import javax.inject.Inject
 
 class UserPreferencesRepositoryImpl @Inject constructor(
-    private val dataSource: UserPreferencesLocalDataSource
+    private val dataSource: UserPreferencesLocalDataSource,
+    private val generateInstallationId: () -> String
 ) : UserPreferencesRepository {
 
     override fun observeTitleLanguage(): Flow<TitleLanguage> =
@@ -134,4 +136,9 @@ class UserPreferencesRepositoryImpl @Inject constructor(
     override suspend fun setAnimeProvider(provider: AnimeProvider) {
         dataSource.setAnimeProvider(provider.name)
     }
+
+    override suspend fun getInstallationId(): String =
+        dataSource.getInstallationId() ?: generateInstallationId().also { value ->
+            dataSource.setInstallationId(value)
+        }
 }

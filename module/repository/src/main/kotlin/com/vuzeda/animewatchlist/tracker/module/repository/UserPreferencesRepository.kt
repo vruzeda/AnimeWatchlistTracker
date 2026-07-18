@@ -58,4 +58,6 @@ interface UserPreferencesRepository {
     fun observeAnimeProvider(): Flow<AnimeProvider>
 
     suspend fun setAnimeProvider(provider: AnimeProvider)
+
+    suspend fun getInstallationId(): String
 }

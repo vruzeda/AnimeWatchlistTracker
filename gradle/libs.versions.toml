@@ -10,7 +10,7 @@ coreKtx = "1.19.0"
 coroutines = "1.11.0"
 dataStore = "1.2.1"
 detekt = "1.23.8"
-firebase-bom = "34.15.0"
+firebase-bom = "34.16.0"
 firebase-crashlytics-plugin = "3.0.7"
 google-services = "4.5.0"
 hilt = "2.60.1"
@@ -114,9 +114,6 @@ firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.r
 firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics" }
 firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore" }
-firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
-firebase-installations = { group = "com.google.firebase", name = "firebase-installations" }
-kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "coroutines" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

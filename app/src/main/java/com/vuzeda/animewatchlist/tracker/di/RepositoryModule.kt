@@ -8,8 +8,10 @@ import com.vuzeda.animewatchlist.tracker.module.repository.impl.SeasonRepository
 import com.vuzeda.animewatchlist.tracker.module.repository.impl.UserPreferencesRepositoryImpl
 import dagger.Binds
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import java.util.UUID
 import javax.inject.Singleton
 
 @Module
@@ -27,4 +29,11 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindUserPreferencesRepository(impl: UserPreferencesRepositoryImpl): UserPreferencesRepository
+
+    companion object {
+
+        @Provides
+        @Singleton
+        fun provideGenerateInstallationId(): () -> String = { UUID.randomUUID().toString() }
+    }
 }

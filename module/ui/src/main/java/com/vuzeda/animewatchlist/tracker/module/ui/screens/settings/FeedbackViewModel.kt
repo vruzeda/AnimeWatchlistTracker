@@ -8,8 +8,7 @@ import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsEvent
 import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsTracker
 import com.vuzeda.animewatchlist.tracker.module.domain.Feedback
 import com.vuzeda.animewatchlist.tracker.module.domain.FeedbackCategory
-import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
-import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
+import com.vuzeda.animewatchlist.tracker.module.usecase.GetInstallationIdUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveHomeViewModeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SubmitFeedbackUseCase
@@ -18,6 +17,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -26,6 +26,7 @@ import javax.inject.Inject
 class FeedbackViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val submitFeedbackUseCase: SubmitFeedbackUseCase,
+    private val getInstallationIdUseCase: GetInstallationIdUseCase,
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase,
     private val observeHomeViewModeUseCase: ObserveHomeViewModeUseCase,
     private val analyticsTracker: AnalyticsTracker
@@ -33,18 +34,6 @@ class FeedbackViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(FeedbackUiState())
     val uiState: StateFlow<FeedbackUiState> = _uiState.asStateFlow()
-
-    private var titleLanguage: TitleLanguage = TitleLanguage.DEFAULT
-    private var homeViewMode: HomeViewMode = HomeViewMode.ANIME
-
-    init {
-        viewModelScope.launch {
-            observeTitleLanguageUseCase().collect { titleLanguage = it }
-        }
-        viewModelScope.launch {
-            observeHomeViewModeUseCase().collect { homeViewMode = it }
-        }
-    }
 
     fun selectCategory(category: String) {
         _uiState.update { it.copy(category = category) }
@@ -75,9 +64,9 @@ class FeedbackViewModel @Inject constructor(
                 timestamp = System.currentTimeMillis(),
                 deviceModel = "${Build.MANUFACTURER} ${Build.MODEL}",
                 androidVersion = Build.VERSION.SDK_INT,
-                installationId = "",
-                titleLanguage = titleLanguage.name,
-                homeViewMode = homeViewMode.name,
+                installationId = getInstallationIdUseCase(),
+                titleLanguage = observeTitleLanguageUseCase().first().name,
+                homeViewMode = observeHomeViewModeUseCase().first().name,
                 contactName = state.contactName.trim().ifEmpty { null },
                 contactEmail = state.contactEmail.trim().ifEmpty { null }
             )

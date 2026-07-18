@@ -10,6 +10,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.Feedback
 import com.vuzeda.animewatchlist.tracker.module.domain.FeedbackCategory
 import com.vuzeda.animewatchlist.tracker.module.domain.HomeViewMode
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
+import com.vuzeda.animewatchlist.tracker.module.usecase.GetInstallationIdUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveHomeViewModeUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.SubmitFeedbackUseCase
@@ -34,6 +35,7 @@ class FeedbackViewModelTest {
     private val context: Context = mockk()
     private val packageManager: PackageManager = mockk()
     private val submitFeedbackUseCase: SubmitFeedbackUseCase = mockk()
+    private val getInstallationIdUseCase: GetInstallationIdUseCase = mockk()
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase = mockk()
     private val observeHomeViewModeUseCase: ObserveHomeViewModeUseCase = mockk()
     private val analyticsTracker: AnalyticsTracker = mockk(relaxed = true)
@@ -41,6 +43,7 @@ class FeedbackViewModelTest {
     @BeforeEach
     fun setup() {
         Dispatchers.setMain(testDispatcher)
+        coEvery { getInstallationIdUseCase() } returns "InstallationId"
         every { observeTitleLanguageUseCase() } returns flowOf(TitleLanguage.DEFAULT)
         every { observeHomeViewModeUseCase() } returns flowOf(HomeViewMode.ANIME)
         every { context.packageName } returns "com.test"
@@ -60,6 +63,7 @@ class FeedbackViewModelTest {
     private fun createViewModel() = FeedbackViewModel(
         context = context,
         submitFeedbackUseCase = submitFeedbackUseCase,
+        getInstallationIdUseCase = getInstallationIdUseCase,
         observeTitleLanguageUseCase = observeTitleLanguageUseCase,
         observeHomeViewModeUseCase = observeHomeViewModeUseCase,
         analyticsTracker = analyticsTracker

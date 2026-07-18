@@ -27,4 +27,6 @@ interface UserPreferencesLocalDataSource {
     suspend fun setIsOfflineCoverCachingEnabled(enabled: Boolean)
     fun observeAnimeProvider(): Flow<String>
     suspend fun setAnimeProvider(provider: String)
+    suspend fun getInstallationId(): String?
+    suspend fun setInstallationId(installationId: String)
 }

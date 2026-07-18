@@ -133,7 +133,6 @@ dependencies {
 
     "prodImplementation"(platform(libs.firebase.bom))
     "prodImplementation"(libs.firebase.analytics)
-    "prodImplementation"(libs.firebase.auth)
     "prodImplementation"(libs.firebase.crashlytics)
     "prodImplementation"(libs.firebase.firestore)
     implementation(libs.androidx.core.ktx)
