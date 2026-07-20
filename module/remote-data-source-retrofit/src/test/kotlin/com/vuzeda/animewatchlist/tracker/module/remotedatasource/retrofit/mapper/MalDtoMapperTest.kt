@@ -2,6 +2,7 @@ package com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mappe
 
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.domain.AiringStatus
+import com.vuzeda.animewatchlist.tracker.module.domain.BroadcastTime
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.MalAlternativeTitlesDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.MalAnimeDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.MalAnimeListResponseDto
@@ -14,6 +15,9 @@ import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.Ma
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.MalRelatedNodeDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.MalStartSeasonDto
 import org.junit.jupiter.api.Test
+import java.time.DayOfWeek
+import java.time.LocalTime
+import java.time.ZoneId
 
 class MalDtoMapperTest {
 
@@ -76,9 +80,11 @@ class MalDtoMapperTest {
     fun `toAnimeFullDetails composes broadcast fields with JST timezone`() {
         val details = fullAnime.toAnimeFullDetails()
 
-        assertThat(details.broadcastDay).isEqualTo("Fridays")
-        assertThat(details.broadcastTime).isEqualTo("23:00")
-        assertThat(details.broadcastTimezone).isEqualTo("Asia/Tokyo")
+        assertThat(details.broadcastTime).isEqualTo(BroadcastTime(
+            dayOfWeek = DayOfWeek.FRIDAY,
+            time = LocalTime.of(23, 0),
+            zoneId = ZoneId.of("Asia/Tokyo")
+        ))
         assertThat(details.broadcastInfo).isEqualTo("Fridays at 23:00 (JST)")
     }
 
@@ -89,8 +95,7 @@ class MalDtoMapperTest {
         ).toAnimeFullDetails()
 
         assertThat(details.broadcastInfo).isEqualTo("Fridays")
-        assertThat(details.broadcastTime).isNull()
-        assertThat(details.broadcastTimezone).isEqualTo("Asia/Tokyo")
+        assertThat(details.broadcastTime).isEqualTo(BroadcastTime(dayOfWeek = DayOfWeek.FRIDAY))
     }
 
     @Test
@@ -98,9 +103,7 @@ class MalDtoMapperTest {
         val details = fullAnime.copy(broadcast = null).toAnimeFullDetails()
 
         assertThat(details.broadcastInfo).isNull()
-        assertThat(details.broadcastDay).isNull()
         assertThat(details.broadcastTime).isNull()
-        assertThat(details.broadcastTimezone).isNull()
     }
 
     @Test

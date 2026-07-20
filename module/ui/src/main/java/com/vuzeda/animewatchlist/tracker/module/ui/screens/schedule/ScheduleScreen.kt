@@ -48,6 +48,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.resolveAnimeDisplayTitle
 import com.vuzeda.animewatchlist.tracker.module.ui.R
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.ScreenPreviewSamples
+import java.time.ZoneId
 
 @Composable
 fun ScheduleScreenRoute(
@@ -207,7 +208,7 @@ private fun ScheduleSeasonCard(
         imageUrl = season.imageUrl,
         onClick = { onSeasonClick(season.id) },
         imageSharedElementKey = "season_cover_${season.malId}",
-        episodeText = season.broadcastTime
+        episodeText = season.broadcastTime?.toZoneId(ZoneId.systemDefault())?.time?.toString()
     )
 }
 

@@ -1,12 +1,16 @@
 package com.vuzeda.animewatchlist.tracker
 
 import com.vuzeda.animewatchlist.tracker.module.domain.Anime
+import com.vuzeda.animewatchlist.tracker.module.domain.BroadcastTime
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.StreamingInfo
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.AnimeLocalDataSource
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.SeasonLocalDataSource
 import kotlinx.coroutines.flow.first
+import java.time.DayOfWeek
+import java.time.LocalTime
+import java.time.ZoneId
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -53,9 +57,11 @@ class ScreenshotSeeder @Inject constructor(
                 orderIndex = 0,
                 airingStatus = "Finished Airing",
                 broadcastInfo = "Sundays at 01:58 (JST)",
-                broadcastDay = "Sundays",
-                broadcastTime = "01:58",
-                broadcastTimezone = "Asia/Tokyo",
+                broadcastTime = BroadcastTime(
+                    dayOfWeek = DayOfWeek.SUNDAY,
+                    time = LocalTime.of(1, 58),
+                    zoneId = ZoneId.of("Asia/Tokyo")
+                ),
                 streamingLinks = listOf(
                     StreamingInfo("Crunchyroll", "http://www.crunchyroll.com/series-280312"),
                     StreamingInfo("Netflix", "https://www.netflix.com/title/70299043"),
@@ -77,9 +83,11 @@ class ScreenshotSeeder @Inject constructor(
                 orderIndex = 1,
                 airingStatus = "Finished Airing",
                 broadcastInfo = "Saturdays at 22:00 (JST)",
-                broadcastDay = "Saturdays",
-                broadcastTime = "22:00",
-                broadcastTimezone = "Asia/Tokyo",
+                broadcastTime = BroadcastTime(
+                    dayOfWeek = DayOfWeek.SATURDAY,
+                    time = LocalTime.of(22, 0),
+                    zoneId = ZoneId.of("Asia/Tokyo")
+                ),
                 streamingLinks = listOf(
                     StreamingInfo("Crunchyroll", "http://www.crunchyroll.com/series-254209"),
                     StreamingInfo("Netflix", "https://www.netflix.com/title/70299043"),
@@ -113,9 +121,11 @@ class ScreenshotSeeder @Inject constructor(
                 orderIndex = 0,
                 airingStatus = "Finished Airing",
                 broadcastInfo = "Mondays at 01:05 (JST)",
-                broadcastDay = "Mondays",
-                broadcastTime = "01:05",
-                broadcastTimezone = "Asia/Tokyo",
+                broadcastTime = BroadcastTime(
+                    dayOfWeek = DayOfWeek.MONDAY,
+                    time = LocalTime.of(1, 5),
+                    zoneId = ZoneId.of("Asia/Tokyo")
+                ),
                 streamingLinks = listOf(
                     StreamingInfo("Crunchyroll", "http://www.crunchyroll.com/series-277822"),
                     StreamingInfo("Netflix", "https://www.netflix.com/title/80117291"),
@@ -137,9 +147,11 @@ class ScreenshotSeeder @Inject constructor(
                 orderIndex = 1,
                 airingStatus = "Finished Airing",
                 broadcastInfo = "Wednesdays at 01:35 (JST)",
-                broadcastDay = "Wednesdays",
-                broadcastTime = "01:35",
-                broadcastTimezone = "Asia/Tokyo",
+                broadcastTime = BroadcastTime(
+                    dayOfWeek = DayOfWeek.WEDNESDAY,
+                    time = LocalTime.of(1, 35),
+                    zoneId = ZoneId.of("Asia/Tokyo")
+                ),
                 streamingLinks = listOf(
                     StreamingInfo("Crunchyroll", "http://www.crunchyroll.com/series-277822"),
                 ),
@@ -172,9 +184,11 @@ class ScreenshotSeeder @Inject constructor(
                 orderIndex = 0,
                 airingStatus = "Finished Airing",
                 broadcastInfo = "Wednesdays at 00:56 (JST)",
-                broadcastDay = "Wednesdays",
-                broadcastTime = "00:56",
-                broadcastTimezone = "Asia/Tokyo",
+                broadcastTime = BroadcastTime(
+                    dayOfWeek = DayOfWeek.WEDNESDAY,
+                    time = LocalTime.of(0, 56),
+                    zoneId = ZoneId.of("Asia/Tokyo")
+                ),
                 streamingLinks = listOf(
                     StreamingInfo("Crunchyroll", "http://www.crunchyroll.com/series-278866"),
                     StreamingInfo("Netflix", "https://www.netflix.com/title/70204970"),
@@ -208,9 +222,11 @@ class ScreenshotSeeder @Inject constructor(
                 orderIndex = 0,
                 airingStatus = "Finished Airing",
                 broadcastInfo = "Sundays at 10:55 (JST)",
-                broadcastDay = "Sundays",
-                broadcastTime = "10:55",
-                broadcastTimezone = "Asia/Tokyo",
+                broadcastTime = BroadcastTime(
+                    dayOfWeek = DayOfWeek.SUNDAY,
+                    time = LocalTime.of(10, 55),
+                    zoneId = ZoneId.of("Asia/Tokyo")
+                ),
                 streamingLinks = listOf(
                     StreamingInfo("Crunchyroll", "http://www.crunchyroll.com/series-237800"),
                     StreamingInfo("Netflix", "https://www.netflix.com/title/70300472"),
@@ -244,9 +260,11 @@ class ScreenshotSeeder @Inject constructor(
                 orderIndex = 0,
                 airingStatus = "Finished Airing",
                 broadcastInfo = "Wednesdays at 18:00 (JST)",
-                broadcastDay = "Wednesdays",
-                broadcastTime = "18:00",
-                broadcastTimezone = "Asia/Tokyo",
+                broadcastTime = BroadcastTime(
+                    dayOfWeek = DayOfWeek.WEDNESDAY,
+                    time = LocalTime.of(18, 0),
+                    zoneId = ZoneId.of("Asia/Tokyo")
+                ),
                 streamingLinks = listOf(
                     StreamingInfo("Crunchyroll", "http://www.crunchyroll.com/series-47620"),
                 ),
@@ -277,9 +295,11 @@ class ScreenshotSeeder @Inject constructor(
                 orderIndex = 0,
                 airingStatus = "Finished Airing",
                 broadcastInfo = "Saturdays at 23:00 (JST)",
-                broadcastDay = "Saturdays",
-                broadcastTime = "23:00",
-                broadcastTimezone = "Asia/Tokyo",
+                broadcastTime = BroadcastTime(
+                    dayOfWeek = DayOfWeek.SATURDAY,
+                    time = LocalTime.of(23, 0),
+                    zoneId = ZoneId.of("Asia/Tokyo")
+                ),
                 streamingLinks = listOf(
                     StreamingInfo("Crunchyroll", "http://www.crunchyroll.com/series-282626"),
                     StreamingInfo("Netflix", "https://www.netflix.com/"),
@@ -312,9 +332,11 @@ class ScreenshotSeeder @Inject constructor(
                 orderIndex = 0,
                 airingStatus = "Finished Airing",
                 broadcastInfo = "Sundays at 17:00 (JST)",
-                broadcastDay = "Sundays",
-                broadcastTime = "17:00",
-                broadcastTimezone = "Asia/Tokyo",
+                broadcastTime = BroadcastTime(
+                    dayOfWeek = DayOfWeek.SUNDAY,
+                    time = LocalTime.of(17, 0),
+                    zoneId = ZoneId.of("Asia/Tokyo")
+                ),
                 streamingLinks = listOf(
                     StreamingInfo("Crunchyroll", "http://www.crunchyroll.com/series-271031"),
                 ),
@@ -347,9 +369,11 @@ class ScreenshotSeeder @Inject constructor(
                 orderIndex = 0,
                 airingStatus = "Finished Airing",
                 broadcastInfo = "Thursdays at 19:30 (JST)",
-                broadcastDay = "Thursdays",
-                broadcastTime = "19:30",
-                broadcastTimezone = "Asia/Tokyo",
+                broadcastTime = BroadcastTime(
+                    dayOfWeek = DayOfWeek.THURSDAY,
+                    time = LocalTime.of(19, 30),
+                    zoneId = ZoneId.of("Asia/Tokyo")
+                ),
                 streamingLinks = listOf(
                     StreamingInfo("Crunchyroll", "http://www.crunchyroll.com/series-280621"),
                     StreamingInfo("Netflix", "https://www.netflix.com/title/70205012"),
@@ -383,9 +407,11 @@ class ScreenshotSeeder @Inject constructor(
                 orderIndex = 0,
                 airingStatus = "Finished Airing",
                 broadcastInfo = "Wednesdays at 02:05 (JST)",
-                broadcastDay = "Wednesdays",
-                broadcastTime = "02:05",
-                broadcastTimezone = "Asia/Tokyo",
+                broadcastTime = BroadcastTime(
+                    dayOfWeek = DayOfWeek.WEDNESDAY,
+                    time = LocalTime.of(2, 5),
+                    zoneId = ZoneId.of("Asia/Tokyo")
+                ),
                 streamingLinks = listOf(
                     StreamingInfo("Crunchyroll", "http://www.crunchyroll.com/series-229050"),
                     StreamingInfo("Netflix", "https://www.netflix.com/"),

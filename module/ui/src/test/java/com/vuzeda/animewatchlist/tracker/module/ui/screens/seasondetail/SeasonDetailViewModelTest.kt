@@ -5,6 +5,7 @@ import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.analytics.AnalyticsTracker
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
+import com.vuzeda.animewatchlist.tracker.module.domain.BroadcastTime
 import com.vuzeda.animewatchlist.tracker.module.domain.EpisodeInfo
 import com.vuzeda.animewatchlist.tracker.module.domain.EpisodePage
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
@@ -686,9 +687,11 @@ class SeasonDetailViewModelTest {
     @Test
     fun `broadcastLocalTime is computed from structured broadcast fields`() = runTest {
         val seasonWithBroadcast = sampleSeason.copy(
-            broadcastDay = "Saturdays",
-            broadcastTime = "18:00",
-            broadcastTimezone = "Asia/Tokyo"
+            broadcastTime = BroadcastTime(
+                dayOfWeek = DayOfWeek.SATURDAY,
+                time = LocalTime.of(18, 0),
+                zoneId = ZoneId.of("Asia/Tokyo")
+            )
         )
         seasonFlow.value = seasonWithBroadcast
 
@@ -697,8 +700,8 @@ class SeasonDetailViewModelTest {
         viewModel.uiState.test {
             testDispatcher.scheduler.advanceUntilIdle()
             val state = expectMostRecentItem()
-            assertThat(state.broadcastLocalTime).isEqualTo(
-                LocalBroadcastTime(
+            assertThat(state.localBroadcastTime).isEqualTo(
+                BroadcastTime(
                     dayOfWeek = DayOfWeek.SATURDAY,
                     time = LocalTime.of(9, 0),
                     zoneId = ZoneId.of("UTC")
@@ -715,7 +718,7 @@ class SeasonDetailViewModelTest {
         viewModel.uiState.test {
             testDispatcher.scheduler.advanceUntilIdle()
             val state = expectMostRecentItem()
-            assertThat(state.broadcastLocalTime).isNull()
+            assertThat(state.localBroadcastTime).isNull()
             cancelAndIgnoreRemainingEvents()
         }
     }

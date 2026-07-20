@@ -26,9 +26,7 @@ class RefreshSeasonDataUseCase @Inject constructor(
                 score = details.score ?: season.score,
                 airingStatus = details.airingStatus ?: season.airingStatus,
                 broadcastInfo = details.broadcastInfo,
-                broadcastDay = details.broadcastDay,
                 broadcastTime = details.broadcastTime,
-                broadcastTimezone = details.broadcastTimezone,
                 streamingLinks = details.streamingLinks,
                 airingSeasonName = details.airingSeasonName ?: season.airingSeasonName,
                 airingSeasonYear = details.airingSeasonYear ?: season.airingSeasonYear

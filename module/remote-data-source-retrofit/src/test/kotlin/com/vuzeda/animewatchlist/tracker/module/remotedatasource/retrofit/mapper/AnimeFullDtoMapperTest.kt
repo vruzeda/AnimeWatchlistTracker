@@ -1,6 +1,7 @@
 package com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mapper
 
 import com.google.common.truth.Truth.assertThat
+import com.vuzeda.animewatchlist.tracker.module.domain.BroadcastTime
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.AnimeFullDataDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.AnimeImagesDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.AnimeRelationDto
@@ -10,6 +11,9 @@ import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.Im
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.RelatedEntryDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.StreamingDto
 import org.junit.jupiter.api.Test
+import java.time.DayOfWeek
+import java.time.LocalTime
+import java.time.ZoneId
 
 class AnimeFullDtoMapperTest {
 
@@ -51,9 +55,11 @@ class AnimeFullDtoMapperTest {
         assertThat(details.genres).containsExactly("Action", "Drama")
         assertThat(details.airingStatus).isEqualTo("Finished Airing")
         assertThat(details.broadcastInfo).isEqualTo("Saturdays at 18:00 (JST)")
-        assertThat(details.broadcastDay).isEqualTo("Saturdays")
-        assertThat(details.broadcastTime).isEqualTo("18:00")
-        assertThat(details.broadcastTimezone).isEqualTo("Asia/Tokyo")
+        assertThat(details.broadcastTime).isEqualTo(BroadcastTime(
+            dayOfWeek = DayOfWeek.SATURDAY,
+            time = LocalTime.of(18, 0),
+            zoneId = ZoneId.of("Asia/Tokyo")
+        ))
         assertThat(details.streamingLinks).isEmpty()
     }
 
@@ -177,9 +183,7 @@ class AnimeFullDtoMapperTest {
         assertThat(details.genres).isEmpty()
         assertThat(details.airingStatus).isNull()
         assertThat(details.broadcastInfo).isNull()
-        assertThat(details.broadcastDay).isNull()
         assertThat(details.broadcastTime).isNull()
-        assertThat(details.broadcastTimezone).isNull()
         assertThat(details.streamingLinks).isEmpty()
     }
 
@@ -244,9 +248,11 @@ class AnimeFullDtoMapperTest {
 
         val details = dto.toAnimeFullDetails()
 
-        assertThat(details.broadcastDay).isEqualTo("Sundays")
-        assertThat(details.broadcastTime).isEqualTo("00:00")
-        assertThat(details.broadcastTimezone).isEqualTo("Asia/Tokyo")
+        assertThat(details.broadcastTime).isEqualTo(BroadcastTime(
+            dayOfWeek = DayOfWeek.SUNDAY,
+            time = LocalTime.of(0, 0),
+            zoneId = ZoneId.of("Asia/Tokyo")
+        ))
     }
 
     @Test

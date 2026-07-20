@@ -2,6 +2,7 @@ package com.vuzeda.animewatchlist.tracker.module.usecase
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
+import com.vuzeda.animewatchlist.tracker.module.domain.BroadcastTime
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.repository.SeasonRepository
 import io.mockk.every
@@ -9,6 +10,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
+import java.time.DayOfWeek
 
 class ObserveScheduleUseCaseTest {
 
@@ -18,10 +20,10 @@ class ObserveScheduleUseCaseTest {
     @Test
     fun `emits only watchlist seasons with a known airing season`() = runTest {
         val seasons = listOf(
-            Season(id = 1, malId = 100, title = "Airing Show", airingSeasonYear = 2026, airingSeasonName = "summer", broadcastDay = "Saturdays", isInWatchlist = true),
-            Season(id = 2, malId = 200, title = "No Broadcast Day", airingSeasonYear = 2026, airingSeasonName = "fall", broadcastDay = null, isInWatchlist = true),
-            Season(id = 3, malId = 200, title = "No Airing Season", airingSeasonYear = null, airingSeasonName = null, broadcastDay = null, isInWatchlist = true),
-            Season(id = 4, malId = 300, title = "Not In Watchlist", airingSeasonYear = 2026, airingSeasonName = "summer", broadcastDay = "Mondays", isInWatchlist = false)
+            Season(id = 1, malId = 100, title = "Airing Show", airingSeasonYear = 2026, airingSeasonName = "summer", broadcastTime = BroadcastTime(dayOfWeek = DayOfWeek.SATURDAY), isInWatchlist = true),
+            Season(id = 2, malId = 200, title = "No Broadcast Day", airingSeasonYear = 2026, airingSeasonName = "fall", broadcastTime = null, isInWatchlist = true),
+            Season(id = 3, malId = 200, title = "No Airing Season", airingSeasonYear = null, airingSeasonName = null, broadcastTime = null, isInWatchlist = true),
+            Season(id = 4, malId = 300, title = "Not In Watchlist", airingSeasonYear = 2026, airingSeasonName = "summer", broadcastTime = BroadcastTime(dayOfWeek = DayOfWeek.MONDAY), isInWatchlist = false)
         )
         every { repository.observeAllSeasons() } returns flowOf(seasons)
 
@@ -65,7 +67,7 @@ class ObserveScheduleUseCaseTest {
     @Test
     fun `excludes seasons not in watchlist even if they have an airing season`() = runTest {
         val seasons = listOf(
-            Season(id = 1, malId = 100, title = "Non-watchlist with airing season", airingSeasonYear = 2026, airingSeasonName = "summer", broadcastDay = "Fridays", isInWatchlist = false)
+            Season(id = 1, malId = 100, title = "Non-watchlist with airing season", airingSeasonYear = 2026, airingSeasonName = "summer", broadcastTime = BroadcastTime(dayOfWeek = DayOfWeek.FRIDAY), isInWatchlist = false)
         )
         every { repository.observeAllSeasons() } returns flowOf(seasons)
 

@@ -39,13 +39,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.time.DayOfWeek
-import java.time.LocalTime
 import java.time.ZoneId
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
-import java.time.format.TextStyle
-import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -136,7 +130,7 @@ open class SeasonDetailViewModel @Inject constructor(
                             titleLanguage = titleLanguage,
                             isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled,
                             isLoadingEpisodes = true,
-                            broadcastLocalTime = computeBroadcastLocalTime(season)
+                            localBroadcastTime = season.broadcastTime?.toZoneId(localZoneId())
                         )
                     } else {
                         val prevEpisodeCount = currentState.season.episodeCount
@@ -224,9 +218,7 @@ open class SeasonDetailViewModel @Inject constructor(
                         score = details.score,
                         airingStatus = details.airingStatus,
                         broadcastInfo = details.broadcastInfo,
-                        broadcastDay = details.broadcastDay,
                         broadcastTime = details.broadcastTime,
-                        broadcastTimezone = details.broadcastTimezone,
                         streamingLinks = details.streamingLinks
                     )
                     loadEpisodes(details.malId, page = 1)
@@ -234,7 +226,7 @@ open class SeasonDetailViewModel @Inject constructor(
                         _uiState.update { it.copy(
                             season = season,
                             isRefreshing = false,
-                            broadcastLocalTime = computeBroadcastLocalTime(season)
+                            localBroadcastTime = season.broadcastTime?.toZoneId(localZoneId())
                         ) }
                     } else {
                         _uiState.update { it.copy(
@@ -245,7 +237,7 @@ open class SeasonDetailViewModel @Inject constructor(
                             isInWatchlist = false,
                             isLoadingEpisodes = true,
                             titleLanguage = titleLanguage,
-                            broadcastLocalTime = computeBroadcastLocalTime(season),
+                            localBroadcastTime = season.broadcastTime?.toZoneId(localZoneId()),
                             isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled
                         ) }
                         viewModelScope.launch {
@@ -496,36 +488,6 @@ open class SeasonDetailViewModel @Inject constructor(
         return (realEpisodes + watchedPlaceholders + trailing).sortedBy { it.number }
     }
 
-    protected open fun localZoneId(): ZoneId = ZoneId.systemDefault()
-
-    private fun computeBroadcastLocalTime(season: Season): LocalBroadcastTime? {
-        val day = season.broadcastDay ?: return null
-        val time = season.broadcastTime ?: return null
-        val timezone = season.broadcastTimezone ?: return null
-        return try {
-            val sourceZone = ZoneId.of(timezone)
-            val localZone = localZoneId()
-            val broadcastTime = LocalTime.parse(time, DateTimeFormatter.ofPattern("HH:mm"))
-            val dayOfWeek = DayOfWeek.entries.firstOrNull { dow ->
-                day.lowercase().startsWith(dow.getDisplayName(TextStyle.FULL, Locale.ENGLISH).lowercase())
-            } ?: return null
-            val reference = ZonedDateTime.now(sourceZone)
-                .with(dayOfWeek)
-                .withHour(broadcastTime.hour)
-                .withMinute(broadcastTime.minute)
-                .withSecond(0)
-                .withNano(0)
-            val local = reference.withZoneSameInstant(localZone)
-            LocalBroadcastTime(
-                dayOfWeek = local.dayOfWeek,
-                time = local.toLocalTime(),
-                zoneId = localZone
-            )
-        } catch (_: Exception) {
-            null
-        }
-    }
-
     private fun observeSeason(seasonId: Long) {
         viewModelScope.launch {
             combine(
@@ -559,7 +521,7 @@ open class SeasonDetailViewModel @Inject constructor(
                             titleLanguage = titleLanguage,
                             isNotificationDebugInfoEnabled = isNotificationDebugInfoEnabled,
                             isLoadingEpisodes = true,
-                            broadcastLocalTime = computeBroadcastLocalTime(season)
+                            localBroadcastTime = season.broadcastTime?.toZoneId(localZoneId())
                         )
                     } else {
                         val prevEpisodeCount = currentState.season.episodeCount
@@ -599,6 +561,8 @@ open class SeasonDetailViewModel @Inject constructor(
             runCatching { refreshSeasonDataUseCase(season) }
         }
     }
+
+    protected open fun localZoneId(): ZoneId = ZoneId.systemDefault()
 }
 
 private data class SeasonCombinedData(

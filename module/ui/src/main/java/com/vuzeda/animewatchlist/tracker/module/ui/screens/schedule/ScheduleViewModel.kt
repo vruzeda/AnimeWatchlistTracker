@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeDayOfWeek
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
+import com.vuzeda.animewatchlist.tracker.module.domain.BroadcastTime
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveScheduleUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveTitleLanguageUseCase
 import com.vuzeda.animewatchlist.tracker.module.usecase.TriggerAnimeUpdateUseCase
@@ -15,11 +16,13 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.ZoneId
 import javax.inject.Inject
 
 @HiltViewModel
-class ScheduleViewModel @Inject constructor(
+open class ScheduleViewModel @Inject constructor(
     private val observeScheduleUseCase: ObserveScheduleUseCase,
     private val observeTitleLanguageUseCase: ObserveTitleLanguageUseCase,
     private val triggerAnimeUpdateUseCase: TriggerAnimeUpdateUseCase
@@ -55,8 +58,8 @@ class ScheduleViewModel @Inject constructor(
                 }
 
                 val schedule = filteredSeasons
-                    .groupBy { it.broadcastDay.toDayOfWeek() }
-                    .mapValues { (_, seasons) -> seasons.sortedBy { it.broadcastTime } }
+                    .groupBy { it.broadcastTime?.toZoneId(localZoneId()).toDayOfWeek() }
+                    .mapValues { (_, seasons) -> seasons.sortedBy { it.broadcastTime?.toZoneId(localZoneId())?.time } }
                     .toSortedMap()
 
                 ScheduleUiState(
@@ -105,6 +108,8 @@ class ScheduleViewModel @Inject constructor(
         }
     }
 
+    protected open fun localZoneId(): ZoneId = ZoneId.systemDefault()
+
     companion object {
         fun currentAnimeSeason(): Pair<Int, AnimeSeason> {
             val now = LocalDate.now()
@@ -132,13 +137,13 @@ private fun String.toAnimeSeason(): AnimeSeason? {
     }
 }
 
-private fun String?.toDayOfWeek(): AnimeDayOfWeek = when (this?.lowercase()?.trimEnd('s')) {
-    "monday" -> AnimeDayOfWeek.MONDAY
-    "tuesday" -> AnimeDayOfWeek.TUESDAY
-    "wednesday" -> AnimeDayOfWeek.WEDNESDAY
-    "thursday" -> AnimeDayOfWeek.THURSDAY
-    "friday" -> AnimeDayOfWeek.FRIDAY
-    "saturday" -> AnimeDayOfWeek.SATURDAY
-    "sunday" -> AnimeDayOfWeek.SUNDAY
+private fun BroadcastTime?.toDayOfWeek(): AnimeDayOfWeek = when (this?.dayOfWeek) {
+    DayOfWeek.MONDAY -> AnimeDayOfWeek.MONDAY
+    DayOfWeek.TUESDAY -> AnimeDayOfWeek.TUESDAY
+    DayOfWeek.WEDNESDAY -> AnimeDayOfWeek.WEDNESDAY
+    DayOfWeek.THURSDAY -> AnimeDayOfWeek.THURSDAY
+    DayOfWeek.FRIDAY -> AnimeDayOfWeek.FRIDAY
+    DayOfWeek.SATURDAY -> AnimeDayOfWeek.SATURDAY
+    DayOfWeek.SUNDAY -> AnimeDayOfWeek.SUNDAY
     else -> AnimeDayOfWeek.UNKNOWN
 }

@@ -4,6 +4,7 @@ import com.vuzeda.animewatchlist.tracker.module.domain.Anime
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeDayOfWeek
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeUpdateResult
+import com.vuzeda.animewatchlist.tracker.module.domain.BroadcastTime
 import com.vuzeda.animewatchlist.tracker.module.domain.EpisodeInfo
 import com.vuzeda.animewatchlist.tracker.module.domain.NotificationType
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
@@ -15,7 +16,6 @@ import com.vuzeda.animewatchlist.tracker.module.ui.screens.home.HomeSeasonItem
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.home.HomeUiState
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.schedule.ScheduleUiState
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.search.SearchUiState
-import com.vuzeda.animewatchlist.tracker.module.ui.screens.seasondetail.LocalBroadcastTime
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.seasondetail.SeasonDetailUiState
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.seasons.SeasonsUiState
 import com.vuzeda.animewatchlist.tracker.module.ui.screens.settings.SettingsUiState
@@ -56,9 +56,11 @@ internal object ScreenPreviewSamples {
         score = 9.3,
         airingStatus = "Finished Airing",
         broadcastInfo = "Fridays at 23:00 (JST)",
-        broadcastDay = "Fridays",
-        broadcastTime = "23:00",
-        broadcastTimezone = "Asia/Tokyo",
+        broadcastTime = BroadcastTime(
+            dayOfWeek = DayOfWeek.FRIDAY,
+            time = LocalTime.of(23, 0),
+            zoneId = ZoneId.of("Asia/Tokyo")
+        ),
         airingSeasonName = "fall",
         airingSeasonYear = 2023
     )
@@ -149,7 +151,7 @@ internal object ScreenPreviewSamples {
         episodes = episodes,
         watchedEpisodes = setOf(1, 2),
         isEpisodeNotificationsEnabled = true,
-        broadcastLocalTime = LocalBroadcastTime(
+        localBroadcastTime = BroadcastTime(
             dayOfWeek = DayOfWeek.FRIDAY,
             time = LocalTime.of(23, 0),
             zoneId = ZoneId.of("Asia/Tokyo")

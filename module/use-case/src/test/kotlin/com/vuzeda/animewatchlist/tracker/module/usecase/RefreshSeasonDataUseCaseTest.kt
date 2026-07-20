@@ -2,6 +2,7 @@ package com.vuzeda.animewatchlist.tracker.module.usecase
 
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
+import com.vuzeda.animewatchlist.tracker.module.domain.BroadcastTime
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.StreamingInfo
 import com.vuzeda.animewatchlist.tracker.module.repository.AnimeRepository
@@ -12,6 +13,9 @@ import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
+import java.time.DayOfWeek
+import java.time.LocalTime
+import java.time.ZoneId
 
 class RefreshSeasonDataUseCaseTest {
 
@@ -42,9 +46,11 @@ class RefreshSeasonDataUseCaseTest {
         score = 8.54,
         airingStatus = "Finished Airing",
         broadcastInfo = "Saturdays at 22:00",
-        broadcastDay = "Saturdays",
-        broadcastTime = "22:00",
-        broadcastTimezone = "Asia/Tokyo",
+        broadcastTime = BroadcastTime(
+            dayOfWeek = DayOfWeek.SATURDAY,
+            time = LocalTime.of(22, 0),
+            zoneId = ZoneId.of("Asia/Tokyo")
+        ),
         streamingLinks = listOf(StreamingInfo("Crunchyroll", "https://crunchyroll.com/aot")),
         sequels = emptyList()
     )
@@ -60,9 +66,11 @@ class RefreshSeasonDataUseCaseTest {
         coVerify { seasonRepository.updateSeason(capture(slot)) }
         val updated = slot.captured
         assertThat(updated.broadcastInfo).isEqualTo("Saturdays at 22:00")
-        assertThat(updated.broadcastDay).isEqualTo("Saturdays")
-        assertThat(updated.broadcastTime).isEqualTo("22:00")
-        assertThat(updated.broadcastTimezone).isEqualTo("Asia/Tokyo")
+        assertThat(updated.broadcastTime).isEqualTo(BroadcastTime(
+            dayOfWeek = DayOfWeek.SATURDAY,
+            time = LocalTime.of(22, 0),
+            zoneId = ZoneId.of("Asia/Tokyo")
+        ))
         assertThat(updated.streamingLinks).hasSize(1)
         assertThat(updated.streamingLinks[0].name).isEqualTo("Crunchyroll")
     }

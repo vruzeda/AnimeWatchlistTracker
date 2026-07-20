@@ -1,11 +1,15 @@
 package com.vuzeda.animewatchlist.tracker.module.localdatasource.room.entity
 
 import com.google.common.truth.Truth.assertThat
+import com.vuzeda.animewatchlist.tracker.module.domain.BroadcastTime
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.StreamingInfo
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
 import org.junit.jupiter.api.Test
+import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
 
 class SeasonEntityTest {
 
@@ -54,9 +58,11 @@ class SeasonEntityTest {
         assertThat(result.orderIndex).isEqualTo(0)
         assertThat(result.airingStatus).isEqualTo("Finished Airing")
         assertThat(result.broadcastInfo).isEqualTo("Saturdays at 18:00 (JST)")
-        assertThat(result.broadcastDay).isEqualTo("Saturdays")
-        assertThat(result.broadcastTime).isEqualTo("18:00")
-        assertThat(result.broadcastTimezone).isEqualTo("Asia/Tokyo")
+        assertThat(result.broadcastTime).isEqualTo(BroadcastTime(
+            dayOfWeek = DayOfWeek.SATURDAY,
+            time = LocalTime.of(18, 0),
+            zoneId = ZoneId.of("Asia/Tokyo")
+        ))
         assertThat(result.streamingLinks).hasSize(2)
         assertThat(result.streamingLinks[0]).isEqualTo(StreamingInfo("Crunchyroll", "https://crunchyroll.com/fma"))
         assertThat(result.streamingLinks[1]).isEqualTo(StreamingInfo("Netflix", "https://netflix.com/title/121"))
@@ -110,9 +116,7 @@ class SeasonEntityTest {
         assertThat(result.score).isNull()
         assertThat(result.airingStatus).isNull()
         assertThat(result.broadcastInfo).isNull()
-        assertThat(result.broadcastDay).isNull()
         assertThat(result.broadcastTime).isNull()
-        assertThat(result.broadcastTimezone).isNull()
         assertThat(result.streamingLinks).isEmpty()
         assertThat(result.lastCheckedAiredEpisodeCount).isNull()
         assertThat(result.latestKnownEpisodeAirDate).isNull()
@@ -136,9 +140,11 @@ class SeasonEntityTest {
             orderIndex = 1,
             airingStatus = "Finished Airing",
             broadcastInfo = "Saturdays at 18:00 (JST)",
-            broadcastDay = "Saturdays",
-            broadcastTime = "18:00",
-            broadcastTimezone = "Asia/Tokyo",
+            broadcastTime = BroadcastTime(
+                dayOfWeek = DayOfWeek.SATURDAY,
+                time = LocalTime.of(18, 0),
+                zoneId = ZoneId.of("Asia/Tokyo")
+            ),
             streamingLinks = listOf(
                 StreamingInfo("Crunchyroll", "https://crunchyroll.com/fma"),
                 StreamingInfo("Netflix", "https://netflix.com/title/121")
@@ -166,7 +172,7 @@ class SeasonEntityTest {
         assertThat(result.orderIndex).isEqualTo(1)
         assertThat(result.airingStatus).isEqualTo("Finished Airing")
         assertThat(result.broadcastInfo).isEqualTo("Saturdays at 18:00 (JST)")
-        assertThat(result.broadcastDay).isEqualTo("Saturdays")
+        assertThat(result.broadcastDay).isEqualTo("saturday")
         assertThat(result.broadcastTime).isEqualTo("18:00")
         assertThat(result.broadcastTimezone).isEqualTo("Asia/Tokyo")
         assertThat(result.streamingLinks).isEqualTo("""[{"name":"Crunchyroll","url":"https://crunchyroll.com/fma"},{"name":"Netflix","url":"https://netflix.com/title/121"}]""")

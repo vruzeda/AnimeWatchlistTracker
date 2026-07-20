@@ -1,12 +1,20 @@
 package com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.mapper
 
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeFullDetails
+import com.vuzeda.animewatchlist.tracker.module.domain.BroadcastTime
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResult
 import com.vuzeda.animewatchlist.tracker.module.domain.SearchResultPage
 import com.vuzeda.animewatchlist.tracker.module.domain.SeasonalAnimePage
 import com.vuzeda.animewatchlist.tracker.module.domain.SequelInfo
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.MalAnimeDto
 import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.MalAnimeListResponseDto
+import com.vuzeda.animewatchlist.tracker.module.remotedatasource.retrofit.dto.MalBroadcastDto
+import java.time.DayOfWeek
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
+import java.util.Locale
 
 private const val MAL_BROADCAST_TIMEZONE = "Asia/Tokyo"
 
@@ -53,15 +61,20 @@ fun MalAnimeDto.toAnimeFullDetails(): AnimeFullDetails {
         genres = genres?.map { it.name } ?: emptyList(),
         airingStatus = status.malStatusToDisplayStatus(),
         broadcastInfo = composeBroadcastInfo(displayDay, startTime),
-        broadcastDay = displayDay,
-        broadcastTime = startTime,
-        broadcastTimezone = displayDay?.let { MAL_BROADCAST_TIMEZONE },
+        broadcastTime = broadcast?.toBroadcastTime(),
         sequels = extractRelations("sequel"),
         prequels = extractRelations("prequel"),
         airingSeasonName = startSeason?.season,
         airingSeasonYear = startSeason?.year
     )
 }
+
+private fun MalBroadcastDto.toBroadcastTime(): BroadcastTime? =
+    BroadcastTime(
+        day = dayOfTheWeek.malBroadcastDayToDisplayDay(),
+        time = startTime,
+        timezone = MAL_BROADCAST_TIMEZONE
+    )
 
 private fun composeBroadcastInfo(displayDay: String?, startTime: String?): String? = when {
     displayDay != null && startTime != null -> "$displayDay at $startTime (JST)"

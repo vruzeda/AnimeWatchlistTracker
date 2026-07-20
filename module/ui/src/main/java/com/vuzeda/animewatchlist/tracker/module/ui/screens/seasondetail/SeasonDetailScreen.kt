@@ -80,6 +80,7 @@ import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.PosterHeight
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.PosterWidth
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.ScreenPadding
 import com.vuzeda.animewatchlist.tracker.module.designsystem.theme.SmallSpacing
+import com.vuzeda.animewatchlist.tracker.module.domain.BroadcastTime
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.StreamingInfo
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
@@ -393,7 +394,7 @@ private fun SeasonDetailContent(
                     season = season,
                     titleLanguage = state.titleLanguage,
                     isInWatchlist = state.isInWatchlist,
-                    broadcastLocalTime = state.broadcastLocalTime,
+                    localBroadcastTime = state.localBroadcastTime,
                     imageModifier = imageModifier,
                     onImageClick = onImageClick,
                     onStatusChipClick = onStatusChipClick,
@@ -619,7 +620,7 @@ private fun SeasonHeaderSection(
     season: Season,
     titleLanguage: TitleLanguage,
     isInWatchlist: Boolean,
-    broadcastLocalTime: LocalBroadcastTime?,
+    localBroadcastTime: BroadcastTime?,
     imageModifier: Modifier = Modifier,
     onImageClick: () -> Unit,
     onStatusChipClick: () -> Unit,
@@ -698,18 +699,24 @@ private fun SeasonHeaderSection(
                 )
             }
 
-            if (broadcastLocalTime != null) {
+            if (localBroadcastTime != null) {
                 val locale = LocalConfiguration.current.locales[0]
-                val dayDisplay = broadcastLocalTime.dayOfWeek.getDisplayName(TextStyle.FULL, locale)
-                val timeDisplay = broadcastLocalTime.time.format(
-                    DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale)
-                )
-                val zoneDisplay = broadcastLocalTime.zoneId.getDisplayName(TextStyle.SHORT_STANDALONE, locale)
+                val dayDisplay = localBroadcastTime.dayOfWeek.getDisplayName(TextStyle.FULL, locale)
+
+                val broadcastTimeDisplay: String
+
+                val time = localBroadcastTime.time
+                val zoneId = localBroadcastTime.zoneId
+                if (time != null && zoneId != null) {
+                    val timeDisplay = time.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale))
+                    val zoneDisplay = zoneId.getDisplayName(TextStyle.SHORT_STANDALONE, locale)
+                    broadcastTimeDisplay = stringResource(R.string.season_detail_local_broadcast_time_format, dayDisplay, timeDisplay, zoneDisplay)
+                } else {
+                    broadcastTimeDisplay = dayDisplay
+                }
+
                 Text(
-                    text = stringResource(
-                        R.string.season_detail_broadcast_local_time,
-                        stringResource(R.string.season_detail_local_broadcast_format, dayDisplay, timeDisplay, zoneDisplay)
-                    ),
+                    text = stringResource(R.string.season_detail_broadcast_local_time, broadcastTimeDisplay),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

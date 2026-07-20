@@ -1,17 +1,9 @@
 package com.vuzeda.animewatchlist.tracker.module.ui.screens.seasondetail
 
+import com.vuzeda.animewatchlist.tracker.module.domain.BroadcastTime
 import com.vuzeda.animewatchlist.tracker.module.domain.EpisodeInfo
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
-import java.time.DayOfWeek
-import java.time.LocalTime
-import java.time.ZoneId
-
-data class LocalBroadcastTime(
-    val dayOfWeek: DayOfWeek,
-    val time: LocalTime,
-    val zoneId: ZoneId
-)
 
 data class SeasonDetailUiState(
     val isLoading: Boolean = true,
@@ -28,7 +20,7 @@ data class SeasonDetailUiState(
     val isDeleteConfirmationVisible: Boolean = false,
     val isAddSheetVisible: Boolean = false,
     val isEpisodeNotificationsEnabled: Boolean = false,
-    val broadcastLocalTime: LocalBroadcastTime? = null,
+    val localBroadcastTime: BroadcastTime? = null,
     val snackbarEvent: SeasonDetailSnackbarEvent? = null,
     val pendingNavigationMalId: Int? = null,
     val isRefreshing: Boolean = false,

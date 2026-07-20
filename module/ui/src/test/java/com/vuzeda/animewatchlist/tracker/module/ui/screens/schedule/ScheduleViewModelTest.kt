@@ -3,6 +3,7 @@ package com.vuzeda.animewatchlist.tracker.module.ui.screens.schedule
 import com.google.common.truth.Truth.assertThat
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeDayOfWeek
 import com.vuzeda.animewatchlist.tracker.module.domain.AnimeSeason
+import com.vuzeda.animewatchlist.tracker.module.domain.BroadcastTime
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.TitleLanguage
 import com.vuzeda.animewatchlist.tracker.module.usecase.ObserveScheduleUseCase
@@ -24,6 +25,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.DayOfWeek
+import java.time.LocalTime
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ScheduleViewModelTest {
@@ -111,9 +113,9 @@ class ScheduleViewModelTest {
     @Test
     fun `availableSeasons contains distinct year+season pairs derived from schedule data`() = runTest {
         val seasons = listOf(
-            Season(id = 1, malId = 1, title = "Show A", broadcastDay = "Saturdays", isInWatchlist = true, airingSeasonName = "spring", airingSeasonYear = 2026),
-            Season(id = 2, malId = 2, title = "Show B", broadcastDay = "Wednesdays", isInWatchlist = true, airingSeasonName = "spring", airingSeasonYear = 2026),
-            Season(id = 3, malId = 3, title = "Show C", broadcastDay = "Saturdays", isInWatchlist = true, airingSeasonName = "summer", airingSeasonYear = 2026)
+            Season(id = 1, malId = 1, title = "Show A", broadcastTime = BroadcastTime(dayOfWeek = DayOfWeek.SATURDAY), isInWatchlist = true, airingSeasonName = "spring", airingSeasonYear = 2026),
+            Season(id = 2, malId = 2, title = "Show B", broadcastTime = BroadcastTime(dayOfWeek = DayOfWeek.WEDNESDAY), isInWatchlist = true, airingSeasonName = "spring", airingSeasonYear = 2026),
+            Season(id = 3, malId = 3, title = "Show C", broadcastTime = BroadcastTime(dayOfWeek = DayOfWeek.SATURDAY), isInWatchlist = true, airingSeasonName = "summer", airingSeasonYear = 2026)
         )
         every { observeScheduleUseCase() } returns flowOf(seasons)
         val viewModel = createViewModel()
@@ -130,7 +132,7 @@ class ScheduleViewModelTest {
     @Test
     fun `availableSeasons excludes seasons with missing airing season metadata`() = runTest {
         val seasons = listOf(
-            Season(id = 1, malId = 1, title = "No metadata", broadcastDay = "Saturdays", isInWatchlist = true, airingSeasonName = null, airingSeasonYear = null)
+            Season(id = 1, malId = 1, title = "No metadata", broadcastTime = BroadcastTime(dayOfWeek = DayOfWeek.SATURDAY), isInWatchlist = true, airingSeasonName = null, airingSeasonYear = null)
         )
         every { observeScheduleUseCase() } returns flowOf(seasons)
         val viewModel = createViewModel()
@@ -143,8 +145,8 @@ class ScheduleViewModelTest {
     fun `schedule is filtered to selected season only`() = runTest {
         val (currentYear, currentSeason) = ScheduleViewModel.currentAnimeSeason()
         val seasons = listOf(
-            Season(id = 1, malId = 1, title = "Current season show", broadcastDay = "Saturdays", isInWatchlist = true, airingSeasonName = currentSeason.name.lowercase(), airingSeasonYear = currentYear),
-            Season(id = 2, malId = 2, title = "Other season show", broadcastDay = "Mondays", isInWatchlist = true, airingSeasonName = "winter", airingSeasonYear = 1999)
+            Season(id = 1, malId = 1, title = "Current season show", broadcastTime = BroadcastTime(dayOfWeek = DayOfWeek.SATURDAY), isInWatchlist = true, airingSeasonName = currentSeason.name.lowercase(), airingSeasonYear = currentYear),
+            Season(id = 2, malId = 2, title = "Other season show", broadcastTime = BroadcastTime(dayOfWeek = DayOfWeek.MONDAY), isInWatchlist = true, airingSeasonName = "winter", airingSeasonYear = 1999)
         )
         every { observeScheduleUseCase() } returns flowOf(seasons)
         val viewModel = createViewModel()
@@ -160,9 +162,9 @@ class ScheduleViewModelTest {
     fun `schedule groups seasons by parsed DayOfWeek`() = runTest {
         val (currentYear, currentSeason) = ScheduleViewModel.currentAnimeSeason()
         val seasons = listOf(
-            Season(id = 1, malId = 1, title = "Saturday Show", broadcastDay = "Saturdays", isInWatchlist = true, airingSeasonName = currentSeason.name.lowercase(), airingSeasonYear = currentYear),
-            Season(id = 2, malId = 2, title = "Monday Show", broadcastDay = "Mondays", isInWatchlist = true, airingSeasonName = currentSeason.name.lowercase(), airingSeasonYear = currentYear),
-            Season(id = 3, malId = 3, title = "Unknown Day Show", broadcastDay = null, isInWatchlist = true, airingSeasonName = currentSeason.name.lowercase(), airingSeasonYear = currentYear),
+            Season(id = 1, malId = 1, title = "Saturday Show", broadcastTime = BroadcastTime(dayOfWeek = DayOfWeek.SATURDAY), isInWatchlist = true, airingSeasonName = currentSeason.name.lowercase(), airingSeasonYear = currentYear),
+            Season(id = 2, malId = 2, title = "Monday Show", broadcastTime = BroadcastTime(dayOfWeek = DayOfWeek.MONDAY), isInWatchlist = true, airingSeasonName = currentSeason.name.lowercase(), airingSeasonYear = currentYear),
+            Season(id = 3, malId = 3, title = "Unknown Day Show", broadcastTime = null, isInWatchlist = true, airingSeasonName = currentSeason.name.lowercase(), airingSeasonYear = currentYear),
         )
         every { observeScheduleUseCase() } returns flowOf(seasons)
         val viewModel = createViewModel()
@@ -182,9 +184,9 @@ class ScheduleViewModelTest {
     fun `same-day entries are ordered by broadcast time`() = runTest {
         val (currentYear, currentSeason) = ScheduleViewModel.currentAnimeSeason()
         val seasons = listOf(
-            Season(id = 1, malId = 1, title = "Late Show", broadcastDay = "Saturdays", broadcastTime = "23:30", isInWatchlist = true, airingSeasonName = currentSeason.name.lowercase(), airingSeasonYear = currentYear),
-            Season(id = 2, malId = 2, title = "Early Show", broadcastDay = "Saturdays", broadcastTime = "09:00", isInWatchlist = true, airingSeasonName = currentSeason.name.lowercase(), airingSeasonYear = currentYear),
-            Season(id = 3, malId = 3, title = "Mid Show", broadcastDay = "Saturdays", broadcastTime = "17:00", isInWatchlist = true, airingSeasonName = currentSeason.name.lowercase(), airingSeasonYear = currentYear)
+            Season(id = 1, malId = 1, title = "Late Show", broadcastTime = BroadcastTime(dayOfWeek = DayOfWeek.SATURDAY, time = LocalTime.of(23, 30)), isInWatchlist = true, airingSeasonName = currentSeason.name.lowercase(), airingSeasonYear = currentYear),
+            Season(id = 2, malId = 2, title = "Early Show", broadcastTime = BroadcastTime(dayOfWeek = DayOfWeek.SATURDAY, time = LocalTime.of(9, 0)), isInWatchlist = true, airingSeasonName = currentSeason.name.lowercase(), airingSeasonYear = currentYear),
+            Season(id = 3, malId = 3, title = "Mid Show", broadcastTime = BroadcastTime(dayOfWeek = DayOfWeek.SATURDAY, time = LocalTime.of(17, 0)), isInWatchlist = true, airingSeasonName = currentSeason.name.lowercase(), airingSeasonYear = currentYear)
         )
         every { observeScheduleUseCase() } returns flowOf(seasons)
         val viewModel = createViewModel()

@@ -5,10 +5,17 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.squareup.moshi.Moshi
+import com.vuzeda.animewatchlist.tracker.module.domain.BroadcastTime
 import com.vuzeda.animewatchlist.tracker.module.domain.Season
 import com.vuzeda.animewatchlist.tracker.module.domain.StreamingInfo
 import com.vuzeda.animewatchlist.tracker.module.domain.WatchStatus
+import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
+import java.util.Locale
 
 private val moshi = Moshi.Builder().build()
 
@@ -91,9 +98,7 @@ fun SeasonEntity.toDomainModel(): Season = Season(
     orderIndex = orderIndex,
     airingStatus = airingStatus,
     broadcastInfo = broadcastInfo,
-    broadcastDay = broadcastDay,
-    broadcastTime = broadcastTime,
-    broadcastTimezone = broadcastTimezone,
+    broadcastTime = toBroadcastTime(),
     streamingLinks = jsonToStreamingInfo(streamingLinks),
     lastCheckedAiredEpisodeCount = lastCheckedAiredEpisodeCount,
     latestKnownEpisodeAirDate = latestKnownEpisodeAirDate,
@@ -104,6 +109,19 @@ fun SeasonEntity.toDomainModel(): Season = Season(
     airingSeasonYear = airingSeasonYear,
     addedAt = addedAt
 )
+
+private fun SeasonEntity.toBroadcastTime(): BroadcastTime? =
+    BroadcastTime(
+        dayOfWeek = broadcastDay?.let {
+            DayOfWeek.entries.firstOrNull { dow -> it.lowercase().startsWith(dow.getDisplayName(TextStyle.FULL, Locale.ENGLISH).lowercase()) }
+        } ?: return null,
+        time = broadcastTime?.let {
+            LocalTime.parse(it, DateTimeFormatter.ofPattern("HH:mm"))
+        },
+        zoneId = broadcastTimezone?.let {
+            ZoneId.of(it)
+        } ?: return null,
+    )
 
 fun Season.toEntity(): SeasonEntity = SeasonEntity(
     id = id,
@@ -120,9 +138,9 @@ fun Season.toEntity(): SeasonEntity = SeasonEntity(
     orderIndex = orderIndex,
     airingStatus = airingStatus,
     broadcastInfo = broadcastInfo,
-    broadcastDay = broadcastDay,
-    broadcastTime = broadcastTime,
-    broadcastTimezone = broadcastTimezone,
+    broadcastDay = broadcastTime?.dayOfWeek?.getDisplayName(TextStyle.FULL, Locale.ENGLISH)?.lowercase(),
+    broadcastTime = broadcastTime?.time?.format(DateTimeFormatter.ofPattern("HH:mm")),
+    broadcastTimezone = broadcastTime?.zoneId?.id,
     streamingLinks = streamingInfoToJson(streamingLinks),
     lastCheckedAiredEpisodeCount = lastCheckedAiredEpisodeCount,
     latestKnownEpisodeAirDate = latestKnownEpisodeAirDate,

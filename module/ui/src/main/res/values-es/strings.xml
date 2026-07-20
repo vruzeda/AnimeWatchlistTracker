@@ -153,7 +153,6 @@
     <string name="season_detail_broadcast_info">Emisión: %1$s</string>
     <string name="season_detail_broadcast_local_time">Hora local: %1$s</string>
     <string name="season_detail_airing_season">Temporada: %1$s</string>
-    <string name="season_detail_local_broadcast_format">%1$s a las %2$s (%3$s)</string>
     <string name="season_detail_mark_all_episodes_watched">Marcar todos como vistos</string>
     <string name="season_detail_section_streaming">Disponible en</string>
     <plurals name="season_detail_streaming_show_more">
@@ -267,4 +266,5 @@
     <string name="feedback_contact_name_hint">Nombre (opcional)</string>
     <string name="feedback_contact_email_hint">Correo electrónico (opcional)</string>
     <string name="feedback_contact_email_error">Ingresa un correo electrónico válido</string>
+    <string name="season_detail_local_broadcast_time_format">%1$s a las %2$s (%3$s)</string>
 </resources>
