@@ -483,17 +483,7 @@ class UserPreferencesRepositoryImplTest {
 
     @Test
     fun `observeAnimeProvider returns matching AnimeProvider for valid stored value`() = runTest {
-        every { dataSource.observeAnimeProvider() } returns flowOf("MAL")
-
-        repository.observeAnimeProvider().test {
-            assertThat(awaitItem()).isEqualTo(AnimeProvider.MAL)
-            awaitComplete()
-        }
-    }
-
-    @Test
-    fun `observeAnimeProvider returns MAL for unknown stored value`() = runTest {
-        every { dataSource.observeAnimeProvider() } returns flowOf("UNKNOWN_VALUE")
+        every { dataSource.observeAnimeProvider() } returns flowOf(AnimeProvider.MAL)
 
         repository.observeAnimeProvider().test {
             assertThat(awaitItem()).isEqualTo(AnimeProvider.MAL)
@@ -507,7 +497,7 @@ class UserPreferencesRepositoryImplTest {
 
         repository.setAnimeProvider(AnimeProvider.MAL)
 
-        coVerify { dataSource.setAnimeProvider("MAL") }
+        coVerify { dataSource.setAnimeProvider(AnimeProvider.MAL) }
     }
 
     @Test

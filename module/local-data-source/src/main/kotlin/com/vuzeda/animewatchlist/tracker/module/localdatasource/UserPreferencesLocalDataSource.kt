@@ -1,5 +1,6 @@
 package com.vuzeda.animewatchlist.tracker.module.localdatasource
 
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeProvider
 import kotlinx.coroutines.flow.Flow
 
 interface UserPreferencesLocalDataSource {
@@ -25,8 +26,8 @@ interface UserPreferencesLocalDataSource {
     suspend fun setIsNotificationDebugInfoEnabled(enabled: Boolean)
     fun observeIsOfflineCoverCachingEnabled(): Flow<Boolean>
     suspend fun setIsOfflineCoverCachingEnabled(enabled: Boolean)
-    fun observeAnimeProvider(): Flow<String>
-    suspend fun setAnimeProvider(provider: String)
+    fun observeAnimeProvider(): Flow<AnimeProvider>
+    suspend fun setAnimeProvider(provider: AnimeProvider)
     suspend fun getInstallationId(): String?
     suspend fun setInstallationId(installationId: String)
 }

@@ -1,0 +1,1 @@
+• Usar Tenrai como proveedor oficial de contenido para resolver los problemas de límite de solicitudes.

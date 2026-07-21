@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeProvider
 import com.vuzeda.animewatchlist.tracker.module.localdatasource.UserPreferencesLocalDataSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -160,14 +161,16 @@ class UserPreferencesDataStore(
         }
     }
 
-    override fun observeAnimeProvider(): Flow<String> =
+    override fun observeAnimeProvider(): Flow<AnimeProvider> =
         safePreferences.map { preferences ->
-            preferences[ANIME_PROVIDER_KEY] ?: DEFAULT_ANIME_PROVIDER
+            preferences[ANIME_PROVIDER_KEY]?.let { animeProviderName ->
+                AnimeProvider.entries.firstOrNull { it.name == animeProviderName }
+            } ?: AnimeProvider.TENRAI
         }
 
-    override suspend fun setAnimeProvider(provider: String) {
+    override suspend fun setAnimeProvider(provider: AnimeProvider) {
         dataStore.edit { preferences ->
-            preferences[ANIME_PROVIDER_KEY] = provider
+            preferences[ANIME_PROVIDER_KEY] = provider.name
         }
     }
 
@@ -205,6 +208,5 @@ class UserPreferencesDataStore(
             booleanPreferencesKey("offline_cover_caching_enabled")
         private val ANIME_PROVIDER_KEY = stringPreferencesKey("anime_provider")
         private val INSTALLATION_ID_KEY = stringPreferencesKey("anime_provider")
-        const val DEFAULT_ANIME_PROVIDER = "MAL"
     }
 }

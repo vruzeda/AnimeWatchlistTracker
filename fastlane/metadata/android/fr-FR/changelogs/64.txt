@@ -1,0 +1,1 @@
+• Utiliser Tenrai comme fournisseur officiel de contenu afin de résoudre les problèmes de limitation du nombre de requêtes.

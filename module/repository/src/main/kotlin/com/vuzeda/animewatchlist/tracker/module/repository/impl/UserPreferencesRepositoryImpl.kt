@@ -14,7 +14,6 @@ import com.vuzeda.animewatchlist.tracker.module.localdatasource.UserPreferencesL
 import com.vuzeda.animewatchlist.tracker.module.repository.UserPreferencesRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.util.UUID
 import javax.inject.Inject
 
 class UserPreferencesRepositoryImpl @Inject constructor(
@@ -129,12 +128,10 @@ class UserPreferencesRepositoryImpl @Inject constructor(
     }
 
     override fun observeAnimeProvider(): Flow<AnimeProvider> =
-        dataSource.observeAnimeProvider().map { value ->
-            AnimeProvider.entries.firstOrNull { it.name == value } ?: AnimeProvider.MAL
-        }
+        dataSource.observeAnimeProvider()
 
     override suspend fun setAnimeProvider(provider: AnimeProvider) {
-        dataSource.setAnimeProvider(provider.name)
+        dataSource.setAnimeProvider(provider)
     }
 
     override suspend fun getInstallationId(): String =

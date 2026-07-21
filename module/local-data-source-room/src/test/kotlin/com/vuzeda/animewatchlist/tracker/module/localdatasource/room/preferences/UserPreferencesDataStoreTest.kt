@@ -4,6 +4,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.emptyPreferences
 import com.google.common.truth.Truth.assertThat
+import com.vuzeda.animewatchlist.tracker.module.domain.AnimeProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -65,16 +66,16 @@ class UserPreferencesDataStoreTest {
     fun `observeAnimeProvider emits default when preferences file is corrupted`() = runTest {
         val provider = corruptedDataStore().observeAnimeProvider().first()
 
-        assertThat(provider).isEqualTo(UserPreferencesDataStore.DEFAULT_ANIME_PROVIDER)
+        assertThat(provider).isEqualTo(AnimeProvider.TENRAI)
     }
 
     @Test
     fun `setAnimeProvider round-trips through observeAnimeProvider`() = runTest {
         val dataStore = UserPreferencesDataStore(InMemoryDataStore())
 
-        dataStore.setAnimeProvider("MAL")
+        dataStore.setAnimeProvider(AnimeProvider.MAL)
 
-        assertThat(dataStore.observeAnimeProvider().first()).isEqualTo("MAL")
+        assertThat(dataStore.observeAnimeProvider().first()).isEqualTo(AnimeProvider.MAL)
     }
 
     @Test
